@@ -37,7 +37,6 @@ Every project has a **Base Canon** (always active) + **Domain Canon** (project-s
 | `d3` | D3.js visualization | Bostock, Tufte, Few, Knaflic |
 | `node` | Node.js backend | (uses base) |
 | `java` | Java | Bloch |
-| `go` | Go | Pike |
 | `python` | Python | (TODO) |
 
 ### Business Profiles
@@ -127,16 +126,6 @@ Every project has a **Base Canon** (always active) + **Domain Canon** (project-s
 
 ---
 
-### go
-
-**Domain canon for Go projects.**
-
-| Expert | Focus |
-|--------|-------|
-| Pike | Go Proverbs - simplicity, concurrency |
-
----
-
 ### python
 
 **Domain canon for Python projects.**
@@ -190,7 +179,6 @@ Every project has a **Base Canon** (always active) + **Domain Canon** (project-s
 | React + D3 viz | Software Base | javascript + react + d3 |
 | Node API | Software Base | javascript |
 | Java backend | Software Base | java |
-| Go service | Software Base | go |
 
 ### Business Projects
 

@@ -57,7 +57,6 @@ SOFTWARE PROJECTS
 │   Java:    Bloch (Effective Java)                           │
 │   JS:      Simpson (You Don't Know JS)                      │
 │   React:   Abramov (Mental models, hooks)                   │
-│   Go:      Pike (Simplicity, concurrency)                   │
 │   D3/Viz:  Bostock, Tufte, Few, Knaflic                     │
 └─────────────────────────────────────────────────────────────┘
 
