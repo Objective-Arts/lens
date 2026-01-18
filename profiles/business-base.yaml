@@ -1,0 +1,9 @@
+name: business-base
+description: Base canon for ALL business projects. Always alive.
+projectType: business
+composable: true
+
+canon:
+  base:
+    - strunk-white   # Elements of Style
+    - zinsser        # On Writing Well

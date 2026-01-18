@@ -1,0 +1,9 @@
+name: python
+description: Domain canon for Python projects
+projectType: software
+composable: true
+extends: software-base
+
+canon:
+  domain: []
+  # TODO: Add Python domain expert

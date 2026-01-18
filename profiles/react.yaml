@@ -1,0 +1,9 @@
+name: react
+description: Domain canon for React projects. Combine with javascript.
+projectType: software
+composable: true
+extends: javascript
+
+canon:
+  domain:
+    - abramov        # Mental models, hooks, composition

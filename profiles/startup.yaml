@@ -1,0 +1,9 @@
+name: startup
+description: Domain canon for startups and org building
+projectType: business
+composable: true
+extends: business-base
+
+canon:
+  domain:
+    - horowitz       # The Hard Thing About Hard Things

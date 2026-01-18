@@ -1,0 +1,9 @@
+name: java
+description: Domain canon for Java projects
+projectType: software
+composable: true
+extends: software-base
+
+canon:
+  domain:
+    - bloch          # Effective Java - API design, collections

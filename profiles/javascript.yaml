@@ -1,0 +1,10 @@
+name: javascript
+description: Domain canon for JavaScript/TypeScript projects
+projectType: software
+composable: true
+extends: software-base
+
+canon:
+  domain:
+    - simpson        # You Don't Know JS
+    - cherny         # Programming TypeScript

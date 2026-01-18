@@ -1,0 +1,16 @@
+name: d3
+description: Domain canon for D3.js visualization. Combine with javascript.
+projectType: software
+composable: true
+extends: javascript
+
+canon:
+  domain:
+    - bostock        # Selections, data joins, scales
+    - tufte          # Visual Display of Quantitative Information
+    - few            # Dashboard design, information clarity
+    - knaflic        # Storytelling with Data
+
+agents:
+  - css-expert
+  - accessibility-tester

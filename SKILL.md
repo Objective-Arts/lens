@@ -5,12 +5,12 @@ description: Pattern language for composing Claude Code primitives into quality-
 
 # Claude-Optimal: Pattern Language for Claude Code
 
-> **This is the theory document.** For practical usage, see [USER-GUIDE.md](USER-GUIDE.md).
+> **This is the theory document.** For practical usage, see [docs/USER-GUIDE.md](docs/USER-GUIDE.md).
 
 This document explains *why* the patterns work. For *how* to use them:
-- **Profiles**: [PROFILES.md](PROFILES.md)
-- **Standards**: [STRUCTURAL-STANDARDS.md](STRUCTURAL-STANDARDS.md)
-- **Flags**: [FLAGS.md](FLAGS.md)
+- **Profiles**: [docs/PROFILES.md](docs/PROFILES.md)
+- **Standards**: [docs/STRUCTURAL-STANDARDS.md](docs/STRUCTURAL-STANDARDS.md)
+- **Flags**: [docs/FLAGS.md](docs/FLAGS.md)
 
 ---
 
