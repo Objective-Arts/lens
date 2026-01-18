@@ -6,4 +6,18 @@ extends: software-base
 
 canon:
   domain:
-    - bloch          # Effective Java - API design, collections
+    - bloch          # Effective Java - API design, immutability, builders
+    - kernighan      # Clarity - naming, no magic numbers, simplicity
+    - gang-of-four   # Design patterns - Strategy, Factory, Observer
+    - liskov         # LSP and SOLID - proper inheritance, contracts
+
+claudeMd:
+  autoInvoke:
+    - context: Java API design, collections, builders, immutability
+      action: INVOKE `/bloch`
+    - context: Code clarity, naming, magic numbers, readability
+      action: INVOKE `/kernighan`
+    - context: Design patterns, Factory, Strategy, Observer, Decorator
+      action: INVOKE `/gang-of-four`
+    - context: Inheritance design, LSP violations, type hierarchies
+      action: INVOKE `/liskov`
