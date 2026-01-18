@@ -80,6 +80,25 @@ export interface SkillLibraryPaths {
  * Canon is always alive - the lens through which all work is done.
  * Quality is generative (built in), not corrective (fixed after).
  */
+/**
+ * Extended MCP server configuration for profiles
+ */
+export type MCPServerCategory =
+  | 'development'
+  | 'productivity'
+  | 'data'
+  | 'reasoning'
+  | 'automation'
+  | 'other';
+
+export interface ProfileMCPServerConfig {
+  enable: string[];
+  disable: string[];
+  config?: Record<string, Record<string, unknown>>;  // Override registry settings
+  categories?: MCPServerCategory[];  // Enable all servers in category
+  requireAll?: boolean;  // Fail if any unavailable (default: false)
+}
+
 export interface ComposableProfile {
   name: string;
   description?: string;
@@ -96,10 +115,7 @@ export interface ComposableProfile {
   claudeMd?: {
     autoInvoke: Array<{ context: string; action: string }>;
   };
-  mcpServers?: {
-    enable: string[];
-    disable: string[];
-  };
+  mcpServers?: ProfileMCPServerConfig;
   settings?: Record<string, unknown>;
 }
 
@@ -124,10 +140,7 @@ export interface Profile {
   claudeMd?: {
     autoInvoke: Array<{ context: string; action: string }>;
   };
-  mcpServers?: {
-    enable: string[];
-    disable: string[];
-  };
+  mcpServers?: ProfileMCPServerConfig;
   settings?: Record<string, unknown>;
 }
 

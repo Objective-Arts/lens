@@ -9,7 +9,16 @@ import * as fs from 'fs';
 import * as path from 'path';
 import { parse as parseYaml, stringify as stringifyYaml } from 'yaml';
 import { homedir } from 'os';
-import type { Profile, ComposableProfile, SkillLibraryPaths, SkillCategory } from '../types.js';
+import type { Profile, ComposableProfile, SkillLibraryPaths, SkillCategory, MCPServerCategory } from '../types.js';
+import {
+  getServer,
+  isServerInstalled,
+  installAndEnableServer,
+  enableServer,
+  disableServer,
+  listServers,
+  checkRequiredEnv
+} from '../mcp/index.js';
 
 const PROFILES_DIR = path.join(homedir(), '.claude', 'profiles');
 
@@ -272,6 +281,104 @@ export async function applyComposableProfile(profile: ComposableProfile, project
     const claudeMdPath = path.join(projectPath, 'CLAUDE.md');
     await updateClaudeMdWithProfile(claudeMdPath, profile);
     result.created.push('Updated CLAUDE.md with profile info and auto-invoke rules');
+  }
+
+  // Handle MCP servers
+  if (profile.mcpServers) {
+    const mcpResult = await applyMcpServers(profile.mcpServers);
+    result.created.push(...mcpResult.created);
+    result.skipped.push(...mcpResult.skipped);
+    result.errors.push(...mcpResult.errors);
+  }
+
+  return result;
+}
+
+/**
+ * Apply MCP server configuration from a profile
+ */
+async function applyMcpServers(mcpConfig: {
+  enable?: string[];
+  disable?: string[];
+  categories?: MCPServerCategory[];
+  requireAll?: boolean;
+}): Promise<{ created: string[]; skipped: string[]; errors: string[] }> {
+  const result = { created: [] as string[], skipped: [] as string[], errors: [] as string[] };
+
+  // Build list of servers to enable
+  const serversToEnable = new Set<string>(mcpConfig.enable || []);
+
+  // Add servers from categories
+  if (mcpConfig.categories) {
+    for (const category of mcpConfig.categories) {
+      const categoryServers = listServers({ category });
+      for (const server of categoryServers) {
+        serversToEnable.add(server.name);
+      }
+    }
+  }
+
+  // Remove disabled servers from the enable list
+  if (mcpConfig.disable) {
+    for (const server of mcpConfig.disable) {
+      serversToEnable.delete(server);
+    }
+  }
+
+  // Process each server
+  for (const serverName of serversToEnable) {
+    // Check if in registry
+    const serverDef = getServer(serverName);
+
+    if (!serverDef) {
+      if (mcpConfig.requireAll) {
+        result.errors.push(`MCP server not found in registry: ${serverName}`);
+      } else {
+        result.skipped.push(`MCP server ${serverName} not in registry (skipping)`);
+      }
+      continue;
+    }
+
+    // Check required env vars
+    if (serverDef.requiredEnv && serverDef.requiredEnv.length > 0) {
+      const envCheck = checkRequiredEnv(serverDef);
+      if (!envCheck.ok) {
+        if (mcpConfig.requireAll) {
+          result.errors.push(`MCP server ${serverName} requires: ${envCheck.missing.join(', ')}`);
+        } else {
+          result.skipped.push(`MCP server ${serverName} requires ${envCheck.missing.join(', ')} - set env vars to enable`);
+        }
+        continue;
+      }
+    }
+
+    // Check if already installed
+    if (isServerInstalled(serverName)) {
+      const enableResult = enableServer(serverName);
+      if (enableResult.success) {
+        result.created.push(`MCP server ${serverName}: enabled`);
+      } else {
+        result.skipped.push(`MCP server ${serverName}: ${enableResult.message}`);
+      }
+    } else {
+      // Install and enable
+      const installResult = installAndEnableServer(serverName);
+      if (installResult.success) {
+        result.created.push(`MCP server ${serverName}: installed and enabled`);
+      } else {
+        result.errors.push(`MCP server ${serverName}: ${installResult.message}`);
+      }
+    }
+  }
+
+  // Handle explicit disables
+  if (mcpConfig.disable) {
+    for (const serverName of mcpConfig.disable) {
+      const disableResult = disableServer(serverName);
+      if (disableResult.success && !disableResult.warnings?.length) {
+        result.created.push(`MCP server ${serverName}: disabled`);
+      }
+    }
   }
 
   return result;

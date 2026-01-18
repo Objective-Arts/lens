@@ -20,7 +20,25 @@ import {
   exampleProfile,
   exampleComposableProfile
 } from '../profiles/index.js';
+import {
+  listServers,
+  listCategories,
+  getServer,
+  installServer,
+  uninstallServer,
+  enableServer,
+  disableServer,
+  checkServer,
+  checkAllServers,
+  listInstalledServers,
+  isServerInstalled,
+  isServerEnabled,
+  addServerToRegistry,
+  getRegistryPath,
+  ensureRegistryDir
+} from '../mcp/index.js';
 import type { ConfigItem, ConfigItemType, ConfigScope, ScanResult, ComposableProfile } from '../types.js';
+import type { MCPServerDefinition, MCPServerCategory } from '../mcp/types.js';
 
 const program = new Command();
 
@@ -320,6 +338,337 @@ profileCmd
     } else {
       console.log(chalk.yellow('\nProfile applied with some errors.'));
     }
+  });
+
+// MCP Registry commands
+const mcpCmd = program.command('mcp').description('Manage MCP server registry');
+
+mcpCmd
+  .command('list')
+  .description('List all servers in the registry')
+  .option('--installed', 'Show only installed servers')
+  .option('--category <category>', 'Filter by category')
+  .option('--enabled', 'Show only enabled servers')
+  .action((options) => {
+    if (options.installed || options.enabled) {
+      // Show installed servers
+      const installed = listInstalledServers();
+
+      if (installed.length === 0) {
+        console.log(chalk.gray('No MCP servers installed.'));
+        console.log(chalk.gray('Install from registry with: cc-config mcp install <server>'));
+        return;
+      }
+
+      console.log(chalk.bold('\nInstalled MCP Servers:\n'));
+
+      const filtered = options.enabled
+        ? installed.filter(s => s.enabled)
+        : installed;
+
+      for (const server of filtered) {
+        const status = server.enabled
+          ? chalk.green('✓ enabled')
+          : chalk.gray('○ disabled');
+        console.log(`  ${chalk.cyan(server.name)} ${status}`);
+        console.log(chalk.gray(`    ${server.config.type} - ${server.config.command || server.config.url}`));
+      }
+    } else {
+      // Show registry servers
+      const filters = options.category
+        ? { category: options.category as MCPServerCategory }
+        : undefined;
+      const servers = listServers(filters);
+
+      if (servers.length === 0) {
+        console.log(chalk.gray('No servers found in registry.'));
+        console.log(chalk.gray(`Registry path: ${getRegistryPath()}`));
+        return;
+      }
+
+      console.log(chalk.bold('\nMCP Server Registry:\n'));
+
+      // Group by category
+      const byCategory = new Map<string, MCPServerDefinition[]>();
+      for (const server of servers) {
+        const cat = server.category;
+        if (!byCategory.has(cat)) {
+          byCategory.set(cat, []);
+        }
+        byCategory.get(cat)!.push(server);
+      }
+
+      for (const [category, categoryServers] of byCategory) {
+        console.log(chalk.yellow(`  ${category.toUpperCase()}`));
+
+        for (const server of categoryServers) {
+          const installed = isServerInstalled(server.name);
+          const enabled = isServerEnabled(server.name);
+
+          let status = '';
+          if (enabled) {
+            status = chalk.green(' [enabled]');
+          } else if (installed) {
+            status = chalk.blue(' [installed]');
+          }
+
+          const envWarning = server.requiredEnv?.length
+            ? chalk.gray(` (requires: ${server.requiredEnv.join(', ')})`)
+            : '';
+
+          console.log(`    ${chalk.cyan(server.name)}${status}${envWarning}`);
+          if (server.description) {
+            console.log(chalk.gray(`      ${server.description}`));
+          }
+        }
+        console.log();
+      }
+
+      // Show categories
+      const categories = listCategories();
+      if (categories.length > 0) {
+        console.log(chalk.gray(`Categories: ${categories.join(', ')}`));
+      }
+    }
+  });
+
+mcpCmd
+  .command('show <server>')
+  .description('Show server details including required env vars')
+  .action((serverName) => {
+    const server = getServer(serverName);
+
+    if (!server) {
+      console.log(chalk.red(`Server not found in registry: ${serverName}`));
+      const available = listServers().map(s => s.name);
+      console.log(chalk.gray(`Available: ${available.slice(0, 10).join(', ')}${available.length > 10 ? '...' : ''}`));
+      return;
+    }
+
+    console.log(chalk.bold(`\n${server.name}`));
+    console.log(chalk.gray('─'.repeat(50)));
+
+    if (server.description) {
+      console.log(`Description: ${server.description}\n`);
+    }
+
+    console.log(`Type:     ${chalk.cyan(server.type)}`);
+    console.log(`Category: ${chalk.yellow(server.category)}`);
+    console.log(`Source:   ${server.source}`);
+
+    if (server.type === 'stdio') {
+      console.log(`Command:  ${server.command} ${server.args?.join(' ') || ''}`);
+    } else if (server.type === 'http') {
+      console.log(`URL:      ${server.url}`);
+    }
+
+    if (server.tags?.length) {
+      console.log(`Tags:     ${server.tags.join(', ')}`);
+    }
+
+    if (server.plugin) {
+      console.log(`Plugin:   ${server.plugin}`);
+    }
+
+    // Show env var status
+    if (server.requiredEnv?.length) {
+      console.log(chalk.cyan('\nRequired Environment Variables:'));
+      for (const envVar of server.requiredEnv) {
+        const isSet = process.env[envVar];
+        const status = isSet ? chalk.green('✓ set') : chalk.red('✗ not set');
+        console.log(`  ${envVar}: ${status}`);
+      }
+    }
+
+    if (server.env) {
+      console.log(chalk.cyan('\nEnvironment Config:'));
+      for (const [key, value] of Object.entries(server.env)) {
+        console.log(`  ${key}: ${chalk.gray(value)}`);
+      }
+    }
+
+    // Installation status
+    const installed = isServerInstalled(server.name);
+    const enabled = isServerEnabled(server.name);
+
+    console.log(chalk.cyan('\nStatus:'));
+    console.log(`  Installed: ${installed ? chalk.green('yes') : chalk.gray('no')}`);
+    console.log(`  Enabled:   ${enabled ? chalk.green('yes') : chalk.gray('no')}`);
+  });
+
+mcpCmd
+  .command('install <server>')
+  .description('Install a server from the registry to mcp.json')
+  .option('--category <category>', 'Install all servers in a category')
+  .option('--skip-env-check', 'Skip environment variable validation')
+  .action((serverName, options) => {
+    if (options.category) {
+      // Install all servers in category
+      const servers = listServers({ category: options.category as MCPServerCategory });
+
+      if (servers.length === 0) {
+        console.log(chalk.red(`No servers found in category: ${options.category}`));
+        return;
+      }
+
+      console.log(chalk.blue(`Installing ${servers.length} servers from category: ${options.category}\n`));
+
+      for (const server of servers) {
+        const result = installServer(server.name, options.skipEnvCheck);
+        if (result.success) {
+          console.log(chalk.green(`  ✓ ${server.name}`));
+        } else {
+          console.log(chalk.red(`  ✗ ${server.name}: ${result.message}`));
+        }
+      }
+    } else {
+      const result = installServer(serverName, options.skipEnvCheck);
+
+      if (result.success) {
+        console.log(chalk.green(result.message));
+        if (result.warnings?.length) {
+          result.warnings.forEach(w => console.log(chalk.yellow(`  Warning: ${w}`)));
+        }
+        console.log(chalk.gray(`Enable with: cc-config mcp enable ${serverName}`));
+      } else {
+        console.log(chalk.red(result.message));
+        if (result.warnings?.length) {
+          result.warnings.forEach(w => console.log(chalk.yellow(`  ${w}`)));
+        }
+      }
+    }
+  });
+
+mcpCmd
+  .command('uninstall <server>')
+  .description('Remove a server from mcp.json')
+  .action((serverName) => {
+    const result = uninstallServer(serverName);
+
+    if (result.success) {
+      console.log(chalk.green(result.message));
+    } else {
+      console.log(chalk.red(result.message));
+    }
+  });
+
+mcpCmd
+  .command('enable <server>')
+  .description('Add server to enabledMcpjsonServers in settings.json')
+  .action((serverName) => {
+    const result = enableServer(serverName);
+
+    if (result.success) {
+      console.log(chalk.green(result.message));
+      if (result.warnings?.length) {
+        result.warnings.forEach(w => console.log(chalk.yellow(`  Warning: ${w}`)));
+      }
+    } else {
+      console.log(chalk.red(result.message));
+    }
+  });
+
+mcpCmd
+  .command('disable <server>')
+  .description('Remove server from enabledMcpjsonServers in settings.json')
+  .action((serverName) => {
+    const result = disableServer(serverName);
+
+    if (result.success) {
+      console.log(chalk.green(result.message));
+    } else {
+      console.log(chalk.red(result.message));
+    }
+  });
+
+mcpCmd
+  .command('check [server]')
+  .description('Verify required env vars are set')
+  .option('--all', 'Check all installed servers')
+  .action((serverName, options) => {
+    if (options.all || !serverName) {
+      const results = checkAllServers();
+
+      if (results.length === 0) {
+        console.log(chalk.gray('No installed servers to check.'));
+        return;
+      }
+
+      console.log(chalk.bold('\nEnvironment Check Results:\n'));
+
+      let allOk = true;
+      for (const result of results) {
+        if (result.ok) {
+          console.log(chalk.green(`  ✓ ${result.server}: All env vars set`));
+        } else {
+          allOk = false;
+          console.log(chalk.red(`  ✗ ${result.server}: Missing ${result.missing.join(', ')}`));
+        }
+      }
+
+      if (allOk) {
+        console.log(chalk.green('\nAll servers have required env vars set.'));
+      } else {
+        console.log(chalk.yellow('\nSet missing env vars in your shell configuration.'));
+      }
+    } else {
+      const result = checkServer(serverName);
+
+      if (result.ok) {
+        console.log(chalk.green(`✓ ${serverName}: All required env vars are set`));
+        if (result.found.length > 0) {
+          result.found.forEach(v => console.log(chalk.gray(`  ${v}: ✓`)));
+        }
+      } else {
+        console.log(chalk.red(`✗ ${serverName}: Missing required env vars`));
+        result.missing.forEach(v => console.log(chalk.red(`  ${v}: not set`)));
+        console.log(chalk.yellow(`\nSet these in your shell: export ${result.missing[0]}=your_value`));
+      }
+    }
+  });
+
+mcpCmd
+  .command('add <name> <command>')
+  .description('Add a custom server to the registry')
+  .option('-a, --args <args>', 'Command arguments (comma-separated)')
+  .option('-c, --category <category>', 'Server category', 'other')
+  .option('-d, --description <description>', 'Server description')
+  .option('-e, --env <env>', 'Environment variables (KEY=${VAR} format, comma-separated)')
+  .option('-r, --required-env <vars>', 'Required env vars (comma-separated)')
+  .action((name, command, options) => {
+    ensureRegistryDir();
+
+    const server: MCPServerDefinition = {
+      name,
+      command,
+      type: 'stdio',
+      category: options.category as MCPServerCategory,
+      source: 'custom',
+      description: options.description
+    };
+
+    if (options.args) {
+      server.args = options.args.split(',').map((a: string) => a.trim());
+    }
+
+    if (options.env) {
+      server.env = {};
+      const pairs = options.env.split(',');
+      for (const pair of pairs) {
+        const [key, value] = pair.split('=');
+        if (key && value) {
+          server.env[key.trim()] = value.trim();
+        }
+      }
+    }
+
+    if (options.requiredEnv) {
+      server.requiredEnv = options.requiredEnv.split(',').map((v: string) => v.trim());
+    }
+
+    addServerToRegistry(server);
+    console.log(chalk.green(`Added server to registry: ${name}`));
+    console.log(chalk.gray(`Registry file: ${getRegistryPath()}/${name}.yaml`));
   });
 
 // Print helpers
