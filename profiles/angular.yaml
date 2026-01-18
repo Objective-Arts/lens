@@ -1,0 +1,14 @@
+name: angular
+description: Domain canon for Angular projects. Combine with javascript.
+projectType: software
+composable: true
+extends: javascript
+
+canon:
+  domain:
+    - hevery         # Angular creator - dependency injection, change detection
+    # TODO: Add more Angular experts
+
+agents:
+  - css-expert
+  - accessibility-tester

@@ -1,0 +1,10 @@
+name: modernization
+description: Domain canon for legacy modernization projects
+projectType: software
+composable: true
+extends: software-base
+
+canon:
+  domain:
+    - feathers       # Working Effectively with Legacy Code
+    - fowler         # Refactoring - improving design of existing code

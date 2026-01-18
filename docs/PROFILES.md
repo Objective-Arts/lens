@@ -34,9 +34,10 @@ Every project has a **Base Canon** (always active) + **Domain Canon** (project-s
 |---------|-------------|--------------|
 | `javascript` | JS/TS projects | Simpson, Cherny |
 | `react` | React/Next.js | Abramov |
+| `angular` | Angular projects | Hevery |
 | `d3` | D3.js visualization | Bostock, Tufte, Few, Knaflic |
-| `node` | Node.js backend | (uses base) |
 | `java` | Java | Bloch |
+| `modernization` | Legacy modernization | Feathers, Fowler (TODO) |
 | `python` | Python | (TODO) |
 
 ### Business Profiles
@@ -101,6 +102,18 @@ Every project has a **Base Canon** (always active) + **Domain Canon** (project-s
 
 ---
 
+### angular
+
+**Domain canon for Angular projects. Combine with `javascript`.**
+
+| Expert | Focus |
+|--------|-------|
+| Hevery | Dependency injection, change detection, signals |
+
+**Agents:** css-expert, accessibility-tester
+
+---
+
 ### d3
 
 **Domain canon for D3.js visualization. Combine with `javascript`.**
@@ -133,6 +146,17 @@ Every project has a **Base Canon** (always active) + **Domain Canon** (project-s
 | Expert | Focus |
 |--------|-------|
 | (TODO) | (add Python expert) |
+
+---
+
+### modernization
+
+**Domain canon for legacy modernization projects.**
+
+| Expert | Focus |
+|--------|-------|
+| Feathers | Working Effectively with Legacy Code |
+| Fowler | Refactoring - improving design of existing code |
 
 ---
 
