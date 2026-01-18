@@ -63,23 +63,15 @@ export interface SettingsParsed {
 export type ProjectType = 'software' | 'business';
 
 /**
- * Skill categories aligned with claude-optimal methodology
- *
- * Canon Structure (always alive throughout workflow):
- * - software-base: Kernighan, Schneier, Dodds, OWASP, Procida (all software projects)
- * - software-domain: Language/framework experts (Bloch, Simpson, Abramov, Bostock, etc.)
- * - business-base: Strunk & White, Zinsser (all business projects)
- * - business-domain: Focus area experts (Porter, Thompson, Horowitz)
- * - global: Productivity workflows, meta skills
+ * Skill categories - aligned with actual skill-library structure
  */
-export type SkillCategory = 'software-base' | 'software-domain' | 'business-base' | 'business-domain' | 'global';
+export type SkillCategory = 'security' | 'tech' | 'canon' | 'global';
 
 export interface SkillLibraryPaths {
-  'software-base': string;    // ~/.claude/skill-library/software-base/
-  'software-domain': string;  // ~/local-tech-projects/canon-skills/
-  'business-base': string;    // ~/.claude/skill-library/business-base/
-  'business-domain': string;  // ~/local-tech-projects/canon-skills/business/
-  global: string;             // ~/.claude/skills/
+  security: string;  // ~/.claude/skill-library/security/
+  tech: string;      // ~/.claude/skill-library/tech/
+  canon: string;     // ~/local-tech-projects/canon-skills/
+  global: string;    // ~/.claude/skills/
 }
 
 /**
@@ -93,18 +85,17 @@ export interface ComposableProfile {
   description?: string;
   projectType?: ProjectType;  // 'software' or 'business'
   composable?: boolean;
-  canon?: {
-    base?: string[];           // Software: kernighan, schneier, dodds, owasp, procida
-                               // Business: strunk-white, zinsser
-    domain?: string[];         // Software: bloch, simpson, abramov, bostock, tufte, etc.
-                               // Business: porter, thompson, horowitz
-  };
   skills?: {
-    global?: string[];         // Productivity workflows, meta skills
+    security?: string[];  // Security skills (owasp, security-mindset, etc.)
+    tech?: string[];      // Tech workflow skills (ceremony, etc.)
+    canon?: string[];     // Domain experts (abramov, bostock, etc.)
+    global?: string[];    // Productivity workflows, meta skills
   };
   agents?: string[];
   commands?: string[];
-  // Note: claudeMd.autoInvoke removed - canon is always alive, not invoked per-use
+  claudeMd?: {
+    autoInvoke: Array<{ context: string; action: string }>;
+  };
   mcpServers?: {
     enable: string[];
     disable: string[];
