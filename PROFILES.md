@@ -2,244 +2,275 @@
 
 Profiles are **composable** - stack them together for your project type.
 
+## Canon Structure
+
+Every project has a **Base Canon** (always active) + **Domain Canon** (project-specific).
+
+```
+┌─────────────────────────────────────────────────────────────┐
+│ SOFTWARE PROJECTS                                           │
+├─────────────────────────────────────────────────────────────┤
+│ Base Canon: Kernighan, Schneier, Dodds, OWASP, Procida      │
+│ Domain Canon: Selected per language/framework               │
+└─────────────────────────────────────────────────────────────┘
+
+┌─────────────────────────────────────────────────────────────┐
+│ BUSINESS PROJECTS                                           │
+├─────────────────────────────────────────────────────────────┤
+│ Base Canon: Strunk & White, Zinsser                         │
+│ Domain Canon: Selected per focus area                       │
+└─────────────────────────────────────────────────────────────┘
+```
+
+**Key**: Canon is always alive - the lens through which all work is done.
+
+---
+
 ## Profile Catalog
 
-| Profile | Description | Skills Included |
-|---------|-------------|-----------------|
-| `base-tech` | All tech projects | Security + dev workflows |
-| `javascript` | JS/TS projects | kyle-simpson, cherny |
-| `react` | React/Next.js | abramov, dodds, osmani |
-| `angular` | Angular | dodds, osmani |
-| `d3` | D3.js visualization | bostock |
-| `node` | Node.js backend | dodds, osmani |
-| `frontend` | UI work | frontend-design |
-| `java` | Java | bloch |
-| `go` | Go | pike |
+### Software Profiles
+
+| Profile | Description | Domain Canon |
+|---------|-------------|--------------|
+| `javascript` | JS/TS projects | Simpson, Cherny |
+| `react` | React/Next.js | Abramov |
+| `d3` | D3.js visualization | Bostock, Tufte, Few, Knaflic |
+| `node` | Node.js backend | (uses base) |
+| `java` | Java | Bloch |
+| `go` | Go | Pike |
 | `python` | Python | (TODO) |
+
+### Business Profiles
+
+| Profile | Description | Domain Canon |
+|---------|-------------|--------------|
+| `strategy` | Business strategy | Porter |
+| `tech-analysis` | Tech industry analysis | Thompson |
+| `startup` | Startups, org building | Horowitz |
 
 ---
 
 ## Profile Details
 
-### base-tech
+### Software Base Canon
 
-**Include in ALL tech projects.**
+**Included in ALL software projects. Always alive.**
 
-| Category | Skills |
-|----------|--------|
-| Security | security-mindset, owasp, bruce-schneier, tanya-janca, troy-hunt |
-| Dev Workflows | ceremony, defense-in-depth, escalate, generate-validate, understand-first, specialist-swarm |
-| Agents | security-auditor, code-reviewer, test-engineer |
+| Expert | Focus | Core Contribution |
+|--------|-------|-------------------|
+| Kernighan | Clarity | The Practice of Programming |
+| Schneier | Security | Threat modeling mindset |
+| Dodds | Testing | Testing Trophy, Testing Library |
+| OWASP | AppSec | Vulnerability patterns |
+| Procida | Documentation | Diátaxis framework |
 
-**Auto-invoke:**
-- Auth, login, passwords → `/security-mindset`
-- SQL, user input, APIs → `/owasp`
-- Production deployment → `/ceremony`
+**Agents available:** security-auditor, code-reviewer, test-engineer
 
 ---
 
+### Business Base Canon
+
+**Included in ALL business projects. Always alive.**
+
+| Expert | Focus | Core Contribution |
+|--------|-------|-------------------|
+| Strunk & White | Clarity | Elements of Style |
+| Zinsser | Writing | On Writing Well |
+
+---
+
+## Software Domain Profiles
+
 ### javascript
 
-**Add to any JS/TS project.**
+**Domain canon for JS/TS projects.**
 
-| Category | Skills |
-|----------|--------|
-| Tech | kyle-simpson |
-| Canon | cherny |
-
-**Auto-invoke:**
-- Complex JS runtime, closures, this → `/kyle-simpson`
-- TypeScript types, generics → `/cherny`
+| Expert | Focus |
+|--------|-------|
+| Simpson | You Don't Know JS - runtime, closures, this |
+| Cherny | Programming TypeScript - types, generics |
 
 ---
 
 ### react
 
-**Combine with `javascript`.**
+**Domain canon for React projects. Combine with `javascript`.**
 
-| Category | Skills |
-|----------|--------|
-| Canon | abramov, dodds, osmani |
-
-**Auto-invoke:**
-- React components, hooks, state → `/abramov`
-- Writing or reviewing tests → `/dodds`
-- Performance, bundle size → `/osmani`
-
----
-
-### angular
-
-**Combine with `javascript`.**
-
-| Category | Skills |
-|----------|--------|
-| Canon | dodds, osmani |
-
-**Auto-invoke:**
-- Writing or reviewing tests → `/dodds`
-- Performance optimization → `/osmani`
+| Expert | Focus |
+|--------|-------|
+| Abramov | Mental models, hooks, composition |
 
 ---
 
 ### d3
 
-**Combine with `javascript`.**
+**Domain canon for D3.js visualization. Combine with `javascript`.**
 
-| Category | Skills |
-|----------|--------|
-| Canon | bostock |
-| Commands | viz/*, d3/* |
-| Agents | css-expert, accessibility-tester |
+| Expert | Focus |
+|--------|-------|
+| Bostock | Selections, data joins, scales |
+| Tufte | Visual Display of Quantitative Information |
+| Few | Dashboard design, information clarity |
+| Knaflic | Storytelling with Data |
 
-**Auto-invoke:**
-- D3 selections, data joins, scales → `/bostock`
-
----
-
-### node
-
-**Combine with `javascript`.**
-
-| Category | Skills |
-|----------|--------|
-| Canon | dodds, osmani |
-
-**Auto-invoke:**
-- Writing or reviewing tests → `/dodds`
-- Performance, memory, event loop → `/osmani`
-
----
-
-### frontend
-
-**Add to any frontend project.**
-
-| Category | Skills |
-|----------|--------|
-| Tech | frontend-design |
-| Agents | css-expert, accessibility-tester |
-
-**Auto-invoke:**
-- UI design, styling, layouts → `/frontend-design`
+**Agents:** css-expert, accessibility-tester
 
 ---
 
 ### java
 
-**Combine with `base-tech`.**
+**Domain canon for Java projects.**
 
-| Category | Skills |
-|----------|--------|
-| Canon | bloch |
-
-**Auto-invoke:**
-- Java code, API design, collections → `/bloch`
+| Expert | Focus |
+|--------|-------|
+| Bloch | Effective Java - API design, collections |
 
 ---
 
 ### go
 
-**Combine with `base-tech`.**
+**Domain canon for Go projects.**
 
-| Category | Skills |
-|----------|--------|
-| Canon | pike |
-
-**Auto-invoke:**
-- Go code, concurrency, channels → `/pike`
+| Expert | Focus |
+|--------|-------|
+| Pike | Go Proverbs - simplicity, concurrency |
 
 ---
 
 ### python
 
-**Combine with `base-tech`.**
+**Domain canon for Python projects.**
 
-| Category | Skills |
-|----------|--------|
-| Canon | (TODO: add Python expert) |
+| Expert | Focus |
+|--------|-------|
+| (TODO) | (add Python expert) |
+
+---
+
+## Business Domain Profiles
+
+### strategy
+
+**Domain canon for business strategy work.**
+
+| Expert | Focus |
+|--------|-------|
+| Porter | Competitive Advantage, Five Forces |
+
+---
+
+### tech-analysis
+
+**Domain canon for tech industry analysis.**
+
+| Expert | Focus |
+|--------|-------|
+| Thompson | Stratechery - aggregation theory, platform analysis |
+
+---
+
+### startup
+
+**Domain canon for startups and org building.**
+
+| Expert | Focus |
+|--------|-------|
+| Horowitz | The Hard Thing About Hard Things |
 
 ---
 
 ## Example Combinations
 
-| Project Type | Profiles | Total Skills |
-|--------------|----------|--------------|
-| React frontend | `base-tech + javascript + react + frontend` | ~17 |
-| React + D3 viz | `base-tech + javascript + react + d3 + frontend` | ~18 |
-| D3 visualization | `base-tech + javascript + d3 + frontend` | ~15 |
-| Node API | `base-tech + javascript + node` | ~14 |
-| Full-stack JS | `base-tech + javascript + react + node + frontend` | ~18 |
-| Java backend | `base-tech + java` | ~13 |
-| Go service | `base-tech + go` | ~13 |
+### Software Projects
+
+| Project Type | Base | Domain |
+|--------------|------|--------|
+| React frontend | Software Base | javascript + react |
+| D3 visualization | Software Base | javascript + d3 |
+| React + D3 viz | Software Base | javascript + react + d3 |
+| Node API | Software Base | javascript |
+| Java backend | Software Base | java |
+| Go service | Software Base | go |
+
+### Business Projects
+
+| Project Type | Base | Domain |
+|--------------|------|--------|
+| Strategy doc | Business Base | strategy |
+| Tech analysis | Business Base | tech-analysis |
+| Startup planning | Business Base | startup |
+| General writing | Business Base | (base only) |
 
 ---
 
 ## Applied Examples
 
-### cdr-case-management
+### React Full-Stack Project
 
 ```
-Profiles: base-tech + javascript + react + node + frontend
+Project Type: Software
+Base Canon: Kernighan, Schneier, Dodds, OWASP, Procida
+Domain Canon: Simpson, Cherny, Abramov
 
-Skills (17):
-  Security: security-mindset, owasp, bruce-schneier, tanya-janca, troy-hunt
-  Tech: ceremony, defense-in-depth, escalate, generate-validate,
-        understand-first, specialist-swarm, kyle-simpson, frontend-design
-  Canon: cherny, abramov, dodds, osmani
+Canon is always alive - shapes all code written in this project.
 ```
 
-### d3-smr
+### D3 Visualization Project
 
 ```
-Profiles: base-tech + javascript + d3 + frontend
+Project Type: Software
+Base Canon: Kernighan, Schneier, Dodds, OWASP, Procida
+Domain Canon: Simpson, Bostock, Tufte, Few, Knaflic
 
-Skills (23 including project-specific):
-  Security: security-mindset, owasp, bruce-schneier, tanya-janca, troy-hunt
-  Tech: ceremony, defense-in-depth, escalate, generate-validate,
-        understand-first, specialist-swarm, kyle-simpson, frontend-design
-  Canon: cherny, bostock, abramov, dodds, osmani
-  Project: d3-expert, d3-mental-model, d3-review, d3:start, d3:finish
+All visualization code follows Bostock patterns.
+All design decisions through Tufte/Few/Knaflic lens.
+```
+
+### Business Strategy Document
+
+```
+Project Type: Business
+Base Canon: Strunk & White, Zinsser
+Domain Canon: Porter
+
+Writing is clear and concise.
+Analysis uses Five Forces, value chain frameworks.
 ```
 
 ---
 
 ## How to Apply Profiles
 
-1. **Create project skills directory:**
-   ```bash
-   mkdir -p /path/to/project/.claude/skills
-   ```
+1. **Determine project type:**
+   - Software project → Software Base Canon
+   - Business project → Business Base Canon
 
-2. **Link skills from library:**
-   ```bash
-   cd /path/to/project/.claude/skills
-
-   # base-tech security
-   ln -sf ~/.claude/skill-library/security/* .
-
-   # base-tech workflows
-   ln -sf ~/.claude/skill-library/tech/* .
-
-   # canon skills (adjust path)
-   ln -sf ~/local-tech-projects/canon-skills/javascript/abramov .
-   ln -sf ~/local-tech-projects/canon-skills/javascript/dodds .
-   # etc.
-   ```
+2. **Select domain canon:**
+   - Based on language/framework (software)
+   - Based on focus area (business)
 
 3. **Update project CLAUDE.md:**
    ```markdown
-   ## Profiles Applied
+   ## Project Type
+   Software
 
-   `base-tech + javascript + react + frontend`
+   ## Canon Stack (always alive)
 
-   ## Auto-Invoke Skills
+   ### Base Canon
+   Kernighan, Schneier, Dodds, OWASP, Procida
 
-   | Context | Action |
-   |---------|--------|
-   | React components, hooks | INVOKE `/abramov` |
-   | Writing tests | INVOKE `/dodds` |
-   | Auth, passwords | INVOKE `/security-mindset` |
+   ### Domain Canon
+   Simpson (JS), Abramov (React)
+
+   ## Quality Philosophy
+   Canon is the lens through which all work is done.
+   Quality is generative, not corrective.
+   ```
+
+4. **Create canon skills** (if needed):
+   ```bash
+   mkdir -p /path/to/project/.claude/skills
+   # Add skill files for each canon expert
    ```
 
 ---
@@ -248,7 +279,7 @@ Skills (23 including project-specific):
 
 | Library | Path | Contents |
 |---------|------|----------|
-| Security | `~/.claude/skill-library/security/` | security-mindset, owasp, bruce-schneier, tanya-janca, troy-hunt |
-| Tech | `~/.claude/skill-library/tech/` | ceremony, defense-in-depth, escalate, generate-validate, understand-first, specialist-swarm, kyle-simpson, frontend-design |
-| Canon | `~/local-tech-projects/canon-skills/` | Language/framework experts (bloch, pike, abramov, etc.) |
-| Global | `~/.claude/skills/` | Universal skills (productivity workflows, meta) |
+| Software Base | `~/.claude/skill-library/software-base/` | kernighan, schneier, dodds, owasp, procida |
+| Business Base | `~/.claude/skill-library/business-base/` | strunk-white, zinsser |
+| Domain Canon | `~/local-tech-projects/canon-skills/` | Language/framework experts (bloch, pike, abramov, bostock, etc.) |
+| Business Domain | `~/local-tech-projects/canon-skills/business/` | porter, thompson, horowitz |
