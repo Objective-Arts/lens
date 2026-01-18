@@ -6,10 +6,22 @@ extends: javascript
 
 canon:
   domain:
-    - hevery         # Angular creator - dependency injection, change detection
-    - papa           # Angular style guide, best practices
-    - kurata         # Angular architecture, RxJS patterns
+    - hevery         # Angular creator - DI, testability, component design
+    - kurata         # Angular architecture, module organization, state patterns
+    - minko-gechev   # Performance - lazy loading, OnPush, bundle optimization
+    - ben-lesh       # RxJS patterns - streams, operators, subscription management
 
 agents:
   - css-expert
   - accessibility-tester
+
+claudeMd:
+  autoInvoke:
+    - context: Angular DI, testability, component architecture
+      action: INVOKE `/hevery`
+    - context: Module organization, feature structure, state management
+      action: INVOKE `/kurata`
+    - context: Performance, lazy loading, change detection, bundle size
+      action: INVOKE `/minko-gechev`
+    - context: RxJS, observables, streams, async composition
+      action: INVOKE `/ben-lesh`
