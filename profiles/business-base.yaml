@@ -7,3 +7,4 @@ canon:
   base:
     - strunk-white   # Elements of Style
     - zinsser        # On Writing Well
+    - grove          # High Output Management

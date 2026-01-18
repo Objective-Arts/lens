@@ -34,7 +34,8 @@ Every project has a **Base Canon** (always active) + **Domain Canon** (project-s
 |---------|-------------|--------------|
 | `javascript` | JS/TS projects | Simpson, Cherny |
 | `react` | React/Next.js | Abramov |
-| `angular` | Angular projects | Hevery |
+| `angular` | Angular projects | Hevery, Papa, Kurata |
+| `fullstack` | Java + JavaScript | Bloch + Simpson, Cherny |
 | `d3` | D3.js visualization | Bostock, Tufte, Few, Knaflic |
 | `java` | Java | Bloch |
 | `modernization` | Legacy modernization | Feathers, Fowler (TODO) |
@@ -76,6 +77,7 @@ Every project has a **Base Canon** (always active) + **Domain Canon** (project-s
 |--------|-------|-------------------|
 | Strunk & White | Clarity | Elements of Style |
 | Zinsser | Writing | On Writing Well |
+| Grove | Management | High Output Management |
 
 ---
 
@@ -109,6 +111,8 @@ Every project has a **Base Canon** (always active) + **Domain Canon** (project-s
 | Expert | Focus |
 |--------|-------|
 | Hevery | Dependency injection, change detection, signals |
+| Papa | Angular style guide, best practices |
+| Kurata | Angular architecture, RxJS patterns |
 
 **Agents:** css-expert, accessibility-tester
 
@@ -126,6 +130,20 @@ Every project has a **Base Canon** (always active) + **Domain Canon** (project-s
 | Knaflic | Storytelling with Data |
 
 **Agents:** css-expert, accessibility-tester
+
+---
+
+### fullstack
+
+**Domain canon for full-stack Java + JavaScript projects.**
+
+| Expert | Focus |
+|--------|-------|
+| Bloch | Effective Java - API design, collections |
+| Simpson | You Don't Know JS - runtime, closures |
+| Cherny | Programming TypeScript - types, generics |
+
+Add `react` or `angular` profile for framework-specific canon.
 
 ---
 

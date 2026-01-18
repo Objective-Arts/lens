@@ -7,7 +7,8 @@ extends: javascript
 canon:
   domain:
     - hevery         # Angular creator - dependency injection, change detection
-    # TODO: Add more Angular experts
+    - papa           # Angular style guide, best practices
+    - kurata         # Angular architecture, RxJS patterns
 
 agents:
   - css-expert
