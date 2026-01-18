@@ -41,20 +41,40 @@ General Java      →   Java through Bloch's eyes
 - Must be in context when writing, not after
 - More specific lens beats broader lens
 
-**Known Canon**:
-| Domain | Canon | Core Contribution |
-|--------|-------|-------------------|
-| Java | Joshua Bloch | Collections API, Effective Java |
-| C | Kernighan & Ritchie | The language, clarity |
-| Go | Rob Pike | Simplicity, concurrency |
-| JavaScript | Kyle Simpson | You Don't Know JS |
-| React | Dan Abramov | Mental models, hooks |
-| D3 | Mike Bostock | Selections, data joins |
-| Testing | Kent C. Dodds | Testing Trophy |
-| Performance | John Carmack | Optimization under constraint |
-| Types | Boris Cherny | Programming TypeScript |
-| Security | Bruce Schneier | Threat modeling mindset |
-| AppSec | OWASP | Vulnerability patterns |
+**Canon Structure** (Two Project Types):
+
+```
+SOFTWARE PROJECTS
+┌─────────────────────────────────────────────────────────────┐
+│ BASE CANON (always active)                                  │
+│   Kernighan    - Clarity, simplicity                        │
+│   Schneier     - Security mindset                           │
+│   Dodds        - Testing Trophy                             │
+│   OWASP        - Vulnerability patterns                     │
+│   Procida      - Documentation (Diátaxis)                   │
+├─────────────────────────────────────────────────────────────┤
+│ DOMAIN CANON (per language/framework)                       │
+│   Java:    Bloch (Effective Java)                           │
+│   JS:      Simpson (You Don't Know JS)                      │
+│   React:   Abramov (Mental models, hooks)                   │
+│   Go:      Pike (Simplicity, concurrency)                   │
+│   D3/Viz:  Bostock, Tufte, Few, Knaflic                     │
+└─────────────────────────────────────────────────────────────┘
+
+BUSINESS PROJECTS
+┌─────────────────────────────────────────────────────────────┐
+│ BASE CANON (always active)                                  │
+│   Strunk & White  - Elements of Style                       │
+│   Zinsser         - On Writing Well                         │
+├─────────────────────────────────────────────────────────────┤
+│ DOMAIN CANON (per focus area)                               │
+│   Strategy:     Porter (Competitive Advantage)              │
+│   Tech Analysis: Thompson (Stratechery)                     │
+│   Startups/Org: Horowitz (Hard Thing)                       │
+└─────────────────────────────────────────────────────────────┘
+```
+
+**Key**: Base + Domain canon are both always alive - the lens through which all work is done.
 
 **Implementation**:
 ```
@@ -122,25 +142,27 @@ security_triggers:
 
 **Problem**: Single canon skill insufficient. Need layered expertise.
 
-**Solution**: Define canon stack - primary + secondary + security
+**Solution**: Define canon stack - Base Canon (universal) + Domain Canon (specific)
 
 ```
-D3 VISUALIZATION PROJECT:
-┌─────────────────────────────┐
-│ Primary: bostock (D3)       │ ← Always active
-├─────────────────────────────┤
-│ Secondary: abramov (React)  │ ← When in components
-│ Secondary: tufte (design)   │ ← When making decisions
-├─────────────────────────────┤
-│ Security: owasp (XSS)       │ ← DOM manipulation risk
-└─────────────────────────────┘
+D3 VISUALIZATION PROJECT (Software):
+┌─────────────────────────────────────────┐
+│ BASE CANON (always active)              │
+│   Kernighan, Schneier, Dodds, OWASP,    │
+│   Procida                               │
+├─────────────────────────────────────────┤
+│ DOMAIN CANON (always active)            │
+│   Bostock (D3 patterns)                 │
+│   Tufte, Few, Knaflic (viz design)      │
+│   Abramov (React components)            │
+└─────────────────────────────────────────┘
 ```
 
 **Forces**:
-- Token budget limits stack depth
-- Primary should cover 80% of work
-- Secondary for specific file types
-- Security always present for relevant domains
+- Base canon applies to ALL software projects
+- Domain canon selected by project type
+- Both layers always alive - not invoked per-use
+- Security (Schneier, OWASP) built into base, not optional
 
 ---
 
@@ -323,13 +345,12 @@ Cargo.toml                       → Rust Project
 ```
 Detected: D3 + React
      ↓
+Project Type: Software
 Profile: d3-visualization
      ↓
 Canon Stack:
-  - bostock (primary)
-  - abramov (secondary)
-  - tufte (design decisions)
-  - owasp (XSS prevention)
+  BASE: kernighan, schneier, dodds, owasp, procida
+  DOMAIN: bostock, tufte, few, knaflic, abramov
 ```
 
 ---
@@ -364,9 +385,8 @@ project/
 3. [Third priority]
 
 ## Canon Stack Rationale
-- **Primary**: [skill] - [why this expert for this project]
-- **Secondary**: [skill] - [what subset of work this covers]
-- **Security**: [skill] - [what risks this addresses]
+- **Base Canon**: [Software or Business base] - [why this project type]
+- **Domain Canon**: [specific experts] - [why these for this project]
 
 ## Patterns Applied
 - [Pattern name] - [why it applies here]
@@ -404,22 +424,19 @@ project-overrides         (this project's tweaks)
 ```yaml
 # d3-visualization.yaml
 extends: javascript-development
+project_type: software
 
-canon_skills:
-  primary: bostock
-  secondary: [abramov, tufte]
-  security: owasp
+canon:
+  base: [kernighan, schneier, dodds, owasp, procida]
+  domain: [bostock, tufte, few, knaflic, abramov]
 
 quality_sequence:
   - test-engineer
   - code-reviewer
   - accessibility-tester  # D3 needs this
 
-auto_invoke:
-  - context: "*.js in src/viz/"
-    action: /bostock
-  - context: "*.jsx, *.tsx"
-    action: /abramov
+# Canon is always alive - no auto_invoke needed
+# Base + Domain canon active throughout entire workflow
 ```
 
 ---
@@ -468,22 +485,18 @@ KEEP AS SKILL:
 ┌─ Session Status ─────────────────────────┐
 │ Project: d3-smr (D3 Visualization)       │
 │ Profile: d3-visualization                │
+│ Type: Software                           │
 │                                          │
-│ CANON STACK                              │
-│   ⚡ bostock (1.2k) - primary            │
-│   ⚡ abramov (890) - secondary           │
-│   🔒 owasp (1.6k) - security             │
-│                                          │
-│ AUTO-INVOKE ACTIVE                       │
-│   src/viz/*.js → /bostock                │
-│   *.jsx → /abramov                       │
-│   auth|sql|input → /security-mindset     │
+│ CANON STACK (always alive)               │
+│   BASE: kernighan, schneier, dodds,      │
+│         owasp, procida                   │
+│   DOMAIN: bostock, tufte, few, knaflic,  │
+│           abramov                        │
 │                                          │
 │ QUALITY SEQUENCE: ENABLED                │
 │   test-engineer → code-reviewer          │
 │                                          │
-│ ISSUES                                   │
-│   ⚠ tufte referenced but not found      │
+│ HOOKS: pre-push [test, lint]             │
 └──────────────────────────────────────────┘
 ```
 
@@ -500,30 +513,24 @@ KEEP AS SKILL:
 **Solution**: Layer patterns for compound effect
 
 ```
-INDIVIDUAL PATTERNS:
-  Canon skill           = 1.3x quality
-  Quality sequence      = 1.2x quality
-  Security lens         = 1.2x security
-  Parallel exploration  = 2x speed
-
-COMPOUND EFFECT:
-  Canon + Sequence + Security + Parallel
-  = Quality × Speed × Safety
-
-  Not additive: 1.3 + 1.2 + 1.2 + 2.0
-  Multiplicative: 1.3 × 1.2 × 1.2 × 2.0 = 3.7x effective
+PATTERN LAYERS:
+┌─────────────────────────────────────────┐
+│ Canon Stack (domain expertise)          │ ← Lens for all code
+├─────────────────────────────────────────┤
+│ Quality Sequence (enforced gates)       │ ← Verification
+├─────────────────────────────────────────┤
+│ Parallel Agents (context leverage)      │ ← Speed + depth
+├─────────────────────────────────────────┤
+│ Transparency (visibility via /status)   │ ← Know what's active
+└─────────────────────────────────────────┘
 ```
 
-**The Formula**:
-```
-Claude-Optimal Configuration =
-    Right Canon Stack (domain expertise)
-  + Quality Sequence (enforced gates)
-  + Security Lens (threat awareness)
-  + Parallel Agents (context leverage)
-  + Transparency (visibility)
-  + Strategy Document (rationale)
-```
+**Key Insight**: Patterns compound because each layer catches what others miss:
+- Canon prevents bad patterns from being written
+- Quality sequence catches what slipped through
+- Hooks enforce what must never fail
+
+Quality is **generative** (built in from the start), not **corrective** (fixed after the fact).
 
 ---
 
