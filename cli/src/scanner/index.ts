@@ -192,10 +192,14 @@ async function scanSkillOrCommandDir(dirPath: string, scope: ConfigScope, type: 
 
   // Also check for .md files directly in the directory
   if (!contentFile) {
-    const mdFiles = fs.readdirSync(realPath).filter(f => f.endsWith('.md'));
-    if (mdFiles.length > 0) {
-      contentFile = path.join(realPath, mdFiles[0]);
-      content = fs.readFileSync(contentFile, 'utf-8');
+    // Ensure realPath is a directory before trying to read it
+    const realStats = fs.statSync(realPath);
+    if (realStats.isDirectory()) {
+      const mdFiles = fs.readdirSync(realPath).filter(f => f.endsWith('.md'));
+      if (mdFiles.length > 0) {
+        contentFile = path.join(realPath, mdFiles[0]);
+        content = fs.readFileSync(contentFile, 'utf-8');
+      }
     }
   }
 

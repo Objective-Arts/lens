@@ -727,6 +727,104 @@
             </div>
         </div>
 
+        <!-- Primitive Picker -->
+        <h2 class="section-title">Primitive Picker: Building vs Using</h2>
+        <div style="background: rgba(255, 255, 255, 0.03); border-radius: 16px; padding: 30px; margin-bottom: 50px;">
+            <p style="text-align: center; color: #888; margin-bottom: 30px;">Two different questions require two different tools</p>
+
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 30px; margin-bottom: 30px;">
+                <!-- Using Primitives -->
+                <div style="background: linear-gradient(135deg, rgba(0, 212, 255, 0.1), rgba(52, 152, 219, 0.1)); border: 2px solid #00d4ff; border-radius: 12px; padding: 25px;">
+                    <h4 style="color: #00d4ff; margin-bottom: 15px; text-align: center;">USING Primitives</h4>
+                    <div style="text-align: center; margin-bottom: 15px;">
+                        <code style="background: rgba(0,0,0,0.4); padding: 10px 20px; border-radius: 8px; font-size: 1.1rem; color: #00d4ff;">cc-config</code>
+                    </div>
+                    <p style="color: #ccc; margin-bottom: 15px; text-align: center;">"What expertise do I need for this project?"</p>
+                    <ul style="color: #888; font-size: 0.9rem; list-style: none; padding: 0;">
+                        <li style="padding: 5px 0;">Apply bundles of existing skills</li>
+                        <li style="padding: 5px 0;">Set up project with right canon</li>
+                        <li style="padding: 5px 0;">Configure auto-invoke rules</li>
+                    </ul>
+                    <div style="background: rgba(0,0,0,0.2); padding: 10px; border-radius: 6px; margin-top: 15px;">
+                        <code style="color: #ccc; font-size: 0.85rem;">cc-config profile apply base-tech+javascript+react</code>
+                    </div>
+                </div>
+
+                <!-- Building Primitives -->
+                <div style="background: linear-gradient(135deg, rgba(243, 156, 18, 0.1), rgba(230, 126, 34, 0.1)); border: 2px solid #f39c12; border-radius: 12px; padding: 25px;">
+                    <h4 style="color: #f39c12; margin-bottom: 15px; text-align: center;">BUILDING Primitives</h4>
+                    <div style="text-align: center; margin-bottom: 15px;">
+                        <code style="background: rgba(0,0,0,0.4); padding: 10px 20px; border-radius: 8px; font-size: 1.1rem; color: #f39c12;">/primitive-picker</code>
+                    </div>
+                    <p style="color: #ccc; margin-bottom: 15px; text-align: center;">"Should this be a skill or a hook?"</p>
+                    <ul style="color: #888; font-size: 0.9rem; list-style: none; padding: 0;">
+                        <li style="padding: 5px 0;">Decide what type of primitive to create</li>
+                        <li style="padding: 5px 0;">Skill vs Hook vs Command vs SubAgent</li>
+                        <li style="padding: 5px 0;">Where logic belongs</li>
+                    </ul>
+                    <div style="background: rgba(0,0,0,0.2); padding: 10px; border-radius: 6px; margin-top: 15px;">
+                        <code style="color: #ccc; font-size: 0.85rem;">"I keep forgetting to run this" → Hook</code>
+                    </div>
+                </div>
+            </div>
+
+            <!-- The Four Primitives -->
+            <h4 style="color: #fff; margin-bottom: 20px; text-align: center;">The Four Primitives</h4>
+            <div style="display: grid; grid-template-columns: repeat(4, 1fr); gap: 15px; margin-bottom: 20px;">
+                <div style="background: rgba(123, 47, 247, 0.15); border: 1px solid #7b2ff7; border-radius: 10px; padding: 15px; text-align: center;">
+                    <div style="font-size: 1.5rem; margin-bottom: 8px;">📚</div>
+                    <div style="color: #7b2ff7; font-weight: bold; margin-bottom: 5px;">SKILL</div>
+                    <div style="color: #888; font-size: 0.75rem;">Encoded wisdom</div>
+                    <div style="color: #ccc; font-size: 0.8rem; margin-top: 8px;">Predictable output</div>
+                </div>
+                <div style="background: rgba(231, 76, 60, 0.15); border: 1px solid #e74c3c; border-radius: 10px; padding: 15px; text-align: center;">
+                    <div style="font-size: 1.5rem; margin-bottom: 8px;">🪝</div>
+                    <div style="color: #e74c3c; font-weight: bold; margin-bottom: 5px;">HOOK</div>
+                    <div style="color: #888; font-size: 0.75rem;">Reactive gate</div>
+                    <div style="color: #ccc; font-size: 0.8rem; margin-top: 8px;">Auto-fires on events</div>
+                </div>
+                <div style="background: rgba(46, 204, 113, 0.15); border: 1px solid #2ecc71; border-radius: 10px; padding: 15px; text-align: center;">
+                    <div style="font-size: 1.5rem; margin-bottom: 8px;">/</div>
+                    <div style="color: #2ecc71; font-weight: bold; margin-bottom: 5px;">COMMAND</div>
+                    <div style="color: #888; font-size: 0.75rem;">User ritual</div>
+                    <div style="color: #ccc; font-size: 0.8rem; margin-top: 8px;">Multi-step ceremony</div>
+                </div>
+                <div style="background: rgba(52, 152, 219, 0.15); border: 1px solid #3498db; border-radius: 10px; padding: 15px; text-align: center;">
+                    <div style="font-size: 1.5rem; margin-bottom: 8px;">🤖</div>
+                    <div style="color: #3498db; font-weight: bold; margin-bottom: 5px;">SUBAGENT</div>
+                    <div style="color: #888; font-size: 0.75rem;">Delegated reasoning</div>
+                    <div style="color: #ccc; font-size: 0.8rem; margin-top: 8px;">Variable output</div>
+                </div>
+            </div>
+
+            <!-- Quick Decision -->
+            <div style="background: rgba(255, 255, 255, 0.05); border-radius: 10px; padding: 20px;">
+                <h5 style="color: #fff; margin-bottom: 15px; text-align: center;">Quick Decision Tree</h5>
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px; font-size: 0.85rem;">
+                    <div>
+                        <div style="color: #888; margin-bottom: 8px;">Can you write the output template in advance?</div>
+                        <div style="color: #7b2ff7;">YES → <strong>Skill</strong></div>
+                        <div style="color: #3498db;">NO → <strong>SubAgent</strong></div>
+                    </div>
+                    <div>
+                        <div style="color: #888; margin-bottom: 8px;">Should it auto-fire / never be forgotten?</div>
+                        <div style="color: #e74c3c;">YES → <strong>Hook</strong></div>
+                        <div style="color: #888;">NO → Keep current choice</div>
+                    </div>
+                    <div>
+                        <div style="color: #888; margin-bottom: 8px;">Do it 2+ times daily?</div>
+                        <div style="color: #2ecc71;">YES → <strong>Command</strong></div>
+                        <div style="color: #888;">NO → Keep current choice</div>
+                    </div>
+                    <div>
+                        <div style="color: #888; margin-bottom: 8px;">Needs user checkpoints / high-stakes?</div>
+                        <div style="color: #2ecc71;">YES → <strong>Command</strong></div>
+                        <div style="color: #888;">NO → Keep current choice</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
         <!-- Meta Pattern Quote -->
         <div class="meta-pattern">
             <h4>The Rule</h4>
