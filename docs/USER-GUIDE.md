@@ -387,6 +387,7 @@ If still catching issues, add them to your project's anti-patterns.
 | `FLAGS.md` | Detailed flag behavior and examples |
 | `SKILL.md` | Pattern language theory |
 | `PATTERNS.md` | GoF-style formal patterns |
+| `case-studies/` | Real-world examples of applying the framework |
 
 ---
 
