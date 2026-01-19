@@ -7,9 +7,13 @@ canon:
   base:
     - kernighan      # Clarity, simplicity
     - schneier       # Security mindset
-    - dodds          # Testing Trophy
     - owasp          # Vulnerability patterns
     - procida        # Documentation (Diataxis)
+  testing:
+    - dodds          # Testing Trophy, integration-first
+    - feathers       # Legacy code testing
+    - meszaros       # Test patterns, doubles
+    - fowler-test    # Test pyramid, strategy
 
 agents:
   - security-auditor

@@ -38,7 +38,8 @@ Every project has a **Base Canon** (always active) + **Domain Canon** (project-s
 | `fullstack` | Java + JavaScript | Bloch + Simpson, Cherny |
 | `d3` | D3.js visualization | Bostock, Tufte, Few, Knaflic |
 | `java` | Java | Bloch |
-| `modernization` | Legacy modernization | Feathers, Fowler (TODO) |
+| `testing` | Extended testing focus | Dodds, Feathers, Meszaros, Fowler |
+| `modernization` | Legacy modernization | Feathers, Fowler |
 | `python` | Python | (TODO) |
 
 ### Business Profiles
@@ -61,11 +62,19 @@ Every project has a **Base Canon** (always active) + **Domain Canon** (project-s
 |--------|-------|-------------------|
 | Kernighan | Clarity | The Practice of Programming |
 | Schneier | Security | Threat modeling mindset |
-| Dodds | Testing | Testing Trophy, Testing Library |
 | OWASP | AppSec | Vulnerability patterns |
 | Procida | Documentation | Diátaxis framework |
 
-**Agents available:** security-auditor, code-reviewer, test-engineer
+**Testing Canon** (also in base):
+
+| Expert | Focus | Core Contribution |
+|--------|-------|-------------------|
+| Dodds | Integration-first | Testing Trophy, Testing Library |
+| Feathers | Legacy code | Characterization tests, seams |
+| Meszaros | Test patterns | Test doubles, fixtures, smells |
+| Fowler | Test strategy | Test pyramid, when to use which level |
+
+**Agents available:** security-auditor, code-reviewer, test-engineer, qa-expert, test-automator
 
 ---
 

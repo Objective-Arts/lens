@@ -385,6 +385,7 @@ If still catching issues, add them to your project's anti-patterns.
 | `STRUCTURAL-STANDARDS.md` | Complete universal standards |
 | `FRAMEWORK-TEMPLATES.md` | All framework-specific templates |
 | `FLAGS.md` | Detailed flag behavior and examples |
+| `HOOKS.md` | Enforcement hooks (pre-commit, test verification) |
 | `SKILL.md` | Pattern language theory |
 | `PATTERNS.md` | GoF-style formal patterns |
 | `case-studies/` | Real-world examples of applying the framework |

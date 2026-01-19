@@ -11,6 +11,7 @@ Flags that modify Claude's behavior to enforce structural quality standards.
 | `--structure-first` | New features, components | Plan architecture before coding |
 | `--review-hard` | Before completion | Adversarial self-review |
 | `--refactor-clean` | Tech debt, cleanup | Systematic decomposition |
+| `--test-complete` | After writing code | Write tests at appropriate levels |
 
 ---
 
@@ -174,18 +175,117 @@ handleError(err)       → error handling
 
 ---
 
+## --test-complete
+
+**Purpose**: Ensure code changes have appropriate test coverage at the right levels.
+
+**When to Use**:
+- After implementing a feature
+- After fixing a bug
+- Before marking work as complete
+- When tests are explicitly required
+
+**Behavior**:
+
+Apply testing canon (Dodds, Fowler, Meszaros, Feathers) to write tests:
+
+1. **Analyze the code** - What was added/changed?
+2. **Determine test levels needed**:
+   - Unit tests for business logic, calculations, validations
+   - Integration tests for database access, API calls, component interactions
+   - E2E tests for critical user journeys (only if applicable)
+3. **Apply appropriate patterns**:
+   - Dodds: Testing Trophy approach, test behavior not implementation
+   - Fowler: Test pyramid, right level for the concern
+   - Meszaros: Test doubles (stub/spy/mock/fake as appropriate)
+   - Feathers: Characterization tests for legacy code
+4. **Write the tests** - Following canon patterns
+5. **Verify coverage** - Ensure changed code is tested
+
+**Example Prompt**:
+```
+> --test-complete
+```
+
+**Claude Response Pattern**:
+```markdown
+## Test Analysis
+
+### Code Changed:
+- `OrderService.calculateDiscount()` - business logic
+- `OrderRepository.findByCustomer()` - database access
+- `CheckoutController.submit()` - API endpoint
+
+### Test Plan:
+
+**Unit Tests** (business logic):
+```java
+@Test void calculateDiscount_goldCustomer_returns15Percent()
+@Test void calculateDiscount_newCustomer_returnsZero()
+@Test void calculateDiscount_negativeAmount_throwsException()
+```
+
+**Integration Tests** (database + API):
+```java
+@Test void findByCustomer_returnsMatchingOrders()
+@Test void submit_validOrder_returns201()
+@Test void submit_invalidOrder_returns400()
+```
+
+**E2E Tests**: None needed (covered by existing checkout flow test)
+
+### Tests Written:
+- [x] 3 unit tests for calculateDiscount
+- [x] 2 integration tests for repository
+- [x] 2 integration tests for controller
+
+All tests passing. Coverage: 94% of changed lines.
+```
+
+**Test Level Decision Tree**:
+```
+Is it pure logic (no I/O)?
+├── Yes → Unit test
+└── No → Does it access database/external service?
+    ├── Yes → Integration test
+    └── No → Does it cross system boundaries?
+        ├── Yes → Integration test
+        └── No → Is it a critical user journey?
+            ├── Yes → E2E test (sparingly)
+            └── No → Unit or integration based on complexity
+```
+
+**Legacy Code (Feathers patterns)**:
+```
+Is the code untested legacy?
+├── Yes → Write characterization tests first
+│         (capture current behavior before changing)
+└── Then → Add focused tests for new behavior
+```
+
+---
+
 ## Combining Flags
 
 Flags can be combined for maximum rigor:
 
 ```
-> Build the timeline view --structure-first --review-hard
+> Build the timeline view --structure-first --review-hard --test-complete
 ```
 
 **Execution Order**:
 1. `--structure-first` → Plan shown, wait for approval
 2. Implement per plan
-3. `--review-hard` → Adversarial review before presenting
+3. `--test-complete` → Write tests for new code
+4. `--review-hard` → Adversarial review before presenting
+
+**Common Combinations**:
+| Combination | When to Use |
+|-------------|-------------|
+| `--structure-first --test-complete` | New feature development |
+| `--refactor-clean --test-complete` | Refactoring legacy code |
+| `--test-complete --review-hard` | Bug fixes |
+| All four flags | Maximum rigor |
 
 ---
 
@@ -223,10 +323,12 @@ Override with explicit `--no-review` if truly not needed.
 | Situation | Command | What Happens |
 |-----------|---------|--------------|
 | New feature | `--structure-first` | Plan → Approve → Implement |
+| After coding | `--test-complete` | Analyze → Plan tests → Write tests |
 | Any completion | `--review-hard` | Adversarial review → Fix → Present |
 | Cleanup task | `--refactor-clean` | Decompose → Unify → Summarize |
 | Quick bug fix | (no flag) | Standards still apply, less ceremony |
-| Maximum rigor | `--structure-first --review-hard` | Full pipeline |
+| Feature + tests | `--structure-first --test-complete` | Plan → Implement → Test |
+| Maximum rigor | `--structure-first --test-complete --review-hard` | Full pipeline |
 
 ---
 
