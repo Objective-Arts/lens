@@ -330,7 +330,8 @@
                 </div>
                 <p class="pillar-question">How to enforce quality?</p>
                 <ul>
-                    <li><code>--structure-first</code><br>Plan architecture before coding</li>
+                    <li><code>--structure-first</code><br>Inline plan (lightweight)</li>
+                    <li><code>--plan</code><br>Full plan mode (rigorous)</li>
                     <li><code>--review-hard</code><br>Adversarial self-review</li>
                     <li><code>--refactor-clean</code><br>Systematic decomposition</li>
                 </ul>
@@ -404,11 +405,16 @@
 
         <!-- Quality Flags -->
         <h2 class="section-title">Quality Enforcement Flags</h2>
-        <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 25px; margin-bottom: 50px;">
+        <div style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 25px; margin-bottom: 50px;">
             <div style="background: rgba(52, 152, 219, 0.1); border: 2px solid #3498db; border-radius: 12px; padding: 25px; text-align: center;">
                 <code style="background: rgba(0,0,0,0.4); padding: 8px 15px; border-radius: 6px; font-size: 1.1rem; color: #3498db;">--structure-first</code>
-                <h4 style="margin: 15px 0 10px; color: #fff;">Plan Before Code</h4>
-                <p style="color: #888; font-size: 0.9rem;">Show architecture, get approval, then build. Prevents monolithic functions.</p>
+                <h4 style="margin: 15px 0 10px; color: #fff;">Inline Plan (Lightweight)</h4>
+                <p style="color: #888; font-size: 0.9rem;">Quick architecture plan in conversation. Get approval, then build. Low formality.</p>
+            </div>
+            <div style="background: rgba(155, 89, 182, 0.1); border: 2px solid #9b59b6; border-radius: 12px; padding: 25px; text-align: center;">
+                <code style="background: rgba(0,0,0,0.4); padding: 8px 15px; border-radius: 6px; font-size: 1.1rem; color: #9b59b6;">--plan</code>
+                <h4 style="margin: 15px 0 10px; color: #fff;">Full Plan Mode (Rigorous)</h4>
+                <p style="color: #888; font-size: 0.9rem;">Creates .plan.md file. Enforced read-only exploration. High formality for complex work.</p>
             </div>
             <div style="background: rgba(243, 156, 18, 0.1); border: 2px solid #f39c12; border-radius: 12px; padding: 25px; text-align: center;">
                 <code style="background: rgba(0,0,0,0.4); padding: 8px 15px; border-radius: 6px; font-size: 1.1rem; color: #f39c12;">--review-hard</code>
