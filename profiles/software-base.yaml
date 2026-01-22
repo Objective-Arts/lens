@@ -4,11 +4,25 @@ projectType: software
 composable: true
 
 canon:
-  base:
-    - kernighan      # Clarity, simplicity
+  # THE BASELINE BRAIN - six masters that shape all code
+  baseline:
+    - kernighan      # Clarity, readability, style
+    - thompson       # Pragmatism, brute force, get it working
+    - pike           # Small interfaces, composition
+    - joy            # Distributed systems, failure handling
+    - linus          # Good taste, data structures first
+    - dijkstra       # Formal discipline, correctness
+
+  # Security mindset (always relevant)
+  security:
     - schneier       # Security mindset
     - owasp          # Vulnerability patterns
+
+  # Documentation
+  documentation:
     - procida        # Documentation (Diataxis)
+
+  # Testing
   testing:
     - dodds          # Testing Trophy, integration-first
     - feathers       # Legacy code testing

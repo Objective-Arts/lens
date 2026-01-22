@@ -1,98 +1,97 @@
-# Session Progress - 2026-01-18T17:30:00Z
+# Session Progress - 2026-01-21
 
 ## Current Task
-Created case study documenting ClientController refactoring through claude-optimal lens
+Defining the "Baseline Brain" - foundational experts for all software projects
 
-## Completed
+## Completed This Session
 
-- **ClientController Refactoring Case Study** (new)
-  - Created `docs/case-studies/CLIENT-CONTROLLER-REFACTORING.md`
-  - Documents how canon skills (Bloch, Liskov, Kernighan, GoF) were applied
-  - Shows `--refactor-clean` flag workflow in practice
-  - Includes metrics: 1151→261 lines (main), 6→1 responsibilities per file
-  - Documents HIPAA fixes (PHI logging removed)
-  - Added case-studies reference to USER-GUIDE.md
+### 1. Created principles-and-sequence.html
+New diagram with two sections:
+- **Section I: Core Principles** (4 memorable principles)
+  1. "Claude knows. It just doesn't apply."
+  2. "Expert > Knowledge"
+  3. "Build it in, don't bolt it on"
+  4. "Four levers: Experts, Rules, Gates, Triggers"
 
-- **Previous Session: ClientController Refactoring** (SMR admin-angular project, commit `2236f07172`)
-  - Applied `--refactor-clean` to 1151-line monolithic controller
-  - Fixed 5 HIPAA violations (PHI in logs)
-  - Created 3 utility classes: DateParser, IdParser, ClientMapper
-  - Split into 6 focused controllers (Liskov SRP)
-  - All builds pass
+- **Section II: Setup Sequence** (5 steps with purpose)
+  1. Apply a Profile → "Pick your experts"
+  2. Add Standards → "Set the rules"
+  3. Add Auto-Invoke → "Wire the triggers"
+  4. Use Flags → "Add the gates"
+  5. Verify → "Check your work"
 
-## Previously Completed
-- **MCP Registry System** (commit `27dc590`)
-  - Created `cli/src/mcp/` module (types, registry, operations, index)
-  - Added 8 CLI commands: `mcp list/show/install/uninstall/enable/disable/check/add`
-  - Created initial registry at `~/.claude/mcp-registry/servers/` with 12 server definitions
-  - Integrated MCP handling into profile application flow
-  - Servers use `${VAR}` references for secrets, never actual keys
-  - Profile `mcpServers.enable` triggers install+enable with env var validation
+### 2. Created Ken Thompson canon skill
+- `canon/thompson/SKILL.md` - Ken Thompson's pragmatic philosophy
+- Core principle: "When in doubt, use brute force"
+- Includes: Unix philosophy, regex guidance, "Trusting Trust" security lesson
+- Added to `canon/README.md`
 
-- **Java Profile Expansion** (commit `4a8d90a`)
-  - Added kernighan, gang-of-four, liskov to Java canon
-  - Added auto-invoke rules for each skill context
-  - Ran comparison test showing Bloch+Kernighan produces more principled code reviews
+### 3. Defined the Baseline Brain
+Six masters that shape ALL code regardless of language:
 
-- **Angular Canon Skills** (commits `59d9e13` + `2fba649` in canon-skills)
-  - Created 4 new skills in `canon-skills/angular/`:
-    - `hevery` - DI, testability, component design
-    - `kurata` - Module organization, architecture patterns
-    - `minko-gechev` - Performance, lazy loading, OnPush
-    - `ben-lesh` - RxJS patterns, streams, operators
-  - Updated Angular profile with all 4 skills + auto-invoke rules
+| Master | Contribution |
+|--------|--------------|
+| **Kernighan** | Clarity, readability, style |
+| **Thompson** | Pragmatism, brute force, get it working |
+| **Pike** | Small interfaces, composition |
+| **Joy** | Distributed systems, failure handling |
+| **Linus** | Good taste, data structures first |
+| **Dijkstra** | Formal discipline, correctness |
 
-## In Progress
-- Nothing actively in progress
+Key insight: Thompson/Dijkstra tension is productive (pragmatism vs rigor)
 
-## Blockers / Open Questions
-- User mentioned a "gwt-skill" that needs improvement but it wasn't found in canon-skills repo
-- May need to create GWT/J2CL modernization skill if user wants
+### 4. Documented Baseline Brain
+- Created `docs/BASELINE-BRAIN.md`
+- Explains: why these six, what each provides, productive tensions
+- What's NOT in baseline and why (GoF is domain-specific)
+
+### 5. Updated software-base profile
+- Updated `profiles/software-base.yaml`
+- Added baseline brain as distinct section (6 masters)
+- Kept security (schneier, owasp), docs (procida), testing (4 masters)
+- Total: 13 masters in software-base
+
+## Key Decisions Made
+
+### Gang of Four NOT in Baseline
+- Conflicts with Pike/Linus simplicity ethos
+- Language-family specific (OOP-heavy)
+- Belongs in Java/C# domain profiles instead
+
+### Jeff Dean NOT a Canon Master
+- His work is in systems/papers, not articulated principles
+- Wisdom embedded in specific system designs
+- "google-systems" skill would be reference material, not a perspective
+
+## Files Created/Modified
+- `principles-and-sequence.html` (new)
+- `canon/thompson/SKILL.md` (new)
+- `docs/BASELINE-BRAIN.md` (new)
+- `canon/README.md` (modified - added Thompson)
+- `profiles/software-base.yaml` (modified - added baseline brain)
 
 ## Next Steps
-1. Clarify GWT skill location or create if needed
-2. Consider adding `dijkstra` to a `java-critical` profile for safety-critical systems
-3. Commit diagram.html and docs/PATTERNS.md changes if relevant
-
-## Key Files Modified
-
-### cli/src/mcp/ (new module)
-- `types.ts` - MCPServerDefinition, registry types
-- `registry.ts` - Load/save registry, env var validation
-- `operations.ts` - Install/uninstall/enable/disable operations
-- `index.ts` - Module exports
-
-### Profile Files Updated
-- `profiles/java.yaml` - Added kernighan, gang-of-four, liskov + auto-invoke
-- `profiles/angular.yaml` - Added hevery, kurata, minko-gechev, ben-lesh + auto-invoke
-
-### Registry Files Created
-- `~/.claude/mcp-registry/servers/*.yaml` - 12 server definitions:
-  - sequential-thinking, playwright, chrome-devtools, git
-  - linear, linear-http, obsidian, perplexity
-  - context7, gmail, excalidraw, claude-historian
-
-### Canon Skills Created (in canon-skills repo)
-- `angular/hevery/SKILL.md` - DI, testability
-- `angular/kurata/SKILL.md` - Module organization
-- `angular/minko-gechev/SKILL.md` - Performance
-- `angular/ben-lesh/SKILL.md` - RxJS patterns
+1. Commit these changes
+2. Consider adding Bill Joy skill if not complete
+3. Consider creating a baseline-only profile for minimal setups
+4. Update other docs to reference baseline brain concept
 
 ## Context to Restore
-- **MCP registry uses directory-based approach** - no central index file, `servers/*.yaml` IS the index
-- **Profile mcpServers.enable flow**: Check registry → validate env vars → install to mcp.json → enable in settings.json
-- **Servers with missing required env vars** are skipped gracefully with helpful message
-- **Java comparison test** showed skills produce more principled, structured reviews (organized by principle violated)
-- **Angular skills** follow same pattern as other canon skills (frontmatter + principles + test + sources)
-- **cc-config still installed globally** - run `cc-config mcp list` to see registry
 
-## Commits This Session
+### The Baseline Brain (memorize this)
+Kernighan, Thompson, Pike, Joy, Linus, Dijkstra
+
+### Profile Structure
 ```
-59d9e13 Update Angular profile with expanded canon skills
-4a8d90a Expand Java profile with kernighan, gang-of-four, and liskov skills
-27dc590 Add MCP registry system for variable server installation
+software-base profile:
+  baseline: kernighan, thompson, pike, joy, linus, dijkstra
+  security: schneier, owasp
+  documentation: procida
+  testing: dodds, feathers, meszaros, fowler-test
 ```
 
-## Pending Uncommitted Changes
-- `diagram.html` - May have updates from previous session
-- `docs/PATTERNS.md` - May have updates from previous session
+### Key Principles (memorable versions)
+1. Claude knows. It just doesn't apply.
+2. Expert > Knowledge
+3. Build it in, don't bolt it on
+4. Four levers: Experts, Rules, Gates, Triggers
