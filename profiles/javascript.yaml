@@ -8,3 +8,4 @@ canon:
   domain:
     - simpson        # You Don't Know JS
     - cherny         # Programming TypeScript
+    - crockford      # JavaScript: The Good Parts

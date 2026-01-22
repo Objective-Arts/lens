@@ -87,7 +87,7 @@ private Tag findTagById(List<Tag> tags, Long tagId) {
 
 ## Primitive Choices
 
-The refactoring used claude-optimal's **primitive-picker** framework:
+The refactoring used these Claude Code primitives:
 
 | Primitive | Used For | Why This Primitive |
 |-----------|----------|-------------------|

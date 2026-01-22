@@ -32,10 +32,10 @@ Every project has a **Base Canon** (always active) + **Domain Canon** (project-s
 
 | Profile | Description | Domain Canon |
 |---------|-------------|--------------|
-| `javascript` | JS/TS projects | Simpson, Cherny |
+| `javascript` | JS/TS projects | Simpson, Cherny, Crockford |
 | `react` | React/Next.js | Abramov |
 | `angular` | Angular projects | Hevery, Papa, Kurata |
-| `fullstack` | Java + JavaScript | Bloch + Simpson, Cherny |
+| `fullstack` | Java + JavaScript | Bloch + Simpson, Cherny, Crockford |
 | `d3` | D3.js visualization | Bostock, Tufte, Few, Knaflic |
 | `java` | Java | Bloch |
 | `testing` | Extended testing focus | Dodds, Feathers, Meszaros, Fowler |
@@ -76,6 +76,39 @@ Every project has a **Base Canon** (always active) + **Domain Canon** (project-s
 
 **Agents available:** security-auditor, code-reviewer, test-engineer, qa-expert, test-automator
 
+**Auto-Invoke Rules** (copy to project CLAUDE.md):
+
+```markdown
+## Auto-Invoke Rules
+
+| Context | Action |
+|---------|--------|
+| Auth, login, password, session, token | INVOKE /schneier then /owasp |
+| SQL, query, database access | INVOKE /owasp |
+| User input, form data, API endpoints | INVOKE /owasp |
+| New public API (exported function/class) | INVOKE --doc-code |
+| New feature completed | INVOKE --doc-code |
+| Complex system or architecture | INVOKE --doc-code --type=explanation |
+| After --test completes successfully | INVOKE --doc-code |
+| Testing code | INVOKE /dodds |
+| Legacy code changes | INVOKE /feathers |
+```
+
+**Trigger Patterns** (high confidence - always trigger):
+
+| Pattern | Skill/Flag |
+|---------|------------|
+| `auth\|login\|password\|session\|token` | /schneier, /owasp |
+| `export function\|export class\|export interface` | --doc-code |
+| New file in `src/features/` or `src/services/` | --doc-code |
+| New route/endpoint | --doc-code, /owasp |
+| `*.spec.ts` or `*.test.ts` | /dodds |
+
+**Skip auto-invoke when**:
+- Pure test files (for doc-code)
+- Internal utilities (<50 lines, not exported)
+- Config/comment changes only
+
 ---
 
 ### Business Base Canon
@@ -100,6 +133,15 @@ Every project has a **Base Canon** (always active) + **Domain Canon** (project-s
 |--------|-------|
 | Simpson | You Don't Know JS - runtime, closures, this |
 | Cherny | Programming TypeScript - types, generics |
+| Crockford | JavaScript: The Good Parts - avoiding bad parts, JSLint |
+
+**Auto-Invoke:**
+| Context | Action |
+|---------|--------|
+| Complex closures, `this` binding, async | INVOKE /simpson |
+| TypeScript types, generics, inference | INVOKE /cherny |
+| `.ts` or `.tsx` files | INVOKE /cherny |
+| Code quality, avoiding bad parts | INVOKE /crockford |
 
 ---
 
@@ -110,6 +152,13 @@ Every project has a **Base Canon** (always active) + **Domain Canon** (project-s
 | Expert | Focus |
 |--------|-------|
 | Abramov | Mental models, hooks, composition |
+
+**Auto-Invoke:**
+| Context | Action |
+|---------|--------|
+| React components (`*.tsx`, `use*` hooks) | INVOKE /abramov |
+| State management, effects, composition | INVOKE /abramov |
+| Component testing | INVOKE /dodds |
 
 ---
 
@@ -124,6 +173,13 @@ Every project has a **Base Canon** (always active) + **Domain Canon** (project-s
 | Kurata | Angular architecture, RxJS patterns |
 
 **Agents:** css-expert, accessibility-tester
+
+**Auto-Invoke:**
+| Context | Action |
+|---------|--------|
+| Angular components (`*.component.ts`) | INVOKE /papa |
+| Services, DI, change detection | INVOKE /hevery |
+| RxJS, observables, async patterns | INVOKE /kurata |
 
 ---
 
@@ -140,6 +196,13 @@ Every project has a **Base Canon** (always active) + **Domain Canon** (project-s
 
 **Agents:** css-expert, accessibility-tester
 
+**Auto-Invoke:**
+| Context | Action |
+|---------|--------|
+| D3 code, selections, scales | INVOKE /bostock |
+| Chart/visualization design decisions | INVOKE /tufte then /few |
+| Data storytelling, presentation | INVOKE /knaflic |
+
 ---
 
 ### fullstack
@@ -154,6 +217,12 @@ Every project has a **Base Canon** (always active) + **Domain Canon** (project-s
 
 Add `react` or `angular` profile for framework-specific canon.
 
+**Auto-Invoke:**
+| Context | Action |
+|---------|--------|
+| Java code (`.java` files) | INVOKE /bloch |
+| JavaScript/TypeScript code | INVOKE /simpson, /cherny |
+
 ---
 
 ### java
@@ -163,6 +232,12 @@ Add `react` or `angular` profile for framework-specific canon.
 | Expert | Focus |
 |--------|-------|
 | Bloch | Effective Java - API design, collections |
+
+**Auto-Invoke:**
+| Context | Action |
+|---------|--------|
+| Java code (`.java` files) | INVOKE /bloch |
+| API design, collections, concurrency | INVOKE /bloch |
 
 ---
 

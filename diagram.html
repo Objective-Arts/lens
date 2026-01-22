@@ -73,18 +73,18 @@
             color: #00d4ff;
         }
 
-        /* Three Pillars */
+        /* Four Pillars */
         .pillars {
             display: grid;
-            grid-template-columns: repeat(3, 1fr);
-            gap: 30px;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 20px;
             margin-bottom: 50px;
         }
 
         .pillar {
             background: rgba(255, 255, 255, 0.05);
             border-radius: 16px;
-            padding: 25px;
+            padding: 20px;
             border: 1px solid rgba(255, 255, 255, 0.1);
             transition: transform 0.3s, box-shadow 0.3s;
         }
@@ -97,32 +97,33 @@
         .pillar-header {
             display: flex;
             align-items: center;
-            gap: 12px;
-            margin-bottom: 15px;
+            gap: 10px;
+            margin-bottom: 12px;
         }
 
         .pillar-icon {
-            width: 50px;
-            height: 50px;
-            border-radius: 12px;
+            width: 40px;
+            height: 40px;
+            border-radius: 10px;
             display: flex;
             align-items: center;
             justify-content: center;
-            font-size: 24px;
+            font-size: 20px;
         }
 
         .pillar.profiles .pillar-icon { background: linear-gradient(135deg, #7b2ff7, #9b59b6); }
         .pillar.standards .pillar-icon { background: linear-gradient(135deg, #00d4ff, #0099cc); }
         .pillar.flags .pillar-icon { background: linear-gradient(135deg, #2ecc71, #27ae60); }
+        .pillar.autoinvoke .pillar-icon { background: linear-gradient(135deg, #f39c12, #e67e22); }
 
         .pillar h2 {
-            font-size: 1.4rem;
+            font-size: 1.2rem;
         }
 
         .pillar-question {
             color: #888;
-            font-size: 0.9rem;
-            margin-bottom: 15px;
+            font-size: 0.85rem;
+            margin-bottom: 12px;
         }
 
         .pillar ul {
@@ -131,9 +132,9 @@
         }
 
         .pillar li {
-            padding: 8px 0;
+            padding: 6px 0;
             border-bottom: 1px solid rgba(255, 255, 255, 0.05);
-            font-size: 0.95rem;
+            font-size: 0.9rem;
         }
 
         .pillar li:last-child {
@@ -144,11 +145,11 @@
             background: rgba(0, 0, 0, 0.3);
             padding: 2px 6px;
             border-radius: 4px;
-            font-size: 0.85rem;
+            font-size: 0.8rem;
             color: #00d4ff;
         }
 
-        /* Profile Hierarchy Diagram */
+        /* Section Title */
         .section-title {
             text-align: center;
             font-size: 1.8rem;
@@ -156,66 +157,39 @@
             color: #fff;
         }
 
-        .profile-hierarchy {
-            background: rgba(255, 255, 255, 0.03);
-            border-radius: 16px;
-            padding: 40px;
-            margin-bottom: 50px;
-        }
-
-        .hierarchy-svg {
-            width: 100%;
-            max-width: 900px;
-            margin: 0 auto;
-            display: block;
-        }
-
-        /* Canon Masters */
+        /* Canon Grid */
         .canon-grid {
             display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
-            gap: 15px;
+            grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+            gap: 12px;
             margin-bottom: 50px;
         }
 
         .canon-card {
             background: rgba(255, 255, 255, 0.05);
             border-radius: 10px;
-            padding: 15px;
+            padding: 12px;
             text-align: center;
             border: 1px solid rgba(255, 255, 255, 0.1);
         }
 
         .canon-card .domain {
-            font-size: 0.8rem;
-            color: #7b2ff7;
+            font-size: 0.75rem;
             text-transform: uppercase;
             letter-spacing: 1px;
-            margin-bottom: 5px;
+            margin-bottom: 4px;
         }
 
         .canon-card .name {
             font-weight: bold;
             color: #fff;
-        }
-
-        .canon-card .work {
-            font-size: 0.8rem;
-            color: #888;
-            margin-top: 5px;
-        }
-
-        /* Footer */
-        .footer {
-            text-align: center;
-            padding: 30px;
-            color: #666;
             font-size: 0.9rem;
         }
 
-        .footer a {
-            color: #00d4ff;
-            text-decoration: none;
+        .canon-card .work {
+            font-size: 0.75rem;
+            color: #888;
+            margin-top: 4px;
         }
 
         /* Meta Pattern Box */
@@ -241,16 +215,22 @@
             line-height: 1.6;
         }
 
-        @media (max-width: 900px) {
+        /* Footer */
+        .footer {
+            text-align: center;
+            padding: 30px;
+            color: #666;
+            font-size: 0.9rem;
+        }
+
+        @media (max-width: 1100px) {
             .pillars {
-                grid-template-columns: 1fr;
+                grid-template-columns: repeat(2, 1fr);
             }
+        }
 
-            .workflow-step::after {
-                display: none;
-            }
-
-            .pattern-categories {
+        @media (max-width: 700px) {
+            .pillars {
                 grid-template-columns: 1fr;
             }
         }
@@ -272,22 +252,52 @@
             <p><strong>Claude knows best practices.</strong> It just doesn't apply them unless explicitly required.</p>
         </div>
 
-        <!-- Quality Philosophy -->
-        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px; margin-bottom: 40px;">
-            <div style="background: linear-gradient(135deg, rgba(46, 204, 113, 0.15), rgba(0, 212, 255, 0.15)); border: 2px solid #2ecc71; border-radius: 12px; padding: 25px; text-align: center;">
-                <h3 style="color: #2ecc71; margin-bottom: 15px; font-size: 1.2rem;">Quality is Generative, Not Corrective</h3>
-                <p style="font-size: 1rem; margin-bottom: 10px;">Build quality in from the start. By the time code reaches external review, it should already be clean.</p>
-                <p style="color: #888; font-size: 0.9rem;"><strong>The final hook is confirmatory.</strong> It validates what's already right.</p>
+        <!-- Two Systems Diagram -->
+        <h2 class="section-title">Two Integrated Systems</h2>
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 30px; margin-bottom: 50px;">
+            <!-- Canon-Master Strategy -->
+            <div style="background: linear-gradient(135deg, rgba(123, 47, 247, 0.15), rgba(155, 89, 182, 0.15)); border: 2px solid #7b2ff7; border-radius: 16px; padding: 25px;">
+                <h3 style="color: #7b2ff7; margin-bottom: 15px; text-align: center; font-size: 1.3rem;">Canon-Master Strategy</h3>
+                <p style="text-align: center; color: #ccc; margin-bottom: 20px; font-style: italic;">"The Intelligence"</p>
+                <p style="color: #aaa; margin-bottom: 15px; text-align: center;">With expert intelligence pre-embedded to enforce quality from the start</p>
+                <div style="background: rgba(0,0,0,0.2); padding: 15px; border-radius: 8px; text-align: center;">
+                    <p style="color: #fff; font-size: 1rem;">"Java through Bloch's rules,<br>not just plain code"</p>
+                </div>
+                <div style="margin-top: 15px; text-align: center; color: #888; font-size: 0.9rem;">
+                    34 masters encoded as underlying intelligence
+                </div>
             </div>
-            <div style="background: linear-gradient(135deg, rgba(123, 47, 247, 0.15), rgba(255, 165, 0, 0.15)); border: 2px solid #7b2ff7; border-radius: 12px; padding: 25px; text-align: center;">
-                <h3 style="color: #7b2ff7; margin-bottom: 15px; font-size: 1.2rem;">Additive, Not Adversarial</h3>
-                <p style="font-size: 1rem; margin-bottom: 10px;">You're not fighting Claude or constraining it. You're giving Claude the expertise and context to do it right from the start.</p>
-                <p style="color: #888; font-size: 0.9rem;"><strong>Add lenses, not rules.</strong> Quality emerges from context you provide.</p>
+            <!-- Claude-Optimal Methodology -->
+            <div style="background: linear-gradient(135deg, rgba(0, 212, 255, 0.15), rgba(52, 152, 219, 0.15)); border: 2px solid #00d4ff; border-radius: 16px; padding: 25px;">
+                <h3 style="color: #00d4ff; margin-bottom: 15px; text-align: center; font-size: 1.3rem;">Claude-Optimal Methodology</h3>
+                <p style="text-align: center; color: #ccc; margin-bottom: 20px; font-style: italic;">"The Workflow"</p>
+                <p style="color: #aaa; margin-bottom: 15px; text-align: center;">Make quality requirements explicit so Claude applies what it knows</p>
+                <div style="background: rgba(0,0,0,0.2); padding: 15px; border-radius: 8px; text-align: center;">
+                    <div style="display: flex; justify-content: center; align-items: center; gap: 8px; flex-wrap: wrap;">
+                        <span style="color: #f39c12;">Understand</span>
+                        <span style="color: #555;">→</span>
+                        <span style="color: #9b59b6;">Design</span>
+                        <span style="color: #555;">→</span>
+                        <span style="color: #2ecc71;">Implement</span>
+                        <span style="color: #555;">→</span>
+                        <span style="color: #3498db;">Verify</span>
+                        <span style="color: #555;">→</span>
+                        <span style="color: #00d4ff;">Deliver</span>
+                    </div>
+                </div>
+                <div style="margin-top: 15px; text-align: center; color: #888; font-size: 0.9rem;">
+                    Flags enforce quality gates at each phase
+                </div>
             </div>
         </div>
 
-        <!-- Three Pillars -->
-        <h2 class="section-title">The Three-Component Solution</h2>
+        <!-- Result -->
+        <div style="background: linear-gradient(135deg, rgba(46, 204, 113, 0.15), rgba(39, 174, 96, 0.15)); border: 2px solid #2ecc71; border-radius: 12px; padding: 20px; margin-bottom: 50px; text-align: center;">
+            <p style="font-size: 1.2rem; color: #fff;"><strong>Together:</strong> Quality is <span style="color: #2ecc71; font-weight: bold;">generative</span> (built in from the start), not <span style="color: #e74c3c;">corrective</span> (fixed after the fact)</p>
+        </div>
+
+        <!-- The Four Components -->
+        <h2 class="section-title">The Four Components</h2>
         <div class="pillars">
             <div class="pillar profiles">
                 <div class="pillar-header">
@@ -296,15 +306,14 @@
                 </div>
                 <p class="pillar-question">Which expertise to apply?</p>
                 <ul>
-                    <li><code>base-tech</code> - Security, workflows, agents</li>
-                    <li><code>javascript</code> - Simpson, Cherny</li>
-                    <li><code>react</code> - Abramov, Dodds</li>
-                    <li><code>angular</code> - Hevery, Papa</li>
-                    <li><code>d3</code> - Bostock, Tufte, Few</li>
-                    <li><code>node</code> - Backend patterns</li>
-                    <li><code>java</code> - Bloch</li>
-                    <li><code>frontend</code> - UI/CSS patterns</li>
+                    <li><code>javascript</code> Simpson, Cherny</li>
+                    <li><code>react</code> + Abramov</li>
+                    <li><code>angular</code> + Hevery, Papa</li>
+                    <li><code>d3</code> + Bostock, Tufte, Few</li>
+                    <li><code>java</code> Bloch</li>
+                    <li><code>fullstack</code> Java + JS</li>
                 </ul>
+                <p style="color: #666; font-size: 0.8rem; margin-top: 10px;">Stack: javascript + react + d3</p>
             </div>
 
             <div class="pillar standards">
@@ -314,12 +323,11 @@
                 </div>
                 <p class="pillar-question">What does good code look like?</p>
                 <ul>
-                    <li><strong>Single Responsibility</strong> - One thing per function</li>
-                    <li><strong>30-Line Maximum</strong> - Extract if longer</li>
-                    <li><strong>Descriptive Names</strong> - What, not how</li>
-                    <li><strong>Pure Functions</strong> - No side effects</li>
-                    <li><strong>Data/Render Split</strong> - Separation of concerns</li>
-                    <li><strong>One Pattern</strong> - Consistency throughout</li>
+                    <li><strong>30-line max</strong> per function</li>
+                    <li><strong>Single responsibility</strong></li>
+                    <li><strong>Pipeline pattern</strong><br>raw → transform → render</li>
+                    <li><strong>One pattern</strong> per concern</li>
+                    <li><strong>Framework idioms</strong></li>
                 </ul>
             </div>
 
@@ -330,108 +338,206 @@
                 </div>
                 <p class="pillar-question">How to enforce quality?</p>
                 <ul>
-                    <li><code>--structure-first</code><br>Inline plan (lightweight)</li>
-                    <li><code>--plan</code><br>Full plan mode (rigorous)</li>
-                    <li><code>--review-hard</code><br>Adversarial self-review</li>
-                    <li><code>--refactor-clean</code><br>Systematic decomposition</li>
+                    <li><code>--structure-first</code><br>Inline plan</li>
+                    <li><code>--plan</code><br>Full plan mode</li>
+                    <li><code>--test [level]</code><br>Write tests</li>
+                    <li><code>--doc-code</code><br>Generate docs</li>
+                    <li><code>--review-hard</code><br>Adversarial review</li>
+                    <li><code>--refactor-clean</code><br>Decomposition</li>
+                </ul>
+            </div>
+
+            <div class="pillar autoinvoke">
+                <div class="pillar-header">
+                    <div class="pillar-icon">⚡</div>
+                    <h2>Auto-Invoke</h2>
+                </div>
+                <p class="pillar-question">When to trigger automatically?</p>
+                <ul>
+                    <li><strong>Auth code</strong> → /schneier, /owasp</li>
+                    <li><strong>New API</strong> → --doc-code</li>
+                    <li><strong>React files</strong> → /abramov</li>
+                    <li><strong>Test files</strong> → /dodds</li>
+                    <li><strong>Java files</strong> → /bloch</li>
+                    <li><strong>D3 code</strong> → /bostock</li>
                 </ul>
             </div>
         </div>
 
-        <!-- Profile Hierarchy -->
-        <h2 class="section-title">Profile Composition</h2>
-        <div class="profile-hierarchy">
-            <svg class="hierarchy-svg" viewBox="0 0 900 320" xmlns="http://www.w3.org/2000/svg">
-                <!-- Definitions -->
-                <defs>
-                    <linearGradient id="baseGrad" x1="0%" y1="0%" x2="100%" y2="100%">
-                        <stop offset="0%" style="stop-color:#7b2ff7"/>
-                        <stop offset="100%" style="stop-color:#9b59b6"/>
-                    </linearGradient>
-                    <linearGradient id="langGrad" x1="0%" y1="0%" x2="100%" y2="100%">
-                        <stop offset="0%" style="stop-color:#00d4ff"/>
-                        <stop offset="100%" style="stop-color:#0099cc"/>
-                    </linearGradient>
-                    <linearGradient id="fwGrad" x1="0%" y1="0%" x2="100%" y2="100%">
-                        <stop offset="0%" style="stop-color:#2ecc71"/>
-                        <stop offset="100%" style="stop-color:#27ae60"/>
-                    </linearGradient>
-                    <filter id="shadow" x="-20%" y="-20%" width="140%" height="140%">
-                        <feDropShadow dx="0" dy="4" stdDeviation="4" flood-opacity="0.3"/>
-                    </filter>
-                </defs>
+        <!-- The Method -->
+        <h2 class="section-title">The Method</h2>
+        <div style="background: rgba(46, 204, 113, 0.05); border-radius: 16px; padding: 30px; margin-bottom: 50px;">
 
-                <!-- Base Tech (Foundation) -->
-                <rect x="350" y="20" width="200" height="60" rx="10" fill="url(#baseGrad)" filter="url(#shadow)"/>
-                <text x="450" y="45" text-anchor="middle" fill="white" font-weight="bold" font-size="14">base-tech</text>
-                <text x="450" y="65" text-anchor="middle" fill="rgba(255,255,255,0.7)" font-size="11">Security + Workflows + Agents</text>
+            <!-- Canon Lens Container - wraps everything -->
+            <div style="border: 3px solid #7b2ff7; border-radius: 20px; padding: 25px; background: linear-gradient(135deg, rgba(123, 47, 247, 0.08), rgba(0, 212, 255, 0.05)); position: relative;">
 
-                <!-- Connecting lines from base-tech -->
-                <line x1="400" y1="80" x2="250" y2="130" stroke="#666" stroke-width="2"/>
-                <line x1="500" y1="80" x2="650" y2="130" stroke="#666" stroke-width="2"/>
+                <!-- Canon Label -->
+                <div style="position: absolute; top: -14px; left: 50%; transform: translateX(-50%); background: #1a1a2e; padding: 0 20px;">
+                    <span style="color: #7b2ff7; font-weight: bold; font-size: 0.9rem; text-transform: uppercase; letter-spacing: 2px;">Canon Intelligence Active</span>
+                </div>
 
-                <!-- Language Layer -->
-                <rect x="150" y="130" width="200" height="50" rx="8" fill="url(#langGrad)" filter="url(#shadow)"/>
-                <text x="250" y="160" text-anchor="middle" fill="white" font-weight="bold" font-size="13">javascript</text>
+                <!-- Flow Diagram -->
+                <div style="display: flex; align-items: center; justify-content: center; gap: 0; margin: 30px 0 20px;">
 
-                <rect x="550" y="130" width="200" height="50" rx="8" fill="url(#langGrad)" filter="url(#shadow)"/>
-                <text x="650" y="160" text-anchor="middle" fill="white" font-weight="bold" font-size="13">java</text>
+                    <!-- INPUT -->
+                    <div style="text-align: center;">
+                        <div style="background: linear-gradient(135deg, #2c3e50, #34495e); border: 2px solid #7f8c8d; border-radius: 50%; width: 80px; height: 80px; display: flex; align-items: center; justify-content: center; margin: 0 auto;">
+                            <span style="color: #fff; font-weight: bold; font-size: 0.85rem;">TASK</span>
+                        </div>
+                        <div style="color: #666; font-size: 0.75rem; margin-top: 8px;">User Request</div>
+                    </div>
 
-                <!-- Connecting lines from javascript -->
-                <line x1="200" y1="180" x2="120" y2="220" stroke="#666" stroke-width="2"/>
-                <line x1="250" y1="180" x2="250" y2="220" stroke="#666" stroke-width="2"/>
-                <line x1="300" y1="180" x2="380" y2="220" stroke="#666" stroke-width="2"/>
+                    <!-- Arrow -->
+                    <div style="color: #555; font-size: 1.5rem; margin: 0 10px;">→</div>
 
-                <!-- Framework Layer (under JavaScript) -->
-                <rect x="70" y="220" width="100" height="45" rx="8" fill="url(#fwGrad)" filter="url(#shadow)"/>
-                <text x="120" y="248" text-anchor="middle" fill="white" font-weight="bold" font-size="11">react</text>
+                    <!-- UNDERSTAND -->
+                    <div style="text-align: center; position: relative;">
+                        <div style="background: linear-gradient(135deg, rgba(243, 156, 18, 0.2), rgba(230, 126, 34, 0.2)); border: 2px solid #f39c12; border-radius: 12px; padding: 15px 20px; min-width: 120px;">
+                            <div style="color: #f39c12; font-weight: bold; font-size: 0.9rem;">UNDERSTAND</div>
+                            <div style="color: #888; font-size: 0.75rem; margin-top: 5px;">What + Why</div>
+                        </div>
+                        <div style="margin-top: 8px;">
+                            <code style="background: rgba(243, 156, 18, 0.15); color: #f39c12; padding: 2px 6px; border-radius: 4px; font-size: 0.65rem;">--structure-first</code>
+                        </div>
+                    </div>
 
-                <rect x="200" y="220" width="100" height="45" rx="8" fill="url(#fwGrad)" filter="url(#shadow)"/>
-                <text x="250" y="248" text-anchor="middle" fill="white" font-weight="bold" font-size="11">angular</text>
+                    <!-- Arrow -->
+                    <div style="color: #555; font-size: 1.5rem; margin: 0 10px;">→</div>
 
-                <rect x="330" y="220" width="100" height="45" rx="8" fill="url(#fwGrad)" filter="url(#shadow)"/>
-                <text x="380" y="248" text-anchor="middle" fill="white" font-weight="bold" font-size="11">d3 / node</text>
+                    <!-- DESIGN -->
+                    <div style="text-align: center; position: relative;">
+                        <div style="background: linear-gradient(135deg, rgba(155, 89, 182, 0.2), rgba(142, 68, 173, 0.2)); border: 2px solid #9b59b6; border-radius: 12px; padding: 15px 20px; min-width: 120px;">
+                            <div style="color: #9b59b6; font-weight: bold; font-size: 0.9rem;">DESIGN</div>
+                            <div style="color: #888; font-size: 0.75rem; margin-top: 5px;">Structure + API</div>
+                        </div>
+                        <div style="margin-top: 8px;">
+                            <code style="background: rgba(155, 89, 182, 0.15); color: #9b59b6; padding: 2px 6px; border-radius: 4px; font-size: 0.65rem;">--plan</code>
+                        </div>
+                    </div>
 
-                <!-- + signs showing composition -->
-                <text x="450" y="110" text-anchor="middle" fill="#888" font-size="16">+</text>
-                <text x="250" y="205" text-anchor="middle" fill="#888" font-size="16">+</text>
+                    <!-- Arrow -->
+                    <div style="color: #555; font-size: 1.5rem; margin: 0 10px;">→</div>
 
-                <!-- Example composition -->
-                <rect x="500" y="240" width="380" height="60" rx="8" fill="rgba(255,255,255,0.1)" stroke="#888" stroke-dasharray="5,5"/>
-                <text x="690" y="262" text-anchor="middle" fill="#888" font-size="11">Example: React Frontend</text>
-                <text x="690" y="285" text-anchor="middle" fill="#00d4ff" font-size="13" font-family="monospace">base-tech + javascript + react + frontend</text>
-            </svg>
+                    <!-- IMPLEMENT -->
+                    <div style="text-align: center; position: relative;">
+                        <div style="background: linear-gradient(135deg, rgba(46, 204, 113, 0.2), rgba(39, 174, 96, 0.2)); border: 2px solid #2ecc71; border-radius: 12px; padding: 15px 20px; min-width: 120px;">
+                            <div style="color: #2ecc71; font-weight: bold; font-size: 0.9rem;">IMPLEMENT</div>
+                            <div style="color: #888; font-size: 0.75rem; margin-top: 5px;">Code + Refactor</div>
+                        </div>
+                        <div style="margin-top: 8px;">
+                            <code style="background: rgba(46, 204, 113, 0.15); color: #2ecc71; padding: 2px 6px; border-radius: 4px; font-size: 0.65rem;">--refactor-clean</code>
+                        </div>
+                    </div>
+
+                    <!-- Arrow -->
+                    <div style="color: #555; font-size: 1.5rem; margin: 0 10px;">→</div>
+
+                    <!-- VERIFY -->
+                    <div style="text-align: center; position: relative;">
+                        <div style="background: linear-gradient(135deg, rgba(52, 152, 219, 0.2), rgba(41, 128, 185, 0.2)); border: 2px solid #3498db; border-radius: 12px; padding: 15px 20px; min-width: 120px;">
+                            <div style="color: #3498db; font-weight: bold; font-size: 0.9rem;">VERIFY</div>
+                            <div style="color: #888; font-size: 0.75rem; margin-top: 5px;">Test + Review</div>
+                        </div>
+                        <div style="margin-top: 8px;">
+                            <code style="background: rgba(52, 152, 219, 0.15); color: #3498db; padding: 2px 6px; border-radius: 4px; font-size: 0.65rem;">--test --review-hard</code>
+                        </div>
+                    </div>
+
+                    <!-- Arrow -->
+                    <div style="color: #555; font-size: 1.5rem; margin: 0 10px;">→</div>
+
+                    <!-- DELIVER -->
+                    <div style="text-align: center; position: relative;">
+                        <div style="background: linear-gradient(135deg, rgba(0, 212, 255, 0.2), rgba(52, 152, 219, 0.2)); border: 2px solid #00d4ff; border-radius: 12px; padding: 15px 20px; min-width: 120px;">
+                            <div style="color: #00d4ff; font-weight: bold; font-size: 0.9rem;">DELIVER</div>
+                            <div style="color: #888; font-size: 0.75rem; margin-top: 5px;">Document + Ship</div>
+                        </div>
+                        <div style="margin-top: 8px;">
+                            <code style="background: rgba(0, 212, 255, 0.15); color: #00d4ff; padding: 2px 6px; border-radius: 4px; font-size: 0.65rem;">--doc-code</code>
+                        </div>
+                    </div>
+
+                    <!-- Arrow -->
+                    <div style="color: #555; font-size: 1.5rem; margin: 0 10px;">→</div>
+
+                    <!-- OUTPUT -->
+                    <div style="text-align: center;">
+                        <div style="background: linear-gradient(135deg, #27ae60, #2ecc71); border: 2px solid #2ecc71; border-radius: 50%; width: 80px; height: 80px; display: flex; align-items: center; justify-content: center; margin: 0 auto;">
+                            <span style="color: #fff; font-weight: bold; font-size: 0.75rem; text-align: center;">QUALITY<br>OUTPUT</span>
+                        </div>
+                        <div style="color: #666; font-size: 0.75rem; margin-top: 8px;">Expert-Reviewed</div>
+                    </div>
+                </div>
+
+                <!-- Feedback Loop Arrow -->
+                <div style="text-align: center; margin-top: 15px; position: relative;">
+                    <svg width="700" height="50" style="display: block; margin: 0 auto;">
+                        <defs>
+                            <marker id="arrowhead" markerWidth="10" markerHeight="7" refX="9" refY="3.5" orient="auto">
+                                <polygon points="0 0, 10 3.5, 0 7" fill="#e74c3c" />
+                            </marker>
+                        </defs>
+                        <path d="M 600 5 Q 650 5 650 25 Q 650 45 350 45 Q 50 45 50 25 Q 50 5 100 5"
+                              stroke="#e74c3c" stroke-width="2" fill="none" stroke-dasharray="5,5" marker-end="url(#arrowhead)"/>
+                    </svg>
+                    <div style="position: absolute; top: 15px; left: 50%; transform: translateX(-50%); background: #1a1a2e; padding: 0 10px;">
+                        <span style="color: #e74c3c; font-size: 0.75rem;">Issues found? Return and fix</span>
+                    </div>
+                </div>
+
+                <!-- Canon Masters Row -->
+                <div style="display: flex; justify-content: center; gap: 15px; margin-top: 25px; padding-top: 20px; border-top: 1px dashed #7b2ff7;">
+                    <div style="color: #7b2ff7; font-size: 0.8rem;">
+                        <strong>Base:</strong> Kernighan · Schneier · OWASP · Procida · Dodds
+                    </div>
+                    <div style="color: #555;">|</div>
+                    <div style="color: #888; font-size: 0.8rem;">
+                        <strong style="color: #00d4ff;">+ Domain:</strong> Bloch · Simpson · Abramov · Bostock...
+                    </div>
+                </div>
+            </div>
+
+            <!-- Method Principles -->
+            <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 15px; margin-top: 25px;">
+                <div style="background: rgba(0,0,0,0.2); border-radius: 8px; padding: 15px; text-align: center;">
+                    <div style="color: #f39c12; font-weight: bold; margin-bottom: 5px;">Think First</div>
+                    <div style="color: #888; font-size: 0.8rem;">Understand + Design before touching code</div>
+                </div>
+                <div style="background: rgba(0,0,0,0.2); border-radius: 8px; padding: 15px; text-align: center;">
+                    <div style="color: #2ecc71; font-weight: bold; margin-bottom: 5px;">Build Right</div>
+                    <div style="color: #888; font-size: 0.8rem;">Canon shapes decisions as they're made</div>
+                </div>
+                <div style="background: rgba(0,0,0,0.2); border-radius: 8px; padding: 15px; text-align: center;">
+                    <div style="color: #3498db; font-weight: bold; margin-bottom: 5px;">Verify Always</div>
+                    <div style="color: #888; font-size: 0.8rem;">Test + Review before delivery</div>
+                </div>
+            </div>
+
+            <!-- Full Pipeline Example -->
+            <div style="margin-top: 20px; background: rgba(0,0,0,0.2); border-radius: 8px; padding: 15px; text-align: center;">
+                <span style="color: #888; font-size: 0.9rem;">Full method:</span>
+                <code style="background: rgba(0,0,0,0.3); color: #00d4ff; padding: 6px 12px; border-radius: 6px; font-size: 0.9rem; margin-left: 10px;">--structure-first --test all --doc-code --review-hard</code>
+            </div>
         </div>
 
-        <!-- Quality Flags -->
-        <h2 class="section-title">Quality Enforcement Flags</h2>
-        <div style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 25px; margin-bottom: 50px;">
-            <div style="background: rgba(52, 152, 219, 0.1); border: 2px solid #3498db; border-radius: 12px; padding: 25px; text-align: center;">
-                <code style="background: rgba(0,0,0,0.4); padding: 8px 15px; border-radius: 6px; font-size: 1.1rem; color: #3498db;">--structure-first</code>
-                <h4 style="margin: 15px 0 10px; color: #fff;">Inline Plan (Lightweight)</h4>
-                <p style="color: #888; font-size: 0.9rem;">Quick architecture plan in conversation. Get approval, then build. Low formality.</p>
+        <!-- Quality Philosophy -->
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px; margin-bottom: 50px;">
+            <div style="background: linear-gradient(135deg, rgba(46, 204, 113, 0.15), rgba(0, 212, 255, 0.15)); border: 2px solid #2ecc71; border-radius: 12px; padding: 25px; text-align: center;">
+                <h3 style="color: #2ecc71; margin-bottom: 15px; font-size: 1.2rem;">Quality is Generative</h3>
+                <p style="font-size: 1rem; margin-bottom: 10px;">Build quality in from the start. Canon prevents bad patterns from being written.</p>
+                <p style="color: #888; font-size: 0.9rem;"><strong>The lens shapes decisions as they're made.</strong></p>
             </div>
-            <div style="background: rgba(155, 89, 182, 0.1); border: 2px solid #9b59b6; border-radius: 12px; padding: 25px; text-align: center;">
-                <code style="background: rgba(0,0,0,0.4); padding: 8px 15px; border-radius: 6px; font-size: 1.1rem; color: #9b59b6;">--plan</code>
-                <h4 style="margin: 15px 0 10px; color: #fff;">Full Plan Mode (Rigorous)</h4>
-                <p style="color: #888; font-size: 0.9rem;">Creates .plan.md file. Enforced read-only exploration. High formality for complex work.</p>
-            </div>
-            <div style="background: rgba(243, 156, 18, 0.1); border: 2px solid #f39c12; border-radius: 12px; padding: 25px; text-align: center;">
-                <code style="background: rgba(0,0,0,0.4); padding: 8px 15px; border-radius: 6px; font-size: 1.1rem; color: #f39c12;">--review-hard</code>
-                <h4 style="margin: 15px 0 10px; color: #fff;">Adversarial Self-Review</h4>
-                <p style="color: #888; font-size: 0.9rem;">User-triggered. "What would Gemini/Codex flag?" Fix before presenting.</p>
-            </div>
-            <div style="background: rgba(46, 204, 113, 0.1); border: 2px solid #2ecc71; border-radius: 12px; padding: 25px; text-align: center;">
-                <code style="background: rgba(0,0,0,0.4); padding: 8px 15px; border-radius: 6px; font-size: 1.1rem; color: #2ecc71;">--refactor-clean</code>
-                <h4 style="margin: 15px 0 10px; color: #fff;">Systematic Decomposition</h4>
-                <p style="color: #888; font-size: 0.9rem;">Break down existing code into focused functions with clear responsibilities.</p>
+            <div style="background: linear-gradient(135deg, rgba(123, 47, 247, 0.15), rgba(255, 165, 0, 0.15)); border: 2px solid #7b2ff7; border-radius: 12px; padding: 25px; text-align: center;">
+                <h3 style="color: #7b2ff7; margin-bottom: 15px; font-size: 1.2rem;">Perspective > Knowledge</h3>
+                <p style="font-size: 1rem; margin-bottom: 10px;">Claude has broad knowledge but no focused perspective. The lens provides the perspective.</p>
+                <p style="color: #888; font-size: 0.9rem;"><strong>Not what you know, but whose lens you apply.</strong></p>
             </div>
         </div>
 
-        <!-- Canon Skill Tiers -->
+        <!-- Canon Skills Configuration -->
         <h2 class="section-title">Canon Skill Configuration</h2>
         <div style="background: rgba(255, 255, 255, 0.03); border-radius: 16px; padding: 30px; margin-bottom: 30px;">
-            <p style="text-align: center; color: #888; margin-bottom: 25px;">Canon skills are <strong style="color: #2ecc71;">always alive</strong> throughout the workflow - the lens through which all work is done</p>
+            <p style="text-align: center; color: #888; margin-bottom: 25px;">Canon skills are <strong style="color: #2ecc71;">always alive</strong> - the lens through which all work is done</p>
 
             <!-- Software Projects -->
             <div style="margin-bottom: 30px;">
@@ -439,57 +545,61 @@
                 <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px;">
                     <!-- Software Base Canon -->
                     <div style="background: linear-gradient(135deg, rgba(0, 212, 255, 0.1), rgba(52, 152, 219, 0.1)); border: 2px solid #00d4ff; border-radius: 12px; padding: 20px;">
-                        <h5 style="color: #00d4ff; margin-bottom: 12px; font-size: 0.95rem; text-align: center;">BASE CANON</h5>
-                        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 8px;">
+                        <h5 style="color: #00d4ff; margin-bottom: 12px; font-size: 0.95rem; text-align: center;">BASE CANON (all projects)</h5>
+                        <div style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 8px;">
                             <div style="background: rgba(0,0,0,0.2); padding: 10px; border-radius: 6px; text-align: center;">
-                                <div style="color: #fff; font-weight: bold; font-size: 0.85rem;">Kernighan</div>
+                                <div style="color: #fff; font-weight: bold; font-size: 0.8rem;">Kernighan</div>
                                 <div style="color: #888; font-size: 0.7rem;">Clarity</div>
                             </div>
                             <div style="background: rgba(0,0,0,0.2); padding: 10px; border-radius: 6px; text-align: center;">
-                                <div style="color: #fff; font-weight: bold; font-size: 0.85rem;">Schneier</div>
+                                <div style="color: #fff; font-weight: bold; font-size: 0.8rem;">Schneier</div>
                                 <div style="color: #888; font-size: 0.7rem;">Security</div>
                             </div>
                             <div style="background: rgba(0,0,0,0.2); padding: 10px; border-radius: 6px; text-align: center;">
-                                <div style="color: #fff; font-weight: bold; font-size: 0.85rem;">Dodds</div>
-                                <div style="color: #888; font-size: 0.7rem;">Testing</div>
-                            </div>
-                            <div style="background: rgba(0,0,0,0.2); padding: 10px; border-radius: 6px; text-align: center;">
-                                <div style="color: #fff; font-weight: bold; font-size: 0.85rem;">OWASP</div>
+                                <div style="color: #fff; font-weight: bold; font-size: 0.8rem;">OWASP</div>
                                 <div style="color: #888; font-size: 0.7rem;">Vulnerabilities</div>
                             </div>
-                            <div style="background: rgba(0,0,0,0.2); padding: 10px; border-radius: 6px; text-align: center; grid-column: span 2;">
-                                <div style="color: #fff; font-weight: bold; font-size: 0.85rem;">Procida</div>
-                                <div style="color: #888; font-size: 0.7rem;">Documentation (Diátaxis)</div>
+                            <div style="background: rgba(0,0,0,0.2); padding: 10px; border-radius: 6px; text-align: center;">
+                                <div style="color: #fff; font-weight: bold; font-size: 0.8rem;">Procida</div>
+                                <div style="color: #888; font-size: 0.7rem;">Docs (Diátaxis)</div>
+                            </div>
+                            <div style="background: rgba(0,0,0,0.2); padding: 10px; border-radius: 6px; text-align: center;">
+                                <div style="color: #fff; font-weight: bold; font-size: 0.8rem;">Dodds</div>
+                                <div style="color: #888; font-size: 0.7rem;">Testing Trophy</div>
+                            </div>
+                            <div style="background: rgba(0,0,0,0.2); padding: 10px; border-radius: 6px; text-align: center;">
+                                <div style="color: #fff; font-weight: bold; font-size: 0.8rem;">Feathers</div>
+                                <div style="color: #888; font-size: 0.7rem;">Legacy Code</div>
                             </div>
                         </div>
                     </div>
                     <!-- Software Domain Canon -->
                     <div style="background: linear-gradient(135deg, rgba(0, 212, 255, 0.05), rgba(52, 152, 219, 0.05)); border: 1px solid rgba(0, 212, 255, 0.5); border-radius: 12px; padding: 20px;">
-                        <h5 style="color: #00d4ff; margin-bottom: 12px; font-size: 0.95rem; text-align: center;">DOMAIN CANON</h5>
-                        <div style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 8px;">
+                        <h5 style="color: #00d4ff; margin-bottom: 12px; font-size: 0.95rem; text-align: center;">DOMAIN CANON (per stack)</h5>
+                        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 8px;">
                             <div style="background: rgba(0,0,0,0.2); padding: 10px; border-radius: 6px; text-align: center;">
                                 <div style="color: #888; font-size: 0.7rem;">Java</div>
-                                <div style="color: #fff; font-weight: bold; font-size: 0.85rem;">Bloch</div>
+                                <div style="color: #fff; font-weight: bold; font-size: 0.8rem;">Bloch</div>
                             </div>
                             <div style="background: rgba(0,0,0,0.2); padding: 10px; border-radius: 6px; text-align: center;">
                                 <div style="color: #888; font-size: 0.7rem;">JavaScript</div>
-                                <div style="color: #fff; font-weight: bold; font-size: 0.85rem;">Simpson, Cherny</div>
+                                <div style="color: #fff; font-weight: bold; font-size: 0.8rem;">Simpson, Cherny</div>
                             </div>
                             <div style="background: rgba(0,0,0,0.2); padding: 10px; border-radius: 6px; text-align: center;">
                                 <div style="color: #888; font-size: 0.7rem;">React</div>
-                                <div style="color: #fff; font-weight: bold; font-size: 0.85rem;">Abramov, Dodds</div>
+                                <div style="color: #fff; font-weight: bold; font-size: 0.8rem;">Abramov</div>
                             </div>
                             <div style="background: rgba(0,0,0,0.2); padding: 10px; border-radius: 6px; text-align: center;">
                                 <div style="color: #888; font-size: 0.7rem;">Angular</div>
-                                <div style="color: #fff; font-weight: bold; font-size: 0.85rem;">Hevery, Papa</div>
+                                <div style="color: #fff; font-weight: bold; font-size: 0.75rem;">Hevery, Papa, Kurata</div>
                             </div>
                             <div style="background: rgba(0,0,0,0.2); padding: 10px; border-radius: 6px; text-align: center;">
                                 <div style="color: #888; font-size: 0.7rem;">D3/Viz</div>
-                                <div style="color: #fff; font-weight: bold; font-size: 0.85rem;">Bostock, Tufte</div>
+                                <div style="color: #fff; font-weight: bold; font-size: 0.75rem;">Bostock, Tufte, Few</div>
                             </div>
                             <div style="background: rgba(0,0,0,0.2); padding: 10px; border-radius: 6px; text-align: center;">
-                                <div style="color: #888; font-size: 0.7rem;">Testing</div>
-                                <div style="color: #fff; font-weight: bold; font-size: 0.85rem;">Dodds</div>
+                                <div style="color: #888; font-size: 0.7rem;">Go</div>
+                                <div style="color: #fff; font-weight: bold; font-size: 0.8rem;">Pike</div>
                             </div>
                         </div>
                     </div>
@@ -505,15 +615,15 @@
                         <h5 style="color: #f39c12; margin-bottom: 12px; font-size: 0.95rem; text-align: center;">BASE CANON</h5>
                         <div style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 8px;">
                             <div style="background: rgba(0,0,0,0.2); padding: 10px; border-radius: 6px; text-align: center;">
-                                <div style="color: #fff; font-weight: bold; font-size: 0.85rem;">Strunk & White</div>
+                                <div style="color: #fff; font-weight: bold; font-size: 0.8rem;">Strunk & White</div>
                                 <div style="color: #888; font-size: 0.7rem;">Clarity</div>
                             </div>
                             <div style="background: rgba(0,0,0,0.2); padding: 10px; border-radius: 6px; text-align: center;">
-                                <div style="color: #fff; font-weight: bold; font-size: 0.85rem;">Zinsser</div>
+                                <div style="color: #fff; font-weight: bold; font-size: 0.8rem;">Zinsser</div>
                                 <div style="color: #888; font-size: 0.7rem;">Writing</div>
                             </div>
                             <div style="background: rgba(0,0,0,0.2); padding: 10px; border-radius: 6px; text-align: center;">
-                                <div style="color: #fff; font-weight: bold; font-size: 0.85rem;">Grove</div>
+                                <div style="color: #fff; font-weight: bold; font-size: 0.8rem;">Grove</div>
                                 <div style="color: #888; font-size: 0.7rem;">Management</div>
                             </div>
                         </div>
@@ -521,327 +631,113 @@
                     <!-- Business Domain Canon -->
                     <div style="background: linear-gradient(135deg, rgba(243, 156, 18, 0.05), rgba(230, 126, 34, 0.05)); border: 1px solid rgba(243, 156, 18, 0.5); border-radius: 12px; padding: 20px;">
                         <h5 style="color: #f39c12; margin-bottom: 12px; font-size: 0.95rem; text-align: center;">DOMAIN CANON</h5>
-                        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 8px;">
+                        <div style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 8px;">
                             <div style="background: rgba(0,0,0,0.2); padding: 10px; border-radius: 6px; text-align: center;">
                                 <div style="color: #888; font-size: 0.7rem;">Strategy</div>
-                                <div style="color: #fff; font-weight: bold; font-size: 0.85rem;">Porter</div>
+                                <div style="color: #fff; font-weight: bold; font-size: 0.8rem;">Porter</div>
                             </div>
                             <div style="background: rgba(0,0,0,0.2); padding: 10px; border-radius: 6px; text-align: center;">
-                                <div style="color: #888; font-size: 0.7rem;">Tech Analysis</div>
-                                <div style="color: #fff; font-weight: bold; font-size: 0.85rem;">Thompson</div>
+                                <div style="color: #888; font-size: 0.7rem;">Tech</div>
+                                <div style="color: #fff; font-weight: bold; font-size: 0.8rem;">Thompson</div>
                             </div>
                             <div style="background: rgba(0,0,0,0.2); padding: 10px; border-radius: 6px; text-align: center;">
-                                <div style="color: #888; font-size: 0.7rem;">Startups/Org</div>
-                                <div style="color: #fff; font-weight: bold; font-size: 0.85rem;">Horowitz</div>
-                            </div>
-                            <div style="background: rgba(0,0,0,0.2); padding: 10px; border-radius: 6px; text-align: center;">
-                                <div style="color: #888; font-size: 0.7rem;">+ more</div>
-                                <div style="color: #fff; font-weight: bold; font-size: 0.85rem;">...</div>
+                                <div style="color: #888; font-size: 0.7rem;">Startups</div>
+                                <div style="color: #fff; font-weight: bold; font-size: 0.8rem;">Horowitz</div>
                             </div>
                         </div>
                     </div>
                 </div>
             </div>
+        </div>
 
-            <div style="background: rgba(46, 204, 113, 0.1); border: 1px dashed #2ecc71; border-radius: 8px; padding: 15px; text-align: center;">
-                <span style="color: #2ecc71; font-weight: bold;">Configuration:</span>
-                <span style="color: #ccc;"> Base + Domain canon active together throughout entire workflow</span>
+        <!-- Quality Flags -->
+        <h2 class="section-title">Quality Enforcement Flags</h2>
+        <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 15px; margin-bottom: 50px;">
+            <div style="background: rgba(52, 152, 219, 0.1); border: 2px solid #3498db; border-radius: 12px; padding: 18px; text-align: center;">
+                <code style="background: rgba(0,0,0,0.4); padding: 5px 10px; border-radius: 6px; font-size: 0.9rem; color: #3498db;">--structure-first</code>
+                <h4 style="margin: 10px 0 6px; color: #fff; font-size: 0.9rem;">Inline Plan</h4>
+                <p style="color: #888; font-size: 0.8rem;">Quick architecture plan. Approve before code.</p>
+            </div>
+            <div style="background: rgba(155, 89, 182, 0.1); border: 2px solid #9b59b6; border-radius: 12px; padding: 18px; text-align: center;">
+                <code style="background: rgba(0,0,0,0.4); padding: 5px 10px; border-radius: 6px; font-size: 0.9rem; color: #9b59b6;">--plan</code>
+                <h4 style="margin: 10px 0 6px; color: #fff; font-size: 0.9rem;">Full Plan Mode</h4>
+                <p style="color: #888; font-size: 0.8rem;">Creates .plan.md file. Read-only exploration.</p>
+            </div>
+            <div style="background: rgba(46, 204, 113, 0.1); border: 2px solid #2ecc71; border-radius: 12px; padding: 18px; text-align: center;">
+                <code style="background: rgba(0,0,0,0.4); padding: 5px 10px; border-radius: 6px; font-size: 0.9rem; color: #2ecc71;">--test [level]</code>
+                <h4 style="margin: 10px 0 6px; color: #fff; font-size: 0.9rem;">Write Tests</h4>
+                <p style="color: #888; font-size: 0.8rem;">unit / integration / e2e / all</p>
+            </div>
+            <div style="background: rgba(142, 68, 173, 0.1); border: 2px solid #8e44ad; border-radius: 12px; padding: 18px; text-align: center;">
+                <code style="background: rgba(0,0,0,0.4); padding: 5px 10px; border-radius: 6px; font-size: 0.9rem; color: #8e44ad;">--doc-code</code>
+                <h4 style="margin: 10px 0 6px; color: #fff; font-size: 0.9rem;">Generate Docs</h4>
+                <p style="color: #888; font-size: 0.8rem;">Procida Diátaxis: tutorial, how-to, ref, explain</p>
+            </div>
+            <div style="background: rgba(231, 76, 60, 0.1); border: 2px solid #e74c3c; border-radius: 12px; padding: 18px; text-align: center;">
+                <code style="background: rgba(0,0,0,0.4); padding: 5px 10px; border-radius: 6px; font-size: 0.9rem; color: #e74c3c;">--review-hard</code>
+                <h4 style="margin: 10px 0 6px; color: #fff; font-size: 0.9rem;">Adversarial Review</h4>
+                <p style="color: #888; font-size: 0.8rem;">"What would a hostile reviewer flag?"</p>
+            </div>
+            <div style="background: rgba(243, 156, 18, 0.1); border: 2px solid #f39c12; border-radius: 12px; padding: 18px; text-align: center;">
+                <code style="background: rgba(0,0,0,0.4); padding: 5px 10px; border-radius: 6px; font-size: 0.9rem; color: #f39c12;">--refactor-clean</code>
+                <h4 style="margin: 10px 0 6px; color: #fff; font-size: 0.9rem;">Decomposition</h4>
+                <p style="color: #888; font-size: 0.8rem;">Systematic cleanup with before/after.</p>
             </div>
         </div>
 
-        <!-- Canon Masters -->
-        <h2 class="section-title">Canon Skill Masters</h2>
-
-        <!-- Software Masters -->
-        <p style="color: #00d4ff; text-align: center; margin-bottom: 15px; font-size: 0.9rem; text-transform: uppercase; letter-spacing: 1px;">Software</p>
-        <div class="canon-grid" style="margin-bottom: 30px;">
-            <div class="canon-card" style="border-color: #00d4ff;">
-                <div class="domain" style="color: #00d4ff;">Java</div>
-                <div class="name">Joshua Bloch</div>
-                <div class="work">Effective Java</div>
-            </div>
-            <div class="canon-card" style="border-color: #00d4ff;">
-                <div class="domain" style="color: #00d4ff;">JavaScript</div>
-                <div class="name">Kyle Simpson</div>
-                <div class="work">You Don't Know JS</div>
-            </div>
-            <div class="canon-card" style="border-color: #00d4ff;">
-                <div class="domain" style="color: #00d4ff;">TypeScript</div>
-                <div class="name">Boris Cherny</div>
-                <div class="work">Programming TS</div>
-            </div>
-            <div class="canon-card" style="border-color: #00d4ff;">
-                <div class="domain" style="color: #00d4ff;">React</div>
-                <div class="name">Dan Abramov</div>
-                <div class="work">Mental Models</div>
-            </div>
-            <div class="canon-card" style="border-color: #00d4ff;">
-                <div class="domain" style="color: #00d4ff;">Angular</div>
-                <div class="name">Miško Hevery</div>
-                <div class="work">DI, Signals</div>
-            </div>
-            <div class="canon-card" style="border-color: #00d4ff;">
-                <div class="domain" style="color: #00d4ff;">Angular</div>
-                <div class="name">John Papa</div>
-                <div class="work">Style Guide</div>
-            </div>
-            <div class="canon-card" style="border-color: #00d4ff;">
-                <div class="domain" style="color: #00d4ff;">D3/Viz</div>
-                <div class="name">Mike Bostock</div>
-                <div class="work">Data Joins</div>
-            </div>
-            <div class="canon-card" style="border-color: #00d4ff;">
-                <div class="domain" style="color: #00d4ff;">Data Viz</div>
-                <div class="name">Edward Tufte</div>
-                <div class="work">Visual Display</div>
-            </div>
-            <div class="canon-card" style="border-color: #00d4ff;">
-                <div class="domain" style="color: #00d4ff;">Data Viz</div>
-                <div class="name">Stephen Few</div>
-                <div class="work">Dashboard Design</div>
-            </div>
-            <div class="canon-card" style="border-color: #00d4ff;">
-                <div class="domain" style="color: #00d4ff;">Data Story</div>
-                <div class="name">Cole Knaflic</div>
-                <div class="work">Storytelling w/ Data</div>
-            </div>
-        </div>
-
-        <!-- Business Masters -->
-        <p style="color: #f39c12; text-align: center; margin-bottom: 15px; font-size: 0.9rem; text-transform: uppercase; letter-spacing: 1px;">Business</p>
-        <div class="canon-grid" style="margin-bottom: 50px;">
-            <div class="canon-card" style="border-color: #f39c12;">
-                <div class="domain" style="color: #f39c12;">Strategy</div>
-                <div class="name">Michael Porter</div>
-                <div class="work">Competitive Advantage</div>
-            </div>
-            <div class="canon-card" style="border-color: #f39c12;">
-                <div class="domain" style="color: #f39c12;">Tech Analysis</div>
-                <div class="name">Ben Thompson</div>
-                <div class="work">Stratechery</div>
-            </div>
-            <div class="canon-card" style="border-color: #f39c12;">
-                <div class="domain" style="color: #f39c12;">Startups/Org</div>
-                <div class="name">Ben Horowitz</div>
-                <div class="work">Hard Thing</div>
-            </div>
-            <div class="canon-card" style="border-color: #f39c12;">
-                <div class="domain" style="color: #f39c12;">Management</div>
-                <div class="name">Andy Grove</div>
-                <div class="work">High Output Mgmt</div>
-            </div>
-            <div class="canon-card" style="border-color: #f39c12;">
-                <div class="domain" style="color: #f39c12;">Writing</div>
-                <div class="name">Strunk & White</div>
-                <div class="work">Elements of Style</div>
-            </div>
-            <div class="canon-card" style="border-color: #f39c12;">
-                <div class="domain" style="color: #f39c12;">Writing</div>
-                <div class="name">William Zinsser</div>
-                <div class="work">On Writing Well</div>
-            </div>
-        </div>
-
-        <!-- Pattern Examples: Configuration → Workflow -->
-        <h2 class="section-title">Patterns: Configuration → Workflow</h2>
-        <div style="background: rgba(255, 255, 255, 0.03); border-radius: 16px; padding: 30px; margin-bottom: 50px;">
-            <p style="text-align: center; color: #888; margin-bottom: 30px;">Patterns are configured once, then shape how Claude works. You don't "use" them - they're the environment.</p>
-
-            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 25px;">
-                <!-- Canon Factory -->
-                <div style="background: rgba(123, 47, 247, 0.1); border: 1px solid #7b2ff7; border-radius: 12px; padding: 20px;">
-                    <h4 style="color: #7b2ff7; margin-bottom: 12px;">Canon Factory</h4>
-                    <div style="margin-bottom: 15px;">
-                        <div style="color: #888; font-size: 0.8rem; margin-bottom: 5px;">CONFIGURED:</div>
-                        <code style="background: rgba(0,0,0,0.3); padding: 8px 12px; border-radius: 6px; display: block; font-size: 0.85rem; color: #ccc;">profile: base-tech + javascript + react</code>
-                    </div>
-                    <div>
-                        <div style="color: #888; font-size: 0.8rem; margin-bottom: 5px;">WORKFLOW:</div>
-                        <p style="color: #ccc; font-size: 0.9rem;">React code automatically follows Abramov's mental model - hooks patterns, composition. It's the lens, not a tool you invoke.</p>
-                    </div>
+        <!-- Auto-Invoke Rules -->
+        <h2 class="section-title">Auto-Invoke Rules</h2>
+        <div style="background: rgba(243, 156, 18, 0.08); border: 2px solid #f39c12; border-radius: 12px; padding: 25px; margin-bottom: 50px;">
+            <p style="text-align: center; color: #888; margin-bottom: 20px;">Context-aware automatic skill/flag triggers</p>
+            <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 15px;">
+                <div style="background: rgba(0,0,0,0.2); padding: 15px; border-radius: 8px;">
+                    <div style="color: #e74c3c; font-weight: bold; margin-bottom: 8px;">Security Context</div>
+                    <div style="color: #ccc; font-size: 0.85rem;">auth, login, password, token</div>
+                    <div style="color: #888; font-size: 0.8rem; margin-top: 5px;">→ /schneier, /owasp</div>
                 </div>
-
-                <!-- Structure-First -->
-                <div style="background: rgba(52, 152, 219, 0.1); border: 1px solid #3498db; border-radius: 12px; padding: 20px;">
-                    <h4 style="color: #3498db; margin-bottom: 12px;">Structure-First</h4>
-                    <div style="margin-bottom: 15px;">
-                        <div style="color: #888; font-size: 0.8rem; margin-bottom: 5px;">CONFIGURED:</div>
-                        <code style="background: rgba(0,0,0,0.3); padding: 8px 12px; border-radius: 6px; display: block; font-size: 0.85rem; color: #ccc;">New features → require --structure-first</code>
-                    </div>
-                    <div>
-                        <div style="color: #888; font-size: 0.8rem; margin-bottom: 5px;">WORKFLOW:</div>
-                        <p style="color: #ccc; font-size: 0.9rem;">"Build dashboard" → Claude shows architecture plan with components and data flow. Waits for approval before implementing.</p>
-                    </div>
+                <div style="background: rgba(0,0,0,0.2); padding: 15px; border-radius: 8px;">
+                    <div style="color: #9b59b6; font-weight: bold; margin-bottom: 8px;">New Public API</div>
+                    <div style="color: #ccc; font-size: 0.85rem;">export function/class</div>
+                    <div style="color: #888; font-size: 0.8rem; margin-top: 5px;">→ --doc-code</div>
                 </div>
-
-                <!-- Skill Observer -->
-                <div style="background: rgba(46, 204, 113, 0.1); border: 1px solid #2ecc71; border-radius: 12px; padding: 20px;">
-                    <h4 style="color: #2ecc71; margin-bottom: 12px;">Skill Observer (Auto-Invoke)</h4>
-                    <div style="margin-bottom: 15px;">
-                        <div style="color: #888; font-size: 0.8rem; margin-bottom: 5px;">CONFIGURED:</div>
-                        <code style="background: rgba(0,0,0,0.3); padding: 8px 12px; border-radius: 6px; display: block; font-size: 0.85rem; color: #ccc;">auth|login|password → /security-mindset</code>
-                    </div>
-                    <div>
-                        <div style="color: #888; font-size: 0.8rem; margin-bottom: 5px;">WORKFLOW:</div>
-                        <p style="color: #ccc; font-size: 0.9rem;">"Add password reset" → Security skill auto-activates. Code has validation, rate limiting, secure tokens without being asked.</p>
-                    </div>
+                <div style="background: rgba(0,0,0,0.2); padding: 15px; border-radius: 8px;">
+                    <div style="color: #3498db; font-weight: bold; margin-bottom: 8px;">React Files</div>
+                    <div style="color: #ccc; font-size: 0.85rem;">*.tsx, use* hooks</div>
+                    <div style="color: #888; font-size: 0.8rem; margin-top: 5px;">→ /abramov</div>
                 </div>
-
-                <!-- Quality Template -->
-                <div style="background: rgba(243, 156, 18, 0.1); border: 1px solid #f39c12; border-radius: 12px; padding: 20px;">
-                    <h4 style="color: #f39c12; margin-bottom: 12px;">Quality Template</h4>
-                    <div style="margin-bottom: 15px;">
-                        <div style="color: #888; font-size: 0.8rem; margin-bottom: 5px;">CONFIGURED:</div>
-                        <code style="background: rgba(0,0,0,0.3); padding: 8px 12px; border-radius: 6px; display: block; font-size: 0.85rem; color: #ccc;">sequence: test → review → security</code>
-                    </div>
-                    <div>
-                        <div style="color: #888; font-size: 0.8rem; margin-bottom: 5px;">WORKFLOW:</div>
-                        <p style="color: #ccc; font-size: 0.9rem;">"--review-hard" → Agents run in sequence: test-engineer, code-reviewer, then security-auditor. Combined report.</p>
-                    </div>
+                <div style="background: rgba(0,0,0,0.2); padding: 15px; border-radius: 8px;">
+                    <div style="color: #2ecc71; font-weight: bold; margin-bottom: 8px;">Test Files</div>
+                    <div style="color: #ccc; font-size: 0.85rem;">*.spec.ts, *.test.ts</div>
+                    <div style="color: #888; font-size: 0.8rem; margin-top: 5px;">→ /dodds</div>
                 </div>
-
-                <!-- Hook Chain -->
-                <div style="background: rgba(231, 76, 60, 0.1); border: 1px solid #e74c3c; border-radius: 12px; padding: 20px;">
-                    <h4 style="color: #e74c3c; margin-bottom: 12px;">Hook Chain</h4>
-                    <div style="margin-bottom: 15px;">
-                        <div style="color: #888; font-size: 0.8rem; margin-bottom: 5px;">CONFIGURED:</div>
-                        <code style="background: rgba(0,0,0,0.3); padding: 8px 12px; border-radius: 6px; display: block; font-size: 0.85rem; color: #ccc;">pre-push: [test, lint, security-scan]</code>
-                    </div>
-                    <div>
-                        <div style="color: #888; font-size: 0.8rem; margin-bottom: 5px;">WORKFLOW:</div>
-                        <p style="color: #ccc; font-size: 0.9rem;">"push" → Hooks run in sequence. All must pass. Confirmatory only - quality was built in.</p>
-                    </div>
+                <div style="background: rgba(0,0,0,0.2); padding: 15px; border-radius: 8px;">
+                    <div style="color: #00d4ff; font-weight: bold; margin-bottom: 8px;">Java Files</div>
+                    <div style="color: #ccc; font-size: 0.85rem;">*.java</div>
+                    <div style="color: #888; font-size: 0.8rem; margin-top: 5px;">→ /bloch</div>
                 </div>
-
-                <!-- Domain Lens -->
-                <div style="background: rgba(155, 89, 182, 0.1); border: 1px solid #9b59b6; border-radius: 12px; padding: 20px;">
-                    <h4 style="color: #9b59b6; margin-bottom: 12px;">Domain Lens</h4>
-                    <div style="margin-bottom: 15px;">
-                        <div style="color: #888; font-size: 0.8rem; margin-bottom: 5px;">CONFIGURED:</div>
-                        <code style="background: rgba(0,0,0,0.3); padding: 8px 12px; border-radius: 6px; display: block; font-size: 0.85rem; color: #ccc;">canon.domain: bloch (Java project)</code>
-                    </div>
-                    <div>
-                        <div style="color: #888; font-size: 0.8rem; margin-bottom: 5px;">WORKFLOW:</div>
-                        <p style="color: #ccc; font-size: 0.9rem;">"Add a builder for UserConfig" → Writes Effective Java Item 2 pattern. Private constructor, fluent API, validation. Automatic.</p>
-                    </div>
-                </div>
-            </div>
-
-            <div style="background: rgba(0, 212, 255, 0.1); border: 1px dashed #00d4ff; border-radius: 8px; padding: 15px; margin-top: 25px; text-align: center;">
-                <span style="color: #00d4ff; font-weight: bold;">Key Insight:</span>
-                <span style="color: #ccc;"> Patterns are configured once, then they're just <em>how Claude works</em> in that project.</span>
-            </div>
-        </div>
-
-        <!-- Primitive Picker -->
-        <h2 class="section-title">Primitive Picker: Building vs Using</h2>
-        <div style="background: rgba(255, 255, 255, 0.03); border-radius: 16px; padding: 30px; margin-bottom: 50px;">
-            <p style="text-align: center; color: #888; margin-bottom: 30px;">Two different questions require two different tools</p>
-
-            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 30px; margin-bottom: 30px;">
-                <!-- Using Primitives -->
-                <div style="background: linear-gradient(135deg, rgba(0, 212, 255, 0.1), rgba(52, 152, 219, 0.1)); border: 2px solid #00d4ff; border-radius: 12px; padding: 25px;">
-                    <h4 style="color: #00d4ff; margin-bottom: 15px; text-align: center;">USING Primitives</h4>
-                    <div style="text-align: center; margin-bottom: 15px;">
-                        <code style="background: rgba(0,0,0,0.4); padding: 10px 20px; border-radius: 8px; font-size: 1.1rem; color: #00d4ff;">cc-config</code>
-                    </div>
-                    <p style="color: #ccc; margin-bottom: 15px; text-align: center;">"What expertise do I need for this project?"</p>
-                    <ul style="color: #888; font-size: 0.9rem; list-style: none; padding: 0;">
-                        <li style="padding: 5px 0;">Apply bundles of existing skills</li>
-                        <li style="padding: 5px 0;">Set up project with right canon</li>
-                        <li style="padding: 5px 0;">Configure auto-invoke rules</li>
-                    </ul>
-                    <div style="background: rgba(0,0,0,0.2); padding: 10px; border-radius: 6px; margin-top: 15px;">
-                        <code style="color: #ccc; font-size: 0.85rem;">cc-config profile apply base-tech+javascript+react</code>
-                    </div>
-                </div>
-
-                <!-- Building Primitives -->
-                <div style="background: linear-gradient(135deg, rgba(243, 156, 18, 0.1), rgba(230, 126, 34, 0.1)); border: 2px solid #f39c12; border-radius: 12px; padding: 25px;">
-                    <h4 style="color: #f39c12; margin-bottom: 15px; text-align: center;">BUILDING Primitives</h4>
-                    <div style="text-align: center; margin-bottom: 15px;">
-                        <code style="background: rgba(0,0,0,0.4); padding: 10px 20px; border-radius: 8px; font-size: 1.1rem; color: #f39c12;">/primitive-picker</code>
-                    </div>
-                    <p style="color: #ccc; margin-bottom: 15px; text-align: center;">"Should this be a skill or a hook?"</p>
-                    <ul style="color: #888; font-size: 0.9rem; list-style: none; padding: 0;">
-                        <li style="padding: 5px 0;">Decide what type of primitive to create</li>
-                        <li style="padding: 5px 0;">Skill vs Hook vs Command vs SubAgent</li>
-                        <li style="padding: 5px 0;">Where logic belongs</li>
-                    </ul>
-                    <div style="background: rgba(0,0,0,0.2); padding: 10px; border-radius: 6px; margin-top: 15px;">
-                        <code style="color: #ccc; font-size: 0.85rem;">"I keep forgetting to run this" → Hook</code>
-                    </div>
-                </div>
-            </div>
-
-            <!-- The Four Primitives -->
-            <h4 style="color: #fff; margin-bottom: 20px; text-align: center;">The Four Primitives</h4>
-            <div style="display: grid; grid-template-columns: repeat(4, 1fr); gap: 15px; margin-bottom: 20px;">
-                <div style="background: rgba(123, 47, 247, 0.15); border: 1px solid #7b2ff7; border-radius: 10px; padding: 15px; text-align: center;">
-                    <div style="font-size: 1.5rem; margin-bottom: 8px;">📚</div>
-                    <div style="color: #7b2ff7; font-weight: bold; margin-bottom: 5px;">SKILL</div>
-                    <div style="color: #888; font-size: 0.75rem;">Encoded wisdom</div>
-                    <div style="color: #ccc; font-size: 0.8rem; margin-top: 8px;">Predictable output</div>
-                </div>
-                <div style="background: rgba(231, 76, 60, 0.15); border: 1px solid #e74c3c; border-radius: 10px; padding: 15px; text-align: center;">
-                    <div style="font-size: 1.5rem; margin-bottom: 8px;">🪝</div>
-                    <div style="color: #e74c3c; font-weight: bold; margin-bottom: 5px;">HOOK</div>
-                    <div style="color: #888; font-size: 0.75rem;">Reactive gate</div>
-                    <div style="color: #ccc; font-size: 0.8rem; margin-top: 8px;">Auto-fires on events</div>
-                </div>
-                <div style="background: rgba(46, 204, 113, 0.15); border: 1px solid #2ecc71; border-radius: 10px; padding: 15px; text-align: center;">
-                    <div style="font-size: 1.5rem; margin-bottom: 8px;">/</div>
-                    <div style="color: #2ecc71; font-weight: bold; margin-bottom: 5px;">COMMAND</div>
-                    <div style="color: #888; font-size: 0.75rem;">User ritual</div>
-                    <div style="color: #ccc; font-size: 0.8rem; margin-top: 8px;">Multi-step ceremony</div>
-                </div>
-                <div style="background: rgba(52, 152, 219, 0.15); border: 1px solid #3498db; border-radius: 10px; padding: 15px; text-align: center;">
-                    <div style="font-size: 1.5rem; margin-bottom: 8px;">🤖</div>
-                    <div style="color: #3498db; font-weight: bold; margin-bottom: 5px;">SUBAGENT</div>
-                    <div style="color: #888; font-size: 0.75rem;">Delegated reasoning</div>
-                    <div style="color: #ccc; font-size: 0.8rem; margin-top: 8px;">Variable output</div>
-                </div>
-            </div>
-
-            <!-- Quick Decision -->
-            <div style="background: rgba(255, 255, 255, 0.05); border-radius: 10px; padding: 20px;">
-                <h5 style="color: #fff; margin-bottom: 15px; text-align: center;">Quick Decision Tree</h5>
-                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px; font-size: 0.85rem;">
-                    <div>
-                        <div style="color: #888; margin-bottom: 8px;">Can you write the output template in advance?</div>
-                        <div style="color: #7b2ff7;">YES → <strong>Skill</strong></div>
-                        <div style="color: #3498db;">NO → <strong>SubAgent</strong></div>
-                    </div>
-                    <div>
-                        <div style="color: #888; margin-bottom: 8px;">Should it auto-fire / never be forgotten?</div>
-                        <div style="color: #e74c3c;">YES → <strong>Hook</strong></div>
-                        <div style="color: #888;">NO → Keep current choice</div>
-                    </div>
-                    <div>
-                        <div style="color: #888; margin-bottom: 8px;">Do it 2+ times daily?</div>
-                        <div style="color: #2ecc71;">YES → <strong>Command</strong></div>
-                        <div style="color: #888;">NO → Keep current choice</div>
-                    </div>
-                    <div>
-                        <div style="color: #888; margin-bottom: 8px;">Needs user checkpoints / high-stakes?</div>
-                        <div style="color: #2ecc71;">YES → <strong>Command</strong></div>
-                        <div style="color: #888;">NO → Keep current choice</div>
-                    </div>
+                <div style="background: rgba(0,0,0,0.2); padding: 15px; border-radius: 8px;">
+                    <div style="color: #f39c12; font-weight: bold; margin-bottom: 8px;">D3 Code</div>
+                    <div style="color: #ccc; font-size: 0.85rem;">d3.select, data joins</div>
+                    <div style="color: #888; font-size: 0.8rem; margin-top: 5px;">→ /bostock</div>
                 </div>
             </div>
         </div>
 
         <!-- Meta Pattern Quote -->
         <div class="meta-pattern">
-            <h4>The Rule</h4>
+            <h4>The Core Insight</h4>
             <blockquote>
-                "Configuration is strategy made executable. Every skill, hook, and agent choice should trace back to a quality goal. If you can't explain why it's there, it shouldn't be."
+                Canon provides the <strong style="color: #7b2ff7;">intelligence</strong> (expert knowledge).<br>
+                Standards provide the <strong style="color: #00d4ff;">rules</strong> (what good looks like).<br>
+                Flags provide the <strong style="color: #2ecc71;">triggers</strong> (when to enforce).<br>
+                Auto-invoke provides the <strong style="color: #f39c12;">automation</strong> (context-aware activation).
             </blockquote>
         </div>
 
         <!-- Footer -->
         <div class="footer">
             <p>Claude Optimal - Making quality requirements explicit so Claude applies what it already knows.</p>
+            <p style="margin-top: 10px; color: #555; font-style: italic;">"The question that unlocks everything: Who has solved this before, and better than I could?"</p>
         </div>
     </div>
 </body>

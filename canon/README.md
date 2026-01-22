@@ -61,11 +61,18 @@ Most Skills encode *your* procedural knowledge. This repo asks: **why would you 
 | [visualization/few/](visualization/few/) | Stephen Few | Information Dashboard Design |
 | [visualization/knaflic/](visualization/knaflic/) | Cole Nussbaumer Knaflic | Storytelling with Data |
 
+## Testing Skills
+
+| Skill | Master | Source Material |
+|-------|--------|-----------------|
+| [testing/dodds/](testing/dodds/) | Kent C. Dodds | Testing Library, Testing Trophy, Epic React |
+| [testing/meszaros/](testing/meszaros/) | Gerard Meszaros | xUnit Test Patterns |
+| [testing/feathers/](testing/feathers/) | Michael Feathers | Working Effectively with Legacy Code |
+
 ## JavaScript Skills
 
 | Skill | Master | Source Material |
 |-------|--------|-----------------|
-| [javascript/dodds/](javascript/dodds/) | Kent C. Dodds | Testing Library, Testing Trophy, Epic React |
 | [javascript/ashkenas/](javascript/ashkenas/) | Jeremy Ashkenas | Backbone.js, Underscore.js, CoffeeScript |
 | [javascript/crockford/](javascript/crockford/) | Douglas Crockford | JavaScript: The Good Parts, JSLint |
 | [javascript/abramov/](javascript/abramov/) | Dan Abramov | Redux, React core team, Just JavaScript |

@@ -11,6 +11,7 @@ canon:
     # JavaScript frontend
     - simpson        # You Don't Know JS
     - cherny         # Programming TypeScript
+    - crockford      # JavaScript: The Good Parts
 
 # Note: Add react or angular profile on top for framework-specific canon
 # Example: fullstack + angular for Java + Angular projects

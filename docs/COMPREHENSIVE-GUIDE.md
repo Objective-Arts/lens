@@ -661,7 +661,7 @@ base (implicit)
 ```
 
 When you apply `d3`, you get:
-- Everything from `javascript` (Simpson, Cherny)
+- Everything from `javascript` (Simpson, Cherny, Crockford)
 - Plus D3-specific canon (Bostock, Tufte, Few, Knaflic)
 
 ### The Profile Stack
@@ -670,11 +670,11 @@ Profiles are designed to stack. Common combinations:
 
 | Project Type | Profile Stack | Canon You Get |
 |--------------|---------------|---------------|
-| React SPA | `javascript + react` | Simpson, Cherny, Abramov |
-| React + D3 | `javascript + react + d3` | Simpson, Cherny, Abramov, Bostock, Tufte, Few, Knaflic |
-| Angular enterprise | `javascript + angular` | Simpson, Cherny, Hevery, Papa, Kurata |
+| React SPA | `javascript + react` | Simpson, Cherny, Crockford, Abramov |
+| React + D3 | `javascript + react + d3` | Simpson, Cherny, Crockford, Abramov, Bostock, Tufte, Few, Knaflic |
+| Angular enterprise | `javascript + angular` | Simpson, Cherny, Crockford, Hevery, Papa, Kurata |
 | Java backend | `java` | Bloch |
-| Full-stack Java/Angular | `fullstack + angular` | Bloch, Simpson, Cherny, Hevery, Papa, Kurata |
+| Full-stack Java/Angular | `fullstack + angular` | Bloch, Simpson, Cherny, Crockford, Hevery, Papa, Kurata |
 
 ### Applying Profiles
 
@@ -930,7 +930,7 @@ Software - React + D3 Dashboard
 
 ## Canon Stack
 Base: Kernighan, Schneier, Dodds, OWASP, Procida
-Domain: Simpson, Cherny, Abramov, Bostock, Tufte
+Domain: Simpson, Cherny, Crockford, Abramov, Bostock, Tufte
 
 ## Standards
 

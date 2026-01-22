@@ -1,21 +1,16 @@
 ---
 name: claude-optimal
-description: Pattern language for composing Claude Code primitives into quality-focused configurations. Use when setting up projects, designing workflows, or asking "how should this project be configured". Complements primitive-picker (which primitive) with composition patterns (how primitives work together).
+description: Pattern language for composing Claude Code primitives into quality-focused configurations. Use when setting up projects, designing workflows, or asking "how should this project be configured".
 ---
 
 # Claude-Optimal: Pattern Language for Claude Code
 
-> **This is the theory document.** For practical usage, see [docs/USER-GUIDE.md](docs/USER-GUIDE.md).
+> **This is the theory document.** For the complete guide combining theory and practice, see [docs/COMPREHENSIVE-GUIDE.md](docs/COMPREHENSIVE-GUIDE.md).
 
 This document explains *why* the patterns work. For *how* to use them:
 - **Profiles**: [docs/PROFILES.md](docs/PROFILES.md)
 - **Standards**: [docs/STRUCTURAL-STANDARDS.md](docs/STRUCTURAL-STANDARDS.md)
 - **Flags**: [docs/FLAGS.md](docs/FLAGS.md)
-
----
-
-**primitive-picker** answers: *Which primitive?*
-**claude-optimal** answers: *How do primitives compose for quality?*
 
 ---
 
