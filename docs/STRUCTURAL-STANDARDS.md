@@ -8,7 +8,7 @@ Universal code quality rules that apply to ALL Claude-generated code. These are 
 
 Claude optimizes for "working code that satisfies the request" rather than "code that would survive expert review."
 
-**Common issues identified by external reviewers (Codex, Gemini, Qodana):**
+**Common issues identified by external reviewers (Gemini, Qodana):**
 - Functions with multiple responsibilities
 - Data processing mixed with rendering/presentation logic
 - Inconsistent patterns within the same codebase
@@ -228,7 +228,7 @@ Before presenting any code as complete, verify:
 ### Review Gate
 
 - [ ] Would survive hostile review without structural critique
-- [ ] External tools (Codex, Gemini, Qodana) would not flag
+- [ ] External tools (Gemini, Qodana) would not flag
 ```
 
 **If any check fails, fix before presenting.**

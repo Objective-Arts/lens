@@ -48,7 +48,7 @@ sequenceDiagram
     U->>CC: --review-hard the client enrollment feature I just built
     CC->>S: Check against Java + Angular Structural Standards
     CC->>C: Invoke:<br/>• bloch (immutability, null handling)<br/>• minko-gechev (OnPush)<br/>• ben-lesh (RxJS cleanup)
-    CC->>CC: Self-critique: "What would Codex/Gemini/Qodana flag?"
+    CC->>CC: Self-critique: "What would Gemini/Qodana flag?"
     CC->>U: ## Review Findings<br/><br/>### Java Fixes:<br/>• EnrollmentDTO: made fields final, added builder<br/>• EnrollmentService: return empty List not null<br/>• Added @Valid on controller request body<br/><br/>### Angular Fixes:<br/>• Added trackBy to *ngFor in EnrollmentForm<br/>• Changed to OnPush change detection<br/>• Replaced subscribe() with async pipe<br/><br/>### Verified:<br/>✓ Java: No method exceeds 20 lines<br/>✓ Java: No null returns for collections<br/>✓ Angular: Smart/dumb separation maintained<br/>✓ Angular: All subscriptions have cleanup<br/><br/>Code is now review-ready.
     end
 

@@ -370,7 +370,7 @@ Plan is stale:
 
 ## --review-hard
 
-**Purpose**: Catch structural issues before external reviewers (Codex, Gemini, Qodana) do.
+**Purpose**: Catch structural issues before external reviewers (Gemini, Qodana) do.
 
 **When to Use**:
 - Before presenting code as complete
@@ -381,7 +381,7 @@ Plan is stale:
 
 Perform adversarial self-review:
 1. Check against project CLAUDE.md standards
-2. Ask: "What would Codex, Gemini, or Qodana flag?"
+2. Ask: "What would Gemini or Qodana flag?"
 3. Look for:
    - Mixed concerns (data processing in render logic)
    - Long functions (>30 lines)

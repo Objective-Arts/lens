@@ -10,7 +10,7 @@
 
 Claude Code produces **working code**. But "working" isn't enough.
 
-When external reviewers examine Claude's output—whether AI tools like Codex, Gemini, and Qodana, or human experts—they consistently flag the same issues:
+When external reviewers examine Claude's output—whether AI tools like Gemini and Qodana, or human experts—they consistently flag the same issues:
 
 - 150-line functions doing 8 different things
 - Data processing mixed with rendering logic
@@ -1213,7 +1213,7 @@ USER: That looks done. --review-hard
 CLAUDE:
 1. Read back through all code written
 2. Check against project CLAUDE.md standards
-3. Ask: "What would Codex/Gemini/Qodana flag?"
+3. Ask: "What would Gemini/Qodana flag?"
 4. Ask: "What would a hostile human reviewer criticize?"
 5. Fix all issues found
 6. Report what was fixed

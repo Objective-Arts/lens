@@ -4,7 +4,7 @@
 
 Claude Code produces working code. But "working" isn't enough.
 
-When external reviewers (Codex, Gemini, Qodana, or human experts) look at Claude's output, they consistently flag the same issues:
+When external reviewers (Gemini, Qodana, or human experts) look at Claude's output, they consistently flag the same issues:
 - 150-line functions doing 8 things
 - Data processing mixed with rendering logic
 - Inconsistent patterns (innerHTML here, data-join there)

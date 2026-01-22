@@ -5,7 +5,7 @@ description: Adversarial self-review to catch structural issues before external 
 
 # /review-hard
 
-Perform adversarial self-review on target code. Catch issues before external reviewers (Codex, Gemini, Qodana) do.
+Perform adversarial self-review on target code. Catch issues before external reviewers (Gemini, Qodana) do.
 
 ## Target
 
@@ -15,7 +15,7 @@ If no argument, review the code most recently written or modified in this sessio
 ## Process
 
 1. **Check** against project CLAUDE.md standards (if present)
-2. **Ask**: "What would Codex, Gemini, or Qodana flag?"
+2. **Ask**: "What would Gemini or Qodana flag?"
 3. **Look for**:
    - Mixed concerns (data processing in render logic)
    - Long functions (>30 lines)
