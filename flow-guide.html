@@ -474,30 +474,26 @@
             <div class="dir-tree">
 <span class="folder">my-project/</span>
 ├── <span class="folder">.claude/</span>
-│   ├── <span class="folder">settings.json</span>                    <span class="comment"># Project settings</span>
+│   ├── <span class="file">settings.json</span>                    <span class="comment"># Project settings</span>
 │   └── <span class="folder">skills/</span>                          <span class="comment"># Symlinks to canon masters</span>
-│       │
-│       │   <span class="comment"># BASELINE BRAIN (always active)</span>
-│       ├── <span class="file">kernighan/</span>                    <span class="comment">→ clarity, style</span>
-│       ├── <span class="file">thompson/</span>                     <span class="comment">→ pragmatism</span>
-│       ├── <span class="file">pike/</span>                         <span class="comment">→ composition</span>
-│       ├── <span class="file">joy/</span>                          <span class="comment">→ resilience</span>
-│       ├── <span class="file">linus/</span>                        <span class="comment">→ taste</span>
-│       ├── <span class="file">dijkstra/</span>                     <span class="comment">→ rigor</span>
-│       │
-│       │   <span class="comment"># DOMAIN (javascript+react)</span>
-│       ├── <span class="file">simpson/</span>                      <span class="comment">→ JS mechanics</span>
-│       ├── <span class="file">cherny/</span>                       <span class="comment">→ TypeScript</span>
-│       ├── <span class="file">abramov/</span>                      <span class="comment">→ React</span>
-│       ├── <span class="file">dodds/</span>                        <span class="comment">→ testing</span>
-│       │
-│       │   <span class="comment"># SECURITY + DOCS (software-base)</span>
-│       ├── <span class="file">schneier/</span>                     <span class="comment">→ security</span>
-│       ├── <span class="file">owasp/</span>                        <span class="comment">→ vulnerabilities</span>
-│       └── <span class="file">procida/</span>                      <span class="comment">→ documentation</span>
+│       │   <span class="comment"># BASELINE: kernighan, thompson, pike, joy, linus, dijkstra</span>
+│       │   <span class="comment"># DOMAIN: simpson, cherny, abramov, dodds</span>
+│       └── <span class="comment"># SECURITY: schneier, owasp, procida</span>
 │
 ├── <span class="file">CLAUDE.md</span>                             <span class="comment"># Auto-invoke rules + standards</span>
 ├── <span class="file">STRATEGY.md</span>                           <span class="comment"># Why this configuration</span>
+│
+├── <span class="comment"># FLAGS AVAILABLE:</span>
+│   <span class="comment">--plan, --structure-first, --build-from-plan</span>
+│   <span class="comment">--test [unit|integration|e2e|all], --doc-code</span>
+│   <span class="comment">--refactor-clean, --review-hard</span>
+│
+├── <span class="comment"># COMMANDS AVAILABLE:</span>
+│   <span class="comment">/build-from-plan, /doc-code, /test, /review-hard</span>
+│
+├── <span class="comment"># SUB-AGENTS AVAILABLE:</span>
+│   <span class="comment">security-auditor, test-engineer, code-reviewer</span>
+│   <span class="comment">accessibility-tester, doc-writer, css-expert</span>
 │
 └── <span class="comment">src/, package.json, etc.</span>              <span class="comment"># Your existing code</span>
             </div>
