@@ -164,7 +164,10 @@ Base practices apply to all software, regardless of domain:
 
 - **Security mindset** (Schneier) - Think like an attacker
 - **Vulnerability awareness** (OWASP) - Know the patterns to avoid
-- **Testing philosophy** (Dodds) - Integration > Unit > E2E
+- **Testing philosophy**:
+  - **Dodds** - Testing Trophy, Testing Library
+  - **Meszaros** - xUnit Test Patterns (test doubles, setup patterns)
+  - **Feathers** - Working Effectively with Legacy Code (characterization tests)
 - **Documentation structure** (Procida) - Right doc type for the purpose
 
 ### Domain Canon
@@ -224,6 +227,13 @@ SOFTWARE PROJECTS
 │   │   Integration > Unit > E2E                              │
 │   │   Test behavior, not implementation                     │
 │   │                                                         │
+│   ├── Meszaros - xUnit Test Patterns                        │
+│   │   Test doubles: stub, spy, mock, fake                   │
+│   │   Setup patterns, test organization                     │
+│   │                                                         │
+│   ├── Feathers - Working Effectively with Legacy Code       │
+│   │   Characterization tests, seams, safe refactoring       │
+│   │                                                         │
 │   DOCUMENTATION                                             │
 │   └── Procida - Diátaxis framework                          │
 │       Tutorials, how-tos, reference, explanation            │
@@ -240,6 +250,9 @@ SOFTWARE PROJECTS
 │   │                                                         │
 │   ├── Cherny - Programming TypeScript                       │
 │   │   Type-level programming, generics, inference           │
+│   │                                                         │
+│   ├── Crockford - JavaScript: The Good Parts               │
+│   │   Avoiding bad parts, disciplined subset                │
 │   │                                                         │
 │   REACT                                                     │
 │   ├── Abramov - React mental models                         │
@@ -672,9 +685,11 @@ Profiles are designed to stack. Common combinations:
 |--------------|---------------|---------------|
 | React SPA | `javascript + react` | Simpson, Cherny, Crockford, Abramov |
 | React + D3 | `javascript + react + d3` | Simpson, Cherny, Crockford, Abramov, Bostock, Tufte, Few, Knaflic |
-| Angular enterprise | `javascript + angular` | Simpson, Cherny, Crockford, Hevery, Papa, Kurata |
+| Angular enterprise | `javascript + angular` | Simpson, Cherny, Crockford, Hevery, Papa |
 | Java backend | `java` | Bloch |
-| Full-stack Java/Angular | `fullstack + angular` | Bloch, Simpson, Cherny, Crockford, Hevery, Papa, Kurata |
+| Full-stack Java/Angular | `fullstack + angular` | Bloch, Simpson, Cherny, Crockford, Hevery, Papa |
+
+**Note**: Base practices (Schneier, OWASP, Dodds, Meszaros, Feathers, Procida) are always active with any profile.
 
 ### Applying Profiles
 
@@ -720,10 +735,12 @@ Software
 Kernighan (clarity), Thompson (pragmatism), Pike (composition), Joy (resilience), Linus (taste), Dijkstra (rigor)
 
 ### Base Practices
-Schneier (security), OWASP (vulnerabilities), Dodds (testing), Procida (documentation)
+- Security: Schneier (mindset), OWASP (vulnerabilities)
+- Testing: Dodds (Testing Trophy), Meszaros (test patterns), Feathers (legacy)
+- Documentation: Procida (Diátaxis)
 
 ### Domain Canon
-Simpson (JS runtime), Abramov (React patterns)
+Simpson (JS runtime), Cherny (TypeScript), Crockford (disciplined JS), Abramov (React patterns)
 
 ## Auto-Invoke Rules
 
@@ -929,7 +946,8 @@ Example project CLAUDE.md structure:
 Software - React + D3 Dashboard
 
 ## Canon Stack
-Base: Kernighan, Schneier, Dodds, OWASP, Procida
+Baseline Brain: Kernighan, Thompson, Pike, Joy, Linus, Dijkstra
+Base Practices: Schneier, OWASP, Dodds, Meszaros, Feathers, Procida
 Domain: Simpson, Cherny, Crockford, Abramov, Bostock, Tufte
 
 ## Standards
@@ -957,15 +975,21 @@ Flags modify Claude's behavior at runtime. They trigger specific workflows that 
 
 ### Flag Catalog
 
-| Flag | When to Use | What It Triggers |
-|------|-------------|------------------|
-| `--structure-first` | New features | Plan → Approve → Implement |
-| `--plan` | Complex features | Full plan mode with .plan.md |
-| `--build-from-plan` | Resume from plan | Implement from existing .plan.md |
-| `--review-hard` | Before completion | Adversarial self-review |
-| `--refactor-clean` | Legacy cleanup | Systematic decomposition |
-| `--test [level]` | After code | Write tests at level |
-| `--doc-code` | After implementation | Generate docs (Procida/Diátaxis) |
+Flags can also be used as standalone slash commands for convenience:
+
+| Flag | Command | When to Use | What It Triggers |
+|------|---------|-------------|------------------|
+| `--structure-first` | *(flag only)* | New features | Plan → Approve → Implement |
+| `--plan` | *(flag only)* | Complex features | Full plan mode with .plan.md |
+| `--build-from-plan` | `/build-from-plan` | Resume from plan | Implement from existing .plan.md |
+| `--review-hard` | `/review-hard` | Before completion | Adversarial self-review |
+| `--refactor-clean` | `/refactor-clean` | Legacy cleanup | Systematic decomposition |
+| `--test [level]` | `/test [level]` | After code | Write tests at level |
+| `--doc-code` | `/doc-code` | After implementation | Generate docs (Procida/Diátaxis) |
+
+**Use flags** when chaining: `Build X --structure-first --test all --review-hard`
+
+**Use commands** when standalone: `/review-hard` or `/test unit src/services/`
 
 ### --structure-first: Lightweight Planning
 
@@ -1345,10 +1369,9 @@ Build verified passing.
 - `--test all` - Analyze and write at all appropriate levels
 
 **Testing Canon Applied**:
-- **Dodds**: Testing Trophy - integration tests as sweet spot
-- **Fowler**: Test pyramid - right level for the concern
-- **Meszaros**: Test doubles - stub/spy/mock/fake appropriately
-- **Feathers**: Characterization tests for legacy code
+- **Dodds**: Testing Trophy - integration tests as sweet spot, test behavior not implementation
+- **Meszaros**: xUnit Test Patterns - test doubles (stub/spy/mock/fake), setup patterns
+- **Feathers**: Working Effectively with Legacy Code - characterization tests, finding seams
 
 **Decision Tree**:
 
@@ -2292,6 +2315,8 @@ The six masters that shape HOW you think about code:
 | **Schneier** | Security engineering | Threat modeling, defense in depth |
 | **OWASP** | Top 10, guidelines | Injection, XSS, auth failures |
 | **Dodds** | Testing Library | Testing Trophy, behavior not implementation |
+| **Meszaros** | xUnit Test Patterns | Test doubles, setup patterns |
+| **Feathers** | Working Effectively with Legacy Code | Characterization tests, seams |
 | **Procida** | Diátaxis | Tutorials, how-tos, reference, explanation |
 
 ## Software Domain Canon
@@ -2301,6 +2326,7 @@ The six masters that shape HOW you think about code:
 | **Bloch** | Effective Java | Java API design |
 | **Simpson** | You Don't Know JS | JavaScript runtime |
 | **Cherny** | Programming TypeScript | TypeScript type system |
+| **Crockford** | JavaScript: The Good Parts | Disciplined JS subset |
 | **Abramov** | Redux, React blog | React patterns |
 | **Bostock** | D3.js, Observable | Data visualization |
 | **Tufte** | Visual Display | Information design |
@@ -2398,7 +2424,9 @@ Kernighan (clarity), Thompson (pragmatism), Pike (composition),
 Joy (resilience), Linus (taste), Dijkstra (rigor)
 
 ### Base Practices
-Schneier (security), OWASP (vulnerabilities), Dodds (testing), Procida (docs)
+- Security: Schneier (mindset), OWASP (vulnerabilities)
+- Testing: Dodds (Testing Trophy), Meszaros (test patterns), Feathers (legacy)
+- Documentation: Procida (Diátaxis)
 
 ### Domain Canon
 [List domain masters for your stack]
