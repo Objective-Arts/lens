@@ -1,0 +1,772 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Claude-Optimal Flow</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        html { scroll-behavior: smooth; }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: #0a0a12;
+            color: #e0e0e0;
+        }
+
+        .page {
+            min-height: 100vh;
+            padding: 40px 50px 25px;
+            display: flex;
+            flex-direction: column;
+            position: relative;
+        }
+
+        .page-content {
+            max-width: 1400px;
+            margin: 0 auto;
+            width: 100%;
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+        }
+
+        /* Page backgrounds */
+        .page-1 { background: linear-gradient(180deg, #1a1a2e 0%, #16213e 100%); }
+        .page-2 { background: linear-gradient(180deg, #16213e 0%, #1a2744 100%); }
+        .page-3 { background: linear-gradient(180deg, #1a2744 0%, #1e3d1e 100%); }
+        .page-4 { background: linear-gradient(180deg, #1e3d1e 0%, #3d3a1e 100%); }
+        .page-5 { background: linear-gradient(180deg, #3d3a1e 0%, #3d1e2e 100%); }
+        .page-6 { background: linear-gradient(180deg, #3d1e2e 0%, #1e3d2e 100%); }
+
+        .page-number {
+            position: absolute;
+            top: 20px;
+            right: 30px;
+            font-size: 0.8rem;
+            color: rgba(255,255,255,0.25);
+        }
+
+        .phase-indicator {
+            position: absolute;
+            top: 20px;
+            left: 30px;
+            font-size: 0.7rem;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+            padding: 5px 10px;
+            border-radius: 15px;
+        }
+
+        .page-1 .phase-indicator { background: rgba(155, 89, 182, 0.3); color: #9b59b6; }
+        .page-2 .phase-indicator { background: rgba(52, 152, 219, 0.3); color: #3498db; }
+        .page-3 .phase-indicator { background: rgba(46, 204, 113, 0.3); color: #2ecc71; }
+        .page-4 .phase-indicator { background: rgba(241, 196, 15, 0.3); color: #f1c40f; }
+        .page-5 .phase-indicator { background: rgba(231, 76, 60, 0.3); color: #e74c3c; }
+        .page-6 .phase-indicator { background: rgba(26, 188, 156, 0.3); color: #1abc9c; }
+
+        .scroll-hint {
+            position: absolute;
+            bottom: 15px;
+            left: 50%;
+            transform: translateX(-50%);
+            color: rgba(255,255,255,0.3);
+            font-size: 0.75rem;
+            animation: bounce 2s infinite;
+        }
+
+        @keyframes bounce {
+            0%, 100% { transform: translateX(-50%) translateY(0); }
+            50% { transform: translateX(-50%) translateY(5px); }
+        }
+
+        h1 {
+            font-size: 3rem;
+            margin-bottom: 10px;
+            font-weight: 700;
+        }
+
+        .page-1 h1 { color: #9b59b6; }
+        .page-2 h1 { color: #3498db; }
+        .page-3 h1 { color: #2ecc71; }
+        .page-4 h1 { color: #f1c40f; }
+        .page-5 h1 { color: #e74c3c; }
+        .page-6 h1 { color: #1abc9c; }
+
+        .subtitle {
+            font-size: 1.2rem;
+            color: #888;
+            margin-bottom: 30px;
+        }
+
+        h2 {
+            font-size: 1.1rem;
+            color: #888;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            margin: 25px 0 15px;
+        }
+
+        /* Master cards */
+        .masters-row {
+            display: flex;
+            gap: 18px;
+            margin: 20px 0;
+        }
+
+        .master-card {
+            background: rgba(255,255,255,0.05);
+            border: 1px solid rgba(255,255,255,0.1);
+            border-radius: 10px;
+            padding: 22px 25px;
+            text-align: center;
+            flex: 1;
+        }
+
+        .master-card.baseline {
+            border-color: rgba(155, 89, 182, 0.5);
+            background: rgba(155, 89, 182, 0.1);
+        }
+
+        .master-card .name {
+            font-weight: 600;
+            color: #fff;
+            font-size: 1.1rem;
+        }
+
+        .master-card .focus {
+            font-size: 0.85rem;
+            color: #888;
+            text-transform: uppercase;
+            margin-top: 8px;
+        }
+
+        /* Domain grids */
+        .domains-grid {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 22px;
+            margin-top: 20px;
+            flex: 1;
+        }
+
+        .domain-box {
+            background: rgba(0,0,0,0.2);
+            border-radius: 10px;
+            padding: 22px;
+        }
+
+        .domain-box h3 {
+            color: #888;
+            font-size: 0.9rem;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            margin-bottom: 15px;
+        }
+
+        .domain-box .names {
+            color: #bbb;
+            font-size: 1.05rem;
+            line-height: 1.8;
+        }
+
+        /* Directory tree */
+        .dir-tree {
+            background: rgba(0,0,0,0.4);
+            border-radius: 8px;
+            padding: 25px 30px;
+            font-family: 'Monaco', 'Menlo', monospace;
+            font-size: 0.95rem;
+            line-height: 1.6;
+            flex: 1;
+            white-space: pre;
+            overflow-x: auto;
+        }
+
+        .dir-tree .folder { color: #3498db; }
+        .dir-tree .file { color: #2ecc71; }
+        .dir-tree .comment { color: #666; font-style: italic; }
+        .dir-tree .indent { color: #444; }
+
+        /* Command box */
+        .cmd {
+            background: rgba(0,0,0,0.4);
+            border-radius: 8px;
+            padding: 18px 22px;
+            font-family: 'Monaco', 'Menlo', monospace;
+            font-size: 1.05rem;
+            margin: 15px 0;
+        }
+
+        .cmd .prompt { color: #2ecc71; }
+        .cmd .flag { color: #f39c12; }
+        .cmd .arg { color: #9b59b6; }
+
+        /* Flag cards */
+        .flags-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 25px;
+            flex: 1;
+            margin-top: 10px;
+        }
+
+        .flag-card {
+            background: rgba(0,0,0,0.25);
+            border-radius: 10px;
+            padding: 28px;
+            border-left: 5px solid;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .page-3 .flag-card { border-color: #2ecc71; }
+        .page-4 .flag-card { border-color: #f1c40f; }
+        .page-5 .flag-card { border-color: #e74c3c; }
+
+        .flag-card .flag-name {
+            font-family: monospace;
+            font-size: 1.4rem;
+            font-weight: 600;
+            margin-bottom: 12px;
+        }
+
+        .page-3 .flag-card .flag-name { color: #2ecc71; }
+        .page-4 .flag-card .flag-name { color: #f1c40f; }
+        .page-5 .flag-card .flag-name { color: #e74c3c; }
+
+        .flag-card .flag-desc {
+            color: #999;
+            font-size: 1.05rem;
+            margin-bottom: 18px;
+            line-height: 1.6;
+        }
+
+        .flag-card .example {
+            background: rgba(0,0,0,0.3);
+            border-radius: 6px;
+            padding: 16px 20px;
+            font-family: monospace;
+            font-size: 1rem;
+            color: #bbb;
+            line-height: 2;
+            margin-top: auto;
+        }
+
+        .flag-card .example .flag { color: #f39c12; }
+
+        /* Review stages */
+        .review-grid {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 20px;
+            margin-top: 20px;
+            flex: 1;
+        }
+
+        .review-card {
+            background: rgba(0,0,0,0.25);
+            border-radius: 10px;
+            padding: 25px;
+            border-top: 5px solid #e74c3c;
+        }
+
+        .review-card .stage-num {
+            color: #e74c3c;
+            font-size: 0.85rem;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            margin-bottom: 10px;
+        }
+
+        .review-card h4 {
+            color: #fff;
+            font-size: 1.2rem;
+            margin-bottom: 12px;
+        }
+
+        .review-card p {
+            color: #888;
+            font-size: 1rem;
+            line-height: 1.6;
+        }
+
+        /* Outcome grid */
+        .outcome-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 20px;
+        }
+
+        .outcome-card {
+            background: rgba(26, 188, 156, 0.1);
+            border: 1px solid rgba(26, 188, 156, 0.3);
+            border-radius: 10px;
+            padding: 25px;
+        }
+
+        .outcome-card h4 {
+            color: #1abc9c;
+            font-size: 1.2rem;
+            margin-bottom: 10px;
+        }
+
+        .outcome-card p {
+            color: #999;
+            font-size: 1.05rem;
+            line-height: 1.6;
+        }
+
+        /* Comparison */
+        .comparison {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 25px;
+            margin-top: 25px;
+            flex: 1;
+        }
+
+        .comparison-box {
+            padding: 25px;
+            border-radius: 10px;
+        }
+
+        .comparison-box.before {
+            background: rgba(231, 76, 60, 0.1);
+            border: 1px solid rgba(231, 76, 60, 0.3);
+        }
+
+        .comparison-box.after {
+            background: rgba(26, 188, 156, 0.1);
+            border: 1px solid rgba(26, 188, 156, 0.3);
+        }
+
+        .comparison-box h4 {
+            font-size: 1.1rem;
+            margin-bottom: 12px;
+        }
+
+        .comparison-box.before h4 { color: #e74c3c; }
+        .comparison-box.after h4 { color: #1abc9c; }
+
+        .comparison-box p {
+            color: #888;
+            font-size: 1rem;
+            line-height: 1.7;
+        }
+
+        /* Insight */
+        .insight {
+            background: rgba(255,255,255,0.03);
+            border: 1px solid rgba(255,255,255,0.08);
+            border-radius: 10px;
+            padding: 20px 25px;
+            text-align: center;
+            margin: 20px 0;
+        }
+
+        .insight p {
+            color: #fff;
+            font-size: 1.25rem;
+            font-weight: 500;
+        }
+
+        .final-quote {
+            text-align: center;
+            color: #555;
+            font-style: italic;
+            font-size: 1.1rem;
+            margin-top: auto;
+            padding-top: 20px;
+        }
+
+        /* Two column layout */
+        .two-col {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+        }
+
+        .auto-invoke {
+            background: rgba(0,0,0,0.2);
+            border-radius: 8px;
+            padding: 20px 25px;
+        }
+
+        .auto-invoke h3 {
+            color: #3498db;
+            font-size: 1rem;
+            margin-bottom: 12px;
+        }
+
+        .rule-row {
+            display: flex;
+            justify-content: space-between;
+            padding: 10px 0;
+            border-bottom: 1px solid rgba(255,255,255,0.05);
+            font-size: 0.95rem;
+        }
+
+        .rule-row:last-child { border: none; }
+        .rule-row .context { color: #888; }
+        .rule-row .action { color: #2ecc71; font-family: monospace; }
+    </style>
+</head>
+<body>
+
+    <!-- PAGE 1: EXPERTISE -->
+    <section class="page page-1" id="page1">
+        <div class="phase-indicator">Foundation</div>
+        <div class="page-number">1 / 6</div>
+        <div class="page-content">
+            <h1>Expertise</h1>
+            <p class="subtitle">Load the masters before writing code, not after as review.</p>
+
+            <div class="insight">
+                <p>Claude knows best practices. It just doesn't apply them unless required.</p>
+            </div>
+
+            <h2>Baseline Brain — Always Active</h2>
+            <div class="masters-row">
+                <div class="master-card baseline"><div class="name">Brian Kernighan</div><div class="focus">Clarity</div></div>
+                <div class="master-card baseline"><div class="name">Ken Thompson</div><div class="focus">Pragmatism</div></div>
+                <div class="master-card baseline"><div class="name">Rob Pike</div><div class="focus">Composition</div></div>
+                <div class="master-card baseline"><div class="name">Bill Joy</div><div class="focus">Resilience</div></div>
+                <div class="master-card baseline"><div class="name">Linus Torvalds</div><div class="focus">Taste</div></div>
+                <div class="master-card baseline"><div class="name">Edsger Dijkstra</div><div class="focus">Rigor</div></div>
+            </div>
+
+            <h2>Domain Masters — Per Profile</h2>
+            <div class="domains-grid">
+                <div class="domain-box">
+                    <h3>JavaScript</h3>
+                    <div class="names">Kyle Simpson<br>Boris Cherny<br>Dan Abramov<br>Kent C. Dodds</div>
+                </div>
+                <div class="domain-box">
+                    <h3>Java</h3>
+                    <div class="names">Joshua Bloch<br>Gang of Four<br>Barbara Liskov</div>
+                </div>
+                <div class="domain-box">
+                    <h3>Visualization</h3>
+                    <div class="names">Mike Bostock<br>Edward Tufte<br>Stephen Few<br>Cole Knaflic</div>
+                </div>
+                <div class="domain-box">
+                    <h3>Security + Docs</h3>
+                    <div class="names">Bruce Schneier<br>OWASP<br>Daniele Procida</div>
+                </div>
+            </div>
+        </div>
+        <div class="scroll-hint">Space / ↓</div>
+    </section>
+
+    <!-- PAGE 2: CONFIGURATION -->
+    <section class="page page-2" id="page2">
+        <div class="phase-indicator">Setup</div>
+        <div class="page-number">2 / 6</div>
+        <div class="page-content">
+            <h1>Configure</h1>
+            <p class="subtitle">Load expertise into your project with profiles.</p>
+
+            <div class="cmd">
+                <span class="prompt">$</span> cc-config profile apply <span class="arg">software-base+javascript+react</span> <span class="flag">-p ~/my-project</span>
+            </div>
+
+            <h2>What Gets Created</h2>
+            <div class="dir-tree">
+<span class="folder">my-project/</span>
+├── <span class="folder">.claude/</span>
+│   └── <span class="folder">skills/</span>                          <span class="comment"># Symlinks to global canon masters</span>
+│       │
+│       │   <span class="comment"># BASELINE BRAIN (always active)</span>
+│       ├── <span class="file">kernighan/</span>                    <span class="comment">→ clarity, style</span>
+│       ├── <span class="file">thompson/</span>                     <span class="comment">→ pragmatism, brute force</span>
+│       ├── <span class="file">pike/</span>                         <span class="comment">→ composition, small interfaces</span>
+│       ├── <span class="file">joy/</span>                          <span class="comment">→ resilience, failure handling</span>
+│       ├── <span class="file">linus/</span>                        <span class="comment">→ taste, data structures</span>
+│       ├── <span class="file">dijkstra/</span>                     <span class="comment">→ rigor, correctness</span>
+│       │
+│       │   <span class="comment"># DOMAIN (from javascript+react profile)</span>
+│       ├── <span class="file">simpson/</span>                      <span class="comment">→ JS core mechanics</span>
+│       ├── <span class="file">cherny/</span>                       <span class="comment">→ TypeScript patterns</span>
+│       ├── <span class="file">abramov/</span>                      <span class="comment">→ React, state management</span>
+│       ├── <span class="file">dodds/</span>                        <span class="comment">→ testing, Testing Trophy</span>
+│       │
+│       │   <span class="comment"># SECURITY + DOCS (from software-base)</span>
+│       ├── <span class="file">schneier/</span>                     <span class="comment">→ security mindset</span>
+│       ├── <span class="file">owasp/</span>                        <span class="comment">→ vulnerability patterns</span>
+│       └── <span class="file">procida/</span>                      <span class="comment">→ documentation (Diátaxis)</span>
+│
+├── <span class="file">CLAUDE.md</span>                             <span class="comment"># Auto-invoke rules + project standards</span>
+│
+└── <span class="comment">src/, package.json, etc.</span>              <span class="comment"># Your existing code</span>
+            </div>
+
+            <h2>Auto-Invoke Rules <span style="font-weight: normal; color: #666;">(added to CLAUDE.md)</span></h2>
+            <div class="auto-invoke">
+                <div class="rule-row"><span class="context">React components (.jsx, .tsx)</span><span class="action">INVOKE /abramov</span></div>
+                <div class="rule-row"><span class="context">Auth, login, password, crypto</span><span class="action">INVOKE /schneier then /owasp</span></div>
+                <div class="rule-row"><span class="context">Test files (*.test.*, *.spec.*)</span><span class="action">INVOKE /dodds</span></div>
+                <div class="rule-row"><span class="context">TypeScript files</span><span class="action">INVOKE /cherny</span></div>
+                <div class="rule-row"><span class="context">New public APIs</span><span class="action">INVOKE --doc-code</span></div>
+            </div>
+        </div>
+        <div class="scroll-hint">Space / ↓</div>
+    </section>
+
+    <!-- PAGE 3: PLAN -->
+    <section class="page page-3" id="page3">
+        <div class="phase-indicator">Plan</div>
+        <div class="page-number">3 / 6</div>
+        <div class="page-content">
+            <h1>Plan</h1>
+            <p class="subtitle">Enforce quality before you write a single line.</p>
+
+            <div class="flags-grid">
+                <div class="flag-card">
+                    <div class="flag-name">--plan</div>
+                    <div class="flag-desc"><strong>Full planning.</strong> Creates .plan.md file, enforces read-only exploration, requires explicit approval. For complex architecture.</div>
+                    <div class="example">
+                        <span class="prompt">></span> Build the authentication system <span class="flag">--plan</span><br>
+                        <span class="prompt">></span> Design the API for payments <span class="flag">--plan</span><br>
+                        <span class="prompt">></span> Architect the notification service <span class="flag">--plan</span>
+                    </div>
+                </div>
+                <div class="flag-card">
+                    <div class="flag-name">--structure-first</div>
+                    <div class="flag-desc"><strong>Lightweight alternative.</strong> Plan inline, get approval, implement. No file created. For simpler features with obvious structure.</div>
+                    <div class="example">
+                        <span class="prompt">></span> Build a user dashboard <span class="flag">--structure-first</span><br>
+                        <span class="prompt">></span> Add shopping cart functionality <span class="flag">--structure-first</span><br>
+                        <span class="prompt">></span> Create a settings page <span class="flag">--structure-first</span>
+                    </div>
+                </div>
+            </div>
+
+            <div class="insight" style="margin-top: auto;">
+                <p>Think first. Get approval. Then implement.</p>
+            </div>
+        </div>
+        <div class="scroll-hint">Space / ↓</div>
+    </section>
+
+    <!-- PAGE 4: BUILD -->
+    <section class="page page-4" id="page4">
+        <div class="phase-indicator">Build</div>
+        <div class="page-number">4 / 6</div>
+        <div class="page-content">
+            <h1>Build</h1>
+            <p class="subtitle">New features or improving legacy — different flags for different goals.</p>
+
+            <div class="flags-grid">
+                <div class="flag-card">
+                    <div class="flag-name">--build-from-plan</div>
+                    <div class="flag-desc"><strong>New features.</strong> Resume from an approved .plan.md file. Implements exactly per plan without re-exploring.</div>
+                    <div class="example">
+                        <span class="prompt">></span> <span class="flag">--build-from-plan</span><br>
+                        <span class="prompt">></span> <span class="flag">--build-from-plan</span> auth-system.plan.md<br>
+                        <span class="prompt">></span> <span class="flag">--build-from-plan --test all</span>
+                    </div>
+                </div>
+                <div class="flag-card">
+                    <div class="flag-name">--refactor-clean</div>
+                    <div class="flag-desc"><strong>Legacy code.</strong> Systematic decomposition with before/after metrics. Breaks down large functions, extracts concerns.</div>
+                    <div class="example">
+                        <span class="prompt">></span> <span class="flag">--refactor-clean</span> src/legacy/BigController.js<br>
+                        <span class="prompt">></span> <span class="flag">--refactor-clean</span> src/utils/helpers.ts<br>
+                        <span class="prompt">></span> <span class="flag">--refactor-clean --test unit</span>
+                    </div>
+                </div>
+                <div class="flag-card">
+                    <div class="flag-name">--test [level]</div>
+                    <div class="flag-desc">Write tests alongside code. Levels: unit, integration, e2e, all. Follows Kent C. Dodds' Testing Trophy.</div>
+                    <div class="example">
+                        <span class="prompt">></span> Build payment processor <span class="flag">--test integration</span><br>
+                        <span class="prompt">></span> Add user settings page <span class="flag">--test all</span><br>
+                        <span class="prompt">></span> Create the API client <span class="flag">--test unit</span>
+                    </div>
+                </div>
+                <div class="flag-card">
+                    <div class="flag-name">--doc-code</div>
+                    <div class="flag-desc">Generate documentation using Procida's Diátaxis: tutorials, how-tos, reference, explanation.</div>
+                    <div class="example">
+                        <span class="prompt">></span> Document the data pipeline <span class="flag">--doc-code</span><br>
+                        <span class="prompt">></span> Add docs for the SDK <span class="flag">--doc-code</span><br>
+                        <span class="prompt">></span> Explain the caching layer <span class="flag">--doc-code</span>
+                    </div>
+                </div>
+            </div>
+
+            <div class="insight" style="margin-top: 15px;">
+                <p>Build it in, don't bolt it on.</p>
+            </div>
+        </div>
+        <div class="scroll-hint">Space / ↓</div>
+    </section>
+
+    <!-- PAGE 5: REVIEW -->
+    <section class="page page-5" id="page5">
+        <div class="phase-indicator">Review</div>
+        <div class="page-number">5 / 6</div>
+        <div class="page-content">
+            <h1>Review</h1>
+            <p class="subtitle">Enforce quality after code is written.</p>
+
+            <div class="flag-card" style="border-color: #e74c3c;">
+                <div class="flag-name" style="color: #e74c3c;">--review-hard</div>
+                <div class="flag-desc">Adversarial self-review. Claude critiques its own work for issues, edge cases, standard violations.</div>
+                <div class="example">
+                    <span class="prompt">></span> Build auth flow <span class="flag">--structure-first --test all --review-hard</span><br>
+                    <span class="prompt">></span> Add payment integration <span class="flag">--review-hard</span><br>
+                    <span class="prompt">></span> Implement the data export <span class="flag">--test integration --review-hard</span>
+                </div>
+            </div>
+
+            <h2>The Review Pipeline — For Critical Code</h2>
+            <div class="review-grid">
+                <div class="review-card">
+                    <div class="stage-num">Stage 1</div>
+                    <h4>--review-hard</h4>
+                    <p>Self-review. Fast, free. Catches consistency issues and standard violations.</p>
+                </div>
+                <div class="review-card">
+                    <div class="stage-num">Stage 2</div>
+                    <h4>Gemini Review</h4>
+                    <p>Different model, different biases. Good for architecture review.</p>
+                </div>
+                <div class="review-card">
+                    <div class="stage-num">Stage 3</div>
+                    <h4>Codex Review</h4>
+                    <p>Third perspective. Strong on logic errors and edge cases.</p>
+                </div>
+                <div class="review-card">
+                    <div class="stage-num">Stage 4</div>
+                    <h4>Qodana</h4>
+                    <p>Static analysis. Security, types, code smells. Deterministic.</p>
+                </div>
+            </div>
+
+            <div class="insight" style="margin-top: auto;">
+                <p>Different reviewers catch different problems.</p>
+            </div>
+        </div>
+        <div class="scroll-hint">Space / ↓</div>
+    </section>
+
+    <!-- PAGE 6: OUTCOME -->
+    <section class="page page-6" id="page6">
+        <div class="phase-indicator">Result</div>
+        <div class="page-number">6 / 6</div>
+        <div class="page-content">
+            <h1>Outcome</h1>
+            <p class="subtitle">What Claude-Optimal provides → What your project becomes.</p>
+
+            <div class="comparison" style="margin-top: 20px;">
+                <div class="comparison-box before" style="background: rgba(155, 89, 182, 0.1); border-color: rgba(155, 89, 182, 0.3);">
+                    <h4 style="color: #9b59b6;">What You Get: The Toolkit</h4>
+                    <div class="dir-tree" style="background: transparent; padding: 12px 0; font-size: 0.8rem; line-height: 1.4;">
+claude-optimal/
+├── <span class="folder">canon/</span>                        <span class="comment"># 30+ expert skills</span>
+│   ├── <span class="folder">baseline/</span>                 <span class="comment"># always active</span>
+│   │   ├── kernighan, thompson, pike
+│   │   ├── bill-joy, linus, dijkstra
+│   ├── <span class="folder">javascript/</span>               <span class="comment"># JS ecosystem</span>
+│   │   ├── abramov, cherny, dodds
+│   │   ├── crockford, harris, osmani
+│   ├── <span class="folder">testing/</span>                  <span class="comment"># test patterns</span>
+│   │   ├── feathers, fowler-test, meszaros
+│   ├── <span class="folder">visualization/</span>            <span class="comment"># data viz</span>
+│   │   ├── tufte, bostock, few, knaflic
+│   ├── <span class="folder">business/</span>                 <span class="comment"># strategy</span>
+│   │   └── grove, horowitz, porter, rumelt
+│   └── procida, bloch, carmack...
+│
+├── <span class="folder">commands/</span>                     <span class="comment"># quality flags</span>
+│   ├── build-from-plan/          <span class="comment">--build-from-plan</span>
+│   └── doc-code/                 <span class="comment">--doc-code</span>
+│
+├── <span class="folder">profiles/</span>                     <span class="comment"># composable stacks</span>
+│   ├── software-base.yaml        <span class="comment">baseline brain + security</span>
+│   ├── javascript.yaml, react.yaml, angular.yaml
+│   ├── business-base.yaml, startup.yaml
+│   └── fullstack.yaml, testing.yaml
+│
+├── <span class="folder">docs/</span>                         <span class="comment"># standards</span>
+│   ├── STRUCTURAL-STANDARDS.md   <span class="comment">30-line max, etc.</span>
+│   ├── API-DESIGN-STANDARDS.md   <span class="comment">REST patterns</span>
+│   └── FLAGS.md                  <span class="comment">flag reference</span>
+│
+└── <span class="folder">agents/</span>                       <span class="comment"># sub-agents</span>
+    ├── security-auditor          <span class="comment">OWASP checks</span>
+    ├── test-engineer             <span class="comment">Testing Trophy</span>
+    ├── code-reviewer             <span class="comment">standards</span>
+    ├── accessibility-tester      <span class="comment">WCAG</span>
+    └── doc-writer                <span class="comment">Diátaxis</span></div>
+                </div>
+                <div class="comparison-box after">
+                    <h4 style="color: #1abc9c;">What You Ship: Quality Code</h4>
+                    <div class="dir-tree" style="background: transparent; padding: 15px 0; font-size: 0.85rem; line-height: 1.5;">
+my-app/
+├── <span class="folder">src/</span>
+│   ├── <span class="folder">features/</span>
+│   │   └── <span class="folder">auth/</span>
+│   │       ├── authService.ts      <span class="comment">25 lines</span>
+│   │       ├── authMiddleware.ts   <span class="comment">18 lines</span>
+│   │       └── authController.ts   <span class="comment">28 lines</span>
+│   │
+│   └── <span class="folder">components/</span>
+│       └── LoginForm.tsx           <span class="comment">React patterns</span>
+│
+├── <span class="folder">tests/</span>
+│   ├── auth.integration.spec.ts    <span class="comment">integration-first</span>
+│   ├── auth.unit.spec.ts           <span class="comment">isolated logic</span>
+│   └── auth.e2e.spec.ts            <span class="comment">user journeys</span>
+│
+├── <span class="folder">docs/</span>
+│   ├── <span class="folder">api/</span>
+│   │   └── auth.md                 <span class="comment">reference</span>
+│   ├── <span class="folder">how-to/</span>
+│   │   └── add-auth-to-routes.md   <span class="comment">how-to</span>
+│   └── <span class="folder">architecture/</span>
+│       └── auth-flow.md            <span class="comment">explanation</span>
+│
+└── CLAUDE.md                       <span class="comment">auto-invoke rules</span></div>
+                </div>
+            </div>
+
+            <div class="final-quote">
+                "Who has solved this before, and better than I could?"
+            </div>
+        </div>
+    </section>
+
+    <script>
+        const pages = document.querySelectorAll('.page');
+        let currentPage = 0;
+
+        document.addEventListener('keydown', (e) => {
+            if (e.code === 'Space' || e.code === 'ArrowDown' || e.code === 'PageDown') {
+                e.preventDefault();
+                if (currentPage < pages.length - 1) {
+                    currentPage++;
+                    pages[currentPage].scrollIntoView({ behavior: 'smooth' });
+                }
+            } else if (e.code === 'ArrowUp' || e.code === 'PageUp') {
+                e.preventDefault();
+                if (currentPage > 0) {
+                    currentPage--;
+                    pages[currentPage].scrollIntoView({ behavior: 'smooth' });
+                }
+            }
+        });
+
+        const observer = new IntersectionObserver((entries) => {
+            entries.forEach(entry => {
+                if (entry.isIntersecting) {
+                    currentPage = Array.from(pages).indexOf(entry.target);
+                }
+            });
+        }, { threshold: 0.5 });
+
+        pages.forEach(page => observer.observe(page));
+    </script>
+</body>
+</html>

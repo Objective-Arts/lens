@@ -1,97 +1,78 @@
-# Session Progress - 2026-01-21
+# Session Progress - 2026-01-21 (Continued)
 
 ## Current Task
-Defining the "Baseline Brain" - foundational experts for all software projects
+Updated flow-guide.html with before/after comparison trees and added --build-from-plan flag
 
 ## Completed This Session
 
-### 1. Created principles-and-sequence.html
-New diagram with two sections:
-- **Section I: Core Principles** (4 memorable principles)
-  1. "Claude knows. It just doesn't apply."
-  2. "Expert > Knowledge"
-  3. "Build it in, don't bolt it on"
-  4. "Four levers: Experts, Rules, Gates, Triggers"
+### 1. Updated COMPREHENSIVE-GUIDE.md with Baseline Brain
+- Added three-layer canon structure: Baseline Brain + Base Practices + Domain Canon
+- Updated all diagrams and templates
+- The six baseline brain masters: Kernighan, Thompson, Pike, Joy, Linus, Dijkstra
 
-- **Section II: Setup Sequence** (5 steps with purpose)
-  1. Apply a Profile → "Pick your experts"
-  2. Add Standards → "Set the rules"
-  3. Add Auto-Invoke → "Wire the triggers"
-  4. Use Flags → "Add the gates"
-  5. Verify → "Check your work"
+### 2. Created --build-from-plan Flag
+- **commands/build-from-plan/SKILL.md** - Full implementation
+- Added to FLAGS.md with complete documentation
+- Added to COMPREHENSIVE-GUIDE.md Flag Catalog and Quick Reference
+- Added to flow-guide.html Build page
 
-### 2. Created Ken Thompson canon skill
-- `canon/thompson/SKILL.md` - Ken Thompson's pragmatic philosophy
-- Core principle: "When in doubt, use brute force"
-- Includes: Unix philosophy, regex guidance, "Trusting Trust" security lesson
-- Added to `canon/README.md`
+### 3. Updated flow-guide.html
+- Fixed directory tree CSS (`white-space: pre` for proper rendering)
+- Added --build-from-plan to Build page
+- Distinguished new features vs legacy (--build-from-plan vs --refactor-clean)
+- Created before/after comparison on Outcome page:
+  - Left: "What You Get: The Toolkit" (canon, commands, profiles, agents)
+  - Right: "What You Ship: Quality Code" (organized src, tests, docs)
 
-### 3. Defined the Baseline Brain
-Six masters that shape ALL code regardless of language:
+## Key Concepts Established
 
-| Master | Contribution |
-|--------|--------------|
-| **Kernighan** | Clarity, readability, style |
-| **Thompson** | Pragmatism, brute force, get it working |
-| **Pike** | Small interfaces, composition |
-| **Joy** | Distributed systems, failure handling |
-| **Linus** | Good taste, data structures first |
-| **Dijkstra** | Formal discipline, correctness |
+### Three-Layer Canon Structure
+```
+┌─────────────────────────────────────────┐
+│ BASELINE BRAIN (always active)          │
+│   Kernighan, Thompson, Pike,            │
+│   Joy, Linus, Dijkstra                  │
+├─────────────────────────────────────────┤
+│ BASE PRACTICES (always active)          │
+│   Schneier, OWASP, Dodds, Procida       │
+├─────────────────────────────────────────┤
+│ DOMAIN CANON (per project)              │
+│   Simpson, Abramov, Bostock, etc.       │
+└─────────────────────────────────────────┘
+```
 
-Key insight: Thompson/Dijkstra tension is productive (pragmatism vs rigor)
+### Flag Workflow (Plan → Build)
+```
+Day 1: > Build auth system --plan
+       [Creates .plan.md, gets approval]
 
-### 4. Documented Baseline Brain
-- Created `docs/BASELINE-BRAIN.md`
-- Explains: why these six, what each provides, productive tensions
-- What's NOT in baseline and why (GoF is domain-specific)
-
-### 5. Updated software-base profile
-- Updated `profiles/software-base.yaml`
-- Added baseline brain as distinct section (6 masters)
-- Kept security (schneier, owasp), docs (procida), testing (4 masters)
-- Total: 13 masters in software-base
-
-## Key Decisions Made
-
-### Gang of Four NOT in Baseline
-- Conflicts with Pike/Linus simplicity ethos
-- Language-family specific (OOP-heavy)
-- Belongs in Java/C# domain profiles instead
-
-### Jeff Dean NOT a Canon Master
-- His work is in systems/papers, not articulated principles
-- Wisdom embedded in specific system designs
-- "google-systems" skill would be reference material, not a perspective
+Day 2: > --build-from-plan --test all --review-hard
+       [Implements per plan, tests, reviews]
+```
 
 ## Files Created/Modified
-- `principles-and-sequence.html` (new)
-- `canon/thompson/SKILL.md` (new)
-- `docs/BASELINE-BRAIN.md` (new)
-- `canon/README.md` (modified - added Thompson)
-- `profiles/software-base.yaml` (modified - added baseline brain)
-
-## Next Steps
-1. Commit these changes
-2. Consider adding Bill Joy skill if not complete
-3. Consider creating a baseline-only profile for minimal setups
-4. Update other docs to reference baseline brain concept
+- `commands/build-from-plan/SKILL.md` (new)
+- `docs/FLAGS.md` (added --build-from-plan)
+- `docs/COMPREHENSIVE-GUIDE.md` (major updates)
+- `flow-guide.html` (before/after trees, --build-from-plan)
 
 ## Context to Restore
 
-### The Baseline Brain (memorize this)
+### Baseline Brain (memorize this)
 Kernighan, Thompson, Pike, Joy, Linus, Dijkstra
 
-### Profile Structure
-```
-software-base profile:
-  baseline: kernighan, thompson, pike, joy, linus, dijkstra
-  security: schneier, owasp
-  documentation: procida
-  testing: dodds, feathers, meszaros, fowler-test
-```
+### Key Flags
+- `--plan` - Create .plan.md in plan mode
+- `--build-from-plan` - Implement from existing plan
+- `--refactor-clean` - Legacy code cleanup
+- `--test [level]` - Write tests
+- `--doc-code` - Generate documentation
+- `--review-hard` - Adversarial self-review
 
-### Key Principles (memorable versions)
-1. Claude knows. It just doesn't apply.
-2. Expert > Knowledge
-3. Build it in, don't bolt it on
-4. Four levers: Experts, Rules, Gates, Triggers
+### Flow Guide Structure (6 pages)
+1. Expertise - Canon masters
+2. Configure - cc-config profile apply
+3. Plan - --structure-first, --plan
+4. Build - --build-from-plan, --refactor-clean, --test, --doc-code
+5. Review - --review-hard, multi-model pipeline
+6. Outcome - Before/after comparison trees

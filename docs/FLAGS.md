@@ -4,15 +4,36 @@ Flags that modify Claude's behavior to enforce structural quality standards.
 
 ---
 
+## Slash Commands
+
+Some flags are also available as standalone slash commands for convenience:
+
+| Flag | Slash Command | When to Prefer |
+|------|---------------|----------------|
+| `--refactor-clean` | `/refactor-clean` | Standalone cleanup tasks |
+| `--review-hard` | `/review-hard` | Quick review of recent work |
+| `--test [level]` | `/test [level]` | Standalone test writing |
+| `--doc-code` | `/doc-code` | Standalone documentation generation |
+| `--structure-first` | *(flag only)* | Always modifies a task |
+| `--plan` | *(flag only)* | Always modifies a task |
+
+**Use flags** when chaining: `Build X --structure-first --test all --review-hard`
+
+**Use commands** when standalone: `/review-hard` or `/test unit src/services/`
+
+---
+
 ## Flag Catalog
 
 | Flag | When to Use | What It Does |
 |------|-------------|--------------|
 | `--structure-first` | New features, components | Inline plan, wait for approval |
 | `--plan` | Complex features, architecture | Full plan mode with `.plan.md` file |
+| `--build-from-plan` | Resume work from existing plan | Implement from `.plan.md` |
 | `--review-hard` | Before completion | Adversarial self-review |
 | `--refactor-clean` | Tech debt, cleanup | Systematic decomposition |
 | `--test [level]` | After writing code | Write tests at specified level(s) |
+| `--doc-code` | After implementation | Generate documentation (Procida/Diátaxis) |
 
 ### --test Level Options
 
@@ -156,6 +177,124 @@ Is this a quick feature with obvious structure?
 └── No → Does it span multiple files or require exploration?
     ├── Yes → --plan (full plan mode)
     └── No → --structure-first is probably fine
+```
+
+---
+
+## --build-from-plan
+
+**Purpose**: Resume implementation from an existing `.plan.md` file. Use when returning to a session with an approved plan, or when plan was created in plan mode but implementation was deferred.
+
+**When to Use**:
+- Returning to work after creating a plan in a previous session
+- Plan was approved but implementation didn't happen
+- Splitting planning and implementation across sessions
+- Team member picking up a task from another's plan
+
+**Behavior**:
+
+1. **Read the plan file** (`.plan.md` in project root)
+2. **Parse the plan structure**:
+   - Files to create/modify
+   - Function signatures and responsibilities
+   - Data flow requirements
+   - Any permissions or bash commands specified
+3. **Confirm plan is still current**:
+   - Check if referenced files still exist as expected
+   - Flag if plan references outdated code
+4. **Implement according to plan**:
+   - Follow the documented structure exactly
+   - Create files in order specified
+   - Implement functions with signatures from plan
+5. **Mark sections complete** as implemented
+
+**Example Prompt**:
+```
+> --build-from-plan
+```
+
+**Or with specific plan file**:
+```
+> --build-from-plan auth-system.plan.md
+```
+
+**Claude Behavior**:
+```
+1. Reads .plan.md (or specified plan file)
+2. Summarizes what the plan contains:
+
+   Found plan: Authentication System
+   - 3 files to create
+   - 2 files to modify
+   - 4 functions defined
+
+   Last modified: 2024-01-15
+   Status: Approved, not yet implemented
+
+   Proceeding with implementation...
+
+3. Implements each section, checking off as complete
+4. Updates plan file with implementation status
+5. Reports completion:
+
+   Plan implemented:
+   - [x] src/auth/authService.ts (created)
+   - [x] src/auth/authMiddleware.ts (created)
+   - [x] src/auth/authController.ts (created)
+   - [x] src/routes/index.ts (modified)
+   - [x] src/models/user.ts (modified)
+
+   All 4 functions implemented per signatures in plan.
+```
+
+**Plan File Format Expected**:
+
+```markdown
+# [Feature Name] Plan
+
+## Status
+Approved | In Progress | Complete
+
+## Files to Create
+- path/to/file.ts - description
+
+## Files to Modify
+- path/to/existing.ts - what changes
+
+## Function Signatures
+```typescript
+functionName(param: Type): ReturnType
+```
+
+## Data Flow
+[Diagram or description]
+
+## Implementation Notes
+[Any context needed for implementation]
+```
+
+**Key Difference from Starting Fresh**:
+
+| Fresh Start | --build-from-plan |
+|-------------|-------------------|
+| Explores codebase | Trusts plan's analysis |
+| Asks questions | Uses plan's decisions |
+| May propose alternatives | Follows plan exactly |
+| Creates its own structure | Uses plan's structure |
+
+**Error Handling**:
+
+```
+Plan file not found:
+> No .plan.md found. Did you mean to use --plan first?
+
+Plan references missing files:
+> Plan references src/auth/legacy.ts which no longer exists.
+> Should I update the plan or proceed with modified approach?
+
+Plan is stale:
+> Plan was created 30+ days ago. Files may have changed.
+> Recommend reviewing plan before implementing. Proceed anyway?
 ```
 
 ---
@@ -492,29 +631,243 @@ All tests passing.
 
 ---
 
+## --doc-code
+
+**Purpose**: Generate documentation using Procida's Diátaxis framework. Creates the right type of documentation for what was built.
+
+**When to Use**:
+- After implementing a feature
+- After creating a new API or public interface
+- When complex code needs explanation
+- Combined with other flags: `--structure-first --test all --doc-code`
+
+**Also available as**: `/doc-code [target]` for standalone documentation
+
+---
+
+### Diátaxis Framework (Procida Canon)
+
+The flag applies Procida's documentation taxonomy:
+
+| Type | Purpose | Audience | Example |
+|------|---------|----------|---------|
+| **Tutorial** | Learning-oriented | Newcomers learning | "Build your first widget" |
+| **How-to** | Task-oriented | Practitioners doing | "How to configure auth" |
+| **Reference** | Information-oriented | Anyone looking up | API docs, config options |
+| **Explanation** | Understanding-oriented | Anyone studying | "Why we use this pattern" |
+
+---
+
+### Behavior
+
+When `--doc-code` is triggered:
+
+1. **Analyze what was built**:
+   - New public API? → Reference docs
+   - New feature? → How-to guide
+   - Complex system? → Explanation
+   - New capability for users? → Tutorial
+
+2. **Determine placement**:
+   - Inline: JSDoc/JavaDoc for functions and classes
+   - README: Feature overviews, quick starts
+   - docs/: Detailed guides, architecture explanations
+   - API reference: Auto-generated from code
+
+3. **Generate documentation** following Procida patterns:
+   - Clear purpose statement
+   - Appropriate structure for doc type
+   - Code examples where relevant
+   - Links to related docs
+
+4. **Verify completeness**:
+   - All public APIs documented
+   - Examples are runnable
+   - No broken links
+
+---
+
+### Decision Tree
+
+```
+What was built?
+│
+├── New public function/class/API?
+│   └── Reference documentation
+│       - Parameters, return types, exceptions
+│       - Usage examples
+│       - Placed: Inline (JSDoc/JavaDoc) + docs/api/
+│
+├── New feature users will use?
+│   └── How-to guide
+│       - Prerequisites
+│       - Step-by-step instructions
+│       - Expected outcome
+│       - Placed: docs/how-to/ or README section
+│
+├── Complex internal system?
+│   └── Explanation document
+│       - Why it exists
+│       - How it works conceptually
+│       - Design decisions
+│       - Placed: docs/architecture/ or ARCHITECTURE.md
+│
+└── New capability to learn?
+    └── Tutorial
+        - Learning objectives
+        - Guided walkthrough
+        - Building something complete
+        - Placed: docs/tutorials/
+```
+
+---
+
+### Example Prompts
+
+```bash
+# After implementing a feature
+> Build the notification system --structure-first --doc-code
+
+# Standalone documentation for existing code
+> /doc-code src/services/AuthService.ts
+
+# Document an entire module
+> /doc-code src/features/dashboard/
+
+# Specific doc type
+> /doc-code --type=how-to src/features/export/
+```
+
+---
+
+### Claude Response Pattern
+
+```markdown
+## Documentation Generated
+
+### Analysis:
+- Built: AuthService with login/logout/refresh methods
+- Type: Public API → Reference documentation
+- Additional: Complex token flow → Explanation needed
+
+### Documents Created:
+
+**1. Reference (inline + docs/api/auth.md)**
+```typescript
+/**
+ * Authenticates a user with email and password.
+ *
+ * @param credentials - User email and password
+ * @returns Promise<AuthTokens> - Access and refresh tokens
+ * @throws AuthError - If credentials are invalid
+ *
+ * @example
+ * const tokens = await authService.login({
+ *   email: 'user@example.com',
+ *   password: 'secret'
+ * });
+ */
+```
+
+**2. Explanation (docs/architecture/auth-flow.md)**
+- Why JWT over sessions
+- Token refresh mechanism
+- Security considerations
+
+**3. How-to (docs/how-to/add-auth-to-routes.md)**
+- Protecting routes with requireAuth middleware
+- Optional auth for public routes
+- Handling auth errors
+
+### Verification:
+- [x] All public methods have JSDoc
+- [x] Examples are runnable
+- [x] Links verified
+```
+
+---
+
+### Integration with Canon
+
+`--doc-code` activates the Procida lens from base canon:
+
+| Procida Principle | Application |
+|-------------------|-------------|
+| **Separate concerns** | Don't mix tutorials with reference |
+| **Serve the reader** | Right doc type for their need |
+| **Show, don't tell** | Code examples over prose |
+| **Keep it current** | Docs generated from actual code |
+
+---
+
+### Auto-Invoke Rules for --doc-code
+
+Add to project CLAUDE.md to trigger documentation automatically:
+
+```markdown
+## Auto-Invoke Rules
+
+| Context | Action |
+|---------|--------|
+| New public API (exported function/class) | INVOKE --doc-code (Reference) |
+| New feature completed | INVOKE --doc-code (How-to) |
+| Complex system or architecture | INVOKE --doc-code --type=explanation |
+| After --test completes successfully | INVOKE --doc-code |
+| New user-facing capability | INVOKE --doc-code (Tutorial if first-of-kind) |
+```
+
+**Trigger Patterns** (high confidence - always trigger):
+```
+- export function/class/interface (public API)
+- New file in src/features/ or src/services/
+- New route/endpoint added
+- New component with >100 lines
+- After successful test run on new code
+```
+
+**Trigger Patterns** (medium confidence - trigger if context supports):
+```
+- Significant refactoring (>50% of file changed)
+- New configuration options added
+- New error types defined
+- Integration with external service
+```
+
+**Skip documentation when**:
+```
+- Pure test files (*.spec.ts, *.test.ts)
+- Internal utilities (<50 lines, not exported)
+- Config changes only
+- Comment/formatting changes
+```
+
+---
+
 ## Combining Flags
 
 Flags can be combined for maximum rigor:
 
 ```
-> Build the timeline view --structure-first --test all --review-hard
+> Build the timeline view --structure-first --test all --doc-code --review-hard
 ```
 
 **Execution Order**:
 1. `--structure-first` or `--plan` → Plan shown/written, wait for approval
 2. Implement per plan
 3. `--test [level]` → Write tests at specified level(s)
-4. `--review-hard` → Adversarial review before presenting
+4. `--doc-code` → Generate documentation (Procida/Diátaxis)
+5. `--review-hard` → Adversarial review before presenting
 
 **Common Combinations**:
 | Combination | When to Use |
 |-------------|-------------|
 | `--structure-first --test all` | New feature development |
-| `--plan --test all` | Complex feature with exploration needed |
+| `--structure-first --test all --doc-code` | New feature with documentation |
+| `--plan --test all --doc-code` | Complex feature, full pipeline |
 | `--plan --review-hard` | Architectural changes requiring rigor |
 | `--refactor-clean --test unit` | Refactoring with unit coverage |
 | `--test integration --review-hard` | Bug fixes with integration verification |
-| `--test e2e` | Critical user journey verification |
+| `--doc-code --review-hard` | Document existing code |
 
 **Note**: `--structure-first` and `--plan` are mutually exclusive. Use one or the other.
 
@@ -555,16 +908,19 @@ Override with explicit `--no-review` if truly not needed.
 |-----------|---------|--------------|
 | New feature | `--structure-first` | Inline plan → Approve → Implement |
 | Complex feature | `--plan` | Plan mode → .plan.md → Approve → Implement |
-| After coding | `--test all` | Analyze → Plan tests → Write tests (all levels) |
-| Unit tests only | `--test unit` | Write unit tests with mocks |
+| After coding | `--test all` or `/test all` | Analyze → Plan tests → Write tests (all levels) |
+| Unit tests only | `--test unit` or `/test unit` | Write unit tests with mocks |
 | Integration only | `--test integration` | Write integration tests |
 | E2E only | `--test e2e` | Write end-to-end tests |
-| Any completion | `--review-hard` | Adversarial review → Fix → Present |
-| Cleanup task | `--refactor-clean` | Decompose → Unify → Summarize |
+| Generate docs | `--doc-code` or `/doc-code` | Analyze → Determine type → Generate docs |
+| Document existing | `/doc-code src/path/` | Generate docs for existing code |
+| Any completion | `--review-hard` or `/review-hard` | Adversarial review → Fix → Present |
+| Cleanup task | `--refactor-clean` or `/refactor-clean` | Decompose → Unify → Summarize |
 | Quick bug fix | (no flag) | Standards still apply, less formality |
 | Feature + tests | `--structure-first --test all` | Plan → Implement → Test |
+| Feature + docs | `--structure-first --test all --doc-code` | Plan → Implement → Test → Document |
 | Complex + tests | `--plan --test all` | Full plan mode → Implement → Test |
-| Maximum rigor | `--plan --test all --review-hard` | Full pipeline with plan file |
+| Maximum rigor | `--plan --test all --doc-code --review-hard` | Full pipeline with docs |
 
 ---
 
