@@ -77,6 +77,27 @@ After implementation:
 6. Verify separation of concerns maintained
 7. Self-critique: "What would a hostile code reviewer flag?"
 
+### Canon Integration
+
+The --structure-first flag becomes more powerful with canon masters active:
+
+| Master | How They Shape the Plan |
+|--------|------------------------|
+| **Kernighan** | Names reveal intent, functions do one thing |
+| **Pike** | "A little copying is better than a little dependency" — prefer simple over clever |
+| **Linus** | Data structures first — what shape does the data need? |
+| **Thompson** | "When in doubt, use brute force" — don't over-engineer the initial plan |
+
+**Without canon**: Claude plans based on general best practices.
+
+**With canon**: Claude plans through specific lenses:
+- Kernighan asks: "Is this function name clear to someone who didn't write it?"
+- Pike asks: "Is this interface as small as it can be?"
+- Linus asks: "Can I eliminate this special case through better data structure?"
+- Thompson asks: "Could brute force solve this simpler?"
+
+The plan becomes a **design review** before code exists.
+
 **Example Prompt**:
 ```
 > Build the placement timeline view --structure-first
@@ -177,6 +198,45 @@ Ready to implement? [Awaiting approval]
 5. User reviews and approves
 6. Implements per plan
 ```
+
+### Canon Integration
+
+The --plan flag leverages the full Baseline Brain during exploration:
+
+| Master | Role in Planning |
+|--------|-----------------|
+| **Dijkstra** | "What are the invariants? What must always be true?" |
+| **Joy** | "What happens when this fails? Design for failure from the start." |
+| **Pike** | "How small can these interfaces be? What's the minimal API?" |
+| **Kernighan** | "Is this architecture clear to someone who didn't design it?" |
+| **Linus** | "What data structures eliminate special cases?" |
+| **Thompson** | "Is there a simpler brute-force approach that works?" |
+
+**The Productive Tension**:
+
+During planning, Thompson and Dijkstra create useful friction:
+- Thompson says: "Get something working first, optimize later"
+- Dijkstra says: "Prove this is correct by construction"
+
+The plan must resolve this tension explicitly:
+- For prototypes → lean Thompson (speed over rigor)
+- For auth/payments → lean Dijkstra (correctness over speed)
+- Document which approach and why
+
+**Domain Canon Adds Specificity**:
+
+With domain masters active, the plan includes framework-specific guidance:
+- **Abramov** (React): "Is state lifted to the right level? Should this be a hook?"
+- **Bloch** (Java): "Should this be an immutable value object?"
+- **Dodds** (Testing): "How will this be tested? Integration or unit?"
+
+**What Makes --plan Effective in This Workflow**:
+
+1. **Canon shapes exploration** — Claude reads code through master lenses
+2. **Tensions surface decisions** — Thompson vs Dijkstra forces explicit trade-offs
+3. **Domain expertise applies early** — Framework patterns inform architecture
+4. **Security reviews during planning** — Schneier/OWASP catch issues before code exists
+5. **Plan becomes living document** — Referenced during implementation and review
 
 **When to Choose Which**:
 
