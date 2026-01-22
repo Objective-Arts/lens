@@ -476,26 +476,23 @@
 ├── <span class="folder">.claude/</span>
 │   ├── <span class="file">settings.json</span>                    <span class="comment"># Project settings</span>
 │   └── <span class="folder">skills/</span>                          <span class="comment"># Symlinks to canon masters</span>
-│       │   <span class="comment"># BASELINE: kernighan, thompson, pike, joy, linus, dijkstra</span>
-│       │   <span class="comment"># DOMAIN: simpson, cherny, abramov, dodds</span>
-│       └── <span class="comment"># SECURITY: schneier, owasp, procida</span>
+│       ├── <span class="file">BASELINE:</span> <span style="color:#9b59b6">kernighan, thompson, pike, joy, linus, dijkstra</span>
+│       ├── <span class="file">DOMAIN:</span> <span style="color:#3498db">simpson, cherny, abramov, dodds</span>
+│       └── <span class="file">SECURITY:</span> <span style="color:#e74c3c">schneier, owasp, procida</span>
 │
 ├── <span class="file">CLAUDE.md</span>                             <span class="comment"># Auto-invoke rules + standards</span>
 ├── <span class="file">STRATEGY.md</span>                           <span class="comment"># Why this configuration</span>
 │
-├── <span class="comment"># FLAGS AVAILABLE:</span>
-│   <span class="comment">--plan, --structure-first, --build-from-plan</span>
-│   <span class="comment">--test [unit|integration|e2e|all], --doc-code</span>
-│   <span class="comment">--refactor-clean, --review-hard</span>
+├── <span style="color:#f39c12">FLAGS:</span> <span style="color:#2ecc71">--plan</span>, <span style="color:#2ecc71">--structure-first</span>, <span style="color:#2ecc71">--build-from-plan</span>
+│        <span style="color:#2ecc71">--test</span> <span style="color:#888">[unit|integration|e2e|all]</span>, <span style="color:#2ecc71">--doc-code</span>
+│        <span style="color:#2ecc71">--refactor-clean</span>, <span style="color:#2ecc71">--review-hard</span>
 │
-├── <span class="comment"># COMMANDS AVAILABLE:</span>
-│   <span class="comment">/build-from-plan, /doc-code, /test, /review-hard</span>
+├── <span style="color:#f39c12">COMMANDS:</span> <span style="color:#3498db">/build-from-plan</span>, <span style="color:#3498db">/doc-code</span>, <span style="color:#3498db">/test</span>, <span style="color:#3498db">/review-hard</span>
 │
-├── <span class="comment"># SUB-AGENTS AVAILABLE:</span>
-│   <span class="comment">security-auditor, test-engineer, code-reviewer</span>
-│   <span class="comment">accessibility-tester, doc-writer, css-expert</span>
+├── <span style="color:#f39c12">SUB-AGENTS:</span> <span style="color:#e67e22">security-auditor</span>, <span style="color:#e67e22">test-engineer</span>, <span style="color:#e67e22">code-reviewer</span>
+│              <span style="color:#e67e22">accessibility-tester</span>, <span style="color:#e67e22">doc-writer</span>, <span style="color:#e67e22">css-expert</span>
 │
-└── <span class="comment">src/, package.json, etc.</span>              <span class="comment"># Your existing code</span>
+└── <span class="folder">src/</span>, <span class="file">package.json</span>, etc.            <span class="comment"># Your existing code</span>
             </div>
 
             <h2>Auto-Invoke Rules <span style="font-weight: normal; color: #666;">(added to CLAUDE.md)</span></h2>
