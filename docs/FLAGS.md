@@ -14,6 +14,7 @@ Some flags are also available as standalone slash commands for convenience:
 | `--review-hard` | `/review-hard` | Quick review of recent work |
 | `--test [level]` | `/test [level]` | Standalone test writing |
 | `--doc-code` | `/doc-code` | Standalone documentation generation |
+| `--build-from-plan` | `/build-from-plan` | Build or resume from .plan.md |
 | `--structure-first` | *(flag only)* | Always modifies a task |
 | `--plan` | *(flag only)* | Always modifies a task |
 
@@ -29,11 +30,19 @@ Some flags are also available as standalone slash commands for convenience:
 |------|-------------|--------------|
 | `--structure-first` | New features, components | Inline plan, wait for approval |
 | `--plan` | Complex features, architecture | Full plan mode with `.plan.md` file |
-| `--build-from-plan` | Resume work from existing plan | Implement from `.plan.md` |
+| `--build-from-plan` | Build or resume from plan | Implement from `.plan.md` |
 | `--review-hard` | Before completion | Adversarial self-review |
 | `--refactor-clean` | Tech debt, cleanup | Systematic decomposition |
 | `--test [level]` | After writing code | Write tests at specified level(s) |
 | `--doc-code` | After implementation | Generate documentation (Procida/Diátaxis) |
+
+### Implementation Notes
+
+Flags with dedicated skill files in `commands/`:
+- `--build-from-plan` → `commands/build-from-plan/SKILL.md`
+- `--doc-code` → `commands/doc-code/SKILL.md`
+
+All other flags (`--plan`, `--structure-first`, `--test`, `--refactor-clean`, `--review-hard`) are behavior patterns defined in this document. They work through prompt engineering rather than separate skill files.
 
 ### --test Level Options
 
