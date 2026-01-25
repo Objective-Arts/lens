@@ -538,10 +538,32 @@ CANON_REPORT=".claude/canon-report.html"
 
 echo -e "\${CYAN}Generating canon master report...\${NC}"
 
+# Define the 15 ALWAYS-ACTIVE base masters
+BASE_BRAIN="kernighan thompson pike joy linus dijkstra"
+BASE_SECURITY="schneier owasp"
+BASE_TESTING="dodds meszaros feathers"
+BASE_DOCS="procida"
+BASE_ENGINEERING="petroski leveson taleb"
+ALL_BASE_MASTERS="$BASE_BRAIN $BASE_SECURITY $BASE_TESTING $BASE_DOCS $BASE_ENGINEERING"
+
 # Extract skill invocations from log
-# Pattern: SKILLS INVOKED: /skill1, /skill2, ...
-# Also capture individual /skillname mentions
 skills_raw=$(grep -oE '/[a-z]+-?[a-z]*' "$LOG_FILE" 2>/dev/null | sort | uniq -c | sort -rn)
+
+# Count base master coverage
+base_invoked=0
+base_missing=""
+for master in $ALL_BASE_MASTERS; do
+  if echo "$skills_raw" | grep -q "/$master"; then
+    base_invoked=$((base_invoked + 1))
+  else
+    base_missing="$base_missing /$master"
+  fi
+done
+
+echo -e "\${BLUE}Base Masters Coverage:\${NC} $base_invoked / 15"
+if [ -n "$base_missing" ]; then
+  echo -e "\${YELLOW}Missing:$base_missing\${NC}"
+fi
 
 # Build JSON for canon masters
 cat > "$CANON_LOG" << 'CANON_JSON_START'
@@ -556,6 +578,37 @@ echo "    \\"completed\\": $completed_final," >> "$CANON_LOG"
 echo "    \\"total\\": $initial_incomplete" >> "$CANON_LOG"
 echo "  }," >> "$CANON_LOG"
 
+# Add base masters coverage
+echo '  "baseMasters": {' >> "$CANON_LOG"
+echo '    "required": ["kernighan","thompson","pike","joy","linus","dijkstra","schneier","owasp","dodds","meszaros","feathers","procida","petroski","leveson","taleb"],' >> "$CANON_LOG"
+echo "    \\"invoked\\": $base_invoked," >> "$CANON_LOG"
+echo "    \\"total\\": 15," >> "$CANON_LOG"
+
+# Build missing array
+echo -n '    "missing": [' >> "$CANON_LOG"
+missing_first=true
+for master in $ALL_BASE_MASTERS; do
+  if ! echo "$skills_raw" | grep -q "/$master"; then
+    if [ "$missing_first" = true ]; then
+      missing_first=false
+    else
+      echo -n "," >> "$CANON_LOG"
+    fi
+    echo -n "\\"$master\\"" >> "$CANON_LOG"
+  fi
+done
+echo '],' >> "$CANON_LOG"
+
+# Build hierarchy
+echo '    "hierarchy": {' >> "$CANON_LOG"
+echo '      "brain": ["kernighan","thompson","pike","joy","linus","dijkstra"],' >> "$CANON_LOG"
+echo '      "security": ["schneier","owasp"],' >> "$CANON_LOG"
+echo '      "testing": ["dodds","meszaros","feathers"],' >> "$CANON_LOG"
+echo '      "documentation": ["procida"],' >> "$CANON_LOG"
+echo '      "engineering": ["petroski","leveson","taleb"]' >> "$CANON_LOG"
+echo '    }' >> "$CANON_LOG"
+echo '  },' >> "$CANON_LOG"
+
 # Extract skills with counts
 echo '  "skills": [' >> "$CANON_LOG"
 first=true
@@ -563,26 +616,40 @@ while read -r count skill; do
   [ -z "$skill" ] && continue
   # Skip non-skill patterns
   case "$skill" in
-    /dev|/dev/*|/api/*|/etc/*|/tmp/*) continue ;;
+    /dev|/dev/*|/api/*|/etc/*|/tmp/*|/usr/*|/bin/*|/var/*) continue ;;
   esac
   if [ "$first" = true ]; then
     first=false
   else
     echo "," >> "$CANON_LOG"
   fi
-  # Categorize by domain
-  case "$skill" in
-    /frost|/ive|/norman|/wroblewski|/duarte|/buxton|/curtis|/kruzeniski|/rams)
-      domain="ui-ux" ;;
-    /dodds|/crockford|/simpson|/bloch|/pike|/cleary)
-      domain="testing-quality" ;;
-    /taleb|/petroski)
-      domain="architecture" ;;
-    /abramov|/cherny)
-      domain="code-quality" ;;
-    /procida)
-      domain="documentation" ;;
-    /plan|/review-hard)
+  # Extract skill name without slash
+  skillname=\${skill#/}
+  # Categorize: base-* for always-active, domain for others
+  case "$skillname" in
+    kernighan|thompson|pike|joy|linus|dijkstra)
+      domain="base-brain" ;;
+    schneier|owasp)
+      domain="base-security" ;;
+    dodds|meszaros|feathers)
+      domain="base-testing" ;;
+    procida)
+      domain="base-documentation" ;;
+    petroski|leveson|taleb)
+      domain="base-engineering" ;;
+    frost|ive|norman|wroblewski|duarte|buxton|curtis|kruzeniski|rams|cooper)
+      domain="domain-ui-ux" ;;
+    simpson|crockford|cherny|abramov)
+      domain="domain-javascript" ;;
+    hettinger|slatkin|ramalho|beazley)
+      domain="domain-python" ;;
+    bloch|liskov)
+      domain="domain-java" ;;
+    skeet|cleary|hejlsberg)
+      domain="domain-csharp" ;;
+    porter|rumelt|helmer|horowitz)
+      domain="domain-business" ;;
+    plan|review-hard|structure-first|build-from-plan|refactor-clean)
       domain="workflow" ;;
     *)
       domain="other" ;;
@@ -693,16 +760,35 @@ cat > "$CANON_REPORT" << 'HTML_END'
       font-size: 0.8rem;
       font-weight: 500;
     }
-    .domain-ui-ux { background: #e91e63; }
-    .domain-testing-quality { background: #4caf50; }
-    .domain-architecture { background: #ff9800; }
-    .domain-code-quality { background: #2196f3; }
-    .domain-documentation { background: #9c27b0; }
+    .domain-base-brain { background: #9b59b6; }
+    .domain-base-security { background: #e74c3c; }
+    .domain-base-testing { background: #2ecc71; }
+    .domain-base-documentation { background: #9b59b6; }
+    .domain-base-engineering { background: #f39c12; }
+    .domain-domain-ui-ux { background: #e91e63; }
+    .domain-domain-javascript { background: #f7df1e; color: #000; }
+    .domain-domain-python { background: #3776ab; }
+    .domain-domain-java { background: #007396; }
+    .domain-domain-csharp { background: #68217a; }
+    .domain-domain-business { background: #34495e; }
     .domain-workflow { background: #607d8b; }
     .domain-other { background: #795548; }
     svg text { font-size: 11px; fill: #fff; }
     .node circle { stroke: #fff; stroke-width: 2px; }
     .link { stroke: rgba(255,255,255,0.3); stroke-opacity: 0.6; }
+    .base-coverage { margin-bottom: 2rem; }
+    .base-coverage h2 { color: #9b59b6; margin-bottom: 1rem; }
+    .base-grid { display: grid; grid-template-columns: repeat(5, 1fr); gap: 1rem; }
+    .base-group { background: rgba(0,0,0,0.3); border-radius: 10px; padding: 1rem; }
+    .base-group h3 { font-size: 0.8rem; color: #888; text-transform: uppercase; margin-bottom: 0.75rem; }
+    .base-master { display: flex; align-items: center; gap: 0.5rem; padding: 0.4rem 0; font-size: 0.9rem; }
+    .base-master.invoked { color: #2ecc71; }
+    .base-master.missing { color: #e74c3c; }
+    .base-master .icon { font-size: 1rem; }
+    .coverage-bar { background: rgba(0,0,0,0.3); border-radius: 20px; height: 24px; margin: 1rem 0; overflow: hidden; }
+    .coverage-fill { height: 100%; border-radius: 20px; display: flex; align-items: center; justify-content: center; font-weight: 600; font-size: 0.85rem; }
+    .coverage-full { background: linear-gradient(90deg, #2ecc71, #27ae60); }
+    .coverage-partial { background: linear-gradient(90deg, #f39c12, #e74c3c); }
   </style>
 </head>
 <body>
@@ -710,13 +796,20 @@ cat > "$CANON_REPORT" << 'HTML_END'
     <h1>Canon Masters Report</h1>
     <p class="subtitle">Ralph Autonomous PRD Session</p>
     <div class="stats" id="stats"></div>
+
+    <div class="base-coverage">
+      <h2>Always-Active Base Practices (15 Required)</h2>
+      <div class="coverage-bar"><div class="coverage-fill" id="coverage-fill"></div></div>
+      <div class="base-grid" id="base-grid"></div>
+    </div>
+
     <div class="legend" id="legend"></div>
     <div class="graph-container">
       <svg id="graph" width="100%" height="500"></svg>
     </div>
-    <h2 style="margin-bottom: 1rem;">Skills Invoked</h2>
+    <h2 style="margin-bottom: 1rem;">All Skills Invoked</h2>
     <table class="skills-table">
-      <thead><tr><th>Skill</th><th>Domain</th><th>Invocations</th></tr></thead>
+      <thead><tr><th>Skill</th><th>Category</th><th>Invocations</th></tr></thead>
       <tbody id="skills-body"></tbody>
     </table>
   </div>
@@ -730,24 +823,68 @@ echo ";" >> "$CANON_REPORT"
 
 cat >> "$CANON_REPORT" << 'HTML_SCRIPT'
     const domainColors = {
-      'ui-ux': '#e91e63',
-      'testing-quality': '#4caf50',
-      'architecture': '#ff9800',
-      'code-quality': '#2196f3',
-      'documentation': '#9c27b0',
+      'base-brain': '#9b59b6',
+      'base-security': '#e74c3c',
+      'base-testing': '#2ecc71',
+      'base-documentation': '#9b59b6',
+      'base-engineering': '#f39c12',
+      'domain-ui-ux': '#e91e63',
+      'domain-javascript': '#f7df1e',
+      'domain-python': '#3776ab',
+      'domain-java': '#007396',
+      'domain-csharp': '#68217a',
+      'domain-business': '#34495e',
       'workflow': '#607d8b',
       'other': '#795548'
     };
 
     const domainLabels = {
-      'ui-ux': 'UI/UX Design',
-      'testing-quality': 'Testing & Quality',
-      'architecture': 'Architecture',
-      'code-quality': 'Code Quality',
-      'documentation': 'Documentation',
+      'base-brain': 'Baseline Brain',
+      'base-security': 'Security',
+      'base-testing': 'Testing',
+      'base-documentation': 'Documentation',
+      'base-engineering': 'Engineering',
+      'domain-ui-ux': 'UI/UX',
+      'domain-javascript': 'JavaScript',
+      'domain-python': 'Python',
+      'domain-java': 'Java',
+      'domain-csharp': 'C#',
+      'domain-business': 'Business',
       'workflow': 'Workflow',
       'other': 'Other'
     };
+
+    // Get invoked skill names
+    const invokedSkills = new Set(data.skills.map(s => s.name.replace('/', '')));
+
+    // Base masters coverage
+    const bm = data.baseMasters;
+    const coveragePct = (bm.invoked / bm.total) * 100;
+    const coverageFill = document.getElementById('coverage-fill');
+    coverageFill.style.width = coveragePct + '%';
+    coverageFill.className = 'coverage-fill ' + (bm.invoked === bm.total ? 'coverage-full' : 'coverage-partial');
+    coverageFill.textContent = bm.invoked + ' / ' + bm.total + (bm.invoked === bm.total ? ' ✓ All Invoked' : ' — Missing: ' + bm.missing.join(', '));
+
+    // Base grid
+    const hierarchyLabels = {
+      brain: 'Baseline Brain',
+      security: 'Security',
+      testing: 'Testing',
+      documentation: 'Documentation',
+      engineering: 'Engineering'
+    };
+    const baseGridHtml = Object.entries(bm.hierarchy).map(([group, masters]) => \`
+      <div class="base-group">
+        <h3>\${hierarchyLabels[group]}</h3>
+        \${masters.map(m => \`
+          <div class="base-master \${invokedSkills.has(m) ? 'invoked' : 'missing'}">
+            <span class="icon">\${invokedSkills.has(m) ? '✓' : '✗'}</span>
+            <span>/\${m}</span>
+          </div>
+        \`).join('')}
+      </div>
+    \`).join('');
+    document.getElementById('base-grid').innerHTML = baseGridHtml;
 
     // Stats
     const statsHtml = \`
@@ -757,24 +894,24 @@ cat >> "$CANON_REPORT" << 'HTML_SCRIPT'
       </div>
       <div class="stat-card">
         <div class="stat-value">\${data.session.completed}/\${data.session.total}</div>
-        <div class="stat-label">Items Completed</div>
+        <div class="stat-label">PRD Items</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-value" style="color: \${bm.invoked === bm.total ? '#2ecc71' : '#e74c3c'}">\${bm.invoked}/\${bm.total}</div>
+        <div class="stat-label">Base Masters</div>
       </div>
       <div class="stat-card">
         <div class="stat-value">\${data.skills.length}</div>
-        <div class="stat-label">Canon Masters Used</div>
-      </div>
-      <div class="stat-card">
-        <div class="stat-value">\${data.skills.reduce((a,b) => a + b.count, 0)}</div>
-        <div class="stat-label">Total Invocations</div>
+        <div class="stat-label">Total Masters</div>
       </div>
     \`;
     document.getElementById('stats').innerHTML = statsHtml;
 
-    // Legend
+    // Legend - only show domains that were used
     const domains = [...new Set(data.skills.map(s => s.domain))];
     const legendHtml = domains.map(d => \`
       <div class="legend-item">
-        <div class="legend-dot" style="background: \${domainColors[d]}"></div>
+        <div class="legend-dot" style="background: \${domainColors[d] || '#888'}"></div>
         <span>\${domainLabels[d] || d}</span>
       </div>
     \`).join('');
@@ -854,7 +991,17 @@ HTML_SCRIPT
 echo -e "\${GREEN}Canon report generated:\${NC} $CANON_REPORT"
 echo -e "\${BLUE}Canon data:\${NC} $CANON_LOG"
 echo ""
-echo -e "Open the report: \${CYAN}open $CANON_REPORT\${NC}"
+
+# Auto-open the report
+if command -v open &> /dev/null; then
+  echo -e "\${CYAN}Opening report...\${NC}"
+  open "$CANON_REPORT"
+elif command -v xdg-open &> /dev/null; then
+  echo -e "\${CYAN}Opening report...\${NC}"
+  xdg-open "$CANON_REPORT"
+else
+  echo -e "Open the report: \${CYAN}open $CANON_REPORT\${NC}"
+fi
 echo ""
 `;
 
