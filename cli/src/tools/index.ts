@@ -140,6 +140,9 @@ Determine work type and ACTUALLY INVOKE the skills (use the Skill tool):
 - Forms → invoke: /wroblewski, /norman
 - Animations → invoke: /duarte
 - Mobile/responsive → invoke: /wroblewski, /buxton
+- Design systems → invoke: /curtis (tokens, governance)
+- Typography → invoke: /kruzeniski (type hierarchy)
+- Simplicity check → invoke: /rams (10 principles)
 
 **Code Quality:**
 - React/JSX → invoke: /abramov
