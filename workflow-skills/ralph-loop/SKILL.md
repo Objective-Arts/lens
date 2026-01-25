@@ -39,22 +39,38 @@ while PRD has incomplete items AND iteration < max:
 
         1. Read item requirements from PRD
         2. Check git log for related previous work
-        3. Implement (with canon lens active)
-        4. Commit (WIP commits allowed)
+        3. AUTO-INVOKE domain masters based on context:
+           - UI work? → /frost, /ive, /norman, etc.
+           - React? → /abramov
+           - TypeScript? → /cherny
+           - Tests? → /dodds
+        4. Implement (with canon lens active)
+        5. ADD DOCUMENTATION:
+           - JS/TS: JSDoc with @param, @returns, @example
+           - C#: XML comments with <summary>, <param>, <example>
+           - Python: Google-style docstrings
+           - Java: Javadoc
+        6. Commit (WIP commits allowed)
 
         if feature_functionally_complete:
-            5. Run tests
+            7. Run tests
             if tests_fail:
                 log("Tests failed, fixing...")
                 continue
 
-            6. Run /review-hard
+            8. Verify documentation exists for public APIs
+            if docs_missing:
+                log("Missing docs, adding...")
+                continue
+
+            9. Run /review-hard
             if critical_issues:
                 log("Review issues found, fixing...")
                 continue
 
-            7. Mark item complete in PRD
-            8. Commit completion marker
+            10. If new feature, run /doc-code for external docs
+            11. Mark item complete in PRD
+            12. Commit completion marker
 
     iteration++
 
@@ -89,8 +105,136 @@ Each PRD item must pass ALL gates before marked complete:
 | Tests | `npm test` or equivalent | 100% pass |
 | Review | `/review-hard` (self-review only) | No critical issues |
 | Security | Auto-invoked for auth/data code | No vulnerabilities |
+| Documentation | Inline docs + `/doc-code` if public API | JSDoc/XML present |
 
 **Important**: Inside the loop, use self-review only (no `--full`). Gemini and Qodana run as post-loop validation to prevent nested fix cycles.
+
+## Auto-Invoke Canon Masters
+
+When implementing PRD items, automatically invoke domain experts:
+
+### UI/UX Work (components, layouts, forms, animations)
+
+| Context | Masters to Invoke |
+|---------|-------------------|
+| Building UI components | `/frost` (Atomic Design) then `/ive` (visual polish) |
+| Designing forms | `/wroblewski` (forms expert) then `/norman` (affordances) |
+| Adding animations | `/duarte` (meaningful motion) |
+| Mobile/responsive design | `/wroblewski` then `/buxton` (input fundamentals) |
+| Design system work | `/curtis` (governance, tokens) |
+| Typography decisions | `/kruzeniski` (type hierarchy) |
+| Simplicity check | `/rams` (10 principles) |
+
+### Code Quality
+
+| Context | Masters to Invoke |
+|---------|-------------------|
+| React/JSX/TSX | `/abramov` |
+| JavaScript patterns | `/crockford` or `/simpson` |
+| TypeScript types | `/cherny` |
+| Testing | `/dodds` (Testing Trophy) |
+| Data visualization | `/bostock` |
+| Performance | `/osmani` |
+
+## Documentation Requirements
+
+Each implementation MUST include appropriate documentation:
+
+### JavaScript/TypeScript - JSDoc
+
+```typescript
+/**
+ * Authenticates a user with email and password.
+ *
+ * @param credentials - User login credentials
+ * @param credentials.email - User's email address
+ * @param credentials.password - User's password
+ * @returns Promise resolving to auth tokens
+ * @throws {AuthError} If credentials are invalid
+ *
+ * @example
+ * ```typescript
+ * const tokens = await authenticate({
+ *   email: 'user@example.com',
+ *   password: 'secret123'
+ * });
+ * ```
+ */
+export async function authenticate(credentials: Credentials): Promise<Tokens>
+```
+
+### C# - XML Documentation Comments
+
+```csharp
+/// <summary>
+/// Authenticates a user with email and password.
+/// </summary>
+/// <param name="credentials">User login credentials containing email and password.</param>
+/// <returns>A task that resolves to authentication tokens.</returns>
+/// <exception cref="AuthException">Thrown when credentials are invalid.</exception>
+/// <example>
+/// <code>
+/// var tokens = await authService.AuthenticateAsync(new Credentials
+/// {
+///     Email = "user@example.com",
+///     Password = "secret123"
+/// });
+/// </code>
+/// </example>
+public async Task<Tokens> AuthenticateAsync(Credentials credentials)
+```
+
+### Python - Docstrings (Google style)
+
+```python
+def authenticate(credentials: Credentials) -> Tokens:
+    """Authenticates a user with email and password.
+
+    Args:
+        credentials: User login credentials with email and password.
+
+    Returns:
+        Authentication tokens for the session.
+
+    Raises:
+        AuthError: If credentials are invalid.
+
+    Example:
+        >>> tokens = authenticate(Credentials(
+        ...     email="user@example.com",
+        ...     password="secret123"
+        ... ))
+    """
+```
+
+### Java - Javadoc
+
+```java
+/**
+ * Authenticates a user with email and password.
+ *
+ * @param credentials the user's login credentials
+ * @return authentication tokens for the session
+ * @throws AuthException if credentials are invalid
+ *
+ * <pre>{@code
+ * Tokens tokens = authService.authenticate(
+ *     new Credentials("user@example.com", "secret123")
+ * );
+ * }</pre>
+ */
+public Tokens authenticate(Credentials credentials) throws AuthException
+```
+
+### Documentation Gate
+
+After implementing each PRD item:
+
+1. **All public functions/methods** must have inline documentation
+2. **For new features**, run `/doc-code` to generate:
+   - How-to guide (if user-facing)
+   - API reference updates
+3. **Verify**: Examples in docs are runnable (copy-paste should work)
 
 ## Two-Tier Review Architecture
 
