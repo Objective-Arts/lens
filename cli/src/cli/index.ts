@@ -52,6 +52,12 @@ import {
   installAllWorkflowSkills,
   getWorkflowSourceInfo
 } from '../workflow/index.js';
+import {
+  listTools,
+  installTool,
+  uninstallTool,
+  getBinDir
+} from '../tools/index.js';
 import type { ConfigItem, ConfigItemType, ConfigScope, ScanResult, ComposableProfile } from '../types.js';
 import type { MCPServerDefinition, MCPServerCategory } from '../mcp/types.js';
 import {
@@ -1081,6 +1087,70 @@ workflowCmd
     console.log(`Path:   ${chalk.cyan(info.path)}`);
     console.log(`Commit: ${info.commit ? chalk.yellow(info.commit) : chalk.gray('unknown')}`);
     console.log(`Remote: ${info.remote || chalk.gray('none')}`);
+  });
+
+// Tools commands - companion CLI tools like ralph
+const toolsCmd = program.command('tools').description('Manage companion CLI tools (ralph, etc.)');
+
+toolsCmd
+  .command('list')
+  .description('List available tools and their installation status')
+  .action(() => {
+    const tools = listTools();
+
+    console.log(chalk.bold('\nAvailable Tools'));
+    console.log(chalk.gray(`Install location: ${getBinDir()}`));
+    console.log(chalk.gray('─'.repeat(50)));
+
+    for (const tool of tools) {
+      const status = tool.installed
+        ? chalk.green('✓ installed')
+        : chalk.gray('○ not installed');
+      console.log(`\n  ${chalk.cyan(tool.name)} ${status}`);
+      console.log(chalk.gray(`    ${tool.description}`));
+      if (tool.path) {
+        console.log(chalk.gray(`    Path: ${tool.path}`));
+      }
+    }
+
+    console.log(chalk.gray('\nInstall with: cc-config tools install <name>'));
+  });
+
+toolsCmd
+  .command('install <tool>')
+  .description('Install a companion tool (e.g., ralph)')
+  .option('-f, --force', 'Overwrite existing installation')
+  .action((toolName, options) => {
+    const result = installTool(toolName, { force: options.force });
+
+    if (result.success) {
+      console.log(chalk.green(result.message));
+      if (result.path) {
+        console.log(chalk.gray(`\nMake sure ${getBinDir()} is in your PATH:`));
+        console.log(chalk.gray(`  export PATH="$PATH:${getBinDir()}"`));
+      }
+
+      if (toolName === 'ralph') {
+        console.log(chalk.cyan('\nUsage:'));
+        console.log(chalk.gray('  ralph PRD.md        # Run with default 50 iterations'));
+        console.log(chalk.gray('  ralph PRD.md 100    # Run with 100 max iterations'));
+      }
+    } else {
+      console.log(chalk.red(result.message));
+    }
+  });
+
+toolsCmd
+  .command('uninstall <tool>')
+  .description('Remove an installed tool')
+  .action((toolName) => {
+    const result = uninstallTool(toolName);
+
+    if (result.success) {
+      console.log(chalk.green(result.message));
+    } else {
+      console.log(chalk.red(result.message));
+    }
   });
 
 // Print helpers
