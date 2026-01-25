@@ -234,12 +234,14 @@ OUTPUT: "🧠 Loading baseline brain + base practices..."
 **Base Practices - Documentation (1 master):**
 12. /procida - Diátaxis framework
 
-**Base Practices - Engineering (3 masters):**
+**Base Practices - Engineering (5 masters):**
 13. /petroski - Form follows failure
 14. /leveson - STAMP safety constraints
 15. /taleb - Antifragility, via negativa
+16. /mcilroy - Do one thing well, Unix pipes
+17. /carmack - Performance, ship working software
 
-⚠️ BLOCKING: You MUST invoke ALL 15 base masters before proceeding to domain-specific skills.
+⚠️ BLOCKING: You MUST invoke ALL 17 base masters before proceeding to domain-specific skills.
 
 ## DOMAIN MASTERS — INVOKE PER LANGUAGE/STACK
 
@@ -543,7 +545,7 @@ BASE_BRAIN="kernighan thompson pike joy linus dijkstra"
 BASE_SECURITY="schneier owasp"
 BASE_TESTING="dodds meszaros feathers"
 BASE_DOCS="procida"
-BASE_ENGINEERING="petroski leveson taleb"
+BASE_ENGINEERING="petroski leveson taleb mcilroy carmack"
 ALL_BASE_MASTERS="$BASE_BRAIN $BASE_SECURITY $BASE_TESTING $BASE_DOCS $BASE_ENGINEERING"
 
 # Extract skill invocations from log
@@ -560,7 +562,7 @@ for master in $ALL_BASE_MASTERS; do
   fi
 done
 
-echo -e "\${BLUE}Base Masters Coverage:\${NC} $base_invoked / 15"
+echo -e "\${BLUE}Base Masters Coverage:\${NC} $base_invoked / 17"
 if [ -n "$base_missing" ]; then
   echo -e "\${YELLOW}Missing:$base_missing\${NC}"
 fi
@@ -580,9 +582,9 @@ echo "  }," >> "$CANON_LOG"
 
 # Add base masters coverage
 echo '  "baseMasters": {' >> "$CANON_LOG"
-echo '    "required": ["kernighan","thompson","pike","joy","linus","dijkstra","schneier","owasp","dodds","meszaros","feathers","procida","petroski","leveson","taleb"],' >> "$CANON_LOG"
+echo '    "required": ["kernighan","thompson","pike","joy","linus","dijkstra","schneier","owasp","dodds","meszaros","feathers","procida","petroski","leveson","taleb","mcilroy","carmack"],' >> "$CANON_LOG"
 echo "    \\"invoked\\": $base_invoked," >> "$CANON_LOG"
-echo "    \\"total\\": 15," >> "$CANON_LOG"
+echo "    \\"total\\": 17," >> "$CANON_LOG"
 
 # Build missing array
 echo -n '    "missing": [' >> "$CANON_LOG"
@@ -605,7 +607,7 @@ echo '      "brain": ["kernighan","thompson","pike","joy","linus","dijkstra"],' 
 echo '      "security": ["schneier","owasp"],' >> "$CANON_LOG"
 echo '      "testing": ["dodds","meszaros","feathers"],' >> "$CANON_LOG"
 echo '      "documentation": ["procida"],' >> "$CANON_LOG"
-echo '      "engineering": ["petroski","leveson","taleb"]' >> "$CANON_LOG"
+echo '      "engineering": ["petroski","leveson","taleb","mcilroy","carmack"]' >> "$CANON_LOG"
 echo '    }' >> "$CANON_LOG"
 echo '  },' >> "$CANON_LOG"
 
@@ -635,7 +637,7 @@ while read -r count skill; do
       domain="base-testing" ;;
     procida)
       domain="base-documentation" ;;
-    petroski|leveson|taleb)
+    petroski|leveson|taleb|mcilroy|carmack)
       domain="base-engineering" ;;
     frost|ive|norman|wroblewski|duarte|buxton|curtis|kruzeniski|rams|cooper)
       domain="domain-ui-ux" ;;
@@ -798,7 +800,7 @@ cat > "$CANON_REPORT" << 'HTML_END'
     <div class="stats" id="stats"></div>
 
     <div class="base-coverage">
-      <h2>Always-Active Base Practices (15 Required)</h2>
+      <h2>Always-Active Base Practices (17 Required)</h2>
       <div class="coverage-bar"><div class="coverage-fill" id="coverage-fill"></div></div>
       <div class="base-grid" id="base-grid"></div>
     </div>
