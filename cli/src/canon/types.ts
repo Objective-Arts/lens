@@ -17,6 +17,7 @@ export interface InstalledSkillInfo {
 }
 
 export interface CanonManifest {
+  version?: number;  // Manifest version for future migrations (P2)
   source: CanonSource;
   installedAt: string;
   sourceCommit?: string;

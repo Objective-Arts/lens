@@ -7,18 +7,15 @@
 import * as fs from 'fs';
 import { Command } from 'commander';
 import chalk from 'chalk';
-import { scan, GLOBAL_CLAUDE_PATH } from '../scanner/index.js';
+import { scan } from '../scanner/index.js';
 import { formatTokens, tokenPercentage } from '../utils/tokens.js';
 import {
   listProfiles,
   getProfile,
   saveProfile,
-  applyProfile,
   applyComposableProfile,
   combineProfiles,
   parseProfileString,
-  getSkillLibraryPaths,
-  exampleProfile,
   exampleComposableProfile
 } from '../profiles/index.js';
 import {
@@ -45,8 +42,7 @@ import {
   upgradeSkills,
   diffSkill,
   copySkill,
-  getCanonSourceInfo,
-  getInstalledSkills
+  getCanonSourceInfo
 } from '../canon/index.js';
 import {
   listWorkflowSkills,
@@ -58,8 +54,55 @@ import {
 } from '../workflow/index.js';
 import type { ConfigItem, ConfigItemType, ConfigScope, ScanResult, ComposableProfile } from '../types.js';
 import type { MCPServerDefinition, MCPServerCategory } from '../mcp/types.js';
+import {
+  isValidName,
+  validateProjectPath,
+  getNameValidationError,
+  getPathValidationError
+} from '../utils/validation.js';
 
 const program = new Command();
+
+// ============================================================================
+// Input Validation Helpers (P0 Security)
+// ============================================================================
+
+/**
+ * Validate server/skill name and exit if invalid
+ */
+function validateNameOrExit(name: string, fieldName: string = 'name'): boolean {
+  if (!isValidName(name)) {
+    console.log(chalk.red(`Invalid ${fieldName}: ${getNameValidationError(name, fieldName)}`));
+    return false;
+  }
+  return true;
+}
+
+/**
+ * Validate project path and return normalized path or null
+ */
+function validateProjectPathOrWarn(projectPath: string): string | null {
+  const validated = validateProjectPath(projectPath);
+  if (!validated) {
+    console.log(chalk.red(`Invalid project path: ${getPathValidationError(projectPath)}`));
+    return null;
+  }
+  return validated;
+}
+
+/**
+ * Print a labeled list of items (Ashkenas-style helper for DRY output)
+ */
+function printList(
+  title: string,
+  items: string[],
+  color: typeof chalk.green,
+  icon: string
+): void {
+  if (items.length === 0) return;
+  console.log(color(`\n${title}:`));
+  items.forEach(item => console.log(color(`  ${icon} ${item}`)));
+}
 
 program
   .name('cc-config')
@@ -332,25 +375,11 @@ profileCmd
 
     const result = await applyComposableProfile(profile, options.project);
 
-    if (result.created.length > 0) {
-      console.log(chalk.green('Created:'));
-      result.created.forEach(c => console.log(`  + ${c}`));
-    }
-
-    if (result.linked.length > 0) {
-      console.log(chalk.cyan('\nLinked:'));
-      result.linked.forEach(l => console.log(`  → ${l}`));
-    }
-
-    if (result.skipped.length > 0) {
-      console.log(chalk.gray('\nSkipped:'));
-      result.skipped.forEach(s => console.log(`  - ${s}`));
-    }
-
-    if (result.errors.length > 0) {
-      console.log(chalk.red('\nErrors:'));
-      result.errors.forEach(e => console.log(`  ✗ ${e}`));
-    }
+    // Print results using helper (Ashkenas: DRY)
+    printList('Created', result.created, chalk.green, '+');
+    printList('Linked', result.linked, chalk.cyan, '→');
+    printList('Skipped', result.skipped, chalk.gray, '-');
+    printList('Errors', result.errors, chalk.red, '✗');
 
     if (result.errors.length === 0) {
       console.log(chalk.green('\nProfile applied successfully!'));
@@ -528,7 +557,11 @@ mcpCmd
   .option('--category <category>', 'Install all servers in a category')
   .option('--skip-env-check', 'Skip environment variable validation')
   .action((serverName, options) => {
-    const projectPath = options.project;
+    // P0: Input validation
+    if (!validateNameOrExit(serverName, 'server name')) return;
+    const projectPath = validateProjectPathOrWarn(options.project);
+    if (!projectPath) return;
+
     if (options.category) {
       // Install all servers in category
       const servers = listServers({ category: options.category as MCPServerCategory });
@@ -573,7 +606,12 @@ mcpCmd
   .description('Remove a server from mcp.json')
   .option('-p, --project <path>', 'Project path (default: current directory)', process.cwd())
   .action((serverName, options) => {
-    const result = uninstallServer(serverName, options.project);
+    // P0: Input validation
+    if (!validateNameOrExit(serverName, 'server name')) return;
+    const projectPath = validateProjectPathOrWarn(options.project);
+    if (!projectPath) return;
+
+    const result = uninstallServer(serverName, projectPath);
 
     if (result.success) {
       console.log(chalk.green(result.message));
@@ -587,7 +625,12 @@ mcpCmd
   .description('Add server to enabledMcpjsonServers in settings.json')
   .option('-p, --project <path>', 'Project path (default: current directory)', process.cwd())
   .action((serverName, options) => {
-    const result = enableServer(serverName, options.project);
+    // P0: Input validation
+    if (!validateNameOrExit(serverName, 'server name')) return;
+    const projectPath = validateProjectPathOrWarn(options.project);
+    if (!projectPath) return;
+
+    const result = enableServer(serverName, projectPath);
 
     if (result.success) {
       console.log(chalk.green(result.message));
@@ -604,7 +647,12 @@ mcpCmd
   .description('Remove server from enabledMcpjsonServers in settings.json')
   .option('-p, --project <path>', 'Project path (default: current directory)', process.cwd())
   .action((serverName, options) => {
-    const result = disableServer(serverName, options.project);
+    // P0: Input validation
+    if (!validateNameOrExit(serverName, 'server name')) return;
+    const projectPath = validateProjectPathOrWarn(options.project);
+    if (!projectPath) return;
+
+    const result = disableServer(serverName, projectPath);
 
     if (result.success) {
       console.log(chalk.green(result.message));
@@ -807,11 +855,16 @@ canonCmd
   .option('-p, --project <path>', 'Project path', process.cwd())
   .option('-f, --force', 'Overwrite existing skill')
   .action((skill, options) => {
-    const result = copySkill(skill, options.project, { force: options.force });
+    // P0: Input validation
+    if (!validateNameOrExit(skill, 'skill name')) return;
+    const projectPath = validateProjectPathOrWarn(options.project);
+    if (!projectPath) return;
+
+    const result = copySkill(skill, projectPath, { force: options.force });
 
     if (result.success) {
       console.log(chalk.green(result.message));
-      console.log(chalk.gray(`Installed to: ${options.project}/.claude/skills/${skill}/`));
+      console.log(chalk.gray(`Installed to: ${projectPath}/.claude/skills/${skill}/`));
     } else {
       console.log(chalk.red(result.message));
     }
@@ -831,20 +884,10 @@ canonCmd
       skills: skillList
     });
 
-    if (result.upgraded.length > 0) {
-      console.log(chalk.green('\nUpgraded:'));
-      result.upgraded.forEach(s => console.log(chalk.green(`  ✓ ${s}`)));
-    }
-
-    if (result.skipped.length > 0) {
-      console.log(chalk.yellow('\nSkipped:'));
-      result.skipped.forEach(s => console.log(chalk.yellow(`  - ${s}`)));
-    }
-
-    if (result.errors.length > 0) {
-      console.log(chalk.red('\nErrors:'));
-      result.errors.forEach(s => console.log(chalk.red(`  ✗ ${s}`)));
-    }
+    // Print results using helper (Ashkenas: DRY)
+    printList('Upgraded', result.upgraded, chalk.green, '✓');
+    printList('Skipped', result.skipped, chalk.yellow, '-');
+    printList('Errors', result.errors, chalk.red, '✗');
 
     if (result.upgraded.length === 0 && result.errors.length === 0) {
       console.log(chalk.gray('All skills are current.'));
@@ -969,32 +1012,29 @@ workflowCmd
   .option('-a, --all', 'Install all workflow skills')
   .option('-f, --force', 'Overwrite existing skills')
   .action((skill, options) => {
+    // P0: Input validation for project path
+    const projectPath = validateProjectPathOrWarn(options.project);
+    if (!projectPath) return;
+
     if (options.all) {
-      console.log(chalk.blue(`Installing all workflow skills to ${options.project}...\n`));
-      const result = installAllWorkflowSkills(options.project, { force: options.force });
+      console.log(chalk.blue(`Installing all workflow skills to ${projectPath}...\n`));
+      const result = installAllWorkflowSkills(projectPath, { force: options.force });
 
-      if (result.installed.length > 0) {
-        console.log(chalk.green('Installed:'));
-        result.installed.forEach(s => console.log(chalk.green(`  ✓ ${s}`)));
-      }
+      // Print results using helper (Ashkenas: DRY)
+      printList('Installed', result.installed, chalk.green, '✓');
+      printList('Skipped', result.skipped, chalk.yellow, '-');
+      printList('Errors', result.errors, chalk.red, '✗');
 
-      if (result.skipped.length > 0) {
-        console.log(chalk.yellow('\nSkipped:'));
-        result.skipped.forEach(s => console.log(chalk.yellow(`  - ${s}`)));
-      }
-
-      if (result.errors.length > 0) {
-        console.log(chalk.red('\nErrors:'));
-        result.errors.forEach(e => console.log(chalk.red(`  ✗ ${e}`)));
-      }
-
-      console.log(chalk.gray(`\nInstalled to: ${options.project}/.claude/skills/`));
+      console.log(chalk.gray(`\nInstalled to: ${projectPath}/.claude/skills/`));
     } else if (skill) {
-      const result = installWorkflowSkill(skill, options.project, { force: options.force });
+      // P0: Validate skill name
+      if (!validateNameOrExit(skill, 'skill name')) return;
+
+      const result = installWorkflowSkill(skill, projectPath, { force: options.force });
 
       if (result.success) {
         console.log(chalk.green(result.message));
-        console.log(chalk.gray(`Installed to: ${options.project}/.claude/skills/${skill}/`));
+        console.log(chalk.gray(`Installed to: ${projectPath}/.claude/skills/${skill}/`));
       } else {
         console.log(chalk.red(result.message));
       }
@@ -1020,20 +1060,10 @@ workflowCmd
       skills: skillList
     });
 
-    if (result.upgraded.length > 0) {
-      console.log(chalk.green('\nUpgraded:'));
-      result.upgraded.forEach(s => console.log(chalk.green(`  ✓ ${s}`)));
-    }
-
-    if (result.skipped.length > 0) {
-      console.log(chalk.yellow('\nSkipped:'));
-      result.skipped.forEach(s => console.log(chalk.yellow(`  - ${s}`)));
-    }
-
-    if (result.errors.length > 0) {
-      console.log(chalk.red('\nErrors:'));
-      result.errors.forEach(s => console.log(chalk.red(`  ✗ ${s}`)));
-    }
+    // Print results using helper (Ashkenas: DRY)
+    printList('Upgraded', result.upgraded, chalk.green, '✓');
+    printList('Skipped', result.skipped, chalk.yellow, '-');
+    printList('Errors', result.errors, chalk.red, '✗');
 
     if (result.upgraded.length === 0 && result.errors.length === 0) {
       console.log(chalk.gray('All workflow skills are current.'));
@@ -1198,7 +1228,6 @@ function printAuditReport(result: ScanResult) {
 
   // Check for base canon skills
   const baseCanon = ['kernighan', 'owasp', 'dodds'];
-  const hasBaseCanon = baseCanon.filter(s => projectSkills.includes(s));
   const missingBaseCanon = baseCanon.filter(s => !projectSkills.includes(s));
   if (missingBaseCanon.length === 0) {
     console.log(chalk.green('  ✓ Base canon complete (kernighan, owasp, dodds)'));
@@ -1216,7 +1245,6 @@ function printAuditReport(result: ScanResult) {
   }
 
   // Check for quality flags in CLAUDE.md
-  const projectClaudeMd = result.claudeMds.find(c => c?.scope === 'project');
   const claudeMdContent = result.items.find(i =>
     i.type === 'memory' && i.scope === 'project' && i.name === 'CLAUDE.md'
   )?.content || '';

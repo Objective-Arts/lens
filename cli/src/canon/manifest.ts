@@ -52,10 +52,16 @@ export function writeManifest(projectPath: string, manifest: CanonManifest): voi
 
 /**
  * Create a new manifest with default values
+ * @param source - Source configuration
+ * @param version - Optional manifest version for future migrations (P2)
  */
-export function createManifest(source: CanonSource): CanonManifest {
+export function createManifest(
+  source: CanonSource & { version?: number }
+): CanonManifest {
+  const { version, ...sourceConfig } = source;
   return {
-    source,
+    version,
+    source: sourceConfig,
     installedAt: new Date().toISOString(),
     skills: {}
   };

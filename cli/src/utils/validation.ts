@@ -1,0 +1,109 @@
+/**
+ * Input validation utilities for CLI security
+ *
+ * Prevents path injection, command injection, and other security issues
+ * from user-provided input.
+ */
+
+import * as path from 'path';
+import * as fs from 'fs';
+
+/** Valid name pattern: alphanumeric, hyphens, underscores */
+const VALID_NAME_PATTERN = /^[a-zA-Z0-9_-]+$/;
+
+/** Maximum name length to prevent buffer issues */
+const MAX_NAME_LENGTH = 100;
+
+/**
+ * Validate a name (serverName, skillName, profileName)
+ * Prevents path injection via names like "../../../etc/passwd"
+ */
+export function isValidName(name: string): boolean {
+  if (!name || typeof name !== 'string') {
+    return false;
+  }
+
+  if (name.length > MAX_NAME_LENGTH) {
+    return false;
+  }
+
+  return VALID_NAME_PATTERN.test(name);
+}
+
+/**
+ * Validate and sanitize a project path
+ * Prevents path traversal attacks
+ *
+ * @returns Normalized absolute path if valid, null if invalid
+ */
+export function validateProjectPath(projectPath: string, allowedRoot?: string): string | null {
+  if (!projectPath || typeof projectPath !== 'string') {
+    return null;
+  }
+
+  // Resolve to absolute path
+  const absolutePath = path.resolve(projectPath);
+
+  // If allowedRoot specified, ensure path is within it
+  if (allowedRoot) {
+    const absoluteRoot = path.resolve(allowedRoot);
+    if (!absolutePath.startsWith(absoluteRoot)) {
+      return null;
+    }
+  }
+
+  // Check path doesn't contain suspicious patterns
+  if (projectPath.includes('\0') || projectPath.includes('..')) {
+    // Allow ".." only if it resolves within allowed root
+    if (allowedRoot) {
+      const absoluteRoot = path.resolve(allowedRoot);
+      if (!absolutePath.startsWith(absoluteRoot)) {
+        return null;
+      }
+    }
+  }
+
+  return absolutePath;
+}
+
+/**
+ * Validate that a path exists and is a directory
+ */
+export function isValidDirectory(dirPath: string): boolean {
+  try {
+    const stats = fs.statSync(dirPath);
+    return stats.isDirectory();
+  } catch {
+    return false;
+  }
+}
+
+/**
+ * Get validation error message for invalid name
+ */
+export function getNameValidationError(name: string, fieldName: string = 'name'): string {
+  if (!name) {
+    return `${fieldName} is required`;
+  }
+
+  if (name.length > MAX_NAME_LENGTH) {
+    return `${fieldName} must be ${MAX_NAME_LENGTH} characters or less`;
+  }
+
+  return `${fieldName} must contain only letters, numbers, hyphens, and underscores`;
+}
+
+/**
+ * Get validation error message for invalid path
+ */
+export function getPathValidationError(projectPath: string): string {
+  if (!projectPath) {
+    return 'Project path is required';
+  }
+
+  if (projectPath.includes('..')) {
+    return 'Project path cannot contain path traversal (..)';
+  }
+
+  return 'Invalid project path';
+}
