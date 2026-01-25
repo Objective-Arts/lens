@@ -1,11 +1,11 @@
 name: angular
-description: Domain canon for Angular projects. Combine with javascript.
+description: Angular frontend. Combine with javascript profile.
 projectType: software
 composable: true
 extends: javascript
 
-canon:
-  domain:
+skills:
+  canon:
     - hevery         # Angular creator - DI, testability, component design
     - kurata         # Angular architecture, module organization, state patterns
     - minko-gechev   # Performance - lazy loading, OnPush, bundle optimization
@@ -16,6 +16,25 @@ agents:
   - accessibility-tester
 
 claudeMd:
+  standards:
+    - "Use OnPush change detection strategy"
+    - "Prefer signals over BehaviorSubject for state"
+    - "Use standalone components (not NgModules)"
+    - "Inject services in constructors, not property injection"
+    - "Use trackBy with ngFor"
+    - "Lazy load feature routes"
+    - "Use async pipe for observables in templates"
+    - "Keep components small and focused"
+
+  antiPatterns:
+    - "Default change detection for performance-critical components"
+    - "Manual subscription management (use async pipe)"
+    - "Business logic in components (use services)"
+    - "Direct DOM manipulation"
+    - "Large shared modules"
+    - "Circular dependencies between services"
+    - "Not unsubscribing from long-lived observables"
+
   autoInvoke:
     - context: Angular DI, testability, component architecture
       action: INVOKE `/hevery`

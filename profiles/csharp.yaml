@@ -1,0 +1,67 @@
+name: csharp
+description: Domain canon for C#/.NET projects
+projectType: software
+composable: true
+extends: software-base
+
+skills:
+  canon:
+    - skeet          # C# in Depth - language mechanics, generics, edge cases
+    - cleary         # Concurrency in C# - async/await, Task, threading
+    - hejlsberg      # Language design philosophy, type system decisions
+    - bloch          # API design principles (transfers well from Java)
+
+claudeMd:
+  standards:
+    # Modern C# idioms
+    - "Use records for immutable data types"
+    - "Prefer pattern matching over type checks and casts"
+    - "Use nullable reference types (enable in project)"
+    - "Prefer init-only properties for immutability"
+    - "Use file-scoped namespaces (C# 10+)"
+    - "Prefer primary constructors where appropriate (C# 12+)"
+
+    # Async/await (Cleary)
+    - "Use async/await all the way down - no sync-over-async"
+    - "Use ConfigureAwait(false) in library code"
+    - "Prefer ValueTask for hot paths that often complete synchronously"
+    - "Use CancellationToken for cancellable operations"
+    - "Avoid async void except for event handlers"
+
+    # LINQ
+    - "Prefer LINQ query syntax for complex joins, method syntax for simple chains"
+    - "Use deferred execution intentionally - materialize with ToList() when needed"
+    - "Avoid multiple enumeration of IEnumerable"
+
+    # Memory and performance
+    - "Use Span<T> and Memory<T> for high-performance buffer operations"
+    - "Prefer structs for small, immutable value types (< 16 bytes)"
+    - "Use ArrayPool<T> for frequently allocated arrays"
+
+    # API design (Bloch-influenced)
+    - "Return empty collections, not null"
+    - "Favor composition over inheritance"
+    - "Make classes sealed by default unless designed for inheritance"
+
+  antiPatterns:
+    - "async void methods (except event handlers)"
+    - "Blocking on async code (.Result, .Wait())"
+    - "Returning null from collections or arrays"
+    - "Throwing exceptions for flow control"
+    - "Using dynamic when static typing is possible"
+    - "Mutable structs"
+    - "Large structs (> 16 bytes) passed by value"
+    - "Capturing loop variables in closures (pre-C# 5 habit)"
+    - "Using lock on public objects or this"
+    - "Ignoring CancellationToken in async methods"
+    - "Multiple enumeration of IEnumerable without materialization"
+
+  autoInvoke:
+    - context: C# language features, generics, covariance, edge cases
+      action: INVOKE `/skeet`
+    - context: async/await, Task, CancellationToken, concurrency, threading
+      action: INVOKE `/cleary`
+    - context: Language design decisions, type system, why C# works this way
+      action: INVOKE `/hejlsberg`
+    - context: API design, immutability, builders, factory methods
+      action: INVOKE `/bloch`

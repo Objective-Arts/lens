@@ -36,8 +36,26 @@ import {
   isServerEnabled,
   addServerToRegistry,
   getRegistryPath,
-  ensureRegistryDir
+  ensureRegistryDir,
+  getMcpConfigPath
 } from '../mcp/index.js';
+import {
+  listCanonSkills,
+  checkSkillStatus,
+  upgradeSkills,
+  diffSkill,
+  copySkill,
+  getCanonSourceInfo,
+  getInstalledSkills
+} from '../canon/index.js';
+import {
+  listWorkflowSkills,
+  checkWorkflowStatus,
+  upgradeWorkflowSkills,
+  installWorkflowSkill,
+  installAllWorkflowSkills,
+  getWorkflowSourceInfo
+} from '../workflow/index.js';
 import type { ConfigItem, ConfigItemType, ConfigScope, ScanResult, ComposableProfile } from '../types.js';
 import type { MCPServerDefinition, MCPServerCategory } from '../mcp/types.js';
 
@@ -347,13 +365,15 @@ const mcpCmd = program.command('mcp').description('Manage MCP server registry');
 mcpCmd
   .command('list')
   .description('List all servers in the registry')
+  .option('-p, --project <path>', 'Project path (default: global)')
   .option('--installed', 'Show only installed servers')
   .option('--category <category>', 'Filter by category')
   .option('--enabled', 'Show only enabled servers')
   .action((options) => {
+    const projectPath = options.project;
     if (options.installed || options.enabled) {
       // Show installed servers
-      const installed = listInstalledServers();
+      const installed = listInstalledServers(projectPath);
 
       if (installed.length === 0) {
         console.log(chalk.gray('No MCP servers installed.'));
@@ -403,8 +423,8 @@ mcpCmd
         console.log(chalk.yellow(`  ${category.toUpperCase()}`));
 
         for (const server of categoryServers) {
-          const installed = isServerInstalled(server.name);
-          const enabled = isServerEnabled(server.name);
+          const installed = isServerInstalled(server.name, projectPath);
+          const enabled = isServerEnabled(server.name, projectPath);
 
           let status = '';
           if (enabled) {
@@ -436,7 +456,9 @@ mcpCmd
 mcpCmd
   .command('show <server>')
   .description('Show server details including required env vars')
-  .action((serverName) => {
+  .option('-p, --project <path>', 'Project path (default: global)')
+  .action((serverName, options) => {
+    const projectPath = options.project;
     const server = getServer(serverName);
 
     if (!server) {
@@ -489,20 +511,24 @@ mcpCmd
     }
 
     // Installation status
-    const installed = isServerInstalled(server.name);
-    const enabled = isServerEnabled(server.name);
+    const installed = isServerInstalled(server.name, projectPath);
+    const enabled = isServerEnabled(server.name, projectPath);
+    const configPath = getMcpConfigPath(projectPath);
 
     console.log(chalk.cyan('\nStatus:'));
     console.log(`  Installed: ${installed ? chalk.green('yes') : chalk.gray('no')}`);
     console.log(`  Enabled:   ${enabled ? chalk.green('yes') : chalk.gray('no')}`);
+    console.log(`  Config:    ${chalk.gray(configPath)}`);
   });
 
 mcpCmd
   .command('install <server>')
-  .description('Install a server from the registry to mcp.json')
+  .description('Install a server from the registry to project .mcp.json')
+  .option('-p, --project <path>', 'Project path (default: current directory)', process.cwd())
   .option('--category <category>', 'Install all servers in a category')
   .option('--skip-env-check', 'Skip environment variable validation')
   .action((serverName, options) => {
+    const projectPath = options.project;
     if (options.category) {
       // Install all servers in category
       const servers = listServers({ category: options.category as MCPServerCategory });
@@ -513,9 +539,10 @@ mcpCmd
       }
 
       console.log(chalk.blue(`Installing ${servers.length} servers from category: ${options.category}\n`));
+      console.log(chalk.gray(`Config: ${getMcpConfigPath(projectPath)}\n`));
 
       for (const server of servers) {
-        const result = installServer(server.name, options.skipEnvCheck);
+        const result = installServer(server.name, { skipEnvCheck: options.skipEnvCheck, projectPath });
         if (result.success) {
           console.log(chalk.green(`  ✓ ${server.name}`));
         } else {
@@ -523,14 +550,15 @@ mcpCmd
         }
       }
     } else {
-      const result = installServer(serverName, options.skipEnvCheck);
+      const result = installServer(serverName, { skipEnvCheck: options.skipEnvCheck, projectPath });
 
       if (result.success) {
         console.log(chalk.green(result.message));
+        console.log(chalk.gray(`Config: ${getMcpConfigPath(projectPath)}`));
         if (result.warnings?.length) {
           result.warnings.forEach(w => console.log(chalk.yellow(`  Warning: ${w}`)));
         }
-        console.log(chalk.gray(`Enable with: cc-config mcp enable ${serverName}`));
+        console.log(chalk.gray(`Enable with: cc-config mcp enable ${serverName} -p ${projectPath}`));
       } else {
         console.log(chalk.red(result.message));
         if (result.warnings?.length) {
@@ -543,8 +571,9 @@ mcpCmd
 mcpCmd
   .command('uninstall <server>')
   .description('Remove a server from mcp.json')
-  .action((serverName) => {
-    const result = uninstallServer(serverName);
+  .option('-p, --project <path>', 'Project path (default: current directory)', process.cwd())
+  .action((serverName, options) => {
+    const result = uninstallServer(serverName, options.project);
 
     if (result.success) {
       console.log(chalk.green(result.message));
@@ -556,8 +585,9 @@ mcpCmd
 mcpCmd
   .command('enable <server>')
   .description('Add server to enabledMcpjsonServers in settings.json')
-  .action((serverName) => {
-    const result = enableServer(serverName);
+  .option('-p, --project <path>', 'Project path (default: current directory)', process.cwd())
+  .action((serverName, options) => {
+    const result = enableServer(serverName, options.project);
 
     if (result.success) {
       console.log(chalk.green(result.message));
@@ -572,8 +602,9 @@ mcpCmd
 mcpCmd
   .command('disable <server>')
   .description('Remove server from enabledMcpjsonServers in settings.json')
-  .action((serverName) => {
-    const result = disableServer(serverName);
+  .option('-p, --project <path>', 'Project path (default: current directory)', process.cwd())
+  .action((serverName, options) => {
+    const result = disableServer(serverName, options.project);
 
     if (result.success) {
       console.log(chalk.green(result.message));
@@ -585,10 +616,11 @@ mcpCmd
 mcpCmd
   .command('check [server]')
   .description('Verify required env vars are set')
+  .option('-p, --project <path>', 'Project path (default: current directory)', process.cwd())
   .option('--all', 'Check all installed servers')
   .action((serverName, options) => {
     if (options.all || !serverName) {
-      const results = checkAllServers();
+      const results = checkAllServers(options.project);
 
       if (results.length === 0) {
         console.log(chalk.gray('No installed servers to check.'));
@@ -670,6 +702,355 @@ mcpCmd
     addServerToRegistry(server);
     console.log(chalk.green(`Added server to registry: ${name}`));
     console.log(chalk.gray(`Registry file: ${getRegistryPath()}/${name}.yaml`));
+  });
+
+// Canon commands - copy-with-manifest skill management
+const canonCmd = program.command('canon').description('Manage canon skills (copy-with-manifest system)');
+
+canonCmd
+  .command('list')
+  .description('List all available canon skills from source')
+  .option('--category <category>', 'Filter by category')
+  .action((options) => {
+    const skills = listCanonSkills();
+
+    if (skills.length === 0) {
+      console.log(chalk.gray('No canon skills found.'));
+      const sourceInfo = getCanonSourceInfo();
+      console.log(chalk.gray(`Source path: ${sourceInfo.path}`));
+      return;
+    }
+
+    const sourceInfo = getCanonSourceInfo();
+    console.log(chalk.bold('\nAvailable Canon Skills'));
+    console.log(chalk.gray(`Source: ${sourceInfo.path}`));
+    if (sourceInfo.commit) {
+      console.log(chalk.gray(`Commit: ${sourceInfo.commit}`));
+    }
+    console.log(chalk.gray('─'.repeat(50)));
+
+    // Filter by category if specified
+    let filtered = skills;
+    if (options.category) {
+      filtered = skills.filter(s => s.category === options.category);
+    }
+
+    // Group by category
+    const byCategory = new Map<string, typeof skills>();
+    for (const skill of filtered) {
+      const cat = skill.category || 'root';
+      if (!byCategory.has(cat)) {
+        byCategory.set(cat, []);
+      }
+      byCategory.get(cat)!.push(skill);
+    }
+
+    for (const [category, categorySkills] of byCategory) {
+      console.log(chalk.yellow(`\n  ${category.toUpperCase()}`));
+      for (const skill of categorySkills) {
+        console.log(`    ${chalk.cyan(skill.name)}`);
+      }
+    }
+
+    console.log(chalk.gray(`\nTotal: ${filtered.length} skills`));
+  });
+
+canonCmd
+  .command('status')
+  .description('Show installed skills vs source (current/outdated/modified)')
+  .option('-p, --project <path>', 'Project path', process.cwd())
+  .action((options) => {
+    const statuses = checkSkillStatus(options.project);
+    const sourceInfo = getCanonSourceInfo();
+
+    if (statuses.length === 0) {
+      console.log(chalk.gray('No skills installed in this project.'));
+      console.log(chalk.gray(`Install with: cc-config canon install <skill> -p ${options.project}`));
+      return;
+    }
+
+    console.log(chalk.bold('\nCanon Skills Status'));
+    console.log(chalk.gray(`Source: ${sourceInfo.path} @ ${sourceInfo.commit || 'unknown'}`));
+    console.log(chalk.gray('─'.repeat(60)));
+
+    const statusIcons: Record<string, string> = {
+      current: chalk.green('✓ current'),
+      outdated: chalk.yellow('⚠ outdated'),
+      modified: chalk.blue('✎ modified'),
+      missing: chalk.red('✗ missing'),
+      unknown: chalk.gray('? unknown')
+    };
+
+    for (const status of statuses) {
+      const icon = statusIcons[status.status] || status.status;
+      const commit = status.installedCommit ? chalk.gray(`(${status.installedCommit})`) : '';
+      const arrow = status.status === 'outdated' && status.sourceCommit
+        ? chalk.gray(` → ${status.sourceCommit}`)
+        : '';
+      console.log(`  ${status.name.padEnd(20)} ${icon} ${commit}${arrow}`);
+    }
+
+    const outdated = statuses.filter(s => s.status === 'outdated').length;
+    const modified = statuses.filter(s => s.status === 'modified').length;
+
+    if (outdated > 0) {
+      console.log(chalk.yellow(`\nRun 'cc-config canon upgrade -p ${options.project}' to update ${outdated} skill(s)`));
+    }
+    if (modified > 0) {
+      console.log(chalk.blue(`\n${modified} skill(s) have local modifications`));
+    }
+  });
+
+canonCmd
+  .command('install <skill>')
+  .description('Install a skill from canon source to project')
+  .option('-p, --project <path>', 'Project path', process.cwd())
+  .option('-f, --force', 'Overwrite existing skill')
+  .action((skill, options) => {
+    const result = copySkill(skill, options.project, { force: options.force });
+
+    if (result.success) {
+      console.log(chalk.green(result.message));
+      console.log(chalk.gray(`Installed to: ${options.project}/.claude/skills/${skill}/`));
+    } else {
+      console.log(chalk.red(result.message));
+    }
+  });
+
+canonCmd
+  .command('upgrade')
+  .description('Copy updated skills from source (preserves local mods without --force)')
+  .option('-p, --project <path>', 'Project path', process.cwd())
+  .option('-f, --force', 'Overwrite even if locally modified')
+  .option('-s, --skills <skills>', 'Comma-separated list of specific skills to upgrade')
+  .action((options) => {
+    const skillList = options.skills ? options.skills.split(',').map((s: string) => s.trim()) : undefined;
+
+    const result = upgradeSkills(options.project, {
+      force: options.force,
+      skills: skillList
+    });
+
+    if (result.upgraded.length > 0) {
+      console.log(chalk.green('\nUpgraded:'));
+      result.upgraded.forEach(s => console.log(chalk.green(`  ✓ ${s}`)));
+    }
+
+    if (result.skipped.length > 0) {
+      console.log(chalk.yellow('\nSkipped:'));
+      result.skipped.forEach(s => console.log(chalk.yellow(`  - ${s}`)));
+    }
+
+    if (result.errors.length > 0) {
+      console.log(chalk.red('\nErrors:'));
+      result.errors.forEach(s => console.log(chalk.red(`  ✗ ${s}`)));
+    }
+
+    if (result.upgraded.length === 0 && result.errors.length === 0) {
+      console.log(chalk.gray('All skills are current.'));
+    }
+  });
+
+canonCmd
+  .command('diff <skill>')
+  .description('Show diff between installed and source skill')
+  .option('-p, --project <path>', 'Project path', process.cwd())
+  .action((skill, options) => {
+    const diff = diffSkill(skill, options.project);
+
+    if (!diff) {
+      console.log(chalk.gray('Could not generate diff'));
+      return;
+    }
+
+    console.log(chalk.bold(`\nDiff: ${skill}`));
+    console.log(chalk.gray('─'.repeat(50)));
+    console.log(diff);
+  });
+
+canonCmd
+  .command('source')
+  .description('Show canon source path and info')
+  .action(() => {
+    const info = getCanonSourceInfo();
+
+    console.log(chalk.bold('\nCanon Source'));
+    console.log(chalk.gray('─'.repeat(50)));
+    console.log(`Path:   ${chalk.cyan(info.path)}`);
+    console.log(`Commit: ${info.commit ? chalk.yellow(info.commit) : chalk.gray('unknown')}`);
+    console.log(`Remote: ${info.remote || chalk.gray('none')}`);
+  });
+
+// Workflow commands - universal workflow skills (not canon)
+const workflowCmd = program.command('workflow').description('Manage workflow skills (universal patterns, not canon)');
+
+workflowCmd
+  .command('list')
+  .description('List all available workflow skills from source')
+  .action(() => {
+    const skills = listWorkflowSkills();
+
+    if (skills.length === 0) {
+      console.log(chalk.gray('No workflow skills found.'));
+      const sourceInfo = getWorkflowSourceInfo();
+      console.log(chalk.gray(`Source path: ${sourceInfo.path}`));
+      return;
+    }
+
+    const sourceInfo = getWorkflowSourceInfo();
+    console.log(chalk.bold('\nAvailable Workflow Skills'));
+    console.log(chalk.gray(`Source: ${sourceInfo.path}`));
+    if (sourceInfo.commit) {
+      console.log(chalk.gray(`Commit: ${sourceInfo.commit}`));
+    }
+    console.log(chalk.gray('─'.repeat(50)));
+
+    for (const skill of skills) {
+      console.log(`  ${chalk.cyan(skill.name)}`);
+      if (skill.description) {
+        console.log(chalk.gray(`    ${skill.description}`));
+      }
+    }
+
+    console.log(chalk.gray(`\nTotal: ${skills.length} skills`));
+  });
+
+workflowCmd
+  .command('status')
+  .description('Show installed workflow skills status')
+  .option('-p, --project <path>', 'Project path', process.cwd())
+  .action((options) => {
+    const statuses = checkWorkflowStatus(options.project);
+    const sourceInfo = getWorkflowSourceInfo();
+
+    if (statuses.length === 0) {
+      console.log(chalk.gray('No workflow skills installed in this project.'));
+      console.log(chalk.gray(`Install with: cc-config workflow install <skill> -p ${options.project}`));
+      console.log(chalk.gray(`Or install all: cc-config workflow install --all -p ${options.project}`));
+      return;
+    }
+
+    console.log(chalk.bold('\nWorkflow Skills Status'));
+    console.log(chalk.gray(`Source: ${sourceInfo.path} @ ${sourceInfo.commit || 'unknown'}`));
+    console.log(chalk.gray('─'.repeat(60)));
+
+    const statusIcons: Record<string, string> = {
+      current: chalk.green('✓ current'),
+      outdated: chalk.yellow('⚠ outdated'),
+      modified: chalk.blue('✎ modified'),
+      missing: chalk.red('✗ missing'),
+      unknown: chalk.gray('? unknown')
+    };
+
+    for (const status of statuses) {
+      const icon = statusIcons[status.status] || status.status;
+      const commit = status.installedCommit ? chalk.gray(`(${status.installedCommit})`) : '';
+      const arrow = status.status === 'outdated' && status.sourceCommit
+        ? chalk.gray(` → ${status.sourceCommit}`)
+        : '';
+      console.log(`  ${status.name.padEnd(20)} ${icon} ${commit}${arrow}`);
+    }
+
+    const outdated = statuses.filter(s => s.status === 'outdated').length;
+    const modified = statuses.filter(s => s.status === 'modified').length;
+
+    if (outdated > 0) {
+      console.log(chalk.yellow(`\nRun 'cc-config workflow upgrade -p ${options.project}' to update ${outdated} skill(s)`));
+    }
+    if (modified > 0) {
+      console.log(chalk.blue(`\n${modified} skill(s) have local modifications`));
+    }
+  });
+
+workflowCmd
+  .command('install [skill]')
+  .description('Install workflow skill(s) to a project')
+  .option('-p, --project <path>', 'Project path', process.cwd())
+  .option('-a, --all', 'Install all workflow skills')
+  .option('-f, --force', 'Overwrite existing skills')
+  .action((skill, options) => {
+    if (options.all) {
+      console.log(chalk.blue(`Installing all workflow skills to ${options.project}...\n`));
+      const result = installAllWorkflowSkills(options.project, { force: options.force });
+
+      if (result.installed.length > 0) {
+        console.log(chalk.green('Installed:'));
+        result.installed.forEach(s => console.log(chalk.green(`  ✓ ${s}`)));
+      }
+
+      if (result.skipped.length > 0) {
+        console.log(chalk.yellow('\nSkipped:'));
+        result.skipped.forEach(s => console.log(chalk.yellow(`  - ${s}`)));
+      }
+
+      if (result.errors.length > 0) {
+        console.log(chalk.red('\nErrors:'));
+        result.errors.forEach(e => console.log(chalk.red(`  ✗ ${e}`)));
+      }
+
+      console.log(chalk.gray(`\nInstalled to: ${options.project}/.claude/skills/`));
+    } else if (skill) {
+      const result = installWorkflowSkill(skill, options.project, { force: options.force });
+
+      if (result.success) {
+        console.log(chalk.green(result.message));
+        console.log(chalk.gray(`Installed to: ${options.project}/.claude/skills/${skill}/`));
+      } else {
+        console.log(chalk.red(result.message));
+      }
+    } else {
+      console.log(chalk.red('Specify a skill name or use --all'));
+      console.log(chalk.gray('Available skills:'));
+      const skills = listWorkflowSkills();
+      skills.forEach(s => console.log(chalk.gray(`  - ${s.name}`)));
+    }
+  });
+
+workflowCmd
+  .command('upgrade')
+  .description('Upgrade outdated workflow skills')
+  .option('-p, --project <path>', 'Project path', process.cwd())
+  .option('-f, --force', 'Overwrite even if locally modified')
+  .option('-s, --skills <skills>', 'Comma-separated list of specific skills')
+  .action((options) => {
+    const skillList = options.skills ? options.skills.split(',').map((s: string) => s.trim()) : undefined;
+
+    const result = upgradeWorkflowSkills(options.project, {
+      force: options.force,
+      skills: skillList
+    });
+
+    if (result.upgraded.length > 0) {
+      console.log(chalk.green('\nUpgraded:'));
+      result.upgraded.forEach(s => console.log(chalk.green(`  ✓ ${s}`)));
+    }
+
+    if (result.skipped.length > 0) {
+      console.log(chalk.yellow('\nSkipped:'));
+      result.skipped.forEach(s => console.log(chalk.yellow(`  - ${s}`)));
+    }
+
+    if (result.errors.length > 0) {
+      console.log(chalk.red('\nErrors:'));
+      result.errors.forEach(s => console.log(chalk.red(`  ✗ ${s}`)));
+    }
+
+    if (result.upgraded.length === 0 && result.errors.length === 0) {
+      console.log(chalk.gray('All workflow skills are current.'));
+    }
+  });
+
+workflowCmd
+  .command('source')
+  .description('Show workflow skills source path')
+  .action(() => {
+    const info = getWorkflowSourceInfo();
+
+    console.log(chalk.bold('\nWorkflow Skills Source'));
+    console.log(chalk.gray('─'.repeat(50)));
+    console.log(`Path:   ${chalk.cyan(info.path)}`);
+    console.log(`Commit: ${info.commit ? chalk.yellow(info.commit) : chalk.gray('unknown')}`);
+    console.log(`Remote: ${info.remote || chalk.gray('none')}`);
   });
 
 // Print helpers

@@ -4,14 +4,33 @@ projectType: software
 composable: true
 extends: software-base
 
-canon:
-  domain:
+skills:
+  canon:
     - bloch          # Effective Java - API design, immutability, builders
     - kernighan      # Clarity - naming, no magic numbers, simplicity
     - gang-of-four   # Design patterns - Strategy, Factory, Observer
     - liskov         # LSP and SOLID - proper inheritance, contracts
 
 claudeMd:
+  standards:
+    - "Prefer static factory methods over constructors"
+    - "Minimize mutability - make fields final by default"
+    - "Favor composition over inheritance"
+    - "Design for inheritance or prohibit it (final classes)"
+    - "Return empty collections, not null"
+    - "Use enums instead of int constants"
+    - "Prefer interfaces to abstract classes"
+    - "Use bounded wildcards for API flexibility"
+
+  antiPatterns:
+    - "Mutable public fields"
+    - "Returning null from collections"
+    - "Checked exceptions for recoverable conditions"
+    - "Raw types (use generics)"
+    - "String concatenation in loops"
+    - "Finalizers and cleaners for resource management"
+    - "Inheritance for code reuse (use composition)"
+
   autoInvoke:
     - context: Java API design, collections, builders, immutability
       action: INVOKE `/bloch`

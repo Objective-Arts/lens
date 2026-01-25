@@ -104,6 +104,7 @@ export interface ComposableProfile {
   description?: string;
   projectType?: ProjectType;  // 'software' or 'business'
   composable?: boolean;
+  extends?: string;  // Base profile to extend
   skills?: {
     security?: string[];  // Security skills (owasp, security-mindset, etc.)
     tech?: string[];      // Tech workflow skills (ceremony, etc.)
@@ -113,7 +114,9 @@ export interface ComposableProfile {
   agents?: string[];
   commands?: string[];
   claudeMd?: {
-    autoInvoke: Array<{ context: string; action: string }>;
+    standards?: string[];     // Coding standards to follow
+    antiPatterns?: string[];  // Patterns to avoid
+    autoInvoke?: Array<{ context: string; action: string }>;
   };
   mcpServers?: ProfileMCPServerConfig;
   settings?: Record<string, unknown>;

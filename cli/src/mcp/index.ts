@@ -48,5 +48,6 @@ export {
   checkServer,
   checkAllServers,
   listInstalledServers,
-  installAndEnableServer
+  installAndEnableServer,
+  getMcpConfigPath
 } from './operations.js';

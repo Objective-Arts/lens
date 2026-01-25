@@ -1,7 +1,8 @@
 /**
  * MCP Operations - install, uninstall, enable, disable servers
  *
- * Manages mcp.json (server definitions) and settings.json (enabled servers).
+ * Supports both global (~/.claude/) and project-level (.mcp.json) configuration.
+ * Project-level is preferred for portability.
  */
 
 import * as fs from 'fs';
@@ -15,21 +16,46 @@ import type {
 } from './types.js';
 import { getServer, checkRequiredEnv, resolveEnvVars } from './registry.js';
 
-const CLAUDE_DIR = path.join(homedir(), '.claude');
-const MCP_JSON_PATH = path.join(CLAUDE_DIR, 'mcp.json');
-const SETTINGS_JSON_PATH = path.join(CLAUDE_DIR, 'settings.json');
+const GLOBAL_CLAUDE_DIR = path.join(homedir(), '.claude');
+
+/**
+ * Resolve paths for MCP config based on scope
+ */
+function resolvePaths(projectPath?: string): {
+  mcpJsonPath: string;
+  settingsJsonPath: string;
+  scope: 'project' | 'global';
+} {
+  if (projectPath) {
+    return {
+      mcpJsonPath: path.join(projectPath, '.mcp.json'),
+      settingsJsonPath: path.join(projectPath, '.claude', 'settings.json'),
+      scope: 'project'
+    };
+  }
+  return {
+    mcpJsonPath: path.join(GLOBAL_CLAUDE_DIR, '.mcp.json'),
+    settingsJsonPath: path.join(GLOBAL_CLAUDE_DIR, 'settings.json'),
+    scope: 'global'
+  };
+}
 
 /**
  * Load mcp.json (server definitions)
+ * Format: { "mcpServers": { "name": { config } } }
  */
-export function loadMcpJson(): Record<string, MCPServerConfig> {
-  if (!fs.existsSync(MCP_JSON_PATH)) {
+export function loadMcpJson(projectPath?: string): Record<string, MCPServerConfig> {
+  const { mcpJsonPath } = resolvePaths(projectPath);
+
+  if (!fs.existsSync(mcpJsonPath)) {
     return {};
   }
 
   try {
-    const content = fs.readFileSync(MCP_JSON_PATH, 'utf-8');
-    return JSON.parse(content);
+    const content = fs.readFileSync(mcpJsonPath, 'utf-8');
+    const parsed = JSON.parse(content);
+    // Handle both formats: { mcpServers: {...} } and raw { name: config }
+    return parsed.mcpServers || parsed;
   } catch {
     return {};
   }
@@ -38,20 +64,32 @@ export function loadMcpJson(): Record<string, MCPServerConfig> {
 /**
  * Save mcp.json
  */
-export function saveMcpJson(servers: Record<string, MCPServerConfig>): void {
-  fs.writeFileSync(MCP_JSON_PATH, JSON.stringify(servers, null, 2), 'utf-8');
+export function saveMcpJson(servers: Record<string, MCPServerConfig>, projectPath?: string): void {
+  const { mcpJsonPath } = resolvePaths(projectPath);
+
+  // Ensure directory exists for project-level config
+  const dir = path.dirname(mcpJsonPath);
+  if (!fs.existsSync(dir)) {
+    fs.mkdirSync(dir, { recursive: true });
+  }
+
+  // Use mcpServers wrapper format (Claude Code standard)
+  const content = { mcpServers: servers };
+  fs.writeFileSync(mcpJsonPath, JSON.stringify(content, null, 2), 'utf-8');
 }
 
 /**
  * Load settings.json
  */
-export function loadSettings(): Record<string, unknown> {
-  if (!fs.existsSync(SETTINGS_JSON_PATH)) {
+export function loadSettings(projectPath?: string): Record<string, unknown> {
+  const { settingsJsonPath } = resolvePaths(projectPath);
+
+  if (!fs.existsSync(settingsJsonPath)) {
     return {};
   }
 
   try {
-    const content = fs.readFileSync(SETTINGS_JSON_PATH, 'utf-8');
+    const content = fs.readFileSync(settingsJsonPath, 'utf-8');
     return JSON.parse(content);
   } catch {
     return {};
@@ -61,31 +99,39 @@ export function loadSettings(): Record<string, unknown> {
 /**
  * Save settings.json
  */
-export function saveSettings(settings: Record<string, unknown>): void {
-  fs.writeFileSync(SETTINGS_JSON_PATH, JSON.stringify(settings, null, 2), 'utf-8');
+export function saveSettings(settings: Record<string, unknown>, projectPath?: string): void {
+  const { settingsJsonPath } = resolvePaths(projectPath);
+
+  // Ensure directory exists
+  const dir = path.dirname(settingsJsonPath);
+  if (!fs.existsSync(dir)) {
+    fs.mkdirSync(dir, { recursive: true });
+  }
+
+  fs.writeFileSync(settingsJsonPath, JSON.stringify(settings, null, 2), 'utf-8');
 }
 
 /**
  * Get list of enabled MCP servers from settings.json
  */
-export function getEnabledServers(): string[] {
-  const settings = loadSettings();
+export function getEnabledServers(projectPath?: string): string[] {
+  const settings = loadSettings(projectPath);
   return (settings.enabledMcpjsonServers as string[]) || [];
 }
 
 /**
  * Check if a server is installed (exists in mcp.json)
  */
-export function isServerInstalled(name: string): boolean {
-  const mcpJson = loadMcpJson();
+export function isServerInstalled(name: string, projectPath?: string): boolean {
+  const mcpJson = loadMcpJson(projectPath);
   return name in mcpJson;
 }
 
 /**
  * Check if a server is enabled (in settings.json enabledMcpjsonServers)
  */
-export function isServerEnabled(name: string): boolean {
-  return getEnabledServers().includes(name);
+export function isServerEnabled(name: string, projectPath?: string): boolean {
+  return getEnabledServers(projectPath).includes(name);
 }
 
 /**
@@ -93,8 +139,10 @@ export function isServerEnabled(name: string): boolean {
  */
 export function installServer(
   name: string,
-  skipEnvCheck = false
+  options: { skipEnvCheck?: boolean; projectPath?: string } = {}
 ): MCPOperationResult {
+  const { skipEnvCheck = false, projectPath } = options;
+  const { scope } = resolvePaths(projectPath);
   const server = getServer(name);
 
   if (!server) {
@@ -119,12 +167,12 @@ export function installServer(
   }
 
   // Build the server config
-  const mcpJson = loadMcpJson();
+  const mcpJson = loadMcpJson(projectPath);
 
   if (mcpJson[name]) {
     return {
       success: true,
-      message: `Server already installed: ${name}`,
+      message: `Server already installed (${scope}): ${name}`,
       server: name,
       warnings: ['Server was already installed, no changes made']
     };
@@ -147,11 +195,11 @@ export function installServer(
   }
 
   mcpJson[name] = config;
-  saveMcpJson(mcpJson);
+  saveMcpJson(mcpJson, projectPath);
 
   return {
     success: true,
-    message: `Installed server: ${name}`,
+    message: `Installed server (${scope}): ${name}`,
     server: name
   };
 }
@@ -159,28 +207,29 @@ export function installServer(
 /**
  * Uninstall a server (remove from mcp.json)
  */
-export function uninstallServer(name: string): MCPOperationResult {
-  const mcpJson = loadMcpJson();
+export function uninstallServer(name: string, projectPath?: string): MCPOperationResult {
+  const { scope } = resolvePaths(projectPath);
+  const mcpJson = loadMcpJson(projectPath);
 
   if (!(name in mcpJson)) {
     return {
       success: false,
-      message: `Server not installed: ${name}`,
+      message: `Server not installed (${scope}): ${name}`,
       server: name
     };
   }
 
   // Also disable if enabled
-  if (isServerEnabled(name)) {
-    disableServer(name);
+  if (isServerEnabled(name, projectPath)) {
+    disableServer(name, projectPath);
   }
 
   delete mcpJson[name];
-  saveMcpJson(mcpJson);
+  saveMcpJson(mcpJson, projectPath);
 
   return {
     success: true,
-    message: `Uninstalled server: ${name}`,
+    message: `Uninstalled server (${scope}): ${name}`,
     server: name
   };
 }
@@ -188,23 +237,25 @@ export function uninstallServer(name: string): MCPOperationResult {
 /**
  * Enable a server (add to settings.json enabledMcpjsonServers)
  */
-export function enableServer(name: string): MCPOperationResult {
+export function enableServer(name: string, projectPath?: string): MCPOperationResult {
+  const { scope } = resolvePaths(projectPath);
+
   // Check if installed first
-  if (!isServerInstalled(name)) {
+  if (!isServerInstalled(name, projectPath)) {
     return {
       success: false,
-      message: `Server not installed: ${name}. Install it first with: cc-config mcp install ${name}`,
+      message: `Server not installed: ${name}. Install it first with: cc-config mcp install ${name}${projectPath ? ' -p ' + projectPath : ''}`,
       server: name
     };
   }
 
-  const settings = loadSettings();
+  const settings = loadSettings(projectPath);
   const enabled = (settings.enabledMcpjsonServers as string[]) || [];
 
   if (enabled.includes(name)) {
     return {
       success: true,
-      message: `Server already enabled: ${name}`,
+      message: `Server already enabled (${scope}): ${name}`,
       server: name,
       warnings: ['Server was already enabled, no changes made']
     };
@@ -212,11 +263,11 @@ export function enableServer(name: string): MCPOperationResult {
 
   enabled.push(name);
   settings.enabledMcpjsonServers = enabled;
-  saveSettings(settings);
+  saveSettings(settings, projectPath);
 
   return {
     success: true,
-    message: `Enabled server: ${name}`,
+    message: `Enabled server (${scope}): ${name}`,
     server: name
   };
 }
@@ -224,25 +275,26 @@ export function enableServer(name: string): MCPOperationResult {
 /**
  * Disable a server (remove from settings.json enabledMcpjsonServers)
  */
-export function disableServer(name: string): MCPOperationResult {
-  const settings = loadSettings();
+export function disableServer(name: string, projectPath?: string): MCPOperationResult {
+  const { scope } = resolvePaths(projectPath);
+  const settings = loadSettings(projectPath);
   const enabled = (settings.enabledMcpjsonServers as string[]) || [];
 
   if (!enabled.includes(name)) {
     return {
       success: true,
-      message: `Server already disabled: ${name}`,
+      message: `Server already disabled (${scope}): ${name}`,
       server: name,
       warnings: ['Server was already disabled, no changes made']
     };
   }
 
   settings.enabledMcpjsonServers = enabled.filter(s => s !== name);
-  saveSettings(settings);
+  saveSettings(settings, projectPath);
 
   return {
     success: true,
-    message: `Disabled server: ${name}`,
+    message: `Disabled server (${scope}): ${name}`,
     server: name
   };
 }
@@ -268,8 +320,8 @@ export function checkServer(name: string): EnvCheckResult {
 /**
  * Check all installed servers' env vars
  */
-export function checkAllServers(): EnvCheckResult[] {
-  const mcpJson = loadMcpJson();
+export function checkAllServers(projectPath?: string): EnvCheckResult[] {
+  const mcpJson = loadMcpJson(projectPath);
   const results: EnvCheckResult[] = [];
 
   for (const name of Object.keys(mcpJson)) {
@@ -282,13 +334,13 @@ export function checkAllServers(): EnvCheckResult[] {
 /**
  * List installed servers with their status
  */
-export function listInstalledServers(): Array<{
+export function listInstalledServers(projectPath?: string): Array<{
   name: string;
   enabled: boolean;
   config: MCPServerConfig;
 }> {
-  const mcpJson = loadMcpJson();
-  const enabledList = getEnabledServers();
+  const mcpJson = loadMcpJson(projectPath);
+  const enabledList = getEnabledServers(projectPath);
 
   return Object.entries(mcpJson).map(([name, config]) => ({
     name,
@@ -303,15 +355,16 @@ export function listInstalledServers(): Array<{
  */
 export function installAndEnableServer(
   name: string,
-  skipEnvCheck = false
+  options: { skipEnvCheck?: boolean; projectPath?: string } = {}
 ): MCPOperationResult {
-  const installResult = installServer(name, skipEnvCheck);
+  const { projectPath } = options;
+  const installResult = installServer(name, options);
 
   if (!installResult.success) {
     return installResult;
   }
 
-  const enableResult = enableServer(name);
+  const enableResult = enableServer(name, projectPath);
 
   return {
     success: enableResult.success,
@@ -319,4 +372,12 @@ export function installAndEnableServer(
     server: name,
     warnings: [...(installResult.warnings || []), ...(enableResult.warnings || [])]
   };
+}
+
+/**
+ * Get the path where MCP config will be written
+ */
+export function getMcpConfigPath(projectPath?: string): string {
+  const { mcpJsonPath } = resolvePaths(projectPath);
+  return mcpJsonPath;
 }

@@ -1,11 +1,40 @@
 name: javascript
-description: Domain canon for JavaScript/TypeScript projects
+description: JavaScript/TypeScript expertise - combine with base-tech
 projectType: software
 composable: true
 extends: software-base
 
-canon:
-  domain:
-    - simpson        # You Don't Know JS
-    - cherny         # Programming TypeScript
-    - crockford      # JavaScript: The Good Parts
+skills:
+  tech:
+    - kyle-simpson   # You Don't Know JS - closures, scope, this
+  canon:
+    - cherny         # Programming TypeScript - type system mastery
+    - crockford      # JavaScript: The Good Parts - language subset
+
+claudeMd:
+  standards:
+    - "Use const by default, let when reassignment needed"
+    - "Prefer arrow functions for callbacks"
+    - "Use async/await over raw promises"
+    - "Destructure objects and arrays"
+    - "Use template literals for string interpolation"
+    - "Prefer named exports over default exports"
+    - "Use TypeScript strict mode"
+    - "Avoid any type - prefer unknown when type is uncertain"
+
+  antiPatterns:
+    - "var declarations (use const/let)"
+    - "Implicit type coercion (use === and !==)"
+    - "Global variables"
+    - "Callback hell (use async/await)"
+    - "Mutating function parameters"
+    - "Using any type without justification"
+    - "Ignoring promise rejections"
+
+  autoInvoke:
+    - context: Complex JavaScript runtime, closures, this, scope
+      action: INVOKE `/kyle-simpson`
+    - context: TypeScript types, generics, inference, utility types
+      action: INVOKE `/cherny`
+    - context: JavaScript subset, safe patterns, avoiding pitfalls
+      action: INVOKE `/crockford`

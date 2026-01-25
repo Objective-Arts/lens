@@ -19,6 +19,21 @@ import {
   listServers,
   checkRequiredEnv
 } from '../mcp/index.js';
+import {
+  copySkill,
+  findSkillSourcePath,
+  readManifest,
+  writeManifest,
+  createManifest,
+  updateSkillInManifest,
+  getGitCommit,
+  getGitRemote,
+  hashSkillDirectory,
+  getCanonSourcePath
+} from '../canon/index.js';
+import {
+  installAllWorkflowSkills
+} from '../workflow/index.js';
 
 const PROFILES_DIR = path.join(homedir(), '.claude', 'profiles');
 
@@ -93,6 +108,8 @@ export function combineProfiles(profileNames: string[]): ComposableProfile | nul
     agents: [],
     commands: [],
     claudeMd: {
+      standards: [],
+      antiPatterns: [],
       autoInvoke: []
     }
   };
@@ -116,6 +133,16 @@ export function combineProfiles(profileNames: string[]): ComposableProfile | nul
     // Merge commands
     if (profile.commands) {
       combined.commands = [...new Set([...(combined.commands || []), ...profile.commands])];
+    }
+
+    // Merge standards
+    if (profile.claudeMd?.standards) {
+      combined.claudeMd!.standards = [...new Set([...(combined.claudeMd!.standards || []), ...profile.claudeMd.standards])];
+    }
+
+    // Merge anti-patterns
+    if (profile.claudeMd?.antiPatterns) {
+      combined.claudeMd!.antiPatterns = [...new Set([...(combined.claudeMd!.antiPatterns || []), ...profile.claudeMd.antiPatterns])];
     }
 
     // Merge auto-invoke rules
@@ -186,12 +213,12 @@ export function saveProfile(profile: ComposableProfile): void {
 
 /**
  * Apply a composable profile to a project
- * Handles skill categories and creates symlinks from appropriate library paths
+ * Copies skills (not symlinks) for portability, creates canon manifest
  */
 export async function applyComposableProfile(profile: ComposableProfile, projectPath: string): Promise<ApplyResult> {
   const result: ApplyResult = {
     created: [],
-    linked: [],
+    linked: [],  // Now "copied" but keeping API compatibility
     skipped: [],
     errors: []
   };
@@ -205,11 +232,22 @@ export async function applyComposableProfile(profile: ComposableProfile, project
     result.created.push(projectClaudePath);
   }
 
-  // Apply skills by category
+  // Apply skills by category - COPY instead of symlink for portability
   if (profile.skills) {
     const skillsDir = path.join(projectClaudePath, 'skills');
     if (!fs.existsSync(skillsDir)) {
       fs.mkdirSync(skillsDir, { recursive: true });
+    }
+
+    // Initialize or read existing manifest
+    const canonPath = getCanonSourcePath();
+    let manifest = readManifest(projectPath);
+    if (!manifest) {
+      manifest = createManifest({
+        type: 'local',
+        path: canonPath,
+        gitRemote: getGitRemote(canonPath)
+      });
     }
 
     for (const category of ['security', 'tech', 'canon', 'global'] as SkillCategory[]) {
@@ -217,7 +255,11 @@ export async function applyComposableProfile(profile: ComposableProfile, project
       if (!skills) continue;
 
       for (const skillName of skills) {
-        const sourcePath = findSkillPath(skillName, category);
+        // Try canon module's findSkillSourcePath first, then fallback to category-based
+        let sourcePath = findSkillSourcePath(skillName);
+        if (!sourcePath) {
+          sourcePath = findSkillPath(skillName, category);
+        }
         const targetPath = path.join(skillsDir, skillName);
 
         if (!sourcePath) {
@@ -231,15 +273,47 @@ export async function applyComposableProfile(profile: ComposableProfile, project
         }
 
         try {
-          // Get the real path if it's a symlink
-          const realPath = fs.realpathSync(sourcePath);
-          fs.symlinkSync(realPath, targetPath);
-          result.linked.push(`${skillName} → ${realPath}`);
+          // COPY the skill directory (not symlink) for portability
+          copyDirectoryRecursive(sourcePath, targetPath);
+
+          // Update manifest with skill info
+          const hash = hashSkillDirectory(targetPath);
+          const sourceCommit = getGitCommit(canonPath);
+
+          updateSkillInManifest(manifest, skillName, {
+            installedCommit: sourceCommit,
+            installedAt: new Date().toISOString(),
+            sourceFile: path.relative(canonPath, sourcePath) || skillName,
+            hash,
+            modified: false
+          });
+
+          result.linked.push(`${skillName} (copied from ${sourcePath})`);
         } catch (error) {
-          result.errors.push(`Failed to link skill ${skillName}: ${error}`);
+          result.errors.push(`Failed to copy skill ${skillName}: ${error}`);
         }
       }
     }
+
+    // Write the updated manifest
+    writeManifest(projectPath, manifest);
+    result.created.push('.claude/canon-manifest.json');
+  }
+
+  // Install workflow skills (universal patterns for all projects)
+  const workflowResult = installAllWorkflowSkills(projectPath, { force: false });
+  if (workflowResult.installed.length > 0) {
+    result.created.push(`Workflow skills: ${workflowResult.installed.join(', ')}`);
+  }
+  if (workflowResult.skipped.length > 0) {
+    // Don't report "already installed" as skipped - that's expected
+    const realSkips = workflowResult.skipped.filter(s => !s.includes('already installed'));
+    if (realSkips.length > 0) {
+      result.skipped.push(...realSkips);
+    }
+  }
+  if (workflowResult.errors.length > 0) {
+    result.errors.push(...workflowResult.errors);
   }
 
   // Apply commands
@@ -405,7 +479,7 @@ export async function applyProfile(profile: Profile, projectPath: string): Promi
 }
 
 /**
- * Update CLAUDE.md with profile info and auto-invoke rules
+ * Update CLAUDE.md with profile info, standards, anti-patterns, and auto-invoke rules
  */
 async function updateClaudeMdWithProfile(
   claudeMdPath: string,
@@ -417,22 +491,46 @@ async function updateClaudeMdWithProfile(
     content = fs.readFileSync(claudeMdPath, 'utf-8');
   }
 
-  // Build the new sections
-  const autoInvokeTable = profile.claudeMd?.autoInvoke?.map(ai => `| ${ai.context} | ${ai.action} |`).join('\n') || '';
-
-  const newSections = `## Profiles Applied
+  // Build profile section
+  let newSections = `## Profiles Applied
 
 \`${profile.name}\`
+`;
 
+  // Add standards section if present
+  if (profile.claudeMd?.standards && profile.claudeMd.standards.length > 0) {
+    newSections += `
+## Standards
+
+${profile.claudeMd.standards.map(s => `- ${s}`).join('\n')}
+`;
+  }
+
+  // Add anti-patterns section if present
+  if (profile.claudeMd?.antiPatterns && profile.claudeMd.antiPatterns.length > 0) {
+    newSections += `
+## Anti-Patterns (Avoid)
+
+${profile.claudeMd.antiPatterns.map(p => `- ${p}`).join('\n')}
+`;
+  }
+
+  // Add auto-invoke table
+  if (profile.claudeMd?.autoInvoke && profile.claudeMd.autoInvoke.length > 0) {
+    const autoInvokeTable = profile.claudeMd.autoInvoke.map(ai => `| ${ai.context} | ${ai.action} |`).join('\n');
+    newSections += `
 ## Auto-Invoke Skills
 
 | Context | Action |
 |---------|--------|
 ${autoInvokeTable}
 `;
+  }
 
   // Remove existing sections if they exist
   content = content.replace(/## Profiles Applied[\s\S]*?(?=\n## [^A]|\n# |$)/g, '');
+  content = content.replace(/## Standards[\s\S]*?(?=\n## |\n# |$)/g, '');
+  content = content.replace(/## Anti-Patterns[\s\S]*?(?=\n## |\n# |$)/g, '');
   content = content.replace(/## Auto-Invoke[\s\S]*?(?=\n## |\n# |$)/g, '');
 
   // Clean up any double newlines that might have been created
@@ -540,6 +638,26 @@ export const exampleProfile: Profile = {
     disable: []
   }
 };
+
+/**
+ * Recursively copy a directory
+ */
+function copyDirectoryRecursive(src: string, dest: string): void {
+  fs.mkdirSync(dest, { recursive: true });
+
+  const entries = fs.readdirSync(src, { withFileTypes: true });
+
+  for (const entry of entries) {
+    const srcPath = path.join(src, entry.name);
+    const destPath = path.join(dest, entry.name);
+
+    if (entry.isDirectory()) {
+      copyDirectoryRecursive(srcPath, destPath);
+    } else {
+      fs.copyFileSync(srcPath, destPath);
+    }
+  }
+}
 
 /**
  * Get skill library paths configuration

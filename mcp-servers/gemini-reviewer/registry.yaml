@@ -1,0 +1,20 @@
+name: gemini-reviewer
+description: Code review via Google Gemini. Use as external reviewer during Claude Code sessions.
+category: development
+type: stdio
+source: custom
+
+command: node
+args:
+  - ${MCP_SERVER_PATH}/index.js
+
+env:
+  GEMINI_API_KEY: ${GEMINI_API_KEY}
+
+requiredEnv:
+  - GEMINI_API_KEY
+
+tags:
+  - review
+  - gemini
+  - code-quality

@@ -687,7 +687,9 @@ Profiles are designed to stack. Common combinations:
 | React + D3 | `javascript + react + d3` | Simpson, Cherny, Crockford, Abramov, Bostock, Tufte, Few, Knaflic |
 | Angular enterprise | `javascript + angular` | Simpson, Cherny, Crockford, Hevery, Papa |
 | Java backend | `java` | Bloch |
+| C# backend | `csharp` | Skeet, Cleary, Hejlsberg, Bloch (API design) |
 | Full-stack Java/Angular | `fullstack + angular` | Bloch, Simpson, Cherny, Crockford, Hevery, Papa |
+| Autonomous C# | `csharp + ralph-integration` | Skeet, Cleary, Hejlsberg + Ralph loop |
 
 **Note**: Base practices (Schneier, OWASP, Dodds, Meszaros, Feathers, Procida) are always active with any profile.
 
@@ -929,6 +931,38 @@ selection
 - `<Component style={{ margin: 10 }} />` - Creates new object each render
 - `<List items={items.filter(...)} />` - Filter in useMemo
 - `key={index}` - Use stable identifier
+```
+
+#### C# Standards
+
+```markdown
+## C# Standards (Non-Negotiable)
+
+### Async/Await (Cleary Canon)
+- Async all the way down - never block on async
+- NEVER use .Result or .Wait() - causes deadlocks
+- Always pass CancellationToken through async chains
+- ConfigureAwait(false) in library code
+- Prefer ValueTask for hot paths with sync completion
+
+### Null Safety (Skeet Canon)
+- Enable nullable reference types
+- Use null-conditional (?.) and null-coalescing (??)
+- Guard clauses at public API boundaries
+- Pattern matching for null checks
+
+### Type Design (Hejlsberg Canon)
+- Value types for small, immutable data
+- Records for DTOs and value objects
+- Sealed classes by default
+- Prefer composition over inheritance
+
+### Anti-Patterns (Never Do)
+- `async void` except for event handlers - use `async Task`
+- `.Result` or `.Wait()` - causes deadlocks
+- `catch (Exception)` without rethrowing - swallows errors
+- String concatenation in SQL - use parameterized queries
+- Mutable structs - causes copy semantics bugs
 ```
 
 ### Adding Standards to Your Project
@@ -2249,7 +2283,329 @@ Working on specific domain?
 
 ---
 
-# Part VI: Measuring Success
+# Part VI: Autonomous Development with Ralph Loop
+
+## Overview
+
+Ralph Loop is an autonomous iteration engine that runs Claude-Optimal as its inner loop. While Claude-Optimal shapes the quality of each implementation, Ralph provides the "keep going until done" automation.
+
+```
+┌─────────────────────────────────────────────────────────────┐
+│                     RALPH LOOP (Outer)                       │
+│  ┌─────────────────────────────────────────────────────────┐ │
+│  │  while PRD_incomplete && iteration < max:               │ │
+│  │    ┌─────────────────────────────────────────────────┐  │ │
+│  │    │         CLAUDE-OPTIMAL (Inner)                  │  │ │
+│  │    │                                                 │  │ │
+│  │    │  Canon lens (Kernighan, Bloch, Simpson...)      │  │ │
+│  │    │  Standards enforcement (30-line, SRP...)        │  │ │
+│  │    │  Auto-invoke (auth→/schneier, React→/abramov)   │  │ │
+│  │    │  Quality gates (--test, --review-hard)          │  │ │
+│  │    │                                                 │  │ │
+│  │    │  → Pick task from PRD                           │  │ │
+│  │    │  → Implement with expert perspective            │  │ │
+│  │    │  → Run tests, pass gates                        │  │ │
+│  │    │  → Commit                                       │  │ │
+│  │    └─────────────────────────────────────────────────┘  │ │
+│  │    iteration++                                          │ │
+│  └─────────────────────────────────────────────────────────┘ │
+│  Exit: All PRD items complete + quality gates pass           │
+└─────────────────────────────────────────────────────────────┘
+```
+
+## Complementary Strengths
+
+| Ralph Provides | Claude-Optimal Provides |
+|----------------|------------------------|
+| Autonomous iteration | Quality standards |
+| Context persistence (git) | Expert perspective persistence (CLAUDE.md) |
+| "Keep going until done" | "Do it right each time" |
+| PRD-driven task selection | Canon-driven implementation |
+| Iteration cap (safety) | Quality gates (correctness) |
+
+## Using Ralph Loop
+
+### Basic Usage
+
+```bash
+# Start autonomous loop on a PRD
+claude "/ralph-loop PRD.md"
+
+# With iteration limit
+claude "/ralph-loop PRD.md --max 10"
+
+# With quality validation
+claude "/ralph-loop PRD.md --validate"
+```
+
+### Profile Composition
+
+Ralph-integration is a meta-profile that composes with any tech profile:
+
+```bash
+# Apply to project
+cc-config profile apply csharp+ralph-integration -p /path/to/project
+cc-config profile apply javascript+react+ralph-integration -p .
+```
+
+### Configuration
+
+```yaml
+# In profiles/ralph-integration.yaml
+ralph:
+  max_iterations: 50
+  max_iterations_per_item: 5
+  exit_on_idle_commits: 3
+  quality_gates:
+    tests_required: true
+    review_mode: self
+    review_threshold: no_critical
+```
+
+## Two-Tier Review Architecture
+
+To prevent nested loops and costly external calls during iteration, Ralph uses a two-tier review system:
+
+### Tier 1: Self-Review (In-Loop)
+
+During each iteration, Claude reviews its own code against:
+- Standards in CLAUDE.md
+- Canon principles
+- Previous findings in `.claude/ext-validation-findings.md`
+
+This is fast (no external API calls) and catches most issues.
+
+### Tier 2: External Validation (Post-Loop)
+
+After the PRD is complete, external validators run once:
+- **Gemini**: Code review for patterns and issues
+- **Qodana**: Static analysis for deeper issues
+
+```
+┌────────────────────────────────────────────────────────────┐
+│                    RALPH LOOP                               │
+│                                                            │
+│  ┌──────────────────────────────────────────────────────┐  │
+│  │ ITERATION 1                                          │  │
+│  │  Pick PRD item → Implement → Self-review → Commit    │  │
+│  └──────────────────────────────────────────────────────┘  │
+│                          ↓                                  │
+│  ┌──────────────────────────────────────────────────────┐  │
+│  │ ITERATION 2                                          │  │
+│  │  Pick PRD item → Implement → Self-review → Commit    │  │
+│  └──────────────────────────────────────────────────────┘  │
+│                          ↓                                  │
+│  ┌──────────────────────────────────────────────────────┐  │
+│  │ ITERATION N                                          │  │
+│  │  Pick PRD item → Implement → Self-review → Commit    │  │
+│  └──────────────────────────────────────────────────────┘  │
+│                          ↓                                  │
+│                 PRD Complete? ────No────→ Continue          │
+│                      │                                      │
+│                     Yes                                     │
+│                      ↓                                      │
+└──────────────────────────────────────────────────────────────┘
+                       ↓
+┌──────────────────────────────────────────────────────────────┐
+│              POST-LOOP VALIDATION (One Time)                 │
+│                                                              │
+│   ┌─────────────┐    ┌─────────────┐                        │
+│   │   Gemini    │    │   Qodana    │                        │
+│   │  Code Review│    │   Analysis  │                        │
+│   └──────┬──────┘    └──────┬──────┘                        │
+│          │                  │                                │
+│          └────────┬─────────┘                                │
+│                   ↓                                          │
+│         Consolidated Report                                  │
+│                   ↓                                          │
+│         Human Decision Point                                 │
+│         ├── Accept: Ship it                                  │
+│         ├── Fix: Re-enter loop with findings                 │
+│         └── Defer: Log to ext-validation-findings.md         │
+└──────────────────────────────────────────────────────────────┘
+```
+
+### Learning from External Findings
+
+Findings from Gemini/Qodana can improve future self-review:
+
+```
+.claude/ext-validation-findings.md
+           ↓
+    (Pattern appears 3+ times)
+           ↓
+    Add to CLAUDE.md standards
+           ↓
+    (Validated across projects)
+           ↓
+    Promote to profile standards
+```
+
+Example findings file:
+
+```markdown
+# External Validation Findings
+
+## Pattern: Async Without Cancellation
+- **Source**: Qodana (2024-01-15)
+- **Occurrences**: 3
+- **Fix**: Always use CancellationToken with async methods
+
+## Pattern: Missing Null Guard
+- **Source**: Gemini (2024-01-16)
+- **Occurrences**: 2
+- **Fix**: Check parameters at public API boundaries
+```
+
+## PRD-Item Quality Gates
+
+Quality gates operate at the PRD item level, not every commit:
+
+```
+while PRD has incomplete items:
+    item = next_incomplete_item(PRD)
+
+    # Inner loop: implement with quality
+    while not item_complete:
+        implement(item)          # Canon lens active
+        commit()                 # Allow WIP commits
+
+        if feature_functionally_complete:
+            run_tests(item)
+            if tests_fail: continue
+
+            self_review(item)
+            if critical_issues: continue
+
+            mark_complete(item)  # Quality gate passed
+```
+
+This avoids:
+- Perfectionism at every commit (too slow)
+- Quality debt accumulation (final sweep finds too much)
+
+## Perfectionism Prevention
+
+Ralph includes safeguards against infinite loops:
+
+| Safeguard | Value | Effect |
+|-----------|-------|--------|
+| `max_iterations` | 50 | Hard cap on total iterations |
+| `max_iterations_per_item` | 5 | Cap per PRD item |
+| `exit_on_idle_commits` | 3 | Stop if no changes for 3 iterations |
+| `review_threshold` | `no_critical` | "Good enough" not "perfect" |
+
+---
+
+# Part VII: External Validation Integration
+
+## Gemini Code Review
+
+Gemini provides AI-powered code review as a post-loop validation step.
+
+### Setup
+
+```bash
+# Ensure API key is set
+export GEMINI_API_KEY=your-key
+
+# Verify
+echo $GEMINI_API_KEY
+```
+
+### Usage
+
+After Ralph loop completes:
+
+```bash
+# Review specific files
+claude "/gemini-review src/services/"
+
+# Review recent changes
+claude "/gemini-review --since HEAD~5"
+```
+
+### Integration with Ralph
+
+In `ralph-integration.yaml`:
+
+```yaml
+post_loop_validation:
+  enabled: true
+  gemini: true
+  action: report  # report | fix | defer
+```
+
+## Qodana Static Analysis
+
+Qodana provides deep static analysis for patterns that slip past code review.
+
+### Setup
+
+```bash
+# Install Qodana CLI
+brew install jetbrains/utils/qodana
+
+# Or via Docker
+docker pull jetbrains/qodana
+```
+
+### Usage
+
+```bash
+# Run analysis
+qodana scan --project-dir .
+
+# View results
+open qodana-report/index.html
+```
+
+### What Qodana Catches
+
+- Type inference issues
+- Null reference patterns
+- Unused code
+- Security vulnerabilities
+- Framework anti-patterns
+- Performance issues
+
+## Consolidated Review Flow
+
+```
+PRD Complete
+    ↓
+Run Gemini Review ──→ Findings A
+    ↓
+Run Qodana Analysis ──→ Findings B
+    ↓
+Merge Findings A + B
+    ↓
+Generate Report:
+┌─────────────────────────────────────────┐
+│ Validation Report                        │
+│                                         │
+│ Critical Issues: 0                       │
+│ High Issues: 2                          │
+│ Medium Issues: 5                        │
+│                                         │
+│ ## High Priority                        │
+│ 1. SQL injection risk (Gemini)         │
+│ 2. Missing error boundary (Qodana)     │
+│                                         │
+│ ## Recommendations                       │
+│ - Add parameterized queries             │
+│ - Wrap D3 components in ErrorBoundary   │
+└─────────────────────────────────────────┘
+    ↓
+Human Decision:
+├── Accept (ship as-is)
+├── Fix (re-enter loop with focus)
+└── Defer (log for next sprint)
+```
+
+---
+
+# Part VIII: Measuring Success
 
 ## Weekly Check
 
@@ -2335,6 +2691,9 @@ The six masters that shape HOW you think about code:
 | **Pike** | Go Proverbs | Go philosophy |
 | **Hevery** | Angular | Angular architecture |
 | **Papa** | Style guide | Angular conventions |
+| **Skeet** | C# in Depth | C# language mastery |
+| **Cleary** | Concurrency in C# | Async/await patterns |
+| **Hejlsberg** | C# language design | Language philosophy |
 
 ## Business Base Canon
 

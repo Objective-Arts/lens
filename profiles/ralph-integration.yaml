@@ -1,0 +1,100 @@
+name: ralph-integration
+description: Meta-profile for Ralph autonomous loops. Combine with any tech profile (e.g., javascript+ralph-integration)
+projectType: software
+composable: true
+
+# NOTE: This profile does NOT include canon skills - those come from your tech profile.
+# Use with: cc-config profile apply javascript+ralph-integration
+# Or:       cc-config profile apply react+ralph-integration
+# Or:       cc-config profile apply java+ralph-integration
+
+# Agents for quality enforcement during autonomous iteration
+agents:
+  - code-reviewer
+  - test-engineer
+  - security-auditor
+
+# Ralph-specific CLAUDE.md additions
+claudeMd:
+  standards:
+    # Iteration discipline
+    - "Check git log at start of each iteration to understand completed work"
+    - "Pick next incomplete PRD item (marked [ ]) before implementing"
+    - "Commit after each meaningful progress, not just at item completion"
+    - "Mark PRD items complete [x] only after tests AND review pass"
+
+    # Quality gates
+    - "Run tests after implementing each feature"
+    - "Run /review-hard before marking any item complete"
+    - "Fix all critical issues before moving to next item"
+
+    # Autonomous loop safety
+    - "If stuck on same issue for 3+ attempts, log blocker and move on"
+    - "Maximum 5 iterations per PRD item before escalation"
+    - "Exit loop if 3 consecutive iterations produce no commits"
+
+  antiPatterns:
+    - "Marking items complete without running tests"
+    - "Skipping review on 'simple' changes"
+    - "Implementing features not in PRD"
+    - "Perfectionism loops (good enough > perfect)"
+    - "Ignoring test failures to 'move faster'"
+
+  autoInvoke:
+    - context: Starting a new PRD item implementation
+      action: Read git log, identify related previous work
+    - context: Feature implementation complete
+      action: INVOKE `/test` then `/review-hard`
+    - context: Review finds critical issues
+      action: Fix immediately before continuing
+    - context: Stuck on same error multiple iterations
+      action: Log blocker, consider moving to next item
+
+# Ralph configuration (read by /ralph-loop skill)
+ralph:
+  # Iteration limits
+  max_iterations: 50
+  max_iterations_per_item: 5
+  exit_on_idle_commits: 3
+
+  # Quality gates
+  quality_gates:
+    tests_required: true
+    test_level: unit
+    review_required: true
+    review_mode: self              # self | full (self = no Gemini/Qodana in loop)
+    review_threshold: no_critical  # no_critical | no_high | clean
+
+  # External validation (Gemini, Qodana) runs AFTER loop completes
+  # Not inside iterations - prevents nested fix cycles
+  post_loop_validation:
+    enabled: true
+    gemini: true                   # Run Gemini review on completed work
+    qodana: true                   # Run Qodana scan on completed work
+    action: report                 # report | fail (report = human decides)
+    findings_file: .claude/ext-validation-findings.md
+    promote_threshold: 3           # Suggest promotion to CLAUDE.md after N occurrences
+
+  # Exit criteria (ALL must be true)
+  exit_criteria:
+    prd_items_complete: 100%
+    tests_passing: 100%
+    review_issues_critical: 0
+
+# Example usage:
+#
+#   # For a JavaScript/React project:
+#   cc-config profile apply javascript+react+ralph-integration -p .
+#
+#   # For a Java project:
+#   cc-config profile apply java+ralph-integration -p .
+#
+#   # For a Python project:
+#   cc-config profile apply python+ralph-integration -p .
+#
+# This gives you:
+#   - Tech profile: language canon (Bloch, Simpson, etc.) + standards
+#   - Ralph profile: iteration discipline + quality gates + /ralph-loop skill
+#
+# Then run:
+#   /ralph-loop PRD.md
