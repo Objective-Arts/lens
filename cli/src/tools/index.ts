@@ -254,8 +254,10 @@ OUTPUT: "🧠 Loading baseline brain + base practices..."
 - /abramov - Hooks, composition, mental models
 
 **Python:**
-- /hettinger - Pythonic idioms
-- /slatkin - Effective Python
+- /hettinger - Pythonic idioms, transformative talks
+- /beazley - Deep Python internals, concurrency
+- /ramalho - Fluent Python, data model
+- /slatkin - Effective Python, 90 ways
 
 **Java:**
 - /bloch - Effective Java patterns
@@ -263,6 +265,11 @@ OUTPUT: "🧠 Loading baseline brain + base practices..."
 **C#:**
 - /skeet - LINQ, async patterns
 - /cleary - Async/await
+
+**Writing (for docs, READMEs, comments):**
+- /zinsser - Clarity, remove clutter
+- /strunk-white - Omit needless words, active voice
+- /king - Kill your darlings, practical advice
 
 ## UI/UX — INVOKE IF FRONTEND WORK DETECTED
 
@@ -651,6 +658,8 @@ while read -r count skill; do
       domain="domain-csharp" ;;
     porter|rumelt|helmer|horowitz)
       domain="domain-business" ;;
+    zinsser|strunk-white|king)
+      domain="domain-writing" ;;
     plan|review-hard|structure-first|build-from-plan|refactor-clean)
       domain="workflow" ;;
     *)
@@ -773,6 +782,7 @@ cat > "$CANON_REPORT" << 'HTML_END'
     .domain-domain-java { background: #007396; }
     .domain-domain-csharp { background: #68217a; }
     .domain-domain-business { background: #34495e; }
+    .domain-domain-writing { background: #8e44ad; }
     .domain-workflow { background: #607d8b; }
     .domain-other { background: #795548; }
     svg text { font-size: 11px; fill: #fff; }
@@ -836,6 +846,7 @@ cat >> "$CANON_REPORT" << 'HTML_SCRIPT'
       'domain-java': '#007396',
       'domain-csharp': '#68217a',
       'domain-business': '#34495e',
+      'domain-writing': '#8e44ad',
       'workflow': '#607d8b',
       'other': '#795548'
     };
@@ -852,6 +863,7 @@ cat >> "$CANON_REPORT" << 'HTML_SCRIPT'
       'domain-java': 'Java',
       'domain-csharp': 'C#',
       'domain-business': 'Business',
+      'domain-writing': 'Writing',
       'workflow': 'Workflow',
       'other': 'Other'
     };
