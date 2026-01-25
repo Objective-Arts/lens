@@ -168,6 +168,12 @@ For JavaScript/TypeScript code, you MUST:
 3. Run the tests with npm test or equivalent
 4. Fix any failures before proceeding
 
+**FOR WEB PROJECTS (React, Next.js, Vue, etc.):**
+- E2E tests are MANDATORY for user-facing features
+- Use Playwright or Cypress
+- Run e2e tests: npm run test:e2e or npx playwright test
+- E2E must pass before marking complete
+
 ANTI-PATTERN: Never skip tests for 'simple' code - simple code breaks too!
 
 ### STEP 5: REVIEW
@@ -180,10 +186,12 @@ Before marking complete, verify ALL apply:
 - [ ] XML comments added for C# (show sample in output)
 - [ ] README.md exists for new modules
 - [ ] Tests written and passing (for JS/TS code)
+- [ ] E2E tests written and passing (for web projects)
 - [ ] Review passed with no critical issues
 - [ ] Changes committed
 
 BLOCKING: Cannot mark complete without showing documentation samples in output!
+BLOCKING: Web projects MUST have e2e tests passing!
 
 ANTI-PATTERNS - NEVER DO:
 - Marking items complete without documentation
@@ -206,11 +214,14 @@ DOCUMENTATION ADDED:
   (For C#: Show XML /// comments with <summary>, <param>)
 TESTS WRITTEN: path/to/test.ts
 TEST RESULT: X passed, Y failed
+E2E TESTS (web projects): path/to/e2e/test.spec.ts
+E2E RESULT: X passed, Y failed (or N/A if not web project)
 REVIEW: passed/issues found
 MARKING COMPLETE: yes/no (reason if no)
 \`\`\`
 
 If DOCUMENTATION ADDED section is empty, you CANNOT mark complete.
+If web project and E2E RESULT shows failures or missing, you CANNOT mark complete.
 
 If blocked, note reason in PRD and move to next item.
 

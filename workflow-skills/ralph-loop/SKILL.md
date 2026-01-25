@@ -103,10 +103,13 @@ Each PRD item must pass ALL gates before marked complete:
 | Gate | Check | Threshold |
 |------|-------|-----------|
 | Tests | `npm test` or equivalent | 100% pass |
+| E2E Tests | `npm run test:e2e` (web projects) | 100% pass |
 | Docs | README.md exists for new modules | Required |
 | Inline Docs | JSDoc/XML comments on public APIs | Present |
 | Review | `/review-hard` (self-review only) | No critical issues |
 | Security | Auto-invoked for auth/data code | No vulnerabilities |
+
+**E2E Requirement**: For web projects (React, Next.js, Vue, etc.), E2E tests using Playwright or Cypress are MANDATORY for user-facing features.
 
 **Gate Enforcement**: Do NOT mark a PRD item complete until ALL gates pass. If a gate fails, fix and re-run.
 
