@@ -23,12 +23,18 @@ const DEFAULT_WORKFLOW_SOURCE = path.resolve(
   '../../../workflow-skills'
 );
 
-// Alternative paths to check
+// Alternative paths to check (order matters - first match wins)
 const WORKFLOW_PATHS = [
+  // Explicit claude-optimal path (primary source of truth)
+  path.resolve(process.env.HOME || '', 'local-tech-projects/claude-optimal/workflow-skills'),
+  // Environment variable override
+  process.env.CC_WORKFLOW_SKILLS_PATH,
+  // Relative to installed package (works in dev)
   DEFAULT_WORKFLOW_SOURCE,
+  // User's home directory alternatives
   path.resolve(process.env.HOME || '', '.claude/workflow-skills'),
   path.resolve(process.env.HOME || '', 'workflow-skills')
-];
+].filter((p): p is string => typeof p === 'string');
 
 /**
  * Get the workflow skills source path
