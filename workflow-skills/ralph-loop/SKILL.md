@@ -103,15 +103,27 @@ Each PRD item must pass ALL gates before marked complete:
 | Gate | Check | Threshold |
 |------|-------|-----------|
 | Tests | `npm test` or equivalent | 100% pass |
+| Docs | README.md exists for new modules | Required |
+| Inline Docs | JSDoc/XML comments on public APIs | Present |
 | Review | `/review-hard` (self-review only) | No critical issues |
 | Security | Auto-invoked for auth/data code | No vulnerabilities |
-| Documentation | Inline docs + `/doc-code` if public API | JSDoc/XML present |
+
+**Gate Enforcement**: Do NOT mark a PRD item complete until ALL gates pass. If a gate fails, fix and re-run.
 
 **Important**: Inside the loop, use self-review only (no `--full`). Gemini and Qodana run as post-loop validation to prevent nested fix cycles.
 
 ## Auto-Invoke Canon Masters
 
 When implementing PRD items, automatically invoke domain experts:
+
+### Architecture/Engineering (system design, resilience, refactoring)
+
+| Context | Masters to Invoke |
+|---------|-------------------|
+| System design, new architecture | `/taleb` (antifragility, via negativa) then `/petroski` |
+| Major refactoring | `/petroski` (form follows failure) then `/taleb` |
+| Building for resilience | `/taleb` (bounded downside, optionality) |
+| Learning from past failures | `/petroski` (case study methodology) |
 
 ### UI/UX Work (components, layouts, forms, animations)
 

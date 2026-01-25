@@ -253,6 +253,20 @@ describe('Tools Module', () => {
       expect(content).toContain('TEST RESULT');
     });
 
+    it('enforces JSDoc/XML documentation with proof requirement', () => {
+      installTool('ralph');
+      const content = fs.readFileSync(path.join(tempDir, 'ralph'), 'utf-8');
+
+      // Must require showing documentation samples
+      expect(content).toContain('DOCUMENTATION ADDED');
+      expect(content).toContain('JSDoc added for JS/TS (show sample in output)');
+      expect(content).toContain('XML comments added for C# (show sample in output)');
+      expect(content).toContain('Cannot mark complete without showing documentation samples');
+      expect(content).toContain('@param');
+      expect(content).toContain('@returns');
+      expect(content).toContain('<summary>');
+    });
+
     it('requires actual skill invocation not just mentions', () => {
       installTool('ralph');
       const content = fs.readFileSync(path.join(tempDir, 'ralph'), 'utf-8');
@@ -260,6 +274,31 @@ describe('Tools Module', () => {
       // Should explicitly tell Claude to use Skill tool
       expect(content).toContain('ACTUALLY INVOKE');
       expect(content).toContain('use the Skill tool');
+    });
+
+    it('includes anti-patterns warnings', () => {
+      installTool('ralph');
+      const content = fs.readFileSync(path.join(tempDir, 'ralph'), 'utf-8');
+
+      expect(content).toContain('ANTI-PATTERN');
+      expect(content).toContain('Marking items complete without documentation');
+      expect(content).toContain('Skipping tests');
+      expect(content).toContain('simple');
+    });
+
+    it('requires README.md for new modules', () => {
+      installTool('ralph');
+      const content = fs.readFileSync(path.join(tempDir, 'ralph'), 'utf-8');
+
+      expect(content).toContain('README.md exists for new modules');
+    });
+
+    it('invokes /procida for documentation', () => {
+      installTool('ralph');
+      const content = fs.readFileSync(path.join(tempDir, 'ralph'), 'utf-8');
+
+      expect(content).toContain('/procida');
+      expect(content).toContain('Diátaxis');
     });
 
     it('includes idle detection', () => {

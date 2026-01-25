@@ -130,21 +130,31 @@ Read $PRD and find the NEXT incomplete item (marked with '- [ ]').
 
 ### STEP 1: ANALYZE & INVOKE SKILLS
 Determine work type and ACTUALLY INVOKE the skills (use the Skill tool):
+
+**Architecture/System Design:**
+- System design, resilience → invoke: /taleb (antifragility, via negativa)
+- Learning from failures, refactoring → invoke: /petroski (form follows failure)
+
+**UI/UX Work:**
 - UI/Component work → invoke: /frost, /ive, /norman
 - Forms → invoke: /wroblewski, /norman
 - Animations → invoke: /duarte
+- Mobile/responsive → invoke: /wroblewski, /buxton
+
+**Code Quality:**
 - React/JSX → invoke: /abramov
 - TypeScript → invoke: /cherny
-- Mobile/responsive → invoke: /wroblewski, /buxton
 
 ### STEP 2: IMPLEMENT
 Write the code following the perspective from Step 1.
 
 ### STEP 3: DOCUMENT
-Add inline documentation (required for all public functions):
-- JS/TS: JSDoc with @param, @returns, @example
-- C#: XML comments with <summary>, <param>, <example>
-- Python: Google-style docstrings
+Invoke /procida for Diátaxis documentation methodology, then:
+- Add inline documentation (required for all public functions):
+  - JS/TS: JSDoc with @param, @returns, @example
+  - C#: XML comments with <summary>, <param>, <example>
+  - Python: Google-style docstrings
+- For new modules: Create README.md
 
 ### STEP 4: TEST (REQUIRED FOR JS/TS CODE)
 For JavaScript/TypeScript code, you MUST:
@@ -155,29 +165,49 @@ For JavaScript/TypeScript code, you MUST:
 3. Run the tests with npm test or equivalent
 4. Fix any failures before proceeding
 
+ANTI-PATTERN: Never skip tests for 'simple' code - simple code breaks too!
+
 ### STEP 5: REVIEW
 Run /review-hard and fix any critical issues.
 
-### STEP 6: VERIFICATION CHECKLIST
+### STEP 6: VERIFICATION CHECKLIST (ALL MUST PASS)
 Before marking complete, verify ALL apply:
-- [ ] Appropriate canon skills were invoked (show which ones)
-- [ ] Code is documented (JSDoc/XML comments present)
+- [ ] Appropriate canon skills were invoked (list them in output)
+- [ ] JSDoc added for JS/TS (show sample in output)
+- [ ] XML comments added for C# (show sample in output)
+- [ ] README.md exists for new modules
 - [ ] Tests written and passing (for JS/TS code)
 - [ ] Review passed with no critical issues
 - [ ] Changes committed
 
+BLOCKING: Cannot mark complete without showing documentation samples in output!
+
+ANTI-PATTERNS - NEVER DO:
+- Marking items complete without documentation
+- Skipping tests for 'simple' code
+- Saying 'tests not needed here'
+
 ### STEP 7: MARK COMPLETE
 Only after verification passes: Update PRD '- [ ]' to '- [x]'
 
-## OUTPUT FORMAT
-Show your work:
+## OUTPUT FORMAT (REQUIRED - Show your work)
 \`\`\`
-SKILLS INVOKED: /frost, /dodds, ...
+SKILLS INVOKED: /frost, /dodds, /procida, ...
+DOCUMENTATION ADDED:
+  - File: src/example.ts
+  - Sample JSDoc:
+    /**
+     * @param x - description
+     * @returns description
+     */
+  (For C#: Show XML /// comments with <summary>, <param>)
 TESTS WRITTEN: path/to/test.ts
 TEST RESULT: X passed, Y failed
 REVIEW: passed/issues found
 MARKING COMPLETE: yes/no (reason if no)
 \`\`\`
+
+If DOCUMENTATION ADDED section is empty, you CANNOT mark complete.
 
 If blocked, note reason in PRD and move to next item.
 
