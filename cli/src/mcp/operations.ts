@@ -9,7 +9,6 @@ import * as fs from 'fs';
 import * as path from 'path';
 import { homedir } from 'os';
 import type {
-  MCPServerDefinition,
   MCPServerConfig,
   MCPOperationResult,
   EnvCheckResult
@@ -41,8 +40,21 @@ function resolvePaths(projectPath?: string): {
 }
 
 /**
- * Load mcp.json (server definitions)
- * Format: { "mcpServers": { "name": { config } } }
+ * Load MCP server configurations from `.mcp.json`.
+ *
+ * Supports both global (`~/.claude/.mcp.json`) and project-level (`.mcp.json`).
+ *
+ * @param projectPath - Project path for project-level config; omit for global
+ * @returns Record of server name to configuration
+ *
+ * @example
+ * ```typescript
+ * // Load global servers
+ * const globalServers = loadMcpJson();
+ *
+ * // Load project servers
+ * const projectServers = loadMcpJson('./myproject');
+ * ```
  */
 export function loadMcpJson(projectPath?: string): Record<string, MCPServerConfig> {
   const { mcpJsonPath } = resolvePaths(projectPath);
@@ -135,7 +147,28 @@ export function isServerEnabled(name: string, projectPath?: string): boolean {
 }
 
 /**
- * Install a server from the registry to mcp.json
+ * Install an MCP server from the registry to `.mcp.json`.
+ *
+ * Adds the server configuration from the registry to the mcp.json file.
+ * Validates required environment variables before installation.
+ *
+ * @param name - Server name from the registry
+ * @param options - Installation options
+ * @param options.skipEnvCheck - Skip environment variable validation
+ * @param options.projectPath - Install to project instead of global
+ * @returns Operation result with success status and message
+ *
+ * @example
+ * ```typescript
+ * // Install to global config
+ * const result = installServer('linear');
+ * if (!result.success) {
+ *   console.error(result.message);
+ * }
+ *
+ * // Install to project config
+ * const result = installServer('qodana', { projectPath: './myproject' });
+ * ```
  */
 export function installServer(
   name: string,
@@ -235,7 +268,23 @@ export function uninstallServer(name: string, projectPath?: string): MCPOperatio
 }
 
 /**
- * Enable a server (add to settings.json enabledMcpjsonServers)
+ * Enable an installed MCP server.
+ *
+ * Adds the server name to `enabledMcpjsonServers` in settings.json.
+ * The server must already be installed in `.mcp.json`.
+ *
+ * @param name - Server name to enable
+ * @param projectPath - Project path for project-level settings
+ * @returns Operation result with success status and message
+ *
+ * @example
+ * ```typescript
+ * // Enable in global settings
+ * enableServer('linear');
+ *
+ * // Enable in project settings
+ * enableServer('qodana', './myproject');
+ * ```
  */
 export function enableServer(name: string, projectPath?: string): MCPOperationResult {
   const { scope } = resolvePaths(projectPath);

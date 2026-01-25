@@ -12,7 +12,6 @@ import { execSync } from 'child_process';
 import type {
   WorkflowManifest,
   WorkflowSource,
-  InstalledWorkflowInfo,
   WorkflowStatusInfo,
   WorkflowSkillInfo,
   WorkflowSkillStatus
@@ -81,7 +80,20 @@ export function getWorkflowSourceInfo(): WorkflowSource & { commit?: string; rem
 }
 
 /**
- * List all available workflow skills from source
+ * List all available workflow skills from source.
+ *
+ * Workflow skills are universal patterns like ralph-loop, implement,
+ * review-hard that apply across all projects.
+ *
+ * @returns Array of available workflow skills with name, path, and description
+ *
+ * @example
+ * ```typescript
+ * const skills = listWorkflowSkills();
+ * skills.forEach(skill => {
+ *   console.log(`${skill.name}: ${skill.description}`);
+ * });
+ * ```
  */
 export function listWorkflowSkills(): WorkflowSkillInfo[] {
   const sourcePath = getWorkflowSourcePath();
@@ -276,7 +288,24 @@ export function installWorkflowSkill(
 }
 
 /**
- * Install all workflow skills to a project
+ * Install all workflow skills to a project.
+ *
+ * Copies all available workflow skills (ralph-loop, implement, review-hard, etc.)
+ * to the project's `.claude/skills/` directory.
+ *
+ * @param projectPath - Target project directory
+ * @param options - Installation options
+ * @param options.force - Overwrite existing skills (default: false)
+ * @returns Result with installed, skipped, and error arrays
+ *
+ * @example
+ * ```typescript
+ * const result = installAllWorkflowSkills('./myproject');
+ * console.log(`Installed ${result.installed.length} workflow skills`);
+ *
+ * // Force reinstall
+ * const result = installAllWorkflowSkills('./myproject', { force: true });
+ * ```
  */
 export function installAllWorkflowSkills(
   projectPath: string,

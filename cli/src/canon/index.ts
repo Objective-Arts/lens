@@ -10,7 +10,7 @@
 import * as fs from 'fs';
 import * as path from 'path';
 import { homedir } from 'os';
-import { hashSkillDirectory, isSkillModified } from './hash.js';
+import { hashSkillDirectory } from './hash.js';
 import {
   readManifest,
   writeManifest,
@@ -20,29 +20,36 @@ import {
   getGitRemote
 } from './manifest.js';
 import type {
-  CanonManifest,
-  CanonSource,
   CanonListItem,
   SkillStatus,
   SkillStatusInfo,
-  CanonUpgradeResult,
-  InstalledSkillInfo
+  CanonUpgradeResult
 } from './types.js';
 
 export * from './types.js';
 export * from './hash.js';
 export * from './manifest.js';
 
-// Default canon source paths
-const DEFAULT_CANON_PATH = path.join(homedir(), 'local-tech-projects', 'canon-skills');
+// Default canon source paths - use claude-optimal/canon as the source of truth
+const DEFAULT_CANON_PATH = path.join(homedir(), 'local-tech-projects', 'claude-optimal', 'canon');
 const SECURITY_SKILL_PATH = path.join(homedir(), '.claude', 'skill-library', 'security');
 const TECH_SKILL_PATH = path.join(homedir(), '.claude', 'skill-library', 'tech');
 
 // Subdirectories to search in canon-skills
-const CANON_SUBDIRS = ['', 'javascript', 'typescript', 'go', 'java', 'python', 'angular', 'testing', 'visualization', 'business'];
+const CANON_SUBDIRS = ['', 'javascript', 'typescript', 'go', 'java', 'python', 'angular', 'testing', 'visualization', 'business', 'ui-ux', 'csharp', 'react', 'security', 'engineering'];
 
 /**
- * Get the configured canon source path
+ * Get the configured canon source path.
+ *
+ * Can be overridden via `CANON_SKILLS_PATH` environment variable.
+ *
+ * @returns Absolute path to canon skills directory
+ *
+ * @example
+ * ```typescript
+ * const sourcePath = getCanonSourcePath();
+ * // Default: ~/local-tech-projects/claude-optimal/canon
+ * ```
  */
 export function getCanonSourcePath(): string {
   // TODO: Could be configurable via env var or config file
@@ -50,7 +57,20 @@ export function getCanonSourcePath(): string {
 }
 
 /**
- * List all available canon skills from the source directory
+ * List all available canon skills from the source directory.
+ *
+ * Searches all category subdirectories (javascript, testing, etc.)
+ * and returns skills that have a valid SKILL.md file.
+ *
+ * @returns Array of available skills with name, path, and category
+ *
+ * @example
+ * ```typescript
+ * const skills = listCanonSkills();
+ * skills.forEach(skill => {
+ *   console.log(`${skill.name} (${skill.category})`);
+ * });
+ * ```
  */
 export function listCanonSkills(): CanonListItem[] {
   const canonPath = getCanonSourcePath();
@@ -157,7 +177,20 @@ export function getInstalledSkills(projectPath: string): string[] {
 }
 
 /**
- * Check the status of all installed skills vs source
+ * Check the status of all installed skills compared to source.
+ *
+ * Compares each installed skill's content hash against the source
+ * to determine if it's current, outdated, modified, or missing.
+ *
+ * @param projectPath - Project directory containing installed skills
+ * @returns Array of status info for each installed skill
+ *
+ * @example
+ * ```typescript
+ * const statuses = checkSkillStatus('./myproject');
+ * const outdated = statuses.filter(s => s.status === 'outdated');
+ * console.log(`${outdated.length} skills need updates`);
+ * ```
  */
 export function checkSkillStatus(projectPath: string): SkillStatusInfo[] {
   const manifest = readManifest(projectPath);
@@ -218,7 +251,27 @@ export function checkSkillStatus(projectPath: string): SkillStatusInfo[] {
 }
 
 /**
- * Copy a skill from source to project
+ * Copy a skill from source to project.
+ *
+ * Copies the skill directory (not symlink) and updates the canon manifest
+ * with version tracking information.
+ *
+ * @param skillName - Name of the skill to copy
+ * @param projectPath - Target project directory
+ * @param options - Copy options
+ * @param options.force - Overwrite existing skill (default: false)
+ * @returns Result with success status and message
+ *
+ * @example
+ * ```typescript
+ * const result = copySkill('abramov', './myproject');
+ * if (result.success) {
+ *   console.log('Skill copied successfully');
+ * }
+ *
+ * // Force overwrite
+ * const forceResult = copySkill('abramov', './myproject', { force: true });
+ * ```
  */
 export function copySkill(
   skillName: string,
@@ -281,7 +334,29 @@ export function copySkill(
 }
 
 /**
- * Upgrade outdated skills from source
+ * Upgrade outdated skills from source.
+ *
+ * Updates all installed skills that have newer versions in source.
+ * Skips locally modified skills unless `force` is true.
+ *
+ * @param projectPath - Project directory containing installed skills
+ * @param options - Upgrade options
+ * @param options.force - Overwrite locally modified skills (default: false)
+ * @param options.skills - Specific skills to upgrade (default: all)
+ * @returns Result with upgraded, skipped, and error arrays
+ *
+ * @example
+ * ```typescript
+ * // Upgrade all outdated skills
+ * const result = upgradeSkills('./myproject');
+ * console.log(`Upgraded: ${result.upgraded.join(', ')}`);
+ *
+ * // Upgrade specific skills with force
+ * const result = upgradeSkills('./myproject', {
+ *   skills: ['abramov', 'dodds'],
+ *   force: true
+ * });
+ * ```
  */
 export function upgradeSkills(
   projectPath: string,

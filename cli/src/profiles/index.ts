@@ -300,8 +300,21 @@ function loadProfilesFromDir(dir: string): ComposableProfile[] {
 }
 
 /**
- * List all available profiles from both built-in and user directories (async)
- * User profiles override built-in profiles with the same name
+ * List all available profiles from both built-in and user directories.
+ *
+ * Loads profiles from:
+ * - Built-in: `~/local-tech-projects/claude-optimal/profiles/`
+ * - User: `~/.claude/profiles/`
+ *
+ * User profiles override built-in profiles with the same name.
+ *
+ * @returns Array of all available composable profiles
+ *
+ * @example
+ * ```typescript
+ * const profiles = await listProfilesAsync();
+ * console.log(`Available profiles: ${profiles.map(p => p.name).join(', ')}`);
+ * ```
  */
 export async function listProfilesAsync(): Promise<ComposableProfile[]> {
   const [builtinProfiles, userProfiles] = await Promise.all([
@@ -323,7 +336,10 @@ export async function listProfilesAsync(): Promise<ComposableProfile[]> {
 }
 
 /**
- * List all available profiles (sync - for backwards compatibility)
+ * List all available profiles (synchronous version).
+ *
+ * @returns Array of all available composable profiles
+ * @see {@link listProfilesAsync} for async version
  */
 export function listProfiles(): ComposableProfile[] {
   const builtinProfiles = loadProfilesFromDir(BUILTIN_PROFILES_DIR);
@@ -342,11 +358,31 @@ export function listProfiles(): ComposableProfile[] {
   return Array.from(profileMap.values());
 }
 
+/**
+ * Get a single profile by name.
+ *
+ * @param name - Profile name to look up
+ * @returns The profile if found, null otherwise
+ *
+ * @example
+ * ```typescript
+ * const profile = getProfile('javascript');
+ * if (profile) {
+ *   console.log(`Skills: ${profile.skills?.canon?.join(', ')}`);
+ * }
+ * ```
+ */
 export function getProfile(name: string): ComposableProfile | null {
   const profiles = listProfiles();
   return profiles.find(p => p.name === name) ?? null;
 }
 
+/**
+ * Get a single profile by name (async version).
+ *
+ * @param name - Profile name to look up
+ * @returns The profile if found, null otherwise
+ */
 export async function getProfileAsync(name: string): Promise<ComposableProfile | null> {
   const profiles = await listProfilesAsync();
   return profiles.find(p => p.name === name) ?? null;
@@ -357,8 +393,21 @@ export async function getProfileAsync(name: string): Promise<ComposableProfile |
 // ============================================================================
 
 /**
- * Parse profile string that may contain + for composition
- * Returns array of profile names: "base-tech+javascript+react" -> ["base-tech", "javascript", "react"]
+ * Parse a profile string that may contain `+` for composition.
+ *
+ * Splits the input on `+` to support combining multiple profiles.
+ *
+ * @param profileString - Profile string, possibly with `+` separators
+ * @returns Array of individual profile names
+ *
+ * @example
+ * ```typescript
+ * parseProfileString('base-tech+javascript+react');
+ * // Returns: ['base-tech', 'javascript', 'react']
+ *
+ * parseProfileString('single-profile');
+ * // Returns: ['single-profile']
+ * ```
  */
 export function parseProfileString(profileString: string): string[] {
   return profileString.split('+').map(s => s.trim()).filter(Boolean);
@@ -372,7 +421,22 @@ function mergeArrays<T>(target: T[], source: T[]): T[] {
 }
 
 /**
- * Combine multiple profiles into a single merged profile
+ * Combine multiple profiles into a single merged profile.
+ *
+ * Merges skills, commands, agents, and claudeMd sections.
+ * Arrays are deduplicated; ralph config uses last-wins.
+ *
+ * @param profileNames - Array of profile names to combine
+ * @returns Merged profile, or null if no valid profiles found
+ *
+ * @example
+ * ```typescript
+ * const combined = combineProfiles(['base-tech', 'javascript', 'react']);
+ * if (combined) {
+ *   console.log(`Combined profile: ${combined.name}`);
+ *   // Name is: "base-tech + javascript + react"
+ * }
+ * ```
  */
 export function combineProfiles(profileNames: string[]): ComposableProfile | null {
   const profiles = profileNames
@@ -1115,11 +1179,32 @@ async function applyMcpToProject(
 // ============================================================================
 
 /**
- * Apply a composable profile to a project (async)
- * Copies skills (not symlinks) for portability, creates canon manifest
+ * Apply a composable profile to a project directory.
  *
- * Decomposed into helper functions for readability (P1)
- * Uses parallel execution where possible (P2)
+ * Performs the following operations:
+ * 1. Copies skills to `.claude/skills/` (not symlinks, for portability)
+ * 2. Creates `canon-manifest.json` for version tracking
+ * 3. Installs workflow skills (ralph-loop, implement, etc.)
+ * 4. Links commands from global to project
+ * 5. Updates `CLAUDE.md` with auto-invoke rules
+ * 6. Configures MCP servers if specified
+ *
+ * @param profile - The composable profile to apply
+ * @param projectPath - Target project directory path
+ * @returns Result with created, linked, skipped, errors, and warnings arrays
+ *
+ * @example
+ * ```typescript
+ * const profile = getProfile('javascript');
+ * const result = await applyComposableProfile(profile, './myproject');
+ *
+ * if (result.errors.length === 0) {
+ *   console.log('Profile applied successfully!');
+ *   console.log(`Created: ${result.created.join(', ')}`);
+ * } else {
+ *   console.error(`Errors: ${result.errors.join(', ')}`);
+ * }
+ * ```
  */
 export async function applyComposableProfile(
   profile: ComposableProfile,

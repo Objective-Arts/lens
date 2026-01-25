@@ -13,11 +13,39 @@ import { estimateTokens } from '../utils/tokens.js';
 
 const GLOBAL_CLAUDE_PATH = path.join(homedir(), '.claude');
 
+/**
+ * Options for scanning Claude Code configuration
+ */
 export interface ScanOptions {
+  /** Project directory path to scan (in addition to global ~/.claude/) */
   projectPath?: string;
+  /** Whether to include plugin configuration (default: true) */
   includePlugins?: boolean;
 }
 
+/**
+ * Scan and discover all Claude Code configuration across global and project scopes.
+ *
+ * Discovers skills, commands, agents, settings, and CLAUDE.md files.
+ * Builds a dependency graph and generates a summary with token counts.
+ *
+ * @param options - Scan configuration options
+ * @returns Scan result with all discovered items, parsed files, and summary
+ *
+ * @example
+ * ```typescript
+ * // Scan global config only
+ * const globalResult = await scan();
+ *
+ * // Scan project and global config
+ * const projectResult = await scan({ projectPath: './myproject' });
+ *
+ * // Access results
+ * console.log(`Found ${projectResult.items.length} items`);
+ * console.log(`Total tokens: ${projectResult.summary.totalTokens}`);
+ * console.log(`Conflicts: ${projectResult.summary.conflicts.length}`);
+ * ```
+ */
 export async function scan(options: ScanOptions = {}): Promise<ScanResult> {
   const { projectPath, includePlugins = true } = options;
 
