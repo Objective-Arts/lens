@@ -55,9 +55,10 @@ Before defining types, invoke domain-specific canon skills:
 | Concern | Canon Skills | What They Inform |
 |---------|--------------|------------------|
 | Data structures | `/linus` | Data structures first, algorithms follow |
+| Domain modeling | `/evans` | Entities, value objects, aggregates, bounded contexts |
 | API design | `/bloch` | Interfaces before classes, immutability |
 | Type systems | `/cherny`, `/hejlsberg` | TypeScript/C# type design |
-| Domain modeling | `/ramalho` | Python data model, protocols |
+| Python data model | `/ramalho` | Data model, protocols |
 | Composition | `/pike` | Small interfaces, composition over inheritance |
 | Patterns | `/gang-of-four` | When to use which structural pattern |
 
