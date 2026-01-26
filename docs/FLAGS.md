@@ -4,6 +4,27 @@ Flags that modify Claude's behavior to enforce structural quality standards.
 
 ---
 
+## Canon-Driven Development
+
+**Quality built in from the start, not forced by review when it's too late.**
+
+### Dual Workflow Model
+
+Choose your path based on whether code exists:
+
+| New Code Flow | Legacy Code Flow |
+|---------------|------------------|
+| PRD / Feature Request | Existing Codebase |
+| `--plan` → `--structure-first` → `--build-from-plan` | `--plan` → `--structure-first` → `--refactor-clean` |
+| Canon: Bloch, Pike, Schneier, Evans, Gang of Four | Canon: Feathers, Fowler, Taleb, Evans, Liskov |
+
+Both flows converge at shared review gates:
+```
+[implementation] → --test → --review-hard → (issues? → fix → re-review)
+```
+
+---
+
 ## Slash Commands
 
 Some flags are also available as standalone slash commands for convenience:
@@ -914,31 +935,46 @@ Add to project CLAUDE.md to trigger documentation automatically:
 
 ## Combining Flags
 
-Flags can be combined for maximum rigor:
+### Dual Workflow Execution
 
+**New Code Flow** (building new features):
 ```
-> Build the timeline view --structure-first --test all --doc-code --review-hard
+> Build the timeline view --plan --structure-first --build-from-plan --test all --review-hard
 ```
 
-**Execution Order**:
-1. `--structure-first` or `--plan` → Plan shown/written, wait for approval
-2. Implement per plan
-3. `--test [level]` → Write tests at specified level(s)
-4. `--doc-code` → Generate documentation (Procida/Diátaxis)
-5. `--review-hard` → Adversarial review before presenting
+**Legacy Code Flow** (refactoring existing code):
+```
+> Clean up the user service --plan --structure-first --refactor-clean --test all --review-hard
+```
 
-**Common Combinations**:
-| Combination | When to Use |
-|-------------|-------------|
-| `--structure-first --test all` | New feature development |
-| `--structure-first --test all --doc-code` | New feature with documentation |
-| `--plan --test all --doc-code` | Complex feature, full pipeline |
-| `--plan --review-hard` | Architectural changes requiring rigor |
-| `--refactor-clean --test unit` | Refactoring with unit coverage |
-| `--test integration --review-hard` | Bug fixes with integration verification |
-| `--doc-code --review-hard` | Document existing code |
+### Execution Order by Flow
 
-**Note**: `--structure-first` and `--plan` are mutually exclusive. Use one or the other.
+**New Code Flow**:
+1. `--plan` → Explore codebase, write `.plan.md`, wait for approval
+2. `--structure-first` → Design types and interfaces
+3. `--build-from-plan` → Implement from approved plan
+4. `--test [level]` → Write tests
+5. `--review-hard` → Adversarial review (loop back if issues)
+
+**Legacy Code Flow**:
+1. `--plan` → Find seams, identify risks, write `.plan.md`
+2. `--structure-first` → Document existing structures
+3. `--refactor-clean` → Safe refactoring with seams
+4. `--test [level]` → Write/update tests
+5. `--review-hard` → Adversarial review (loop back if issues)
+
+### Common Combinations by Flow
+
+| Flow | Combination | When to Use |
+|------|-------------|-------------|
+| **New Code** | `--plan --structure-first --build-from-plan` | New feature, full pipeline |
+| **New Code** | `--structure-first --build-from-plan --test all` | Quick feature with tests |
+| **Legacy** | `--plan --structure-first --refactor-clean` | Major refactoring |
+| **Legacy** | `--refactor-clean --test unit` | Quick cleanup with coverage |
+| **Both** | `--test all --review-hard` | After implementation complete |
+| **Both** | `--doc-code --review-hard` | Document and review |
+
+**Note**: `--build-from-plan` is for New Code Flow, `--refactor-clean` is for Legacy Code Flow. Don't mix them.
 
 ---
 
@@ -973,23 +1009,32 @@ Override with explicit `--no-review` if truly not needed.
 
 ## Quick Reference
 
+### By Workflow
+
+| Flow | Full Pipeline |
+|------|---------------|
+| **New Code** | `--plan` → `--structure-first` → `--build-from-plan` → `--test` → `--review-hard` |
+| **Legacy Code** | `--plan` → `--structure-first` → `--refactor-clean` → `--test` → `--review-hard` |
+
+### By Situation
+
 | Situation | Command | What Happens |
 |-----------|---------|--------------|
-| New feature | `--structure-first` | Inline plan → Approve → Implement |
-| Complex feature | `--plan` | Plan mode → .plan.md → Approve → Implement |
-| After coding | `--test all` or `/test all` | Analyze → Plan tests → Write tests (all levels) |
-| Unit tests only | `--test unit` or `/test unit` | Write unit tests with mocks |
+| **New Code Flow** | | |
+| New feature | `--plan --structure-first --build-from-plan` | Full new code pipeline |
+| Quick feature | `--structure-first --build-from-plan` | Lightweight new code |
+| **Legacy Code Flow** | | |
+| Major refactor | `--plan --structure-first --refactor-clean` | Full legacy pipeline |
+| Quick cleanup | `--refactor-clean` | Lightweight refactoring |
+| **Shared Gates** | | |
+| After coding | `--test all` or `/test all` | Write tests (all levels) |
+| Unit tests only | `--test unit` | Write unit tests with mocks |
 | Integration only | `--test integration` | Write integration tests |
-| E2E only | `--test e2e` | Write end-to-end tests |
-| Generate docs | `--doc-code` or `/doc-code` | Analyze → Determine type → Generate docs |
-| Document existing | `/doc-code src/path/` | Generate docs for existing code |
-| Any completion | `--review-hard` or `/review-hard` | Adversarial review → Fix → Present |
-| Cleanup task | `--refactor-clean` or `/refactor-clean` | Decompose → Unify → Summarize |
-| Quick bug fix | (no flag) | Standards still apply, less formality |
-| Feature + tests | `--structure-first --test all` | Plan → Implement → Test |
-| Feature + docs | `--structure-first --test all --doc-code` | Plan → Implement → Test → Document |
-| Complex + tests | `--plan --test all` | Full plan mode → Implement → Test |
-| Maximum rigor | `--plan --test all --doc-code --review-hard` | Full pipeline with docs |
+| Any completion | `--review-hard` or `/review-hard` | Adversarial review → Fix → Re-review |
+| Generate docs | `--doc-code` or `/doc-code` | Diátaxis documentation |
+| **Maximum Rigor** | | |
+| New code, full | `--plan --structure-first --build-from-plan --test all --doc-code --review-hard` |
+| Legacy, full | `--plan --structure-first --refactor-clean --test all --doc-code --review-hard` |
 
 ---
 
