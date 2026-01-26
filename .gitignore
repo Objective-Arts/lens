@@ -1,0 +1,22 @@
+# macOS
+.DS_Store
+
+# Build artifacts
+*.tgz
+dist/
+node_modules/
+
+# IDE
+.idea/
+.vscode/
+*.swp
+*.swo
+
+# Logs
+*.log
+
+# Qodana
+.qodana/
+
+# Local config
+.mcp.json
