@@ -7,6 +7,27 @@ description: Implement code from an approved plan. Use after /plan or /structure
 
 Implement code from an approved plan file. Executes exactly per the plan without re-exploring.
 
+## Why This Skill Exists
+
+This skill consumes the plan artifact created by `/plan`:
+
+```
+/plan              → Creates .claude/plans/feature.md (artifact)
+                          ↓
+/build-from-plan   → Reads that file, implements exactly per plan
+```
+
+Without this separation:
+- Claude would re-explore and potentially change approach mid-implementation
+- No clear checkpoint between "agree on plan" and "execute plan"
+- Scope creep happens naturally without discipline
+
+With `/build-from-plan`:
+- **Separation of concerns**: Planning and implementation are distinct phases
+- **Resumability**: Can resume a partially-implemented plan later
+- **Discipline**: Implementation follows the plan exactly, no scope creep
+- **Trackability**: Progress is marked against the plan steps
+
 ## When to Use
 
 - After `/plan` has been approved
