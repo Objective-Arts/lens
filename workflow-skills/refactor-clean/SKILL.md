@@ -38,12 +38,12 @@ Required reads:
 Required for ALL legacy refactoring:
 1. Read: .claude/skills/feathers/SKILL.md (finding seams, characterization tests)
 2. Read: .claude/skills/fowler/SKILL.md (refactoring patterns)
+3. Read: .claude/skills/gang-of-four/SKILL.md (design patterns for restructuring)
 ```
 
 Also load based on concern:
 - SRP violations → Read: .claude/skills/liskov/SKILL.md
 - API cleanup → Read: .claude/skills/bloch/SKILL.md
-- Patterns → Read: .claude/skills/gang-of-four/SKILL.md
 - Language-specific → Read appropriate language canon
 
 ### Step 1.3: Output Proof of Loading
@@ -73,7 +73,7 @@ Also load based on concern:
 | Linus | Will improve data structures to eliminate conditionals |
 | Dijkstra | Will make invariants explicit |
 
-### Legacy Canon Loaded (Feathers + Fowler)
+### Legacy Canon Loaded (Feathers + Fowler + Gang of Four)
 
 **From /feathers (Working Effectively with Legacy Code):**
 | Technique | How I'll Apply It |
@@ -89,6 +89,14 @@ Also load based on concern:
 | [Long Method] | Extract Method |
 | [Feature Envy] | Move Method |
 | [God Class] | Extract Class |
+
+**From /gang-of-four (Design Patterns):**
+| Current Problem | Pattern to Apply | Why |
+|-----------------|------------------|-----|
+| [Conditional complexity] | Strategy | Replace conditionals with polymorphism |
+| [Object creation scattered] | Factory Method | Centralize creation logic |
+| [God class with many responsibilities] | Facade + delegation | Hide complexity behind simple interface |
+| [Tight coupling] | Observer/Mediator | Decouple components |
 
 ### Refactoring Approach
 Before changing ANY code:
@@ -216,8 +224,9 @@ Maintain a running log:
 |-------|---------------|-------------|
 | /feathers | X | Seams at [locations], characterization tests |
 | /fowler | Y | [specific refactorings applied] |
-| /liskov | Z | SRP violations fixed at [locations] |
-| Baseline/Kernighan | W | Renamed [count] methods/variables |
+| /gang-of-four | Z | [patterns applied: Strategy at X, Factory at Y] |
+| /liskov | W | SRP violations fixed at [locations] |
+| Baseline/Kernighan | V | Renamed [count] methods/variables |
 
 ### Verification
 - [ ] All characterization tests pass
