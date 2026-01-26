@@ -1,6 +1,20 @@
 # Claude-Optimal Documentation
 
-> Making Claude Code produce expert-quality code through explicit standards and master perspectives.
+> **Canon-Driven Development**: Quality built in from the start, not forced by review when it's too late.
+
+## The Dual Workflow
+
+Choose your path based on whether code exists:
+
+| New Code Flow | Legacy Code Flow |
+|---------------|------------------|
+| PRD / Feature Request | Existing Codebase |
+| `/plan` → `/structure-first` → `/build-from-plan` | `/plan` → `/structure-first` → `/refactor-clean` |
+| Canon: Bloch, Pike, Schneier, Evans | Canon: Feathers, Fowler, Taleb, Liskov |
+
+Both flows converge at shared review gates: `/test` → `/review-hard`
+
+**[Visual Guide](../docs/WORKFLOW-GUIDE.md)** | **[Interactive Diagram](../flow-guide.html)**
 
 ---
 
@@ -92,9 +106,11 @@ cc-config profile apply javascript+react -p /path/to/project
 | [Profile Catalog](reference/profiles.md) | All available profiles |
 | [Canon Masters](reference/canon-catalog.md) | Complete list of masters by domain |
 | [Quality Flags](reference/flags.md) | All flags with parameters |
-| [CLI Commands](reference/cli-commands.md) | cc-config command reference |
-| [Configuration Schema](reference/config-schema.md) | YAML configuration options |
-| [Standards](reference/standards.md) | Universal and framework standards |
+| [API Design Standards](reference/api-design-standards.md) | Bloch-style API design principles |
+| [Framework Templates](reference/framework-templates.md) | D3, Angular, React, Node, Go, Java standards |
+| [Structural Standards](reference/structural-standards.md) | Universal code quality rules |
+| [Design Patterns](reference/patterns.md) | Canon Factory, Profile Builder, etc. |
+| [Hooks](reference/hooks.md) | Pre-commit and quality gate hooks |
 
 ---
 
