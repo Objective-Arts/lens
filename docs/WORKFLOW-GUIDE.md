@@ -9,23 +9,28 @@ A dual-path system for **New Code** development and **Legacy Code** modernizatio
 Claude-Optimal supports two distinct workflows that share common planning and review phases but diverge at implementation:
 
 ```
-                    ┌─────────────────────────────────────────────────────────────┐
-                    │                      REVIEW GATES                           │
-                    │                                                             │
-LEGACY CODE ──┐     │     ┌──────────────┐                                        │
-              │     │     │              │                                        │
-              ▼     │     ▼              │                                        │
-           /plan ──►│ /structure ──► /refactor ──┐                                │
-              ▲     │   -first         -clean    │    /hard    /gemini   /qodana  │
-              │     │     │              │       ├──► review ─► review ─► review ─┼──► COMPLETE
-              │     │     │              │       │                                │
-NEW CODE ─────┘     │     ▼              │       │                                │
-(PRD)               │ /build-from ──────┘───────┘                                │
-                    │    -plan                                                    │
-                    │                                                             │
-                    │              ─ ─ ─ CANON ─ ─ ─                              │
-                    │        (invoked throughout both flows)                      │
-                    └─────────────────────────────────────────────────────────────┘
+                         ┌─────────────────────────────────────────────────────────────┐
+                         │                                                             │
+ NEW CODE ───► /plan ───►│ /structure ───► /build-from ─────┐                         │
+ (PRD)           │       │   -first           -plan         │                         │
+                 │       │     │                ▲           │                         │
+                 │       │     │                │           │    REVIEW GATES         │
+                 │       │     │          ┌─────┴───────────┤                         │
+                 │       │     │          │  Fix & loop     │                         │
+                 │       │     │          │  if issues      │  /hard    /gemini       │
+                 │       │     │          │  found          ├─► review ─► review ───┐ │
+                 │       │     │          │                 │      │         │      │ │
+ LEGACY CODE ───►│       │     ▼          │                 │      │         │      │ │
+ (Existing)      └──────►│ /structure ───►│ /refactor ──────┤      │         ▼      │ │
+                         │   -first       │   -clean    ▲   │  /qodana ◄────────────┘ │
+                         │                │             │   │   review                │
+                         │                │             │   │      │                  │
+                         │                │             └───┼──────┘                  │
+                         │                │                 │                         │
+                         │                │                 ▼                         │
+                         │           ─ ─ ─ CANON ─ ─ ─    PASS ───► COMPLETE          │
+                         │     (invoked throughout)                                   │
+                         └─────────────────────────────────────────────────────────────┘
 ```
 
 ### Interactive Visualization
@@ -192,7 +197,7 @@ Same three gates for both:
 |-----------|-------------|
 | `.java` | `/bloch` |
 | `.py` | `/hettinger`, `/ramalho` |
-| `.ts`, `.js` | `/kyle-simpson`, `/cherny` |
+| `.ts`, `.js` | `/kyle-simpson`, `/boris-cherny` |
 | `.go` | `/pike` |
 | Tests | `/dodds`, `/meszaros` |
 
@@ -282,5 +287,6 @@ The Ralph Loop:
 ## See Also
 
 - [Case Study: ClientController Refactoring](case-studies/CLIENT-CONTROLLER-REFACTORING.md)
-- [Interactive Workflow Diagram](workflow-visualization.html)
-- [CLI Usage Guide](../cli/docs/USAGE-GUIDE.md)
+- [Interactive Flow Guide](flow-guide.html) - Comprehensive D3 visualization
+- [Workflow Visualization](workflow-visualization.html) - Canon integration diagram
+- [Baseline Brain](BASELINE-BRAIN.md) - The six foundational masters

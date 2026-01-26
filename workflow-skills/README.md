@@ -12,12 +12,42 @@ Universal workflow skills for Claude Code. These are **not** canon skills (domai
 | **Examples** | `/bloch` (Java), `/cherny` (TypeScript) | `/review-hard`, `/test` |
 | **Installation** | Per-project via `cc-config profile apply` | Global or per-project |
 
-## Workflow Order
+## Canon-Driven Development
 
-### Standard Flow
+Quality built in from the start, not forced by review when it's too late.
+
+### Dual Workflow Model
+
+Choose your path based on whether code exists:
+
+| New Code Flow | Legacy Code Flow |
+|---------------|------------------|
+| PRD / Feature Request | Existing Codebase |
+| `/plan` → `/structure-first` → `/build-from-plan` | `/plan` → `/structure-first` → `/refactor-clean` |
+| Canon: Bloch, Pike, Schneier, Evans, Gang of Four | Canon: Feathers, Fowler, Taleb, Evans, Liskov |
+
+Both flows converge at shared review gates:
 ```
-/plan → /structure-first → /build-from-plan → /refactor-clean → /test → /doc-code → /review-hard
+[implementation] → /test → /review-hard → (issues? → fix → re-review)
 ```
+
+### New Code Flow
+```
+PRD → /plan → /structure-first → /build-from-plan → /test → /review-hard
+```
+- Start with requirements (PRD, feature request)
+- Design types before implementation
+- Build incrementally from approved plan
+- Canon: architecture & language masters
+
+### Legacy Code Flow
+```
+Existing → /plan → /structure-first → /refactor-clean → /test → /review-hard
+```
+- Start with existing code
+- Find seams for safe changes
+- Characterize before changing
+- Canon: Feathers, Fowler, refactoring masters
 
 ### Autonomous Flow (Ralph Integration)
 ```

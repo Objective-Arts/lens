@@ -3,49 +3,543 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Claude-Optimal Dual Workflow</title>
+    <title>Claude-Optimal Dual Workflow with Canon Integration</title>
+    <script src="https://d3js.org/d3.v7.min.js"></script>
     <style>
+        :root {
+            --bg-dark: #0a0a12;
+            --bg-medium: #1a1a2e;
+            --bg-light: #16213e;
+            --border: #0f3460;
+            --text: #e8e8e8;
+            --text-muted: #94a3b8;
+
+            --new-code: #4ade80;
+            --legacy-code: #c084fc;
+            --shared: #60a5fa;
+            --review: #fbbf24;
+
+            --baseline: #9b59b6;
+            --security: #e74c3c;
+            --testing: #2ecc71;
+            --engineering: #f39c12;
+            --language: #3498db;
+            --docs: #1abc9c;
+        }
+
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+
         body {
-            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, monospace;
-            background: #1a1a2e;
-            color: #eee;
-            padding: 40px;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: var(--bg-dark);
+            color: var(--text);
+            min-height: 100vh;
+            padding: 24px;
         }
+
         h1 {
-            color: #58a6ff;
-            margin-bottom: 40px;
+            text-align: center;
+            color: var(--shared);
+            margin-bottom: 8px;
+            font-size: 1.75rem;
         }
-        .diagram {
-            background: #16213e;
-            border: 2px solid #0f3460;
+
+        .subtitle {
+            text-align: center;
+            color: var(--text-muted);
+            margin-bottom: 24px;
+            font-size: 0.9rem;
+        }
+
+        /* Foundation Layer */
+        .foundation {
+            background: var(--bg-medium);
+            border: 2px solid var(--border);
             border-radius: 12px;
-            padding: 40px 60px;
-            font-family: 'SF Mono', Monaco, 'Courier New', monospace;
-            font-size: 14px;
-            line-height: 2;
-            white-space: pre;
+            padding: 16px 24px;
+            margin-bottom: 24px;
+            max-width: 900px;
+            margin-left: auto;
+            margin-right: auto;
         }
-        .flow-label {
-            font-weight: bold;
+
+        .foundation h3 {
+            color: var(--baseline);
+            font-size: 0.85rem;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            margin-bottom: 8px;
         }
-        .new-code { color: #4ade80; }
-        .legacy-code { color: #c084fc; }
-        .shared { color: #60a5fa; }
-        .review { color: #fbbf24; }
-        .arrow { color: #94a3b8; }
+
+        .foundation-section {
+            margin-bottom: 12px;
+        }
+
+        .foundation-section:last-child { margin-bottom: 0; }
+
+        .practice-group {
+            display: inline-block;
+            margin-right: 16px;
+            margin-bottom: 8px;
+        }
+
+        .practice-label {
+            font-size: 0.7rem;
+            color: var(--text-muted);
+            text-transform: uppercase;
+            margin-right: 4px;
+        }
+
+        /* Canon Pills */
+        .canon-pill {
+            display: inline-block;
+            background: rgba(0,0,0,0.4);
+            border-left: 3px solid var(--pill-color, var(--baseline));
+            padding: 3px 8px;
+            border-radius: 3px;
+            font-family: 'Monaco', 'Menlo', 'SF Mono', monospace;
+            font-size: 0.7rem;
+            margin: 2px;
+            transition: transform 0.15s ease, box-shadow 0.15s ease;
+        }
+
+        .canon-pill:hover {
+            transform: translateY(-1px);
+            box-shadow: 0 2px 8px rgba(0,0,0,0.3);
+        }
+
+        .canon-pill.baseline { --pill-color: var(--baseline); }
+        .canon-pill.security { --pill-color: var(--security); }
+        .canon-pill.testing { --pill-color: var(--testing); }
+        .canon-pill.engineering { --pill-color: var(--engineering); }
+        .canon-pill.language { --pill-color: var(--language); }
+        .canon-pill.docs { --pill-color: var(--docs); }
+
+        /* Dual Flow Layout */
+        .dual-flow {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 24px;
+            max-width: 900px;
+            margin: 0 auto 24px;
+        }
+
+        @media (max-width: 700px) {
+            .dual-flow { grid-template-columns: 1fr; }
+        }
+
+        .flow-column {
+            background: var(--bg-medium);
+            border: 2px solid var(--border);
+            border-radius: 12px;
+            padding: 16px;
+        }
+
+        .flow-column.new-code { border-top: 3px solid var(--new-code); }
+        .flow-column.legacy-code { border-top: 3px solid var(--legacy-code); }
+
+        .flow-title {
+            font-size: 0.9rem;
+            font-weight: 600;
+            margin-bottom: 16px;
+            text-align: center;
+        }
+
+        .new-code .flow-title { color: var(--new-code); }
+        .legacy-code .flow-title { color: var(--legacy-code); }
+
+        /* Step Cards */
+        .step-card {
+            background: var(--bg-light);
+            border-radius: 8px;
+            padding: 12px;
+            margin-bottom: 12px;
+            position: relative;
+        }
+
+        .step-card:last-child { margin-bottom: 0; }
+
+        .step-card::after {
+            content: '▼';
+            position: absolute;
+            bottom: -18px;
+            left: 50%;
+            transform: translateX(-50%);
+            color: var(--text-muted);
+            font-size: 0.7rem;
+        }
+
+        .step-card:last-child::after { display: none; }
+
+        .step-card.entry {
+            background: transparent;
+            border: 2px dashed var(--border);
+            text-align: center;
+            padding: 8px;
+        }
+
+        .step-name {
+            font-family: 'Monaco', 'Menlo', monospace;
+            font-weight: 600;
+            margin-bottom: 4px;
+        }
+
+        .new-code .step-name { color: var(--new-code); }
+        .legacy-code .step-name { color: var(--legacy-code); }
+
+        .step-purpose {
+            font-size: 0.75rem;
+            color: var(--text-muted);
+            margin-bottom: 8px;
+        }
+
+        .step-canon {
+            border-top: 1px solid var(--border);
+            padding-top: 8px;
+            margin-top: 8px;
+        }
+
+        /* Shared Gates */
+        .shared-gates {
+            background: var(--bg-medium);
+            border: 2px solid var(--border);
+            border-top: 3px solid var(--review);
+            border-radius: 12px;
+            padding: 16px 24px;
+            max-width: 900px;
+            margin: 0 auto 24px;
+            position: relative;
+        }
+
+        .shared-gates h3 {
+            color: var(--review);
+            text-align: center;
+            font-size: 0.9rem;
+            margin-bottom: 16px;
+        }
+
+        .gates-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 16px;
+        }
+
+        @media (max-width: 600px) {
+            .gates-grid { grid-template-columns: 1fr; }
+        }
+
+        .gate-card {
+            background: var(--bg-light);
+            border-radius: 8px;
+            padding: 12px;
+            text-align: center;
+        }
+
+        .gate-name {
+            font-family: 'Monaco', 'Menlo', monospace;
+            font-weight: 600;
+            color: var(--review);
+            margin-bottom: 4px;
+        }
+
+        .gate-purpose {
+            font-size: 0.75rem;
+            color: var(--text-muted);
+            margin-bottom: 8px;
+        }
+
+        /* Feedback Loop */
+        .feedback-loop {
+            max-width: 900px;
+            margin: 0 auto;
+            position: relative;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 8px 0;
+        }
+
+        .feedback-loop-container {
+            display: flex;
+            align-items: center;
+            gap: 16px;
+            background: var(--bg-medium);
+            border: 1px dashed var(--security);
+            border-radius: 8px;
+            padding: 12px 20px;
+        }
+
+        .feedback-arrow {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .feedback-arrow svg {
+            width: 60px;
+            height: 30px;
+        }
+
+        .feedback-text {
+            font-size: 0.75rem;
+            color: var(--security);
+            font-weight: 500;
+        }
+
+        .feedback-target {
+            font-family: 'Monaco', 'Menlo', monospace;
+            font-size: 0.7rem;
+            padding: 4px 8px;
+            border-radius: 4px;
+            background: rgba(0,0,0,0.3);
+        }
+
+        .feedback-target.new-code { color: var(--new-code); border-left: 2px solid var(--new-code); }
+        .feedback-target.legacy-code { color: var(--legacy-code); border-left: 2px solid var(--legacy-code); }
+
+        /* Convergence Arrow */
+        .convergence {
+            text-align: center;
+            color: var(--text-muted);
+            font-size: 1.5rem;
+            margin: -8px 0 16px;
+        }
+
+        /* Complete Badge */
+        .complete {
+            text-align: center;
+            padding: 12px;
+        }
+
+        .complete-badge {
+            display: inline-block;
+            background: linear-gradient(135deg, var(--new-code), var(--legacy-code));
+            color: var(--bg-dark);
+            font-weight: 700;
+            padding: 8px 24px;
+            border-radius: 20px;
+            font-size: 0.85rem;
+        }
+
+        /* Legend */
+        .legend {
+            max-width: 900px;
+            margin: 0 auto;
+            padding: 16px;
+            font-size: 0.75rem;
+            color: var(--text-muted);
+            text-align: center;
+        }
+
+        .legend-item {
+            display: inline-block;
+            margin: 0 12px;
+        }
+
+        .legend-color {
+            display: inline-block;
+            width: 12px;
+            height: 12px;
+            border-radius: 2px;
+            margin-right: 4px;
+            vertical-align: middle;
+        }
     </style>
 </head>
 <body>
     <h1>Claude-Optimal Dual Workflow</h1>
-    <div class="diagram"><span class="flow-label new-code">NEW CODE FLOW</span> <span class="arrow">(building new features):</span>
-<span class="new-code">PRD/Requirements</span> <span class="arrow">───></span> <span class="shared">/plan</span> <span class="arrow">───></span> <span class="shared">/structure-first</span> <span class="arrow">───></span> <span class="new-code">/build-from-plan</span> <span class="arrow">───></span> <span class="review">[reviews]</span>
+    <p class="subtitle">Canon Masters Active at Each Step</p>
 
-<span class="flow-label legacy-code">LEGACY CODE FLOW</span> <span class="arrow">(modernizing existing code):</span>
-<span class="legacy-code">Existing Code</span> <span class="arrow">─────></span> <span class="shared">/plan</span> <span class="arrow">───></span> <span class="shared">/structure-first</span> <span class="arrow">───></span> <span class="legacy-code">/refactor-clean</span> <span class="arrow">──></span> <span class="review">[reviews]</span>
+    <section class="foundation" id="foundation"></section>
+    <section class="dual-flow">
+        <div class="flow-column new-code" id="new-code-flow"></div>
+        <div class="flow-column legacy-code" id="legacy-code-flow"></div>
+    </section>
+    <div class="convergence">▼</div>
+    <section class="shared-gates" id="shared-gates"></section>
 
-<span class="review">Review Gates:</span> <span class="arrow">/hard-review ──> /gemini-review ──> /qodana-review</span></div>
+    <div class="feedback-loop">
+        <div class="feedback-loop-container">
+            <svg viewBox="0 0 60 30" class="feedback-arrow-svg">
+                <defs>
+                    <marker id="arrowhead" markerWidth="6" markerHeight="6" refX="5" refY="3" orient="auto">
+                        <polygon points="0 0, 6 3, 0 6" fill="var(--security)"/>
+                    </marker>
+                </defs>
+                <path d="M 55 25 C 55 5, 5 5, 5 15" stroke="var(--security)" stroke-width="2" fill="none" marker-end="url(#arrowhead)" stroke-dasharray="4,2"/>
+            </svg>
+            <span class="feedback-text">Issues found?</span>
+            <span class="feedback-target new-code">/build-from-plan</span>
+            <span style="color:var(--text-dim)">or</span>
+            <span class="feedback-target legacy-code">/refactor-clean</span>
+            <span class="feedback-text">→ fix → re-review</span>
+        </div>
+    </div>
+
+    <div class="convergence" style="margin-top:8px">▼</div>
+    <div class="complete"><span class="complete-badge">ALL GATES PASS → COMPLETE</span></div>
+
+    <div class="legend">
+        <span class="legend-item"><span class="legend-color" style="background:var(--baseline)"></span>Baseline</span>
+        <span class="legend-item"><span class="legend-color" style="background:var(--security)"></span>Security</span>
+        <span class="legend-item"><span class="legend-color" style="background:var(--testing)"></span>Testing</span>
+        <span class="legend-item"><span class="legend-color" style="background:var(--engineering)"></span>Engineering</span>
+        <span class="legend-item"><span class="legend-color" style="background:var(--language)"></span>Language</span>
+        <span class="legend-item"><span class="legend-color" style="background:var(--docs)"></span>Docs</span>
+    </div>
+
+    <footer style="text-align:center;padding:24px;color:var(--text-muted);font-size:0.8rem;border-top:1px solid var(--border);margin-top:24px;">
+        <a href="flow-guide.html" style="color:var(--shared);text-decoration:none">Full Flow Guide</a> &middot;
+        <a href="WORKFLOW-GUIDE.md" style="color:var(--shared);text-decoration:none">Documentation</a> &middot;
+        <a href="BASELINE-BRAIN.md" style="color:var(--shared);text-decoration:none">Baseline Brain</a>
+    </footer>
+
+    <script>
+    const data = {
+        baseline: {
+            brain: [
+                { name: "Kernighan", cat: "baseline" },
+                { name: "Thompson", cat: "baseline" },
+                { name: "Pike", cat: "baseline" },
+                { name: "Joy", cat: "baseline" },
+                { name: "Linus", cat: "baseline" },
+                { name: "Dijkstra", cat: "baseline" }
+            ],
+            practices: [
+                { label: "Security", masters: [{ name: "Schneier", cat: "security" }, { name: "OWASP", cat: "security" }] },
+                { label: "Testing", masters: [{ name: "Dodds", cat: "testing" }, { name: "Meszaros", cat: "testing" }, { name: "Feathers", cat: "testing" }] },
+                { label: "Engineering", masters: [{ name: "Petroski", cat: "engineering" }, { name: "Leveson", cat: "engineering" }, { name: "Taleb", cat: "engineering" }] },
+                { label: "Docs", masters: [{ name: "Procida", cat: "docs" }] }
+            ]
+        },
+        newCode: {
+            title: "NEW CODE FLOW",
+            entry: "PRD / Feature Request",
+            steps: [
+                { skill: "/plan", purpose: "Design & security", canon: [
+                    { name: "/bloch", cat: "language" },
+                    { name: "/pike", cat: "baseline" },
+                    { name: "/schneier", cat: "security" }
+                ]},
+                { skill: "/structure-first", purpose: "Type design", canon: [
+                    { name: "/evans", cat: "engineering" },
+                    { name: "/linus", cat: "baseline" },
+                    { name: "/bloch", cat: "language" },
+                    { name: "/gang-of-four", cat: "engineering" }
+                ]},
+                { skill: "/build-from-plan", purpose: "Implement", canon: [
+                    { name: "Per language:", cat: "language" },
+                    { name: "Java→/bloch", cat: "language" },
+                    { name: "TS→/boris-cherny", cat: "language" }
+                ]}
+            ]
+        },
+        legacyCode: {
+            title: "LEGACY CODE FLOW",
+            entry: "Existing Code",
+            steps: [
+                { skill: "/plan", purpose: "Seams & risk", canon: [
+                    { name: "/feathers", cat: "testing" },
+                    { name: "/fowler", cat: "engineering" },
+                    { name: "/taleb", cat: "engineering" }
+                ]},
+                { skill: "/structure-first", purpose: "Analyze existing", canon: [
+                    { name: "/evans", cat: "engineering" },
+                    { name: "/feathers", cat: "testing" }
+                ]},
+                { skill: "/refactor-clean", purpose: "Safe refactoring", canon: [
+                    { name: "/feathers", cat: "testing" },
+                    { name: "/fowler", cat: "engineering" },
+                    { name: "/liskov", cat: "baseline" },
+                    { name: "/bloch", cat: "language" },
+                    { name: "/kernighan", cat: "baseline" },
+                    { name: "/gang-of-four", cat: "engineering" }
+                ]}
+            ]
+        },
+        shared: {
+            title: "SHARED REVIEW GATES",
+            gates: [
+                { skill: "/test", purpose: "Testing Trophy", canon: [
+                    { name: "/dodds", cat: "testing" },
+                    { name: "/meszaros", cat: "testing" }
+                ]},
+                { skill: "/review-hard", purpose: "Correctness & security", canon: [
+                    { name: "/dijkstra", cat: "baseline" },
+                    { name: "/schneier", cat: "security" },
+                    { name: "/owasp", cat: "security" }
+                ]},
+                { skill: "External", purpose: "Multi-model validation", canon: [
+                    { name: "Gemini", cat: "engineering" },
+                    { name: "Qodana", cat: "engineering" }
+                ]}
+            ]
+        }
+    };
+
+    function renderPills(selection, pills) {
+        selection.selectAll(".canon-pill")
+            .data(pills)
+            .join("span")
+            .attr("class", d => `canon-pill ${d.cat}`)
+            .text(d => d.name);
+    }
+
+    // Render Foundation
+    const foundation = d3.select("#foundation");
+
+    const brainSection = foundation.append("div").attr("class", "foundation-section");
+    brainSection.append("h3").text("Always Active: Baseline Brain");
+    const brainPills = brainSection.append("div").attr("class", "pills");
+    renderPills(brainPills, data.baseline.brain);
+
+    const practicesSection = foundation.append("div").attr("class", "foundation-section");
+    practicesSection.append("h3").text("Base Practices");
+    const practicesDiv = practicesSection.append("div");
+
+    data.baseline.practices.forEach(group => {
+        const pg = practicesDiv.append("span").attr("class", "practice-group");
+        pg.append("span").attr("class", "practice-label").text(group.label + ":");
+        renderPills(pg, group.masters);
+    });
+
+    // Render Flow Column
+    function renderFlow(selector, flowData) {
+        const col = d3.select(selector);
+        col.append("div").attr("class", "flow-title").text(flowData.title);
+
+        // Entry
+        col.append("div")
+            .attr("class", "step-card entry")
+            .append("div")
+            .attr("class", "step-name")
+            .text(flowData.entry);
+
+        // Steps
+        flowData.steps.forEach(step => {
+            const card = col.append("div").attr("class", "step-card");
+            card.append("div").attr("class", "step-name").text(step.skill);
+            card.append("div").attr("class", "step-purpose").text(step.purpose);
+            const canonDiv = card.append("div").attr("class", "step-canon");
+            renderPills(canonDiv, step.canon);
+        });
+    }
+
+    renderFlow("#new-code-flow", data.newCode);
+    renderFlow("#legacy-code-flow", data.legacyCode);
+
+    // Render Shared Gates
+    const shared = d3.select("#shared-gates");
+    shared.append("h3").text(data.shared.title);
+
+    const gatesGrid = shared.append("div").attr("class", "gates-grid");
+    data.shared.gates.forEach(gate => {
+        const card = gatesGrid.append("div").attr("class", "gate-card");
+        card.append("div").attr("class", "gate-name").text(gate.skill);
+        card.append("div").attr("class", "gate-purpose").text(gate.purpose);
+        const canonDiv = card.append("div").attr("class", "step-canon");
+        renderPills(canonDiv, gate.canon);
+    });
+    </script>
 </body>
 </html>
