@@ -1,0 +1,924 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Ralph Loop - Canon-Driven Development Cycle</title>
+    <script src="https://d3js.org/d3.v7.min.js"></script>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: linear-gradient(135deg, #0a0a12 0%, #1a1a2e 50%, #16213e 100%);
+            min-height: 100vh;
+            color: #e0e0e0;
+            overflow-x: hidden;
+        }
+
+        .container {
+            max-width: 1900px;
+            margin: 0 auto;
+            padding: 20px 30px;
+        }
+
+        header {
+            text-align: center;
+            margin-bottom: 15px;
+        }
+
+        h1 {
+            font-size: 2.2rem;
+            background: linear-gradient(135deg, #9b59b6, #3498db, #2ecc71);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            margin-bottom: 5px;
+        }
+
+        .subtitle {
+            color: #888;
+            font-size: 1rem;
+        }
+
+        .main-content {
+            display: grid;
+            grid-template-columns: 1fr 500px;
+            gap: 25px;
+            align-items: start;
+        }
+
+        .loop-container {
+            background: rgba(255,255,255,0.02);
+            border-radius: 16px;
+            padding: 15px;
+            border: 1px solid rgba(255,255,255,0.05);
+        }
+
+        #loop-viz {
+            width: 100%;
+            height: 600px;
+        }
+
+        .sidebar {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+            max-height: 95vh;
+            overflow-y: auto;
+        }
+
+        .info-card {
+            background: rgba(255,255,255,0.05);
+            border-radius: 10px;
+            padding: 14px;
+            border: 1px solid rgba(255,255,255,0.1);
+        }
+
+        .info-card h3 {
+            color: #f39c12;
+            margin-bottom: 8px;
+            font-size: 0.85rem;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        .info-card p {
+            color: #aaa;
+            font-size: 0.85rem;
+            line-height: 1.4;
+        }
+
+        /* Canon Step Card */
+        .canon-step-card {
+            background: linear-gradient(135deg, rgba(155,89,182,0.1), rgba(52,152,219,0.05));
+            border: 1px solid rgba(155,89,182,0.3);
+            margin-bottom: 8px;
+        }
+
+        .canon-step-header {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin-bottom: 10px;
+            padding-bottom: 8px;
+            border-bottom: 1px solid rgba(255,255,255,0.1);
+        }
+
+        .step-badge {
+            background: linear-gradient(135deg, #9b59b6, #8e44ad);
+            color: #fff;
+            width: 26px;
+            height: 26px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 0.75rem;
+            font-weight: bold;
+            flex-shrink: 0;
+        }
+
+        .step-title {
+            color: #fff;
+            font-weight: 600;
+            font-size: 0.95rem;
+        }
+
+        .canon-entry {
+            margin: 8px 0;
+            padding: 8px 10px;
+            background: rgba(0,0,0,0.3);
+            border-radius: 6px;
+            border-left: 3px solid;
+        }
+
+        .canon-entry.baseline { border-color: #9b59b6; }
+        .canon-entry.language { border-color: #3498db; }
+        .canon-entry.security { border-color: #e74c3c; }
+        .canon-entry.testing { border-color: #2ecc71; }
+        .canon-entry.engineering { border-color: #f39c12; }
+        .canon-entry.external { border-color: #1abc9c; }
+        .canon-entry.uiux { border-color: #e91e63; }
+
+        .canon-name {
+            font-family: 'Monaco', 'Menlo', monospace;
+            font-size: 0.8rem;
+            font-weight: bold;
+            margin-bottom: 4px;
+        }
+
+        .canon-name.baseline { color: #9b59b6; }
+        .canon-name.language { color: #3498db; }
+        .canon-name.security { color: #e74c3c; }
+        .canon-name.testing { color: #2ecc71; }
+        .canon-name.engineering { color: #f39c12; }
+        .canon-name.external { color: #1abc9c; }
+        .canon-name.uiux { color: #e91e63; }
+
+        .canon-why {
+            color: #aaa;
+            font-size: 0.78rem;
+            line-height: 1.4;
+        }
+
+        .canon-why strong {
+            color: #ddd;
+        }
+
+        .language-note {
+            background: rgba(52,152,219,0.15);
+            border: 1px solid rgba(52,152,219,0.3);
+            border-radius: 4px;
+            padding: 6px 8px;
+            margin-top: 8px;
+            font-size: 0.75rem;
+            color: #3498db;
+        }
+
+        .language-note code {
+            background: rgba(0,0,0,0.3);
+            padding: 1px 4px;
+            border-radius: 3px;
+            color: #5dade2;
+        }
+
+        /* Loop Legend */
+        .loop-legend {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 12px;
+            margin-top: 8px;
+        }
+
+        .loop-legend-item {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            font-size: 0.75rem;
+        }
+
+        .loop-indicator {
+            width: 30px;
+            height: 10px;
+            border-radius: 5px;
+            border: 2px dashed;
+        }
+
+        .command-card {
+            background: rgba(0,0,0,0.4);
+            border: 1px solid rgba(231,76,60,0.3);
+        }
+        .command-card h3 { color: #e74c3c; }
+
+        .command {
+            background: rgba(0,0,0,0.5);
+            border-radius: 6px;
+            padding: 8px 10px;
+            font-family: 'Monaco', 'Menlo', monospace;
+            font-size: 0.8rem;
+            margin-top: 6px;
+        }
+
+        .command .prompt { color: #2ecc71; }
+        .command .cmd { color: #3498db; }
+        .command .arg { color: #f39c12; }
+
+        /* Tooltip */
+        .tooltip {
+            position: absolute;
+            background: rgba(0,0,0,0.95);
+            border: 1px solid rgba(255,255,255,0.2);
+            border-radius: 8px;
+            padding: 12px 16px;
+            font-size: 0.8rem;
+            pointer-events: none;
+            opacity: 0;
+            transition: opacity 0.2s;
+            max-width: 420px;
+            max-height: 500px;
+            overflow-y: auto;
+            z-index: 100;
+        }
+
+        .tooltip h4 { color: #fff; margin-bottom: 6px; }
+        .tooltip p { color: #aaa; line-height: 1.4; margin-bottom: 6px; }
+        .tooltip .canon-list {
+            background: rgba(155,89,182,0.1);
+            border-radius: 4px;
+            padding: 8px;
+            margin-top: 6px;
+        }
+        .tooltip .canon-list-title {
+            color: #9b59b6;
+            font-size: 0.7rem;
+            text-transform: uppercase;
+            margin-bottom: 4px;
+        }
+
+        footer {
+            text-align: center;
+            padding: 15px;
+            color: #555;
+            font-size: 0.8rem;
+            margin-top: 15px;
+        }
+        footer em { color: #888; }
+
+        .section-divider {
+            border-top: 1px solid rgba(255,255,255,0.1);
+            margin: 10px 0;
+            padding-top: 8px;
+        }
+
+        .section-divider span {
+            color: #666;
+            font-size: 0.7rem;
+            text-transform: uppercase;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>Ralph Loop — Canon-Driven Development</h1>
+            <p class="subtitle">Every step invokes specific canon masters. The canon IS the methodology.</p>
+        </header>
+
+        <div class="main-content">
+            <div class="loop-container">
+                <svg id="loop-viz"></svg>
+            </div>
+
+            <div class="sidebar">
+                <!-- Step 1: Read PRD -->
+                <div class="info-card canon-step-card">
+                    <div class="canon-step-header">
+                        <div class="step-badge">1</div>
+                        <div class="step-title">Read PRD Item</div>
+                    </div>
+                    <div class="canon-entry baseline">
+                        <div class="canon-name baseline">/procida</div>
+                        <div class="canon-why"><strong>WHY:</strong> Diátaxis framework ensures requirements are structured correctly—tutorials vs. how-tos vs. reference. Prevents misunderstanding what type of work this is.</div>
+                    </div>
+                </div>
+
+                <!-- Step 2: Check Context -->
+                <div class="info-card canon-step-card">
+                    <div class="canon-step-header">
+                        <div class="step-badge">2</div>
+                        <div class="step-title">Load Context</div>
+                    </div>
+                    <div class="canon-entry testing">
+                        <div class="canon-name testing">/feathers</div>
+                        <div class="canon-why"><strong>WHY:</strong> "Working Effectively with Legacy Code"—understand existing code before changing it. Seams, characterization tests, dependency breaking.</div>
+                    </div>
+                    <div class="canon-entry engineering">
+                        <div class="canon-name engineering">/petroski</div>
+                        <div class="canon-why"><strong>WHY:</strong> "Form follows failure"—check git history for what broke before. Past failures teach more than past successes.</div>
+                    </div>
+                </div>
+
+                <!-- Step 3: Implement -->
+                <div class="info-card canon-step-card">
+                    <div class="canon-step-header">
+                        <div class="step-badge">3</div>
+                        <div class="step-title">Implement</div>
+                    </div>
+
+                    <div class="section-divider"><span>Base Brain (Always)</span></div>
+
+                    <div class="canon-entry baseline">
+                        <div class="canon-name baseline">/kernighan</div>
+                        <div class="canon-why"><strong>WHY:</strong> "Clarity is better than cleverness"—write code humans can read. K&R style, meaningful names, simple control flow.</div>
+                    </div>
+                    <div class="canon-entry baseline">
+                        <div class="canon-name baseline">/pike</div>
+                        <div class="canon-why"><strong>WHY:</strong> Data dominates. Simple interfaces. "When in doubt, leave it out." Minimalism in API design.</div>
+                    </div>
+                    <div class="canon-entry baseline">
+                        <div class="canon-name baseline">/linus</div>
+                        <div class="canon-why"><strong>WHY:</strong> "Bad programmers worry about code, good programmers worry about data structures." Design data first, code follows.</div>
+                    </div>
+
+                    <div class="section-divider"><span>Language Masters (Per Stack)</span></div>
+
+                    <div class="language-note">
+                        <strong>Java:</strong> <code>/bloch</code> — Effective Java patterns, builder pattern, immutability, API design<br>
+                        <strong>C#:</strong> <code>/skeet</code> + <code>/toub</code> — LINQ, async/await, modern C# idioms<br>
+                        <strong>JavaScript:</strong> <code>/crockford</code> + <code>/simpson</code> — Good Parts, closures, "this" binding<br>
+                        <strong>React:</strong> <code>/abramov</code> — Hooks, composition, mental models<br>
+                        <strong>TypeScript:</strong> <code>/vanderkam</code> — Type narrowing, inference, structural typing<br>
+                        <strong>Go:</strong> <code>/pike</code> — Proverbs, simplicity, interfaces<br>
+                        <strong>Python:</strong> <code>/hettinger</code> — Pythonic idioms, descriptors
+                    </div>
+
+                    <div class="section-divider"><span>UI/UX (If Frontend)</span></div>
+
+                    <div class="canon-entry uiux">
+                        <div class="canon-name uiux">/frost + /ive + /norman</div>
+                        <div class="canon-why"><strong>WHY:</strong> Atomic Design structure. Visual minimalism. Affordances and feedback. The UI canon ensures components are correct before code review.</div>
+                    </div>
+                </div>
+
+                <!-- Step 4: Self-Review -->
+                <div class="info-card canon-step-card">
+                    <div class="canon-step-header">
+                        <div class="step-badge">4</div>
+                        <div class="step-title">Self-Review</div>
+                    </div>
+                    <div class="canon-entry baseline">
+                        <div class="canon-name baseline">/dijkstra</div>
+                        <div class="canon-why"><strong>WHY:</strong> "Testing shows presence of bugs, not absence." Correctness by construction—think formally about invariants and preconditions.</div>
+                    </div>
+                    <div class="canon-entry security">
+                        <div class="canon-name security">/schneier</div>
+                        <div class="canon-why"><strong>WHY:</strong> "Think like an attacker." Security mindset—what could an adversary do with this code? Threat modeling.</div>
+                    </div>
+                    <div class="canon-entry security">
+                        <div class="canon-name security">/owasp</div>
+                        <div class="canon-why"><strong>WHY:</strong> Systematic vulnerability checklist—injection, XSS, CSRF, auth bypass. The Top 10 catches what intuition misses.</div>
+                    </div>
+                    <div class="canon-entry engineering">
+                        <div class="canon-name engineering">/leveson</div>
+                        <div class="canon-why"><strong>WHY:</strong> STAMP/STPA safety analysis—"Accidents are system failures, not component failures." Check control loops and constraints.</div>
+                    </div>
+                </div>
+
+                <!-- Step 5: Test -->
+                <div class="info-card canon-step-card">
+                    <div class="canon-step-header">
+                        <div class="step-badge">5</div>
+                        <div class="step-title">Run Tests</div>
+                    </div>
+                    <div class="canon-entry testing">
+                        <div class="canon-name testing">/dodds</div>
+                        <div class="canon-why"><strong>WHY:</strong> Testing Trophy (Integration > Unit > E2E). "Write tests that give confidence." Test behavior, not implementation.</div>
+                    </div>
+                    <div class="canon-entry testing">
+                        <div class="canon-name testing">/meszaros</div>
+                        <div class="canon-why"><strong>WHY:</strong> xUnit Test Patterns—avoid test smells, proper fixtures, test doubles. The patterns prevent flaky, coupled tests.</div>
+                    </div>
+                </div>
+
+                <!-- Step 6: External -->
+                <div class="info-card canon-step-card">
+                    <div class="canon-step-header">
+                        <div class="step-badge">6</div>
+                        <div class="step-title">External Validation</div>
+                    </div>
+                    <div class="canon-entry external">
+                        <div class="canon-name external">Gemini Review</div>
+                        <div class="canon-why"><strong>WHY:</strong> Different model = different blind spots. Claude has biases; Gemini catches what Claude misses. Architecture and logic review.</div>
+                    </div>
+                    <div class="canon-entry external">
+                        <div class="canon-name external">Qodana Scan</div>
+                        <div class="canon-why"><strong>WHY:</strong> Static analysis finds mechanical issues—unused code, code smells, security vulnerabilities. Catches what humans overlook.</div>
+                    </div>
+                    <p style="margin-top: 10px; font-size: 0.75rem; color: #1abc9c;">
+                        If issues found → loop back to Step 3 with specific feedback
+                    </p>
+                </div>
+
+                <!-- Step 7: Commit -->
+                <div class="info-card canon-step-card">
+                    <div class="canon-step-header">
+                        <div class="step-badge">7</div>
+                        <div class="step-title">Commit</div>
+                    </div>
+                    <p style="color: #888; font-size: 0.8rem;">
+                        All gates passed. Git commit with conventional message. Mark PRD item complete. → Next item or DONE.
+                    </p>
+                </div>
+
+                <!-- Loop Info -->
+                <div class="info-card">
+                    <h3>Three Nested Loops</h3>
+                    <div class="loop-legend">
+                        <div class="loop-legend-item">
+                            <div class="loop-indicator" style="border-color: #e74c3c;"></div>
+                            <span style="color:#e74c3c;">Outer</span>
+                            <span style="color:#666;">PRD Items</span>
+                        </div>
+                        <div class="loop-legend-item">
+                            <div class="loop-indicator" style="border-color: #f39c12;"></div>
+                            <span style="color:#f39c12;">Inner</span>
+                            <span style="color:#666;">Self-Review</span>
+                        </div>
+                        <div class="loop-legend-item">
+                            <div class="loop-indicator" style="border-color: #2ecc71;"></div>
+                            <span style="color:#2ecc71;">Inner²</span>
+                            <span style="color:#666;">External</span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="info-card command-card">
+                    <h3>Invoke Ralph Loop</h3>
+                    <div class="command">
+                        <span class="prompt">$</span> claude "<span class="cmd">/ralph-loop</span> <span class="arg">PRD.md</span>"
+                    </div>
+                    <div class="command">
+                        <span class="prompt">$</span> claude "<span class="cmd">/ralph-loop</span> <span class="arg">PRD.md</span> --external"
+                    </div>
+                    <p style="margin-top: 8px; font-size: 0.75rem; color: #888;">
+                        <code style="color: #f39c12;">--external</code> enables Gemini + Qodana validation loop
+                    </p>
+                </div>
+            </div>
+        </div>
+
+        <footer>
+            <p><em>"The canon isn't just advice—it's the algorithm. Each master provides a specific lens at the right moment."</em></p>
+        </footer>
+    </div>
+
+    <div class="tooltip" id="tooltip"></div>
+
+    <script>
+        // Step data with comprehensive canon information
+        const steps = [
+            {
+                id: 1, name: "Read PRD", short: "PRD",
+                color: "#3498db", loop: "outer",
+                description: "Parse PRD.md to extract checklist items. Apply Diátaxis to understand requirement type.",
+                canons: [
+                    { name: "/procida", type: "baseline", why: "Diátaxis structure—is this a tutorial, how-to, reference, or explanation?" }
+                ]
+            },
+            {
+                id: 2, name: "Load Context", short: "Context",
+                color: "#3498db", loop: "outer",
+                description: "Review existing code, git history, past failures. Understand before changing.",
+                canons: [
+                    { name: "/feathers", type: "testing", why: "Legacy code techniques—seams, characterization tests" },
+                    { name: "/petroski", type: "engineering", why: "Form follows failure—what broke before?" }
+                ]
+            },
+            {
+                id: 3, name: "Select Item", short: "Select",
+                color: "#e74c3c", loop: "outer",
+                description: "Pick first incomplete PRD item. Track attempts to prevent infinite loops.",
+                canons: []
+            },
+            {
+                id: 4, name: "Implement", short: "Build",
+                color: "#2ecc71", loop: "inner",
+                description: "Write code using Base Brain + Language Masters + Domain Canon.",
+                canons: [
+                    // Base Brain - Always
+                    { name: "/kernighan", type: "baseline", why: "Clarity over cleverness—write code humans can read" },
+                    { name: "/pike", type: "baseline", why: "Data dominates. Simple interfaces. Minimalism." },
+                    { name: "/linus", type: "baseline", why: "Data structures first, algorithms follow" },
+                    { name: "/dijkstra", type: "baseline", why: "Structured programming, correctness proofs" },
+                    // Language Masters - Per Stack
+                    { name: "/bloch", type: "language", why: "Java: Effective patterns, builders, immutability, API design" },
+                    { name: "/skeet", type: "language", why: "C#: Deep language mastery, LINQ, modern idioms" },
+                    { name: "/toub", type: "language", why: "C#: async/await, parallel patterns, performance" },
+                    { name: "/crockford", type: "language", why: "JavaScript: Good Parts, closures, prototypes" },
+                    { name: "/simpson", type: "language", why: "JavaScript: 'this' binding, scope, YDKJS depth" },
+                    { name: "/abramov", type: "language", why: "React: Hooks mental model, composition, state" },
+                    { name: "/vanderkam", type: "language", why: "TypeScript: Type narrowing, inference, structural typing" },
+                    { name: "/hettinger", type: "language", why: "Python: Pythonic idioms, descriptors, iterators" },
+                    // UI/UX - If Frontend
+                    { name: "/frost", type: "uiux", why: "Atomic Design: atoms → molecules → organisms → templates" },
+                    { name: "/ive", type: "uiux", why: "Visual minimalism, material honesty, depth" },
+                    { name: "/norman", type: "uiux", why: "Affordances, feedback, mental models" },
+                    { name: "/cooper", type: "uiux", why: "Goal-directed design, personas, interaction" },
+                    { name: "/rams", type: "uiux", why: "10 Principles: less but better, honest, unobtrusive" }
+                ]
+            },
+            {
+                id: 5, name: "Self-Review", short: "Review",
+                color: "#f39c12", loop: "inner",
+                description: "Adversarial self-review. Security, safety, correctness checks.",
+                canons: [
+                    { name: "/dijkstra", type: "baseline", why: "Correctness by construction, invariants" },
+                    { name: "/schneier", type: "security", why: "Think like an attacker" },
+                    { name: "/owasp", type: "security", why: "Top 10 vulnerability checklist" },
+                    { name: "/leveson", type: "engineering", why: "STAMP/STPA safety constraints" }
+                ]
+            },
+            {
+                id: 6, name: "Run Tests", short: "Test",
+                color: "#f39c12", loop: "inner",
+                description: "Execute test suite using Testing Trophy priorities.",
+                canons: [
+                    { name: "/dodds", type: "testing", why: "Testing Trophy, test behavior not implementation" },
+                    { name: "/meszaros", type: "testing", why: "xUnit patterns, avoid test smells" }
+                ]
+            },
+            {
+                id: 7, name: "External", short: "External",
+                color: "#1abc9c", loop: "inner-inner",
+                description: "Gemini + Qodana validation. Different model, static analysis.",
+                canons: [
+                    { name: "Gemini", type: "external", why: "Different model catches Claude's blind spots" },
+                    { name: "Qodana", type: "external", why: "Static analysis, security, code smells" }
+                ]
+            },
+            {
+                id: 8, name: "Commit", short: "Commit",
+                color: "#9b59b6", loop: "outer",
+                description: "All gates passed. Conventional commit, mark PRD item complete.",
+                canons: []
+            }
+        ];
+
+        // SVG Setup
+        const svg = d3.select("#loop-viz");
+        const width = svg.node().parentElement.clientWidth;
+        const height = 600;
+        const centerX = width / 2;
+        const centerY = height / 2 - 10;
+
+        svg.attr("width", width).attr("height", height);
+
+        // Defs
+        const defs = svg.append("defs");
+
+        // Glow filter
+        const filter = defs.append("filter")
+            .attr("id", "glow")
+            .attr("x", "-50%").attr("y", "-50%")
+            .attr("width", "200%").attr("height", "200%");
+        filter.append("feGaussianBlur").attr("stdDeviation", "4").attr("result", "coloredBlur");
+        const feMerge = filter.append("feMerge");
+        feMerge.append("feMergeNode").attr("in", "coloredBlur");
+        feMerge.append("feMergeNode").attr("in", "SourceGraphic");
+
+        // Arrow markers
+        ["outer", "inner", "inner-inner", "flow"].forEach((type) => {
+            const colors = { outer: "#e74c3c", inner: "#f39c12", "inner-inner": "#2ecc71", flow: "#555" };
+            defs.append("marker")
+                .attr("id", `arrow-${type}`)
+                .attr("viewBox", "0 -5 10 10")
+                .attr("refX", 8).attr("refY", 0)
+                .attr("markerWidth", 5).attr("markerHeight", 5)
+                .attr("orient", "auto")
+                .append("path")
+                .attr("d", "M0,-5L10,0L0,5")
+                .attr("fill", colors[type]);
+        });
+
+        // Layout
+        const startX = 70;
+        const endX = width - 80;
+        const stepSpacing = (endX - startX) / (steps.length - 1);
+        const mainY = centerY;
+
+        steps.forEach((step, i) => {
+            step.x = startX + i * stepSpacing;
+            step.y = mainY;
+        });
+
+        // Draw loop containers
+        const loopGroup = svg.append("g").attr("class", "loops");
+
+        // Outer loop
+        loopGroup.append("rect")
+            .attr("x", startX - 45)
+            .attr("y", mainY - 100)
+            .attr("width", endX - startX + 90)
+            .attr("height", 200)
+            .attr("rx", 20)
+            .attr("fill", "none")
+            .attr("stroke", "#e74c3c")
+            .attr("stroke-width", 2)
+            .attr("stroke-dasharray", "8,4")
+            .attr("opacity", 0.4);
+
+        loopGroup.append("text")
+            .attr("x", startX - 35)
+            .attr("y", mainY - 108)
+            .attr("fill", "#e74c3c")
+            .attr("font-size", "0.75rem")
+            .attr("font-weight", "bold")
+            .text("OUTER: PRD Items");
+
+        // Inner loop
+        const innerStartX = steps[3].x - 35;
+        const innerEndX = steps[5].x + 35;
+        loopGroup.append("rect")
+            .attr("x", innerStartX)
+            .attr("y", mainY - 70)
+            .attr("width", innerEndX - innerStartX)
+            .attr("height", 140)
+            .attr("rx", 15)
+            .attr("fill", "rgba(243,156,18,0.05)")
+            .attr("stroke", "#f39c12")
+            .attr("stroke-width", 2)
+            .attr("stroke-dasharray", "6,3")
+            .attr("opacity", 0.6);
+
+        loopGroup.append("text")
+            .attr("x", innerStartX + 8)
+            .attr("y", mainY - 78)
+            .attr("fill", "#f39c12")
+            .attr("font-size", "0.7rem")
+            .attr("font-weight", "bold")
+            .text("INNER: Self-Review");
+
+        // Inner-inner loop
+        const innerInnerX = steps[6].x;
+        loopGroup.append("rect")
+            .attr("x", innerInnerX - 40)
+            .attr("y", mainY - 50)
+            .attr("width", 80)
+            .attr("height", 100)
+            .attr("rx", 12)
+            .attr("fill", "rgba(46,204,113,0.05)")
+            .attr("stroke", "#2ecc71")
+            .attr("stroke-width", 2)
+            .attr("stroke-dasharray", "4,2")
+            .attr("opacity", 0.6);
+
+        loopGroup.append("text")
+            .attr("x", innerInnerX)
+            .attr("y", mainY - 58)
+            .attr("fill", "#2ecc71")
+            .attr("font-size", "0.65rem")
+            .attr("font-weight", "bold")
+            .attr("text-anchor", "middle")
+            .text("INNER²");
+
+        // Draw connections
+        const connGroup = svg.append("g").attr("class", "connections");
+
+        // Forward flow
+        for (let i = 0; i < steps.length - 1; i++) {
+            connGroup.append("line")
+                .attr("x1", steps[i].x + 30)
+                .attr("y1", steps[i].y)
+                .attr("x2", steps[i + 1].x - 30)
+                .attr("y2", steps[i + 1].y)
+                .attr("stroke", "#444")
+                .attr("stroke-width", 2)
+                .attr("marker-end", "url(#arrow-flow)");
+        }
+
+        // Inner loop back: Test → Implement
+        const innerLoopPath = d3.path();
+        innerLoopPath.moveTo(steps[5].x, steps[5].y + 38);
+        innerLoopPath.quadraticCurveTo(
+            (steps[5].x + steps[3].x) / 2,
+            steps[5].y + 85,
+            steps[3].x,
+            steps[3].y + 38
+        );
+
+        connGroup.append("path")
+            .attr("d", innerLoopPath.toString())
+            .attr("fill", "none")
+            .attr("stroke", "#f39c12")
+            .attr("stroke-width", 2)
+            .attr("stroke-dasharray", "5,3")
+            .attr("marker-end", "url(#arrow-inner)");
+
+        connGroup.append("text")
+            .attr("x", (steps[5].x + steps[3].x) / 2)
+            .attr("y", steps[5].y + 98)
+            .attr("text-anchor", "middle")
+            .attr("fill", "#f39c12")
+            .attr("font-size", "0.65rem")
+            .text("Review fails → Retry");
+
+        // Inner-inner loop back: External → Implement
+        const innerInnerLoopPath = d3.path();
+        innerInnerLoopPath.moveTo(steps[6].x - 25, steps[6].y + 42);
+        innerInnerLoopPath.quadraticCurveTo(
+            steps[4].x,
+            steps[6].y + 120,
+            steps[3].x + 15,
+            steps[3].y + 42
+        );
+
+        connGroup.append("path")
+            .attr("d", innerInnerLoopPath.toString())
+            .attr("fill", "none")
+            .attr("stroke", "#2ecc71")
+            .attr("stroke-width", 2)
+            .attr("stroke-dasharray", "4,2")
+            .attr("marker-end", "url(#arrow-inner-inner)");
+
+        connGroup.append("text")
+            .attr("x", steps[4].x + 15)
+            .attr("y", steps[6].y + 132)
+            .attr("text-anchor", "middle")
+            .attr("fill", "#2ecc71")
+            .attr("font-size", "0.65rem")
+            .text("Gemini/Qodana issues → Back to Build");
+
+        // Outer loop back: Commit → Select
+        const outerLoopPath = d3.path();
+        outerLoopPath.moveTo(steps[7].x, steps[7].y - 42);
+        outerLoopPath.quadraticCurveTo(
+            centerX,
+            steps[7].y - 130,
+            steps[2].x,
+            steps[2].y - 42
+        );
+
+        connGroup.append("path")
+            .attr("d", outerLoopPath.toString())
+            .attr("fill", "none")
+            .attr("stroke", "#e74c3c")
+            .attr("stroke-width", 2)
+            .attr("stroke-dasharray", "8,4")
+            .attr("marker-end", "url(#arrow-outer)");
+
+        connGroup.append("text")
+            .attr("x", centerX)
+            .attr("y", steps[7].y - 135)
+            .attr("text-anchor", "middle")
+            .attr("fill", "#e74c3c")
+            .attr("font-size", "0.7rem")
+            .text("More items? → Next");
+
+        // Exit
+        connGroup.append("line")
+            .attr("x1", steps[7].x + 35)
+            .attr("y1", steps[7].y)
+            .attr("x2", steps[7].x + 85)
+            .attr("y2", steps[7].y)
+            .attr("stroke", "#9b59b6")
+            .attr("stroke-width", 3)
+            .attr("marker-end", "url(#arrow-outer)");
+
+        connGroup.append("rect")
+            .attr("x", steps[7].x + 90)
+            .attr("y", steps[7].y - 25)
+            .attr("width", 70)
+            .attr("height", 50)
+            .attr("rx", 10)
+            .attr("fill", "rgba(155,89,182,0.2)")
+            .attr("stroke", "#9b59b6")
+            .attr("stroke-width", 2);
+
+        connGroup.append("text")
+            .attr("x", steps[7].x + 125)
+            .attr("y", steps[7].y + 5)
+            .attr("text-anchor", "middle")
+            .attr("fill", "#9b59b6")
+            .attr("font-weight", "bold")
+            .attr("font-size", "0.8rem")
+            .text("DONE");
+
+        // Draw step nodes
+        const nodeGroup = svg.append("g").attr("class", "nodes");
+        const tooltip = d3.select("#tooltip");
+
+        steps.forEach((step) => {
+            const g = nodeGroup.append("g")
+                .attr("class", "step-node")
+                .attr("transform", `translate(${step.x}, ${step.y})`)
+                .style("cursor", "pointer");
+
+            g.append("circle")
+                .attr("r", 32)
+                .attr("fill", step.color)
+                .attr("opacity", 0.12)
+                .attr("filter", "url(#glow)");
+
+            g.append("circle")
+                .attr("r", 28)
+                .attr("fill", "rgba(0,0,0,0.9)")
+                .attr("stroke", step.color)
+                .attr("stroke-width", 3);
+
+            g.append("text")
+                .attr("y", -5)
+                .attr("text-anchor", "middle")
+                .attr("fill", step.color)
+                .attr("font-size", "0.6rem")
+                .attr("font-weight", "bold")
+                .text(step.id);
+
+            g.append("text")
+                .attr("y", 10)
+                .attr("text-anchor", "middle")
+                .attr("fill", "#fff")
+                .attr("font-size", "0.65rem")
+                .attr("font-weight", "600")
+                .text(step.short);
+
+            // Tooltip
+            g.on("mouseover", (event) => {
+                const canonHtml = step.canons.length > 0
+                    ? `<div class="canon-list">
+                        <div class="canon-list-title">Canon Invoked:</div>
+                        ${step.canons.map(c =>
+                            `<div style="margin: 4px 0;">
+                                <code style="color:${getCanonColor(c.type)};font-weight:bold;">${c.name}</code>
+                                <div style="color:#888;font-size:0.7rem;margin-left:8px;">${c.why}</div>
+                            </div>`
+                        ).join('')}
+                       </div>`
+                    : '<p style="color:#666;font-size:0.75rem;">No canon—mechanical step</p>';
+
+                tooltip.style("opacity", 1)
+                    .html(`
+                        <h4 style="color: ${step.color}">${step.id}. ${step.name}</h4>
+                        <p>${step.description}</p>
+                        ${canonHtml}
+                    `)
+                    .style("left", (event.pageX + 15) + "px")
+                    .style("top", (event.pageY - 10) + "px");
+            })
+            .on("mousemove", (event) => {
+                tooltip.style("left", (event.pageX + 15) + "px")
+                    .style("top", (event.pageY - 10) + "px");
+            })
+            .on("mouseout", () => {
+                tooltip.style("opacity", 0);
+            });
+        });
+
+        // PRD input
+        const prdGroup = svg.append("g")
+            .attr("transform", `translate(${startX - 50}, ${mainY - 150})`);
+
+        prdGroup.append("rect")
+            .attr("x", -30).attr("y", -22)
+            .attr("width", 60).attr("height", 44)
+            .attr("rx", 8)
+            .attr("fill", "rgba(243,156,18,0.2)")
+            .attr("stroke", "#f39c12")
+            .attr("stroke-width", 2);
+
+        prdGroup.append("text")
+            .attr("text-anchor", "middle")
+            .attr("y", -3)
+            .attr("fill", "#f39c12")
+            .attr("font-weight", "bold")
+            .attr("font-size", "0.75rem")
+            .text("PRD.md");
+
+        prdGroup.append("text")
+            .attr("text-anchor", "middle")
+            .attr("y", 12)
+            .attr("fill", "#888")
+            .attr("font-size", "0.6rem")
+            .text("[ ] items");
+
+        svg.append("path")
+            .attr("d", `M${startX - 50},${mainY - 105} L${startX - 50},${mainY - 60} L${steps[0].x - 30},${mainY}`)
+            .attr("fill", "none")
+            .attr("stroke", "#f39c12")
+            .attr("stroke-width", 2)
+            .attr("marker-end", "url(#arrow-flow)");
+
+        function getCanonColor(type) {
+            const colors = {
+                baseline: "#9b59b6",
+                language: "#3498db",
+                security: "#e74c3c",
+                testing: "#2ecc71",
+                engineering: "#f39c12",
+                external: "#1abc9c",
+                uiux: "#e91e63"
+            };
+            return colors[type] || "#888";
+        }
+    </script>
+</body>
+</html>
