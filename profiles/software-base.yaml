@@ -1,35 +1,94 @@
 name: software-base
-description: Base canon for ALL software projects. Always alive.
+description: Base canon for ALL software projects. Always included.
 projectType: software
 composable: true
 
-canon:
-  # THE BASELINE BRAIN - six masters that shape all code
-  baseline:
+skills:
+  canon:
+    # THE BASELINE BRAIN - masters that shape all code
     - kernighan      # Clarity, readability, style
     - thompson       # Pragmatism, brute force, get it working
     - pike           # Small interfaces, composition
-    - joy            # Distributed systems, failure handling
+    - mcilroy        # Unix philosophy, do one thing well, pipelines
+    - bill-joy       # Distributed systems, failure handling
     - linus          # Good taste, data structures first
     - dijkstra       # Formal discipline, correctness
-
-  # Security mindset (always relevant)
-  security:
-    - schneier       # Security mindset
-    - owasp          # Vulnerability patterns
-
-  # Documentation
-  documentation:
-    - procida        # Documentation (Diataxis)
-
-  # Testing
-  testing:
+    - knuth          # Algorithms, literate programming, rigor
+    - liskov         # Substitution principle, type contracts
+    - carmack        # Performance, clean code, pragmatic optimization
+    # Design patterns
+    - gang-of-four   # Classic OOP patterns
+    # Security mindset
+    - schneier       # Think like an attacker
+    - owasp          # Vulnerability patterns, Top 10
+    # Engineering wisdom
+    - petroski       # Form follows failure
+    - leveson        # STAMP/STPA safety analysis
+    - taleb          # Antifragility, black swans
+    # Documentation & Writing
+    - procida        # Diataxis framework
+    - zinsser        # Clarity, remove clutter
+    - strunk-white   # Omit needless words, active voice
+    - king           # Kill your darlings, practical writing
+    # Testing
     - dodds          # Testing Trophy, integration-first
     - feathers       # Legacy code testing
-    - meszaros       # Test patterns, doubles
-    - fowler-test    # Test pyramid, strategy
+    - meszaros       # xUnit patterns, test doubles
+    - fowler-test    # Test pyramid
 
 agents:
   - security-auditor
   - code-reviewer
   - test-engineer
+
+claudeMd:
+  standards:
+    # Base Brain principles
+    - "Clarity over cleverness (Kernighan)"
+    - "Data structures first, algorithms follow (Linus)"
+    - "Small, composable interfaces (Pike)"
+    - "Do one thing and do it well (McIlroy)"
+    - "Handle failure explicitly (Joy)"
+    - "Correctness by construction (Dijkstra)"
+    - "Get it working first, then optimize (Thompson)"
+    - "Measure before optimizing (Carmack)"
+    - "Subtypes must be substitutable (Liskov)"
+    # Security
+    - "Think like an attacker (Schneier)"
+    - "Validate all input, encode all output (OWASP)"
+    # Engineering
+    - "Learn from failures (Petroski)"
+    - "Safety is a system property (Leveson)"
+
+  antiPatterns:
+    - "Clever code that requires comments to understand"
+    - "Deep inheritance hierarchies"
+    - "Ignoring error conditions"
+    - "Premature optimization without measurement"
+    - "Functions longer than 30 lines"
+    - "Trusting user input"
+    - "Security through obscurity"
+    - "Violating Liskov substitution"
+    - "God objects that do everything"
+
+  autoInvoke:
+    - context: Writing any code
+      action: Apply Base Brain lens (kernighan, pike, mcilroy, linus, dijkstra)
+    - context: Performance-critical code
+      action: INVOKE `/carmack` for optimization patterns
+    - context: Algorithm design
+      action: INVOKE `/knuth` for algorithmic rigor
+    - context: OOP design, inheritance, patterns
+      action: INVOKE `/liskov` then `/gang-of-four`
+    - context: Security-sensitive code (auth, input, data)
+      action: INVOKE `/schneier` then `/owasp`
+    - context: Writing tests
+      action: INVOKE `/meszaros` for test patterns
+    - context: Working with legacy code
+      action: INVOKE `/feathers` for seams and characterization tests
+    - context: Writing documentation
+      action: INVOKE `/procida` for Diataxis, `/zinsser` for clarity
+    - context: Writing READMEs, comments, commit messages
+      action: INVOKE `/strunk-white` (omit needless words) and `/king` (kill darlings)
+    - context: Analyzing failures or risks
+      action: INVOKE `/petroski` and `/leveson`
