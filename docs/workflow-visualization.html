@@ -1,0 +1,363 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Claude-Optimal Dual Workflow</title>
+    <script src="https://d3js.org/d3.v7.min.js"></script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: #0d1117;
+            color: #c9d1d9;
+            min-height: 100vh;
+            padding: 20px;
+        }
+        h1 {
+            text-align: center;
+            margin-bottom: 10px;
+            color: #58a6ff;
+        }
+        .subtitle {
+            text-align: center;
+            color: #8b949e;
+            margin-bottom: 30px;
+        }
+        #workflow {
+            width: 100%;
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+        .node rect {
+            stroke-width: 2px;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+        .node rect:hover {
+            filter: brightness(1.2);
+        }
+        .node text {
+            font-size: 12px;
+            font-weight: 600;
+            fill: #fff;
+            pointer-events: none;
+        }
+        .node .description {
+            font-size: 9px;
+            font-weight: 400;
+            fill: rgba(255,255,255,0.7);
+        }
+        .link {
+            fill: none;
+            stroke-width: 2px;
+        }
+        .link.new-code {
+            stroke: #238636;
+        }
+        .link.legacy-code {
+            stroke: #a371f7;
+        }
+        .link.shared {
+            stroke: #58a6ff;
+        }
+        .link.canon {
+            stroke: #f0883e;
+            stroke-dasharray: 5,5;
+        }
+        .arrow {
+            fill: none;
+            stroke-width: 2px;
+        }
+        .legend {
+            display: flex;
+            justify-content: center;
+            gap: 30px;
+            margin-top: 20px;
+            flex-wrap: wrap;
+        }
+        .legend-item {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        .legend-line {
+            width: 30px;
+            height: 3px;
+        }
+        .legend-line.new-code { background: #238636; }
+        .legend-line.legacy-code { background: #a371f7; }
+        .legend-line.shared { background: #58a6ff; }
+        .legend-line.canon {
+            background: repeating-linear-gradient(
+                90deg,
+                #f0883e 0px,
+                #f0883e 5px,
+                transparent 5px,
+                transparent 10px
+            );
+        }
+        .flow-label {
+            font-size: 14px;
+            font-weight: bold;
+        }
+        .tooltip {
+            position: absolute;
+            background: #161b22;
+            border: 1px solid #30363d;
+            border-radius: 6px;
+            padding: 12px;
+            font-size: 12px;
+            max-width: 300px;
+            pointer-events: none;
+            opacity: 0;
+            transition: opacity 0.2s;
+            z-index: 1000;
+        }
+        .tooltip h4 {
+            color: #58a6ff;
+            margin-bottom: 6px;
+        }
+        .tooltip p {
+            color: #8b949e;
+            line-height: 1.4;
+        }
+    </style>
+</head>
+<body>
+    <h1>Claude-Optimal Workflow</h1>
+    <p class="subtitle">Dual-path system for New Code and Legacy Modernization</p>
+    <div id="workflow"></div>
+    <div class="legend">
+        <div class="legend-item">
+            <div class="legend-line new-code"></div>
+            <span>New Code Flow</span>
+        </div>
+        <div class="legend-item">
+            <div class="legend-line legacy-code"></div>
+            <span>Legacy Code Flow</span>
+        </div>
+        <div class="legend-item">
+            <div class="legend-line shared"></div>
+            <span>Shared Steps</span>
+        </div>
+        <div class="legend-item">
+            <div class="legend-line canon"></div>
+            <span>Canon Skills (invoked throughout)</span>
+        </div>
+    </div>
+    <div class="tooltip" id="tooltip"></div>
+
+    <script>
+        const width = 1200;
+        const height = 500;
+
+        // Node definitions
+        const nodes = [
+            // Entry points (left)
+            { id: 'new-code', label: 'New Code', desc: 'PRD / Feature Request', x: 50, y: 350, type: 'entry', flow: 'new' },
+            { id: 'legacy-code', label: 'Legacy Code', desc: 'Existing Codebase', x: 50, y: 150, type: 'entry', flow: 'legacy' },
+
+            // Shared planning phase
+            { id: 'plan', label: '/plan', desc: 'Create plan artifact', x: 200, y: 250, type: 'skill', flow: 'shared' },
+            { id: 'structure', label: '/structure-first', desc: 'Design data structures', x: 350, y: 250, type: 'skill', flow: 'shared' },
+
+            // Divergent implementation
+            { id: 'build', label: '/build-from-plan', desc: 'Implement new code', x: 520, y: 350, type: 'skill', flow: 'new' },
+            { id: 'refactor', label: '/refactor-clean', desc: 'Modernize existing', x: 520, y: 150, type: 'skill', flow: 'legacy' },
+
+            // Canon (central)
+            { id: 'canon', label: 'CANON', desc: 'Domain expertise skills', x: 520, y: 250, type: 'canon', flow: 'canon' },
+
+            // Shared review phase
+            { id: 'hard-review', label: '/hard-review', desc: 'Adversarial review', x: 700, y: 250, type: 'skill', flow: 'shared' },
+            { id: 'gemini', label: '/gemini-review', desc: 'External AI review', x: 850, y: 250, type: 'skill', flow: 'shared' },
+            { id: 'qodana', label: '/qodana-review', desc: 'Static analysis', x: 1000, y: 250, type: 'skill', flow: 'shared' },
+
+            // Exit
+            { id: 'complete', label: 'Complete', desc: 'Production ready', x: 1130, y: 250, type: 'exit', flow: 'shared' }
+        ];
+
+        // Link definitions
+        const links = [
+            // New code flow
+            { source: 'new-code', target: 'plan', flow: 'new' },
+            { source: 'plan', target: 'structure', flow: 'shared' },
+            { source: 'structure', target: 'build', flow: 'new' },
+            { source: 'build', target: 'hard-review', flow: 'new' },
+
+            // Legacy code flow
+            { source: 'legacy-code', target: 'plan', flow: 'legacy' },
+            { source: 'structure', target: 'refactor', flow: 'legacy' },
+            { source: 'refactor', target: 'hard-review', flow: 'legacy' },
+
+            // Shared review flow
+            { source: 'hard-review', target: 'gemini', flow: 'shared' },
+            { source: 'gemini', target: 'qodana', flow: 'shared' },
+            { source: 'qodana', target: 'complete', flow: 'shared' },
+
+            // Canon connections
+            { source: 'canon', target: 'plan', flow: 'canon' },
+            { source: 'canon', target: 'structure', flow: 'canon' },
+            { source: 'canon', target: 'build', flow: 'canon' },
+            { source: 'canon', target: 'refactor', flow: 'canon' }
+        ];
+
+        const tooltips = {
+            'new-code': 'Start here when building new features from a PRD or requirements document.',
+            'legacy-code': 'Start here when modernizing, refactoring, or cleaning up existing code.',
+            'plan': 'Creates a plan artifact at .claude/plans/[name].md. Invokes relevant canon skills to inform approach.',
+            'structure': 'Designs data structures and types. Creates artifact at .claude/structures/[name].md. Invokes /evans, /linus, /bloch.',
+            'build': 'NEW CODE PATH: Implements the plan step by step. Invokes domain-specific canon skills based on file type.',
+            'refactor': 'LEGACY CODE PATH: Systematically refactors existing code. Applies Bloch, Liskov, Kernighan, Gang of Four.',
+            'canon': 'Domain expertise skills invoked throughout: /bloch, /evans, /linus, /kernighan, /gang-of-four, etc.',
+            'hard-review': 'Adversarial self-review looking for security issues, edge cases, and quality problems.',
+            'gemini': 'External AI review via Gemini for second opinion on code quality.',
+            'qodana': 'JetBrains Qodana static analysis for code quality issues.',
+            'complete': 'Code is production ready after passing all review gates.'
+        };
+
+        // Color schemes
+        const colors = {
+            entry: { new: '#238636', legacy: '#a371f7' },
+            skill: { new: '#238636', legacy: '#a371f7', shared: '#58a6ff' },
+            canon: '#f0883e',
+            exit: '#8b949e'
+        };
+
+        // Create SVG
+        const svg = d3.select('#workflow')
+            .append('svg')
+            .attr('viewBox', `0 0 ${width} ${height}`)
+            .attr('preserveAspectRatio', 'xMidYMid meet');
+
+        // Add flow labels
+        svg.append('text')
+            .attr('x', 30)
+            .attr('y', 100)
+            .attr('class', 'flow-label')
+            .attr('fill', '#a371f7')
+            .text('Legacy Flow');
+
+        svg.append('text')
+            .attr('x', 30)
+            .attr('y', 420)
+            .attr('class', 'flow-label')
+            .attr('fill', '#238636')
+            .text('New Code Flow');
+
+        // Arrow marker
+        svg.append('defs').selectAll('marker')
+            .data(['new', 'legacy', 'shared', 'canon'])
+            .join('marker')
+            .attr('id', d => `arrow-${d}`)
+            .attr('viewBox', '0 -5 10 10')
+            .attr('refX', 8)
+            .attr('refY', 0)
+            .attr('markerWidth', 6)
+            .attr('markerHeight', 6)
+            .attr('orient', 'auto')
+            .append('path')
+            .attr('d', 'M0,-5L10,0L0,5')
+            .attr('fill', d => {
+                if (d === 'new') return '#238636';
+                if (d === 'legacy') return '#a371f7';
+                if (d === 'canon') return '#f0883e';
+                return '#58a6ff';
+            });
+
+        // Create node map for link drawing
+        const nodeMap = {};
+        nodes.forEach(n => nodeMap[n.id] = n);
+
+        // Draw links
+        const linkGroup = svg.append('g').attr('class', 'links');
+
+        links.forEach(link => {
+            const source = nodeMap[link.source];
+            const target = nodeMap[link.target];
+
+            const path = linkGroup.append('path')
+                .attr('class', `link ${link.flow === 'new' ? 'new-code' : link.flow === 'legacy' ? 'legacy-code' : link.flow === 'canon' ? 'canon' : 'shared'}`)
+                .attr('marker-end', `url(#arrow-${link.flow})`);
+
+            // Calculate path
+            const dx = target.x - source.x - 60;
+            const dy = target.y - source.y;
+
+            if (link.flow === 'canon') {
+                // Canon links are curved
+                const midX = (source.x + target.x) / 2;
+                const midY = source.y + (target.y - source.y) / 2 + (target.y > source.y ? 30 : -30);
+                path.attr('d', `M${source.x + 60},${source.y} Q${midX},${midY} ${target.x - 5},${target.y}`);
+            } else {
+                // Regular links
+                path.attr('d', `M${source.x + 60},${source.y} L${target.x - 5},${target.y}`);
+            }
+        });
+
+        // Draw nodes
+        const nodeGroup = svg.append('g').attr('class', 'nodes');
+
+        const tooltip = d3.select('#tooltip');
+
+        nodes.forEach(node => {
+            const g = nodeGroup.append('g')
+                .attr('class', 'node')
+                .attr('transform', `translate(${node.x - 55}, ${node.y - 25})`);
+
+            // Determine color
+            let fill;
+            if (node.type === 'entry') {
+                fill = colors.entry[node.flow];
+            } else if (node.type === 'canon') {
+                fill = colors.canon;
+            } else if (node.type === 'exit') {
+                fill = colors.exit;
+            } else {
+                fill = colors.skill[node.flow];
+            }
+
+            // Rectangle
+            g.append('rect')
+                .attr('width', 110)
+                .attr('height', 50)
+                .attr('rx', 6)
+                .attr('fill', fill)
+                .attr('stroke', d3.color(fill).brighter(0.5))
+                .on('mouseenter', (event) => {
+                    tooltip.style('opacity', 1)
+                        .html(`<h4>${node.label}</h4><p>${tooltips[node.id]}</p>`)
+                        .style('left', (event.pageX + 10) + 'px')
+                        .style('top', (event.pageY - 10) + 'px');
+                })
+                .on('mousemove', (event) => {
+                    tooltip.style('left', (event.pageX + 10) + 'px')
+                        .style('top', (event.pageY - 10) + 'px');
+                })
+                .on('mouseleave', () => {
+                    tooltip.style('opacity', 0);
+                });
+
+            // Label
+            g.append('text')
+                .attr('x', 55)
+                .attr('y', 22)
+                .attr('text-anchor', 'middle')
+                .text(node.label);
+
+            // Description
+            g.append('text')
+                .attr('class', 'description')
+                .attr('x', 55)
+                .attr('y', 38)
+                .attr('text-anchor', 'middle')
+                .text(node.desc);
+        });
+    </script>
+</body>
+</html>

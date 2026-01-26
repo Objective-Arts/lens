@@ -1,11 +1,13 @@
 ---
 name: build-from-plan
-description: Implement code from an approved plan. Use after /plan or /structure-first to execute the design.
+description: Implement NEW CODE from an approved plan. Use after /plan and /structure-first in the New Code Flow.
 ---
 
 # /build-from-plan [plan-file]
 
-Implement code from an approved plan file. Executes exactly per the plan without re-exploring.
+**NEW CODE FLOW ONLY** - Implement new features from an approved plan file.
+
+For legacy code modernization, use `/refactor-clean` instead.
 
 ## Why This Skill Exists
 
@@ -121,10 +123,25 @@ After implementation, report:
 - Run `/review-hard` before PR
 ```
 
-## Workflow Position
+## Workflow Position: New Code Flow
 
 ```
-/plan → /structure-first → /build-from-plan → /refactor-clean → /test → /review-hard
+NEW CODE FLOW (this skill):
+PRD/Feature Request → /plan → /structure-first → /build-from-plan → [review gates]
+
+LEGACY CODE FLOW (use /refactor-clean instead):
+Existing Code → /plan → /structure-first → /refactor-clean → [review gates]
 ```
 
-`/build-from-plan` is the implementation phase - after planning and structure design, before testing and review.
+`/build-from-plan` is the implementation phase for NEW CODE - after planning and structure design, before review gates.
+
+### When to Use Which
+
+| Situation | Use |
+|-----------|-----|
+| Building new feature from PRD | `/build-from-plan` |
+| Adding new module/component | `/build-from-plan` |
+| Greenfield development | `/build-from-plan` |
+| Refactoring existing code | `/refactor-clean` |
+| Modernizing legacy code | `/refactor-clean` |
+| Cleaning up tech debt | `/refactor-clean` |

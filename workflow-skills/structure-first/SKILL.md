@@ -158,10 +158,42 @@ Ready for implementation.
 - Circular dependencies between types
 - Mixing data types with behavior
 
-## Workflow Position
+## Dual Workflow: Different Purpose per Flow
+
+`/structure-first` serves different purposes in each workflow:
 
 ```
-/plan → /structure-first → /build-from-plan → /test → /review-hard
+NEW CODE FLOW:
+/plan → /structure-first → /build-from-plan → [review gates]
+              │
+              └─► DESIGN new types before they exist
+
+LEGACY CODE FLOW:
+/plan → /structure-first → /refactor-clean → [review gates]
+              │
+              └─► DOCUMENT existing types, find hidden domain objects
 ```
+
+### New Code: Design Phase
+
+When building new features, `/structure-first`:
+- Designs types/interfaces from scratch
+- Applies Evans DDD to identify entities vs value objects
+- Creates a blueprint for implementation
+
+### Legacy Code: Analysis Phase
+
+When modernizing existing code, `/structure-first`:
+- Documents the current data model
+- Identifies hidden aggregates and bounded contexts
+- Finds domain objects buried in procedural code
+- Creates a map for refactoring
+
+### Canon Focus by Flow
+
+| Flow | Canon to Invoke |
+|------|-----------------|
+| New Code | `/evans`, `/linus`, `/bloch` (design new structures) |
+| Legacy | `/evans`, `/feathers` (find hidden domain, identify seams) |
 
 `/structure-first` bridges planning and implementation - after deciding WHAT to do, before deciding HOW to code it.

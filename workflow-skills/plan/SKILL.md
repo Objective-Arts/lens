@@ -121,10 +121,36 @@ This skill works with Claude Code's built-in plan mode:
 - Write plan to the designated plan file
 - Use `ExitPlanMode` tool when ready for approval
 
-## Workflow Position
+## Dual Workflow: Entry Point for Both Flows
+
+`/plan` is the entry point for BOTH the New Code and Legacy Code workflows:
 
 ```
-/plan → /structure-first → [implement] → /test → /review-hard
+NEW CODE FLOW:
+PRD/Feature Request
+       ↓
+    /plan ──────► /structure-first ──────► /build-from-plan ──────► [review gates]
+       │
+       │ Different canon focus
+       │
+LEGACY CODE FLOW:
+Existing Code
+       ↓
+    /plan ──────► /structure-first ──────► /refactor-clean ──────► [review gates]
 ```
 
-Planning comes FIRST, before structure design and implementation.
+### Canon Focus by Flow
+
+| Flow | Canon to Invoke |
+|------|-----------------|
+| New Code | `/bloch`, `/pike`, `/schneier` (design, architecture, security) |
+| Legacy | `/feathers`, `/fowler`, `/taleb` (seams, smells, risk) |
+
+### Determining Flow
+
+Ask yourself: **Am I building something new or improving something existing?**
+
+- **New** → Plan will feed into `/build-from-plan`
+- **Existing** → Plan will feed into `/refactor-clean`
+
+Planning comes FIRST in both flows, before structure design and implementation.

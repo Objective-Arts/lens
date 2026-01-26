@@ -4,6 +4,39 @@ Standalone CLI usage for managing Claude Code configuration.
 
 ---
 
+## Dual Workflow Model
+
+Claude-Optimal supports two workflows that share planning and review but diverge at implementation:
+
+```
+┌─────────────────────────────────────────────────────────────────────────────┐
+│                                                                             │
+│  NEW CODE FLOW (building new features):                                     │
+│  PRD/Requirements → /plan → /structure-first → /build-from-plan → [reviews]│
+│                                                                             │
+│  LEGACY CODE FLOW (modernizing existing code):                              │
+│  Existing Code → /plan → /structure-first → /refactor-clean → [reviews]    │
+│                                                                             │
+│  Review Gates: /hard-review → /gemini-review → /qodana-review              │
+│                                                                             │
+└─────────────────────────────────────────────────────────────────────────────┘
+```
+
+### Choosing Your Flow
+
+| Situation | Flow | Implementation Skill |
+|-----------|------|---------------------|
+| Building new feature from PRD | New Code | `/build-from-plan` |
+| Adding new module/component | New Code | `/build-from-plan` |
+| Greenfield development | New Code | `/build-from-plan` |
+| Refactoring existing code | Legacy Code | `/refactor-clean` |
+| Modernizing legacy code | Legacy Code | `/refactor-clean` |
+| Cleaning up tech debt | Legacy Code | `/refactor-clean` |
+
+See [WORKFLOW-GUIDE.md](../../docs/WORKFLOW-GUIDE.md) for detailed documentation.
+
+---
+
 ## Prerequisites
 
 - cc-config installed (`npm link` from cli/)
@@ -316,6 +349,50 @@ cc-config tools uninstall <tool>
 ---
 
 ## Typical Workflows
+
+### New Code Flow (Building New Features)
+
+```bash
+# 1. Setup project with profile
+cc-config profile apply java -p .
+cc-config workflow install --all -p .
+
+# 2. Start planning
+/plan
+
+# 3. Design structures
+/structure-first
+
+# 4. Implement from plan
+/build-from-plan
+
+# 5. Review gates
+/hard-review
+/gemini-review
+/qodana-review
+```
+
+### Legacy Code Flow (Modernization)
+
+```bash
+# 1. Setup project with profile
+cc-config profile apply java -p .
+cc-config workflow install --all -p .
+
+# 2. Plan the refactoring
+/plan ClientController.java
+
+# 3. Document existing structure
+/structure-first
+
+# 4. Refactor
+/refactor-clean ClientController.java
+
+# 5. Review gates
+/hard-review
+/gemini-review
+/qodana-review
+```
 
 ### New Project Setup
 
