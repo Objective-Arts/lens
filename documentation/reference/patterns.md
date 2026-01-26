@@ -2,7 +2,17 @@
 
 *A Pattern Language in the Style of the Gang of Four*
 
-> **This is a theoretical reference.** For practical usage, see [USER-GUIDE.md](USER-GUIDE.md).
+> **This is a theoretical reference.** For practical usage, see the [Workflow Guide](../../docs/WORKFLOW-GUIDE.md).
+
+---
+
+## Canon-Driven Development
+
+These patterns implement **Canon-Driven Development**: quality built in from the start, not forced by review when it's too late.
+
+The dual workflow model uses these patterns:
+- **New Code Flow**: Canon Factory → Profile Builder → Quality Template
+- **Legacy Code Flow**: Canon Factory → Skill Decorator (Feathers) → Quality Template
 
 ---
 
@@ -11,9 +21,9 @@
 This catalog applies the Gang of Four pattern format to Claude Code primitives. Each pattern addresses a recurring problem in configuring Claude Code for quality output.
 
 For practical application of these patterns, see:
-- **Profiles**: [PROFILES.md](PROFILES.md) - Canon Factory and Profile Builder in action
-- **Standards**: [STRUCTURAL-STANDARDS.md](STRUCTURAL-STANDARDS.md) - Quality Template implementation
-- **Flags**: [FLAGS.md](FLAGS.md) - Hook Chain and Skill Observer in practice
+- **Profiles**: [profiles.md](profiles.md) - Canon Factory and Profile Builder in action
+- **Standards**: [structural-standards.md](structural-standards.md) - Quality Template implementation
+- **Flags**: [flags.md](flags.md) - Hook Chain and Skill Observer in practice
 
 **Pattern Format** (from GoF):
 - **Intent**: What does the pattern do?
@@ -916,46 +926,54 @@ Start of new session:
 
 ## Compound Patterns
 
-### Full Quality Pipeline
+### Dual Workflow Pipeline
 
-Combines multiple patterns for comprehensive quality assurance:
+The Canon-Driven Development model uses two parallel pipelines that converge at shared review gates:
 
 ```
-┌─────────────────────────────────────────────────────────┐
-│                   FULL QUALITY PIPELINE                  │
-│  ─────────────────────────────────────────────────────  │
-│                                                          │
-│  SKILL OBSERVER (auto-invoke)                           │
-│         │                                                │
-│         ▼                                                │
-│  CANON FACTORY (domain expertise)                       │
-│         │                                                │
-│         ▼                                                │
-│  SKILL DECORATOR (layer concerns)                       │
-│         │                                                │
-│         ▼                                                │
-│  CODE WRITTEN                                            │
-│         │                                                │
-│         ▼                                                │
-│  QUALITY TEMPLATE (sequence)                            │
-│         │                                                │
-│         ├── AGENT FACADE (coordinate)                   │
-│         │        │                                       │
-│         │        ├── test-engineer                      │
-│         │        ├── code-reviewer                      │
-│         │        └── security-auditor                   │
-│         │                                                │
-│         ▼                                                │
-│  HOOK CHAIN (validate)                                  │
-│         │                                                │
-│         ├── format                                       │
-│         ├── lint                                         │
-│         └── test                                         │
-│         │                                                │
-│         ▼                                                │
-│  CONTEXT MEMENTO (save progress)                        │
-│                                                          │
-└─────────────────────────────────────────────────────────┘
+┌─────────────────────────────────────────────────────────────────────────┐
+│                     CANON-DRIVEN DUAL WORKFLOW                          │
+│  ─────────────────────────────────────────────────────────────────────  │
+│                                                                         │
+│  SKILL OBSERVER (auto-invoke based on context)                         │
+│         │                                                               │
+│         ▼                                                               │
+│  CANON FACTORY (Baseline Brain always active)                          │
+│         │                                                               │
+│         ├──────────────────────┬────────────────────────┐               │
+│         │                      │                        │               │
+│         ▼                      ▼                        │               │
+│   NEW CODE FLOW          LEGACY CODE FLOW               │               │
+│   ─────────────          ───────────────                │               │
+│   PROFILE BUILDER        SKILL DECORATOR                │               │
+│   (Bloch, Pike,          (Feathers, Fowler,             │               │
+│    Schneier, Evans)       Taleb, Liskov)                │               │
+│         │                      │                        │               │
+│         ▼                      ▼                        │               │
+│   /build-from-plan       /refactor-clean                │               │
+│         │                      │                        │               │
+│         └──────────┬───────────┘                        │               │
+│                    │                                    │               │
+│                    ▼                                    │               │
+│         SHARED REVIEW GATES                             │               │
+│         ───────────────────                             │               │
+│         QUALITY TEMPLATE                                │               │
+│                │                                        │               │
+│                ├── /test (Dodds, Meszaros)              │               │
+│                ├── /review-hard (Dijkstra, Schneier)    │               │
+│                └── External (Gemini, Qodana)            │               │
+│                │                                        │               │
+│                ▼                                        │               │
+│         HOOK CHAIN (validate)                           │               │
+│                │                                        │               │
+│         ┌──────┴──────┐                                 │               │
+│         │             │                                 │               │
+│       PASS          FAIL ──► Return to implementation   │               │
+│         │                    (feedback loop)            │               │
+│         ▼                                               │               │
+│  CONTEXT MEMENTO (save progress)                        │               │
+│                                                                         │
+└─────────────────────────────────────────────────────────────────────────┘
 ```
 
 ---
@@ -963,40 +981,43 @@ Combines multiple patterns for comprehensive quality assurance:
 ## Pattern Relationships
 
 ```
-                    SKILL OBSERVER
-                         │
-                         │ triggers
-                         ▼
-                    CANON FACTORY ◄──── PROFILE BUILDER
-                         │                    │
-                         │ creates            │ configures
-                         ▼                    │
-                    CANON SKILL ◄─────────────┘
-                         │
-                         │ decorated by
-                         ▼
-                   SKILL DECORATOR
-                         │
-                         │ guides
-                         ▼
-                    CODE WRITTEN
-                         │
-                         │ validated by
-                         ▼
-                   QUALITY TEMPLATE
-                         │
-                         │ uses
-                         ├─────────────────┐
-                         ▼                 ▼
-                   AGENT FACADE       HOOK CHAIN
-                         │                 │
-                         │ coordinates     │ validates
-                         ▼                 ▼
-                    SUBAGENTS          PASS/FAIL
-                         │
-                         │ results to
-                         ▼
-                  CONTEXT MEMENTO
+                         SKILL OBSERVER
+                              │
+                              │ triggers
+                              ▼
+                         CANON FACTORY
+                    (Baseline Brain always active)
+                              │
+              ┌───────────────┴───────────────┐
+              │                               │
+              ▼                               ▼
+       PROFILE BUILDER                 SKILL DECORATOR
+       (New Code Flow)                 (Legacy Code Flow)
+       Bloch, Pike, Evans              Feathers, Fowler, Liskov
+              │                               │
+              ▼                               ▼
+       /build-from-plan                /refactor-clean
+              │                               │
+              └───────────────┬───────────────┘
+                              │
+                              ▼
+                      QUALITY TEMPLATE
+                     (Shared Review Gates)
+                              │
+                    ┌─────────┼─────────┐
+                    ▼         ▼         ▼
+                 /test   /review    External
+                              │
+                              ▼
+                        HOOK CHAIN
+                              │
+                    ┌─────────┴─────────┐
+                    ▼                   ▼
+                  PASS                FAIL
+                    │                   │
+                    ▼                   ▼
+            CONTEXT MEMENTO      FEEDBACK LOOP
+                              (return to implementation)
 ```
 
 ---
@@ -1018,15 +1039,19 @@ Combines multiple patterns for comprehensive quality assurance:
 
 ## The Meta-Pattern
 
-All patterns serve one goal: **Compound Quality**.
+All patterns serve one goal: **Canon-Driven Development**.
 
 ```
-Individual patterns add value linearly.
-Combined patterns multiply value.
+Quality built in from the start, not forced by review when it's too late.
 
-Canon (1.3x) × Quality Sequence (1.2x) × Security (1.2x) × Parallel (2x)
-= 3.7x effective development
+The dual workflow ensures:
+- New Code: Expert guidance from design through implementation
+- Legacy Code: Safe refactoring with characterization and seams
+
+Canon Factory (Baseline Brain) × Workflow Pattern × Quality Template
+= Quality at every step, not just at the end
 
 Configuration is strategy made executable.
 Patterns are strategy made repeatable.
+Canon is expertise made accessible.
 ```
