@@ -713,56 +713,11 @@ grep -l "old_name" *.py | xargs sed -i 's/old_name/new_name/g'
 
 ---
 
-## From The AWK Programming Language (1988, 2nd ed. 2023)
+## AWK: The Right Tool Principle
 
-> "AWK is a language for processing text files."
+From "The AWK Programming Language" (1988, 2nd ed. 2023):
 
-AWK embodies Kernighan's philosophy: a small, focused language for a specific domain.
-
-### Pattern-Action Programming
-
-AWK programs are rules: **pattern { action }**
-
-```awk
-# Print lines containing "error"
-/error/ { print }
-
-# Print second column of CSV
-{ print $2 }
-
-# Sum third column
-{ sum += $3 } END { print sum }
-```
-
-### When to Use AWK
-
-**Quick data extraction:**
-```bash
-# Get usernames from passwd
-awk -F: '{print $1}' /etc/passwd
-
-# Sum a column
-awk '{sum += $3} END {print sum}' data.txt
-
-# Filter and format
-awk '$3 > 100 {printf "%s: $%.2f\n", $1, $3}' sales.txt
-```
-
-**Field processing:**
-```bash
-# Swap columns
-awk '{print $2, $1}' file
-
-# Add line numbers
-awk '{print NR, $0}' file
-
-# Skip header
-awk 'NR > 1 {print}' file
-```
-
-### AWK vs Writing Code
-
-For simple text processing, AWK is often the right choice:
+For simple text processing, don't write code—use AWK:
 
 | Task | AWK | Python |
 |------|-----|--------|
