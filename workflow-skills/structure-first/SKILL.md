@@ -33,6 +33,7 @@ Required reads:
 2. Read: .claude/skills/[language-canon]/SKILL.md (based on detected language)
 3. Read: .claude/skills/evans/SKILL.md (domain modeling)
 4. Read: .claude/skills/linus/SKILL.md (data structures first)
+5. Read: .claude/skills/gang-of-four/SKILL.md (structural patterns)
 ```
 
 Detect language from file extensions or project structure:
@@ -60,6 +61,7 @@ Detect language from file extensions or project structure:
 ### Domain Canon Loaded
 - [ ] /evans - [X items loaded, key principle for this task]
 - [ ] /linus - [X items loaded, key principle for this task]
+- [ ] /gang-of-four - [23 patterns loaded, which structural patterns apply]
 - [ ] /[language] - [X items loaded, key principle for this task]
 
 ### How Canon Applies to This Task
@@ -67,7 +69,14 @@ Detect language from file extensions or project structure:
 |-----------|------|--------------------------|
 | Data structures first | Linus | Will define types before any logic |
 | Entities vs Value Objects | Evans | Will distinguish by identity needs |
+| Structural patterns | Gang of Four | [which patterns inform the structure] |
 | Immutability default | [lang canon] | All types immutable unless justified |
+
+### Structural Patterns Identified (Gang of Four)
+| Pattern | Why Needed | How It Shapes Types |
+|---------|------------|---------------------|
+| [Composite/Decorator/etc.] | [problem it solves] | [types it requires] |
+| [Strategy/State/etc.] | [problem it solves] | [interfaces it requires] |
 ```
 
 **If this section is empty or generic, STOP. You have not loaded canon.**
@@ -144,7 +153,13 @@ Write to `.claude/structures/[name].md`:
 ## Canon Applied
 - Linus: Data structures designed first
 - Evans: [entities/value objects identified]
+- Gang of Four: [structural patterns applied]
 - [Language canon]: [specific items applied]
+
+## Design Patterns Used
+| Pattern | Purpose | Types Created |
+|---------|---------|---------------|
+| [Pattern] | [why] | [types] |
 
 ## Types
 [all type definitions]
