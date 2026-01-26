@@ -63,9 +63,10 @@ Before defining types, invoke domain-specific canon skills:
 | Patterns | `/gang-of-four` | When to use which structural pattern |
 
 **Example**: Designing types for a payment system:
-1. Invoke `/linus` - think data structures first
-2. Invoke `/bloch` - design immutable value objects
-3. Invoke `/gang-of-four` - consider Strategy for payment methods
+1. Invoke `/evans` - identify entities (Order) vs value objects (Money)
+2. Invoke `/linus` - think data structures first
+3. Invoke `/bloch` - design immutable value objects, defensive copies
+4. Invoke `/gang-of-four` - consider Strategy for payment methods
 
 ## Structure File Location
 
