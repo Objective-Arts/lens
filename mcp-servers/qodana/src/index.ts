@@ -150,13 +150,48 @@ const tools: Tool[] = [
   },
   {
     name: 'qodana_detect',
-    description: 'Detect the appropriate Qodana linter for a project based on its files',
+    description: 'Detect ALL languages in a project and their appropriate Qodana linters. Returns multiple linters for multi-language projects.',
     inputSchema: {
       type: 'object',
       properties: {
         projectDir: {
           type: 'string',
           description: 'Path to the project directory'
+        }
+      },
+      required: ['projectDir']
+    }
+  },
+  {
+    name: 'qodana_multi_scan',
+    description: 'Run Qodana scans for ALL detected languages in a project. Automatically detects languages and runs appropriate linters sequentially, combining results.',
+    inputSchema: {
+      type: 'object',
+      properties: {
+        projectDir: {
+          type: 'string',
+          description: 'Path to the project directory to scan'
+        },
+        linters: {
+          type: 'array',
+          items: {
+            type: 'string',
+            enum: [
+              'qodana-jvm-community', 'qodana-jvm', 'qodana-jvm-android',
+              'qodana-php', 'qodana-python-community', 'qodana-python',
+              'qodana-js', 'qodana-dotnet', 'qodana-go', 'qodana-rust',
+              'qodana-cpp', 'qodana-ruby'
+            ]
+          },
+          description: 'Specific linters to run (auto-detected if not specified)'
+        },
+        baseline: {
+          type: 'string',
+          description: 'Path to baseline file to compare against'
+        },
+        changesOnly: {
+          type: 'boolean',
+          description: 'Only analyze changed files (requires git)'
         }
       },
       required: ['projectDir']
@@ -402,17 +437,75 @@ server.setRequestHandler(CallToolRequestSchema, async (request) => {
 
       case 'qodana_detect': {
         const projectDir = args.projectDir as string;
-        const linter = client.detectLinter(projectDir);
+        const allLinters = client.detectAllLinters(projectDir);
 
         return {
           content: [{
             type: 'text',
             text: JSON.stringify({
               projectDir,
-              detectedLinter: linter,
-              recommendation: linter
-                ? `Use: qodana scan --linter ${linter}`
-                : 'Could not detect project type. Please specify linter manually.'
+              languages: allLinters.map(l => ({
+                language: l.language,
+                linter: l.linter,
+                confidence: l.confidence
+              })),
+              isMultiLanguage: allLinters.length > 1,
+              recommendation: allLinters.length > 1
+                ? `Multi-language project detected. Use qodana_multi_scan for comprehensive analysis.`
+                : allLinters.length === 1
+                  ? `Use: qodana scan --linter ${allLinters[0].linter}`
+                  : 'Could not detect project type. Please specify linter manually.'
+            }, null, 2)
+          }]
+        };
+      }
+
+      case 'qodana_multi_scan': {
+        const options = {
+          projectDir: (args.projectDir as string) || process.cwd(),
+          linters: args.linters as QodanaLinter[] | undefined,
+          baseline: args.baseline as string | undefined,
+          changes: args.changesOnly as boolean | undefined
+        };
+
+        // First detect what languages are in the project
+        const detected = client.detectAllLinters(options.projectDir);
+
+        if (detected.length === 0 && !options.linters) {
+          return {
+            content: [{
+              type: 'text',
+              text: 'No languages detected in project. Please specify linters manually.'
+            }],
+            isError: true
+          };
+        }
+
+        const result = await client.multiScan(options);
+
+        return {
+          content: [{
+            type: 'text',
+            text: JSON.stringify({
+              success: result.success,
+              languagesScanned: result.scans.map(s => s.language),
+              combinedSummary: result.combinedSummary,
+              scanResults: result.scans.map(s => ({
+                language: s.language,
+                linter: s.linter,
+                success: s.success,
+                summary: s.summary,
+                error: s.error
+              })),
+              totalProblems: result.allProblems.length,
+              topProblems: result.allProblems.slice(0, 15).map(p => ({
+                language: p.tool,
+                severity: p.severity,
+                type: p.type,
+                message: p.comment,
+                file: p.sources[0]?.file,
+                line: p.sources[0]?.line
+              }))
             }, null, 2)
           }]
         };

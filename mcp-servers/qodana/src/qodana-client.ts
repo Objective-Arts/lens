@@ -68,11 +68,11 @@ export class QodanaClient {
    */
   async checkCliAvailable(): Promise<{ available: boolean; version?: string; error?: string }> {
     try {
-      const result = execSync(`${this.config.cliPath} version 2>&1`, {
+      const result = execSync(`${this.config.cliPath} --version 2>&1`, {
         encoding: 'utf-8',
         timeout: 10000
       });
-      const versionMatch = result.match(/qodana\s+v?([\d.]+)/i);
+      const versionMatch = result.match(/qodana\s+version\s+([\d.]+)/i);
       return {
         available: true,
         version: versionMatch ? versionMatch[1] : 'unknown'
@@ -86,43 +86,217 @@ export class QodanaClient {
   }
 
   /**
-   * Detect the appropriate linter for a project
+   * Detect the appropriate linter for a project (returns first match)
    */
   detectLinter(projectDir: string): QodanaLinter | null {
-    const files = fs.readdirSync(projectDir);
-    const hasFile = (patterns: string[]) =>
-      patterns.some(p => files.some(f => f.match(new RegExp(p, 'i'))));
+    const linters = this.detectAllLinters(projectDir);
+    return linters.length > 0 ? linters[0].linter : null;
+  }
 
-    // Check for project files to determine language/framework
-    if (hasFile(['pom\\.xml', 'build\\.gradle', '\\.java$'])) {
-      return 'qodana-jvm-community';
-    }
-    if (hasFile(['go\\.mod', '\\.go$'])) {
-      return 'qodana-go';
-    }
-    if (hasFile(['Cargo\\.toml', '\\.rs$'])) {
-      return 'qodana-rust';
-    }
-    if (hasFile(['composer\\.json', '\\.php$'])) {
-      return 'qodana-php';
-    }
-    if (hasFile(['requirements\\.txt', 'pyproject\\.toml', 'setup\\.py', '\\.py$'])) {
-      return 'qodana-python-community';
-    }
-    if (hasFile(['\\.csproj$', '\\.sln$', '\\.cs$'])) {
-      return 'qodana-dotnet';
-    }
-    if (hasFile(['Gemfile', '\\.rb$'])) {
-      return 'qodana-ruby';
-    }
-    if (hasFile(['CMakeLists\\.txt', '\\.cpp$', '\\.hpp$', '\\.c$', '\\.h$'])) {
-      return 'qodana-cpp';
-    }
-    if (hasFile(['package\\.json', 'tsconfig\\.json', '\\.ts$', '\\.js$', '\\.tsx$', '\\.jsx$'])) {
-      return 'qodana-js';
+  /**
+   * Detect ALL languages/linters in a project
+   */
+  detectAllLinters(projectDir: string): Array<{ linter: QodanaLinter; language: string; confidence: 'high' | 'medium' }> {
+    const detected: Array<{ linter: QodanaLinter; language: string; confidence: 'high' | 'medium' }> = [];
+
+    // Recursively find files (limit depth to avoid node_modules etc.)
+    const findFiles = (dir: string, depth = 0): string[] => {
+      if (depth > 3) return [];
+      const skipDirs = ['node_modules', '.git', 'vendor', 'target', 'build', 'dist', '.qodana', '__pycache__', 'venv', '.venv'];
+
+      try {
+        const entries = fs.readdirSync(dir, { withFileTypes: true });
+        let files: string[] = [];
+
+        for (const entry of entries) {
+          if (entry.isDirectory()) {
+            if (!skipDirs.includes(entry.name)) {
+              files = files.concat(findFiles(path.join(dir, entry.name), depth + 1));
+            }
+          } else {
+            files.push(entry.name);
+          }
+        }
+        return files;
+      } catch {
+        return [];
+      }
+    };
+
+    const allFiles = findFiles(projectDir);
+    const rootFiles = fs.readdirSync(projectDir);
+
+    const hasRootFile = (patterns: string[]) =>
+      patterns.some(p => rootFiles.some(f => f.match(new RegExp(p, 'i'))));
+
+    const hasAnyFile = (patterns: string[]) =>
+      patterns.some(p => allFiles.some(f => f.match(new RegExp(p, 'i'))));
+
+    // Java/Kotlin - high confidence from build files
+    if (hasRootFile(['pom\\.xml', 'build\\.gradle', 'build\\.gradle\\.kts'])) {
+      detected.push({ linter: 'qodana-jvm-community', language: 'Java/Kotlin', confidence: 'high' });
+    } else if (hasAnyFile(['\\.java$', '\\.kt$'])) {
+      detected.push({ linter: 'qodana-jvm-community', language: 'Java/Kotlin', confidence: 'medium' });
     }
 
-    return null;
+    // Go
+    if (hasRootFile(['go\\.mod'])) {
+      detected.push({ linter: 'qodana-go', language: 'Go', confidence: 'high' });
+    } else if (hasAnyFile(['\\.go$'])) {
+      detected.push({ linter: 'qodana-go', language: 'Go', confidence: 'medium' });
+    }
+
+    // Rust
+    if (hasRootFile(['Cargo\\.toml'])) {
+      detected.push({ linter: 'qodana-rust', language: 'Rust', confidence: 'high' });
+    } else if (hasAnyFile(['\\.rs$'])) {
+      detected.push({ linter: 'qodana-rust', language: 'Rust', confidence: 'medium' });
+    }
+
+    // PHP
+    if (hasRootFile(['composer\\.json'])) {
+      detected.push({ linter: 'qodana-php', language: 'PHP', confidence: 'high' });
+    } else if (hasAnyFile(['\\.php$'])) {
+      detected.push({ linter: 'qodana-php', language: 'PHP', confidence: 'medium' });
+    }
+
+    // Python
+    if (hasRootFile(['requirements\\.txt', 'pyproject\\.toml', 'setup\\.py', 'Pipfile'])) {
+      detected.push({ linter: 'qodana-python-community', language: 'Python', confidence: 'high' });
+    } else if (hasAnyFile(['\\.py$'])) {
+      detected.push({ linter: 'qodana-python-community', language: 'Python', confidence: 'medium' });
+    }
+
+    // C#/.NET
+    if (hasRootFile(['\\.sln$']) || hasAnyFile(['\\.csproj$'])) {
+      detected.push({ linter: 'qodana-dotnet', language: 'C#/.NET', confidence: 'high' });
+    } else if (hasAnyFile(['\\.cs$'])) {
+      detected.push({ linter: 'qodana-dotnet', language: 'C#/.NET', confidence: 'medium' });
+    }
+
+    // Ruby
+    if (hasRootFile(['Gemfile'])) {
+      detected.push({ linter: 'qodana-ruby', language: 'Ruby', confidence: 'high' });
+    } else if (hasAnyFile(['\\.rb$'])) {
+      detected.push({ linter: 'qodana-ruby', language: 'Ruby', confidence: 'medium' });
+    }
+
+    // C/C++
+    if (hasRootFile(['CMakeLists\\.txt', 'Makefile'])) {
+      detected.push({ linter: 'qodana-cpp', language: 'C/C++', confidence: 'high' });
+    } else if (hasAnyFile(['\\.cpp$', '\\.hpp$', '\\.c$', '\\.h$'])) {
+      detected.push({ linter: 'qodana-cpp', language: 'C/C++', confidence: 'medium' });
+    }
+
+    // JavaScript/TypeScript - check last as it's common in many projects
+    if (hasRootFile(['package\\.json'])) {
+      detected.push({ linter: 'qodana-js', language: 'JavaScript/TypeScript', confidence: 'high' });
+    } else if (hasAnyFile(['\\.ts$', '\\.tsx$', '\\.js$', '\\.jsx$'])) {
+      detected.push({ linter: 'qodana-js', language: 'JavaScript/TypeScript', confidence: 'medium' });
+    }
+
+    return detected;
+  }
+
+  /**
+   * Run multi-linter scan for projects with multiple languages
+   */
+  async multiScan(options: QodanaScanOptions & { linters?: QodanaLinter[] }): Promise<{
+    success: boolean;
+    scans: Array<{
+      linter: QodanaLinter;
+      language: string;
+      success: boolean;
+      summary?: { total: number; critical: number; high: number; moderate: number; low: number; info: number };
+      problems?: QodanaLocalProblem[];
+      error?: string;
+    }>;
+    combinedSummary: { total: number; critical: number; high: number; moderate: number; low: number; info: number };
+    allProblems: QodanaLocalProblem[];
+  }> {
+    // Detect or use provided linters
+    const lintersToRun = options.linters ||
+      this.detectAllLinters(options.projectDir).map(d => d.linter);
+
+    if (lintersToRun.length === 0) {
+      return {
+        success: false,
+        scans: [],
+        combinedSummary: { total: 0, critical: 0, high: 0, moderate: 0, low: 0, info: 0 },
+        allProblems: []
+      };
+    }
+
+    const scans: Array<{
+      linter: QodanaLinter;
+      language: string;
+      success: boolean;
+      summary?: { total: number; critical: number; high: number; moderate: number; low: number; info: number };
+      problems?: QodanaLocalProblem[];
+      error?: string;
+    }> = [];
+
+    const allProblems: QodanaLocalProblem[] = [];
+    const combinedSummary = { total: 0, critical: 0, high: 0, moderate: 0, low: 0, info: 0 };
+
+    // Get language names for each linter
+    const linterLanguages: Record<string, string> = {
+      'qodana-jvm-community': 'Java/Kotlin',
+      'qodana-jvm': 'Java/Kotlin',
+      'qodana-go': 'Go',
+      'qodana-rust': 'Rust',
+      'qodana-php': 'PHP',
+      'qodana-python-community': 'Python',
+      'qodana-python': 'Python',
+      'qodana-dotnet': 'C#/.NET',
+      'qodana-ruby': 'Ruby',
+      'qodana-cpp': 'C/C++',
+      'qodana-js': 'JavaScript/TypeScript'
+    };
+
+    // Run each linter sequentially
+    for (const linter of lintersToRun) {
+      const language = linterLanguages[linter] || linter;
+
+      // Use separate results directory per linter
+      const resultsDir = path.join(options.projectDir, '.qodana', linter);
+
+      const result = await this.scan({
+        ...options,
+        linter,
+        resultsDir
+      });
+
+      const scanResult = {
+        linter,
+        language,
+        success: result.success,
+        summary: result.summary,
+        problems: result.problems,
+        error: result.error
+      };
+
+      scans.push(scanResult);
+
+      if (result.success && result.problems) {
+        allProblems.push(...result.problems);
+        if (result.summary) {
+          combinedSummary.total += result.summary.total;
+          combinedSummary.critical += result.summary.critical;
+          combinedSummary.high += result.summary.high;
+          combinedSummary.moderate += result.summary.moderate;
+          combinedSummary.low += result.summary.low;
+          combinedSummary.info += result.summary.info;
+        }
+      }
+    }
+
+    return {
+      success: scans.every(s => s.success),
+      scans,
+      combinedSummary,
+      allProblems
+    };
   }
 
   /**

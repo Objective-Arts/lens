@@ -18,9 +18,49 @@ export declare class QodanaClient {
         error?: string;
     }>;
     /**
-     * Detect the appropriate linter for a project
+     * Detect the appropriate linter for a project (returns first match)
      */
     detectLinter(projectDir: string): QodanaLinter | null;
+    /**
+     * Detect ALL languages/linters in a project
+     */
+    detectAllLinters(projectDir: string): Array<{
+        linter: QodanaLinter;
+        language: string;
+        confidence: 'high' | 'medium';
+    }>;
+    /**
+     * Run multi-linter scan for projects with multiple languages
+     */
+    multiScan(options: QodanaScanOptions & {
+        linters?: QodanaLinter[];
+    }): Promise<{
+        success: boolean;
+        scans: Array<{
+            linter: QodanaLinter;
+            language: string;
+            success: boolean;
+            summary?: {
+                total: number;
+                critical: number;
+                high: number;
+                moderate: number;
+                low: number;
+                info: number;
+            };
+            problems?: QodanaLocalProblem[];
+            error?: string;
+        }>;
+        combinedSummary: {
+            total: number;
+            critical: number;
+            high: number;
+            moderate: number;
+            low: number;
+            info: number;
+        };
+        allProblems: QodanaLocalProblem[];
+    }>;
     /**
      * Run Qodana scan using CLI
      */

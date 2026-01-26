@@ -418,6 +418,7 @@
                 <th>Level</th>
                 <th>Count</th>
                 <th>Status</th>
+                <th>Runner</th>
               </tr>
             </thead>
             <tbody></tbody>
@@ -427,6 +428,14 @@
           <h3>TDD Progression</h3>
           <div class="chart-container" id="tdd-chart"></div>
         </div>
+      </div>
+      <div class="card" id="e2e-results-card" style="display: none;">
+        <h3>E2E Test Execution</h3>
+        <div id="e2e-results"></div>
+      </div>
+      <div class="card" id="test-runner-output-card" style="display: none;">
+        <h3>Test Runner Output</h3>
+        <pre id="test-runner-output" style="background: #1a1a2e; color: #eee; padding: 12px; border-radius: 4px; overflow-x: auto; font-size: 12px;"></pre>
       </div>
     </section>
 
@@ -519,6 +528,7 @@
       renderTimeline(checkpoints);
       renderExperts(checkpoints);
       renderTestLevels(testLevels);
+      renderE2EResults(testing);
       renderTDDChart(testing.progression || []);
       renderReviews(data.reviews || {});
       renderIssues(issues);
@@ -529,8 +539,8 @@
       container.innerHTML = '';
 
       const steps = [
-        'Plan', 'Structure', 'Tests', 'TDD Red', 'Build',
-        'TDD Green', 'Self Review', 'Gemini', 'Qodana', 'Fix', 'Validate'
+        'Plan', 'Structure', 'Tests', 'E2E', 'TDD Red', 'Build',
+        'TDD Green', 'Review', 'Gemini', 'Qodana', 'Fix', 'Validate', 'Docs'
       ];
 
       const checkpoints = data.checkpoints || [];
@@ -603,6 +613,7 @@
         { step: 1, skill: '/plan' },
         { step: 2, skill: '/structure-first' },
         { step: 3, skill: '/test' },
+        { step: 3.5, skill: 'E2E Tests (web)' },
         { step: 4, skill: 'TDD Red' },
         { step: 5, skill: '/build-from-plan' },
         { step: 6, skill: 'TDD Green' },
@@ -610,7 +621,8 @@
         { step: 8, skill: 'Gemini Review' },
         { step: 9, skill: 'Qodana Scan' },
         { step: 10, skill: 'Fix & Iterate' },
-        { step: 11, skill: 'Final Validation' }
+        { step: 11, skill: 'Final Validation' },
+        { step: 12, skill: '/sc:document' }
       ];
 
       const completedMap = new Map(checkpoints.map(c => [c.step, c]));
@@ -644,7 +656,10 @@
           if (!expertMap.has(expert.name)) {
             expertMap.set(expert.name, []);
           }
-          expertMap.get(expert.name).push(expert.contribution);
+          expertMap.get(expert.name).push({
+            contribution: expert.contribution,
+            proof: expert.proof || null
+          });
         });
       });
 
@@ -656,14 +671,51 @@
       expertMap.forEach((contributions, name) => {
         const card = document.createElement('div');
         card.className = 'card';
+
+        const contribHtml = contributions.map((c, idx) => {
+          const hasProof = c.proof !== null;
+          const proofId = `proof-${name}-${idx}`;
+
+          let proofHtml = '';
+          if (hasProof) {
+            const p = c.proof;
+            proofHtml = `
+              <details id="${proofId}" style="margin-top: 8px; padding: 12px; background: var(--bg-secondary); border-radius: 4px;">
+                <summary style="cursor: pointer; font-weight: 500; color: var(--accent);">View Proof</summary>
+                <div style="margin-top: 12px; font-size: 13px;">
+                  ${p.file ? `<p><strong>File:</strong> <code>${p.file}</code></p>` : ''}
+                  ${p.code ? `<pre style="background: #1a1a2e; color: #eee; padding: 8px; border-radius: 4px; overflow-x: auto; margin: 8px 0;"><code>${escapeHtml(p.code)}</code></pre>` : ''}
+                  ${p.before ? `<p><strong>Without:</strong> <span style="color: var(--error);">${p.before}</span></p>` : ''}
+                  ${p.after || p.with ? `<p><strong>With:</strong> <span style="color: var(--success);">${p.after || p.with}</span></p>` : ''}
+                </div>
+              </details>
+            `;
+          }
+
+          const verifiedBadge = hasProof
+            ? '<span class="status status-success" style="margin-left: 8px; font-size: 11px;">VERIFIED</span>'
+            : '<span class="status status-warning" style="margin-left: 8px; font-size: 11px;">UNVERIFIED</span>';
+
+          return `
+            <li style="margin-bottom: 12px; color: var(--text-secondary);">
+              ${c.contribution} ${verifiedBadge}
+              ${proofHtml}
+            </li>
+          `;
+        }).join('');
+
         card.innerHTML = `
           <h3>${name}</h3>
-          <ul style="margin-top: 8px; padding-left: 20px;">
-            ${contributions.map(c => `<li style="margin-bottom: 4px; color: var(--text-secondary);">${c}</li>`).join('')}
+          <ul style="margin-top: 8px; padding-left: 20px; list-style: none;">
+            ${contribHtml}
           </ul>
         `;
         container.appendChild(card);
       });
+    }
+
+    function escapeHtml(str) {
+      return str.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
     }
 
     function renderTestLevels(levels) {
@@ -671,20 +723,49 @@
       tbody.innerHTML = '';
 
       if (Object.keys(levels).length === 0) {
-        tbody.innerHTML = '<tr><td colspan="3" style="text-align: center; color: var(--text-muted);">No test data</td></tr>';
+        tbody.innerHTML = '<tr><td colspan="4" style="text-align: center; color: var(--text-muted);">No test data</td></tr>';
         return;
       }
 
       Object.entries(levels).forEach(([level, data]) => {
         const row = document.createElement('tr');
-        const statusClass = data.status === 'passed' ? 'status-success' : 'status-error';
+        const statusClass = data.status === 'passed' ? 'status-success' : (data.status === 'written' ? 'status-warning' : 'status-error');
+        const statusLabel = data.status === 'written' ? 'NOT RUN' : data.status;
         row.innerHTML = `
           <td style="text-transform: capitalize;">${level}</td>
           <td>${data.count || 0}</td>
-          <td><span class="status ${statusClass}">${data.status || 'pending'}</span></td>
+          <td><span class="status ${statusClass}">${statusLabel || 'pending'}</span></td>
+          <td style="color: var(--text-muted); font-size: 12px;">${data.runner || '-'}</td>
         `;
         tbody.appendChild(row);
       });
+    }
+
+    function renderE2EResults(testing) {
+      const e2eCard = document.getElementById('e2e-results-card');
+      const e2eContainer = document.getElementById('e2e-results');
+      const runnerCard = document.getElementById('test-runner-output-card');
+      const runnerOutput = document.getElementById('test-runner-output');
+
+      const e2e = testing.e2e_results;
+      if (e2e && e2e.executed) {
+        e2eCard.style.display = 'block';
+        const statusClass = e2e.executed ? 'status-success' : 'status-error';
+        e2eContainer.innerHTML = `
+          <p><strong>Runner:</strong> ${e2e.runner || 'unknown'}</p>
+          <p><strong>Executed:</strong> <span class="status ${statusClass}">${e2e.executed ? 'YES' : 'NO'}</span></p>
+          ${e2e.report_path ? `<p><strong>Report:</strong> <code>${e2e.report_path}</code></p>` : ''}
+          ${e2e.summary ? `<p><strong>Summary:</strong> ${e2e.summary}</p>` : ''}
+        `;
+      }
+
+      // Show runner output from progression
+      const progression = testing.progression || [];
+      const outputs = progression.filter(p => p.runner_output).map(p => `[${p.phase}] ${p.runner_output}`);
+      if (outputs.length > 0) {
+        runnerCard.style.display = 'block';
+        runnerOutput.textContent = outputs.join('\n');
+      }
     }
 
     function renderTDDChart(progression) {
