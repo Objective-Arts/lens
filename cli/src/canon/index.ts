@@ -36,7 +36,7 @@ const SECURITY_SKILL_PATH = path.join(homedir(), '.claude', 'skill-library', 'se
 const TECH_SKILL_PATH = path.join(homedir(), '.claude', 'skill-library', 'tech');
 
 // Subdirectories to search in canon-skills
-const CANON_SUBDIRS = ['', 'javascript', 'typescript', 'go', 'java', 'python', 'angular', 'testing', 'visualization', 'business', 'ui-ux', 'csharp', 'react', 'security', 'engineering'];
+const CANON_SUBDIRS = ['', 'javascript', 'typescript', 'go', 'java', 'python', 'angular', 'testing', 'visualization', 'business', 'ui-ux', 'csharp', 'react', 'security', 'engineering', 'writing'];
 
 /**
  * Get the configured canon source path.
