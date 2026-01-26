@@ -46,9 +46,30 @@ The skill enforces discipline: plan first, create artifact, get approval, then i
 
 1. **Explore** - Use Glob, Grep, Read to understand existing code
 2. **Identify** - Find patterns, constraints, integration points
-3. **Design** - Outline implementation approach
-4. **Document** - Write plan to `.claude/plans/` file
-5. **Present** - Exit plan mode for user approval
+3. **Invoke Canon** - Apply domain-specific expertise (see below)
+4. **Design** - Outline implementation approach
+5. **Document** - Write plan to `.claude/plans/` file
+6. **Present** - Exit plan mode for user approval
+
+## Invoke Canon Skills
+
+Before designing, check the project's CLAUDE.md and profile for applicable canon skills. Invoke them to inform your plan:
+
+| Domain | Canon Skills | What They Inform |
+|--------|--------------|------------------|
+| Java | `/bloch` | API design, immutability, builders |
+| Python | `/hettinger`, `/ramalho` | Pythonic idioms, data model |
+| JavaScript/TS | `/kyle-simpson`, `/cherny` | Closures, type system |
+| Architecture | `/pike`, `/mcilroy` | Composition, Unix philosophy |
+| Data structures | `/linus` | Data structures first |
+| Security | `/schneier`, `/owasp` | Threat modeling, vulnerabilities |
+| Legacy code | `/feathers` | Seams, characterization tests |
+| Refactoring | `/fowler` | Code smells, safe refactoring |
+
+**Example**: Planning a Java authentication feature:
+1. Invoke `/bloch` for API design principles
+2. Invoke `/schneier` for security thinking
+3. Let these inform the approach before writing the plan
 
 ## Plan File Format
 

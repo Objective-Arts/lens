@@ -71,7 +71,31 @@ When building from plan:
 - Don't add features not in the plan
 - Don't refactor code outside the plan scope
 - If blocked, note the issue and continue with next step
-- Use canon skills for domain-specific code (e.g., `/bloch` for Java)
+
+## Invoke Canon Skills
+
+While implementing, invoke domain-specific canon skills based on what you're building:
+
+| File Type | Canon Skills | What They Guide |
+|-----------|--------------|-----------------|
+| `.java` | `/bloch` | API design, immutability, builders |
+| `.py` | `/hettinger`, `/ramalho` | Pythonic idioms, data model |
+| `.ts`, `.js` | `/kyle-simpson`, `/cherny` | Closures, type system |
+| `.go` | `/pike` | Composition, interfaces |
+| Tests | `/dodds`, `/meszaros` | Testing patterns, test doubles |
+
+**Also invoke based on concern:**
+- Security-sensitive code → `/schneier`, `/owasp`
+- Legacy code modifications → `/feathers`
+- Refactoring steps → `/fowler`
+- Data structures → `/linus`
+
+**Example**: Implementing a Java auth service from plan:
+1. Before writing code, invoke `/bloch` for Java idioms
+2. For security aspects, invoke `/schneier`
+3. For test steps, invoke `/meszaros`
+
+Check the project's CLAUDE.md for additional domain-specific skills to invoke.
 
 ## Output
 
