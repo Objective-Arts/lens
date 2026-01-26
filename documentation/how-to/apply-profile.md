@@ -53,6 +53,27 @@ claude
 > /status
 ```
 
+## Common Profile Stacks
+
+### Frontend with UI/UX Experts
+
+For projects with user interfaces, add the `frontend` profile to get 12 UI/UX experts:
+
+```bash
+cc-config profile apply java+frontend -p .
+# or
+cc-config profile apply javascript+react+frontend -p .
+```
+
+This adds experts for:
+- Visual design (Rams, Ive)
+- Interaction (Norman, Cooper, Buxton)
+- Typography (Kruzeniski)
+- Motion (Duarte)
+- Components (Frost, Wroblewski)
+- Governance (Curtis, Mall)
+- Data visualization (Tufte)
+
 ## Dry Run Mode
 
 Preview changes without applying:

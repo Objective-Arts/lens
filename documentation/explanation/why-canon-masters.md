@@ -122,6 +122,7 @@ WHAT you check for, regardless of domain:
 - **Security**: Schneier, OWASP
 - **Testing**: Dodds, Meszaros, Feathers
 - **Documentation**: Procida
+- **Engineering Philosophy**: Petroski, Leveson, Taleb (the failure trilogy)
 
 ### Domain Canon (Per Project)
 
@@ -131,6 +132,7 @@ WHERE-specific expertise:
 - React? Abramov
 - C#? Skeet, Cleary, Hejlsberg
 - D3? Bostock, Tufte
+- UI/UX? Rams, Norman, Cooper, Ive, Frost (12 experts total)
 
 ---
 
@@ -149,6 +151,18 @@ General async     →   Async through Simpson's eyes
 
 General security  →   Security through Schneier's eyes
 "Input validated"     "What could an attacker do here?"
+
+General dialog    →   Dialog through Cooper's eyes
+"Shows message"       "Undo over confirmation, eliminate excise"
+
+General CSS       →   CSS through Rams's eyes
+"Looks fine"          "3 colors max, 4px grid, less but better"
+
+General design    →   Design through Petroski's eyes
+"This works"          "What failures shaped this? What will fail?"
+
+General arch      →   Architecture through Taleb's eyes
+"Efficient"           "Fragile. Where's the redundancy? The optionality?"
 ```
 
 This isn't about knowing more. It's about **seeing differently**.

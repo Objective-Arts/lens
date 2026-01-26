@@ -1,0 +1,41 @@
+name: frontend
+description: UI/UX canon for frontend projects. 12 experts for beautiful interfaces without being a designer.
+composable: true
+
+skills:
+  canon:
+    # Philosophy & Psychology
+    - rams           # 10 Principles - less but better
+    - norman         # Affordances, feedback, mental models
+    - cooper         # Goal-directed design, eliminate excise
+    # Visual & Typography
+    - ive            # Minimalism, material honesty
+    - kruzeniski     # Type-first hierarchy
+    # Motion & Interaction
+    - duarte         # Material motion, meaningful transitions
+    - buxton         # Input fundamentals
+    # Patterns & Components
+    - wroblewski     # Mobile-first, forms, thumb zones
+    - frost          # Atomic design, reusable systems
+    # Governance & Collaboration
+    - curtis         # Versioning, documentation, tokens
+    - mall           # Designer-dev handoff
+
+agents:
+  - css-expert
+  - accessibility-tester
+
+claudeMd:
+  autoInvoke:
+    - context: "Building UI component"
+      action: "INVOKE `/frost` then `/ive`"
+    - context: "Designing forms"
+      action: "INVOKE `/wroblewski` then `/norman`"
+    - context: "Adding animation"
+      action: "INVOKE `/duarte`"
+    - context: "Mobile design"
+      action: "INVOKE `/wroblewski` then `/buxton`"
+    - context: "CSS styling, layouts"
+      action: "INVOKE `/rams` for simplicity check"
+    - context: "Modals, dialogs, confirmations"
+      action: "INVOKE `/cooper` for goal-directed design"

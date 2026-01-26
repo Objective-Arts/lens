@@ -34,7 +34,11 @@ Foundation for all software projects.
 
 **Canon Stack**:
 - Baseline Brain: kernighan, thompson, pike, joy, linus, dijkstra
-- Base Practices: schneier, owasp, dodds, meszaros, feathers, procida
+- Base Practices:
+  - Security: schneier, owasp
+  - Testing: dodds, meszaros, feathers
+  - Documentation: procida
+  - Engineering Philosophy: petroski, leveson, taleb
 
 **Use When**: Any software project (usually extended by language profiles)
 
@@ -144,6 +148,40 @@ Foundation for all software projects.
 
 ---
 
+### `frontend`
+
+**Composable**: Yes (use with any language profile)
+
+**UI/UX Canon** (12 experts):
+- **Philosophy**: Rams (10 Principles), Norman (Affordances), Cooper (Goal-directed)
+- **Visual**: Ive (Minimalism), Kruzeniski (Typography)
+- **Motion**: Duarte (Material motion)
+- **Interaction**: Buxton (Input fundamentals)
+- **Patterns**: Wroblewski (Mobile-first), Frost (Atomic design)
+- **Governance**: Curtis (Documentation), Mall (Handoff)
+- **Data**: Tufte (Information design)
+
+**Auto-Invoke Rules**:
+```yaml
+autoInvoke:
+  - context: Building UI component
+    action: INVOKE `/frost` then `/ive`
+  - context: Designing forms
+    action: INVOKE `/wroblewski` then `/norman`
+  - context: Modals, dialogs, confirmations
+    action: INVOKE `/cooper` for goal-directed design
+  - context: Adding animation
+    action: INVOKE `/duarte`
+  - context: Data visualization
+    action: INVOKE `/tufte`
+  - context: Mobile design
+    action: INVOKE `/wroblewski` then `/buxton`
+```
+
+**Use When**: Any frontend project with UI components
+
+---
+
 ## Meta Profiles
 
 ### `ralph-integration`
@@ -185,11 +223,14 @@ cc-config profile apply javascript+react+d3 -p .
 | Project Type | Profile Stack |
 |--------------|---------------|
 | React SPA | `javascript+react` |
+| React + UI/UX | `javascript+react+frontend` |
 | React + D3 | `javascript+react+d3` |
 | Angular enterprise | `javascript+angular` |
+| Angular + UI/UX | `javascript+angular+frontend` |
+| Java + UI/UX | `java+frontend` |
 | C# backend | `csharp` |
 | Autonomous C# | `csharp+ralph-integration` |
-| Full-stack Java/Angular | `java+javascript+angular` |
+| Full-stack Java/Angular | `java+javascript+angular+frontend` |
 
 ### Composition Rules
 

@@ -1,10 +1,39 @@
 name: business-base
-description: Base canon for ALL business projects. Always alive.
+description: Base canon for business strategy and management projects.
 projectType: business
 composable: true
 
-canon:
-  base:
-    - strunk-white   # Elements of Style
-    - zinsser        # On Writing Well
-    - grove          # High Output Management
+skills:
+  canon:
+    # Strategy
+    - grove          # High Output Management, OKRs, paranoid leadership
+    - porter         # Competitive strategy, five forces, value chain
+    - rumelt         # Good Strategy/Bad Strategy, kernel of strategy
+    # Execution
+    - horowitz       # Hard things, wartime CEO, management
+    # Analysis
+    - helmer         # Scenario planning, strategic foresight
+
+claudeMd:
+  standards:
+    - "Start with diagnosis before prescription (Rumelt)"
+    - "Strategy is a coherent set of actions, not goals (Rumelt)"
+    - "Focus on leverage points (Grove)"
+    - "Understand your competitive position (Porter)"
+    - "Peacetime vs wartime requires different approaches (Horowitz)"
+
+  antiPatterns:
+    - "Fluff - restating the obvious dressed up as strategy"
+    - "Failure to face the challenge"
+    - "Mistaking goals for strategy"
+    - "Bad strategic objectives (too many, unfocused)"
+
+  autoInvoke:
+    - context: Strategic planning, competitive analysis
+      action: INVOKE `/porter` then `/rumelt`
+    - context: Management, OKRs, organizational design
+      action: INVOKE `/grove`
+    - context: Startup decisions, hard choices, crisis management
+      action: INVOKE `/horowitz`
+    - context: Scenario planning, future uncertainty
+      action: INVOKE `/helmer`

@@ -26,6 +26,24 @@ WORKING   │                             │                             │
 
 ---
 
+## Installation
+
+*Start here if you're new.*
+
+| Guide | Description |
+|-------|-------------|
+| [Installation Reference](reference/installation.md) | Complete setup guide with prerequisites |
+| [Getting Started Tutorial](tutorials/getting-started.md) | Your first project walkthrough |
+
+**Quick Start**:
+```bash
+npm install -g ./cc-config-0.1.0.tgz
+export GEMINI_API_KEY="your-key"
+cc-config profile apply javascript+react -p /path/to/project
+```
+
+---
+
 ## Tutorials (Learning-Oriented)
 
 *For beginners learning the system step by step.*
@@ -70,6 +88,7 @@ WORKING   │                             │                             │
 
 | Reference | Description |
 |-----------|-------------|
+| [Installation](reference/installation.md) | System requirements, API keys, troubleshooting |
 | [Profile Catalog](reference/profiles.md) | All available profiles |
 | [Canon Masters](reference/canon-catalog.md) | Complete list of masters by domain |
 | [Quality Flags](reference/flags.md) | All flags with parameters |
@@ -98,4 +117,5 @@ WORKING   │                             │                             │
 - **New to Claude-Optimal?** Start with [Getting Started](tutorials/getting-started.md)
 - **Setting up a project?** See [Apply a Profile](how-to/apply-profile.md)
 - **Looking up a specific master?** Check [Canon Masters](reference/canon-catalog.md)
+- **Building UI/UX?** Apply `frontend` profile for 12 UI/UX experts
 - **Want to understand the philosophy?** Read [Why Canon Masters?](explanation/why-canon-masters.md)

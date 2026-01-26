@@ -5,11 +5,26 @@ composable: true
 extends: software-base
 
 skills:
-  tech:
-    - kyle-simpson   # You Don't Know JS - closures, scope, this
   canon:
+    # JavaScript experts
+    - kyle-simpson   # You Don't Know JS - closures, scope, this
+    - abramov        # Redux, React patterns, composition
+    - ashkenas       # Underscore/Backbone, functional JS
     - cherny         # Programming TypeScript - type system mastery
     - crockford      # JavaScript: The Good Parts - language subset
+    - dodds          # Testing Trophy, React testing
+    - harris         # Svelte, reactive programming
+    - osmani         # Learning JavaScript Design Patterns
+    # UI/UX experts (frontend JS needs these)
+    - frost          # Atomic Design - components
+    - ive            # Visual design - minimalism
+    - norman         # UX psychology - affordances
+    - wroblewski     # Mobile-first, forms
+    - duarte         # Motion design, animation
+    - buxton         # Input design, sketching
+    - curtis         # Design systems, tokens
+    - kruzeniski     # Typography
+    - rams           # 10 principles - simplicity
 
 claudeMd:
   standards:
@@ -32,9 +47,35 @@ claudeMd:
     - "Ignoring promise rejections"
 
   autoInvoke:
+    # JavaScript
     - context: Complex JavaScript runtime, closures, this, scope
       action: INVOKE `/kyle-simpson`
     - context: TypeScript types, generics, inference, utility types
       action: INVOKE `/cherny`
     - context: JavaScript subset, safe patterns, avoiding pitfalls
       action: INVOKE `/crockford`
+    - context: React testing, Testing Library, Testing Trophy
+      action: INVOKE `/dodds`
+    - context: Redux, React state, composition patterns
+      action: INVOKE `/abramov`
+    - context: Functional JavaScript, lodash patterns
+      action: INVOKE `/ashkenas`
+    - context: Svelte, reactive frameworks
+      action: INVOKE `/harris`
+    - context: JavaScript design patterns, module patterns
+      action: INVOKE `/osmani`
+    # UI/UX (always invoke for frontend work)
+    - context: Building UI components, React components, frontend
+      action: INVOKE `/frost` then `/ive` then `/norman`
+    - context: Forms, inputs, validation UI
+      action: INVOKE `/wroblewski` then `/norman`
+    - context: Animations, transitions, motion
+      action: INVOKE `/duarte`
+    - context: Mobile design, responsive, touch
+      action: INVOKE `/wroblewski` then `/buxton`
+    - context: Design system, tokens, theming
+      action: INVOKE `/curtis`
+    - context: Typography, text styling, fonts
+      action: INVOKE `/kruzeniski`
+    - context: CSS, styling, layouts
+      action: INVOKE `/rams`
