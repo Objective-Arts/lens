@@ -7,9 +7,6 @@ extends: software-base
 skills:
   canon:
     - bloch          # Effective Java - API design, immutability, builders
-    - kernighan      # Clarity - naming, no magic numbers, simplicity
-    - gang-of-four   # Design patterns - Strategy, Factory, Observer
-    - liskov         # LSP and SOLID - proper inheritance, contracts
 
 claudeMd:
   standards:

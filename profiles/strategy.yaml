@@ -6,4 +6,5 @@ extends: business-base
 
 canon:
   domain:
-    - porter         # Competitive Advantage, Five Forces
+    - taleb          # Antifragile strategy, optionality
+    - petroski       # Learning from failure, constraints

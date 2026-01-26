@@ -4,6 +4,32 @@ projectType: software
 composable: true
 extends: software-base
 
-canon:
-  domain: []
-  # TODO: Add Python domain expert
+skills:
+  canon:
+    - hettinger      # Pythonic idioms, generators, decorators
+    - beazley        # Deep internals, concurrency, metaprogramming
+    - ramalho        # Fluent Python - data model, protocols
+    - slatkin        # Effective Python - 90 practical patterns
+
+claudeMd:
+  standards:
+    - "Pythonic over clever - readability counts (Hettinger)"
+    - "Use generators for memory-efficient iteration"
+    - "Understand the data model - __dunder__ methods (Ramalho)"
+    - "Use type hints for documentation and tooling"
+
+  antiPatterns:
+    - "Manual iteration when a generator suffices"
+    - "Ignoring data model protocols"
+    - "Java-style getters/setters instead of properties"
+    - "Mutable default arguments"
+
+  autoInvoke:
+    - context: Pythonic idioms, generators, decorators
+      action: INVOKE `/hettinger`
+    - context: Concurrency, metaprogramming, internals
+      action: INVOKE `/beazley`
+    - context: Data model, protocols, type hints
+      action: INVOKE `/ramalho`
+    - context: Practical patterns, best practices
+      action: INVOKE `/slatkin`

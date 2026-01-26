@@ -9,7 +9,7 @@ canon:
     # Java backend
     - bloch          # Effective Java - API design, collections
     # JavaScript frontend
-    - simpson        # You Don't Know JS
+    - kyle-simpson   # You Don't Know JS
     - cherny         # Programming TypeScript
     - crockford      # JavaScript: The Good Parts
 

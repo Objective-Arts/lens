@@ -6,4 +6,4 @@ extends: business-base
 
 canon:
   domain:
-    - thompson       # Stratechery - aggregation theory, platform analysis
+    - thompson-stratechery   # Aggregation theory, platform analysis

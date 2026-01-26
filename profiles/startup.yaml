@@ -6,4 +6,4 @@ extends: business-base
 
 canon:
   domain:
-    - horowitz       # The Hard Thing About Hard Things
+    - taleb          # Bounded risk, optionality, skin in the game
