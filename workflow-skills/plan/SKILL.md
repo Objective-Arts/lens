@@ -7,6 +7,26 @@ description: Enter planning mode before implementation. Use for non-trivial task
 
 Enter planning mode to design approach before writing code. Creates a plan file for user approval.
 
+## Why This Skill Exists
+
+Without this skill, Claude skips planning and jumps straight to implementation. When asked to "plan", Claude typically:
+
+1. Thinks through the problem in chat
+2. Outlines steps in text
+3. Asks "does this look good?"
+4. Starts coding
+
+**The problem:** That plan lives in chat and disappears. It's not a tangible artifact.
+
+**This skill creates a persistent file** at `.claude/plans/[name].md` that you can:
+- Review before approving
+- Edit and refine
+- Refer back to during implementation
+- Commit to version control
+- Share with teammates
+
+The skill enforces discipline: plan first, create artifact, get approval, then implement.
+
 ## When to Use
 
 - New feature implementation
