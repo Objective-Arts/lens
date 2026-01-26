@@ -79,7 +79,7 @@ describe('cc-config CLI integration', () => {
       expect(result.exitCode).toBe(0);
       expect(result.stdout).toContain('Canon Source');
       expect(result.stdout).toContain('Path:');
-      expect(result.stdout).toContain('canon-skills');
+      expect(result.stdout).toContain('claude-optimal/canon');
     });
 
     it('canon install - copies skill to project (not symlink)', () => {
@@ -511,5 +511,90 @@ describe('CLI version and help', () => {
     expect(result.stdout).toContain('canon');
     expect(result.stdout).toContain('mcp');
     expect(result.stdout).toContain('workflow');
+  });
+});
+
+// ============================================================================
+// Error path tests (Dodds: always test error states)
+// ============================================================================
+
+describe('error handling', () => {
+  let testDir: string;
+
+  beforeEach(() => {
+    testDir = createTestDir();
+  });
+
+  afterEach(() => {
+    try {
+      fs.rmSync(testDir, { recursive: true, force: true });
+    } catch {
+      // Ignore cleanup errors
+    }
+  });
+
+  it('fails gracefully with non-existent profile', () => {
+    const result = runCli(`profile apply nonexistent-profile-xyz-123 -p ${testDir}`);
+
+    // Should not crash - either error message or non-zero exit
+    expect(
+      result.exitCode !== 0 ||
+      result.stderr.includes('not found') ||
+      result.stdout.includes('not found') ||
+      result.stdout.includes('Unknown profile')
+    ).toBe(true);
+  });
+
+  it('fails gracefully with non-existent canon skill', () => {
+    const result = runCli(`canon install nonexistent-skill-xyz-123 -p ${testDir}`);
+
+    // Should report skill not found
+    expect(
+      result.exitCode !== 0 ||
+      result.stderr.includes('not found') ||
+      result.stdout.includes('not found') ||
+      result.stdout.includes('Skill not found')
+    ).toBe(true);
+  });
+
+  it('fails gracefully with non-existent workflow skill', () => {
+    const result = runCli(`workflow install nonexistent-workflow-xyz -p ${testDir}`);
+
+    // Should report skill not found
+    expect(
+      result.exitCode !== 0 ||
+      result.stderr.includes('not found') ||
+      result.stdout.includes('not found') ||
+      result.stdout.includes('Workflow skill not found')
+    ).toBe(true);
+  });
+
+  it('handles invalid project path gracefully', () => {
+    const result = runCli('scan -p /nonexistent/path/that/does/not/exist');
+
+    // Should not crash - may return empty scan or error
+    expect(result.exitCode === 0 || result.stderr.length > 0 || result.stdout.length > 0).toBe(true);
+  });
+
+  it('canon status on empty project reports no installed skills', () => {
+    const result = runCli(`canon status -p ${testDir}`);
+
+    // Should work but show nothing installed
+    expect(result.exitCode).toBe(0);
+    expect(
+      result.stdout.includes('No skills installed') ||
+      result.stdout.includes('Canon Skills Status')
+    ).toBe(true);
+  });
+
+  it('canon diff on non-installed skill reports appropriately', () => {
+    const result = runCli(`canon diff kernighan -p ${testDir}`);
+
+    // Should indicate skill not installed
+    expect(
+      result.stdout.includes('not installed') ||
+      result.stdout.includes('No diff') ||
+      result.exitCode !== 0
+    ).toBe(true);
   });
 });

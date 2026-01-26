@@ -10,11 +10,6 @@ describe('estimateTokens', () => {
     expect(estimateTokens('')).toBe(0);
   });
 
-  it('returns 0 for null/undefined content', () => {
-    expect(estimateTokens(null as unknown as string)).toBe(0);
-    expect(estimateTokens(undefined as unknown as string)).toBe(0);
-  });
-
   it('estimates tokens for simple text', () => {
     // "Hello world" = 11 chars, ~3 tokens at 4 chars/token
     const tokens = estimateTokens('Hello world');

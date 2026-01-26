@@ -120,6 +120,36 @@ export interface ComposableProfile {
   };
   mcpServers?: ProfileMCPServerConfig;
   settings?: Record<string, unknown>;
+  ralph?: RalphConfig;  // Ralph Loop configuration
+}
+
+/**
+ * Ralph Loop configuration for autonomous PRD implementation
+ */
+export interface RalphConfig {
+  max_iterations?: number;
+  max_iterations_per_item?: number;
+  exit_on_idle_commits?: number;
+  quality_gates?: {
+    tests_required?: boolean;
+    test_level?: 'unit' | 'integration' | 'e2e';
+    review_required?: boolean;
+    review_mode?: 'self' | 'full';
+    review_threshold?: 'no_critical' | 'no_high' | 'clean';
+  };
+  post_loop_validation?: {
+    enabled?: boolean;
+    gemini?: boolean;
+    qodana?: boolean;
+    action?: 'report' | 'fail';
+    findings_file?: string;
+    promote_threshold?: number;
+  };
+  exit_criteria?: {
+    prd_items_complete?: string;
+    tests_passing?: string;
+    review_issues_critical?: number;
+  };
 }
 
 /**

@@ -155,47 +155,61 @@ describe('loadRegistry', () => {
 });
 
 describe('listServers', () => {
-  it('returns array of servers', () => {
+  it('returns servers with required properties', () => {
     const servers = listServers();
     expect(Array.isArray(servers)).toBe(true);
+    // Every server should have required fields
+    for (const server of servers) {
+      expect(server.name).toBeTruthy();
+      expect(server.category).toBeTruthy();
+    }
   });
 
-  it('filters by category', () => {
+  it('filters by category returning only matching servers', () => {
     const devServers = listServers({ category: 'development' });
+    expect(Array.isArray(devServers)).toBe(true);
+    // All returned servers must match the filter
     for (const server of devServers) {
       expect(server.category).toBe('development');
     }
   });
 
-  it('filters by source', () => {
+  it('filters by source returning only matching servers', () => {
     const officialServers = listServers({ source: 'official' });
+    expect(Array.isArray(officialServers)).toBe(true);
+    // All returned servers must match the filter
     for (const server of officialServers) {
       expect(server.source).toBe('official');
     }
   });
 
-  it('returns sorted by name', () => {
+  it('returns servers sorted alphabetically by name', () => {
     const servers = listServers();
-    if (servers.length > 1) {
-      const names = servers.map(s => s.name);
-      const sorted = [...names].sort();
-      expect(names).toEqual(sorted);
-    }
+    const names = servers.map(s => s.name);
+    const sorted = [...names].sort();
+    // Should always be sorted, even with 0 or 1 servers
+    expect(names).toEqual(sorted);
   });
 });
 
 describe('listCategories', () => {
-  it('returns array of categories', () => {
+  it('returns categories as unique strings', () => {
     const categories = listCategories();
     expect(Array.isArray(categories)).toBe(true);
+    // All categories should be non-empty strings
+    for (const cat of categories) {
+      expect(typeof cat).toBe('string');
+      expect(cat.length).toBeGreaterThan(0);
+    }
+    // Should be unique
+    const unique = [...new Set(categories)];
+    expect(categories.length).toBe(unique.length);
   });
 
-  it('returns sorted categories', () => {
+  it('returns categories sorted alphabetically', () => {
     const categories = listCategories();
-    if (categories.length > 1) {
-      const sorted = [...categories].sort();
-      expect(categories).toEqual(sorted);
-    }
+    const sorted = [...categories].sort();
+    expect(categories).toEqual(sorted);
   });
 });
 
@@ -205,13 +219,15 @@ describe('getServer', () => {
     expect(server).toBeNull();
   });
 
-  it('returns server definition if exists', () => {
-    // Get any existing server from the registry
+  it('returns complete server definition when found', () => {
     const servers = listServers();
-    if (servers.length > 0) {
-      const server = getServer(servers[0].name);
+    // Test behavior: if servers exist, getServer should return matching definition
+    for (const listedServer of servers.slice(0, 3)) { // Test first 3 max
+      const server = getServer(listedServer.name);
       expect(server).not.toBeNull();
-      expect(server?.name).toBe(servers[0].name);
+      expect(server?.name).toBe(listedServer.name);
+      expect(server?.category).toBe(listedServer.category);
+      expect(server?.description).toBeTruthy();
     }
   });
 });

@@ -1,0 +1,20 @@
+# Development files
+src/
+*.test.ts
+*.test.js
+*.test.d.ts
+vitest.config.ts
+tsconfig.json
+
+# IDE and tool files
+.idea/
+.qodana/
+.claude/
+.vscode/
+
+# Test artifacts
+coverage/
+*.tgz
+
+# Docs source (keep compiled docs)
+# docs/  # Keep docs in package

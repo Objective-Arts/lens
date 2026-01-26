@@ -1,0 +1,80 @@
+{
+  "source": {
+    "type": "local",
+    "path": "/Users/steve/local-tech-projects/canon-skills",
+    "gitRemote": "https://github.com/sgrant613/canon-skills.git"
+  },
+  "installedAt": "2026-01-25T15:17:18.879Z",
+  "skills": {
+    "rams": {
+      "installedCommit": "53ac7b6",
+      "installedAt": "2026-01-25T15:17:18.894Z",
+      "sourceFile": "ui-ux/rams",
+      "hash": "66202ba46be87050f1d6f7496e349e2eca053ac4f9b74bce3fdda3de20dec27c",
+      "modified": false
+    },
+    "norman": {
+      "installedCommit": "53ac7b6",
+      "installedAt": "2026-01-25T15:17:18.895Z",
+      "sourceFile": "ui-ux/norman",
+      "hash": "6d4da7e253dc066061b0991a503d85a98b1ca0edff48b2e91ebcbdf85ac1a2b1",
+      "modified": false
+    },
+    "ive": {
+      "installedCommit": "53ac7b6",
+      "installedAt": "2026-01-25T15:17:18.896Z",
+      "sourceFile": "ui-ux/ive",
+      "hash": "fd6b03f32db24d7b68e936e4ed829e83e0a6cf7cd5eedd878821831864a8838c",
+      "modified": false
+    },
+    "kruzeniski": {
+      "installedCommit": "53ac7b6",
+      "installedAt": "2026-01-25T15:17:18.897Z",
+      "sourceFile": "ui-ux/kruzeniski",
+      "hash": "538612c216ffbb22541603c291abcb5bdecb587dc9df9f822b7e738536fd45d9",
+      "modified": false
+    },
+    "duarte": {
+      "installedCommit": "53ac7b6",
+      "installedAt": "2026-01-25T15:17:18.898Z",
+      "sourceFile": "ui-ux/duarte",
+      "hash": "4a22be4ec9f749785aff371613311373ef33e88a163e6ef414ea354132092718",
+      "modified": false
+    },
+    "buxton": {
+      "installedCommit": "53ac7b6",
+      "installedAt": "2026-01-25T15:17:18.899Z",
+      "sourceFile": "ui-ux/buxton",
+      "hash": "c8e38ffc47b3bf91c60bccaa802d7dfd30af06309d4af73bcb274ee67e94cf62",
+      "modified": false
+    },
+    "wroblewski": {
+      "installedCommit": "53ac7b6",
+      "installedAt": "2026-01-25T15:17:18.899Z",
+      "sourceFile": "ui-ux/wroblewski",
+      "hash": "a707116e5b4c3810889e8b7dc8eacc04c13a88b01cb3feea3b278b7c4aff3516",
+      "modified": false
+    },
+    "frost": {
+      "installedCommit": "53ac7b6",
+      "installedAt": "2026-01-25T15:17:18.900Z",
+      "sourceFile": "ui-ux/frost",
+      "hash": "095e1e87cddc7663ddb0826eeb5a7a9a6d15d0eb6bdee527df3306919fa27403",
+      "modified": false
+    },
+    "curtis": {
+      "installedCommit": "53ac7b6",
+      "installedAt": "2026-01-25T15:17:18.901Z",
+      "sourceFile": "ui-ux/curtis",
+      "hash": "7610612e58286e4e9f2df7df8dedec221c4d6aa2c5327263ff09c06b0e318fd3",
+      "modified": false
+    },
+    "mall": {
+      "installedCommit": "53ac7b6",
+      "installedAt": "2026-01-25T15:17:18.902Z",
+      "sourceFile": "ui-ux/mall",
+      "hash": "19cd4358d4d30694d0268eca8b01da8b951e71253c22072310a9f08844cb663e",
+      "modified": false
+    }
+  }
+}

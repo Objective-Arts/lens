@@ -493,3 +493,60 @@ export function getCanonSourceInfo(): { path: string; commit?: string; remote?: 
     remote: getGitRemote(canonPath)
   };
 }
+
+/**
+ * Deploy all canon skills to a project's .claude/skills/ directory.
+ *
+ * Copies each SKILL.md file as {skillname}.md to the target project.
+ * This is the recommended way to set up a new project with all canon skills.
+ *
+ * @param projectPath - Target project directory
+ * @param options - Deploy options
+ * @param options.force - Overwrite existing skills (default: false)
+ * @returns Result with deployed count and any errors
+ *
+ * @example
+ * ```typescript
+ * const result = deployAllSkills('./myproject');
+ * console.log(`Deployed ${result.deployed} skills`);
+ * ```
+ */
+export function deployAllSkills(
+  projectPath: string,
+  options: { force?: boolean } = {}
+): { deployed: number; skipped: number; errors: string[] } {
+  const result = { deployed: 0, skipped: 0, errors: [] as string[] };
+
+  const skills = listCanonSkills();
+  const skillsDir = path.join(projectPath, '.claude', 'skills');
+
+  // Ensure skills directory exists
+  if (!fs.existsSync(skillsDir)) {
+    fs.mkdirSync(skillsDir, { recursive: true });
+  }
+
+  for (const skill of skills) {
+    const sourceFile = path.join(skill.path, 'SKILL.md');
+    const targetFile = path.join(skillsDir, `${skill.name}.md`);
+
+    if (!fs.existsSync(sourceFile)) {
+      result.errors.push(`${skill.name}: SKILL.md not found`);
+      continue;
+    }
+
+    // Check if already exists
+    if (fs.existsSync(targetFile) && !options.force) {
+      result.skipped++;
+      continue;
+    }
+
+    try {
+      fs.copyFileSync(sourceFile, targetFile);
+      result.deployed++;
+    } catch (err) {
+      result.errors.push(`${skill.name}: ${err instanceof Error ? err.message : 'copy failed'}`);
+    }
+  }
+
+  return result;
+}

@@ -21,34 +21,35 @@ describe('scan', () => {
     expect(Array.isArray(result.items)).toBe(true);
   });
 
-  it('includes summary with correct structure', async () => {
+  it('includes summary with meaningful values', async () => {
     const result = await scan();
 
-    expect(result.summary).toHaveProperty('totalItems');
-    expect(result.summary).toHaveProperty('byType');
-    expect(result.summary).toHaveProperty('byScope');
-    expect(result.summary).toHaveProperty('totalTokens');
-    expect(result.summary).toHaveProperty('conflicts');
-    expect(result.summary).toHaveProperty('missingReferences');
-    expect(result.summary).toHaveProperty('unusedItems');
+    // Test behavior, not just structure existence
+    expect(result.summary.totalItems).toBeGreaterThanOrEqual(0);
+    expect(result.summary.totalTokens).toBeGreaterThanOrEqual(0);
+    expect(Array.isArray(result.summary.conflicts)).toBe(true);
+    expect(Array.isArray(result.summary.missingReferences)).toBe(true);
+    expect(Array.isArray(result.summary.unusedItems)).toBe(true);
   });
 
-  it('counts items by type', async () => {
+  it('counts items by type with valid numbers', async () => {
     const result = await scan();
 
-    expect(result.summary.byType).toHaveProperty('skill');
-    expect(result.summary.byType).toHaveProperty('command');
-    expect(result.summary.byType).toHaveProperty('agent');
-    expect(result.summary.byType).toHaveProperty('memory');
-    expect(result.summary.byType).toHaveProperty('settings');
+    // All type counts should be non-negative integers
+    expect(result.summary.byType.skill).toBeGreaterThanOrEqual(0);
+    expect(result.summary.byType.command).toBeGreaterThanOrEqual(0);
+    expect(result.summary.byType.agent).toBeGreaterThanOrEqual(0);
+    expect(result.summary.byType.memory).toBeGreaterThanOrEqual(0);
+    expect(result.summary.byType.settings).toBeGreaterThanOrEqual(0);
   });
 
-  it('counts items by scope', async () => {
+  it('counts items by scope with valid numbers', async () => {
     const result = await scan();
 
-    expect(result.summary.byScope).toHaveProperty('global');
-    expect(result.summary.byScope).toHaveProperty('project');
-    expect(result.summary.byScope).toHaveProperty('plugin');
+    // All scope counts should be non-negative integers
+    expect(result.summary.byScope.global).toBeGreaterThanOrEqual(0);
+    expect(result.summary.byScope.project).toBeGreaterThanOrEqual(0);
+    expect(result.summary.byScope.plugin).toBeGreaterThanOrEqual(0);
   });
 });
 

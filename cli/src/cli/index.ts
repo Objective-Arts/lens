@@ -42,7 +42,8 @@ import {
   upgradeSkills,
   diffSkill,
   copySkill,
-  getCanonSourceInfo
+  getCanonSourceInfo,
+  deployAllSkills
 } from '../canon/index.js';
 import {
   listWorkflowSkills,
@@ -379,18 +380,29 @@ profileCmd
 
     console.log(chalk.blue(`Applying profile "${profile.name}" to ${options.project}...\n`));
 
+    console.log(chalk.cyan('[1/4] Setting up project structure...'));
     const result = await applyComposableProfile(profile, options.project);
 
+    console.log(chalk.cyan('[2/4] Processing results...'));
     // Print results using helper (Ashkenas: DRY)
     printList('Created', result.created, chalk.green, '+');
     printList('Linked', result.linked, chalk.cyan, '→');
     printList('Skipped', result.skipped, chalk.gray, '-');
     printList('Errors', result.errors, chalk.red, '✗');
 
+    // Deploy all canon skills to project
+    console.log(chalk.cyan('\n[3/4] Deploying canon skills...'));
+    const deployResult = deployAllSkills(options.project, { force: true });
+    console.log(chalk.green(`  ✓ Deployed ${deployResult.deployed} canon skills`));
+    if (deployResult.errors.length > 0) {
+      deployResult.errors.forEach(e => console.log(chalk.red(`  Error: ${e}`)));
+    }
+
+    console.log(chalk.cyan('[4/4] Finalizing...'));
     if (result.errors.length === 0) {
-      console.log(chalk.green('\nProfile applied successfully!'));
+      console.log(chalk.green('\n✓ Profile applied successfully!'));
     } else {
-      console.log(chalk.yellow('\nProfile applied with some errors.'));
+      console.log(chalk.yellow('\n⚠ Profile applied with some errors.'));
     }
   });
 
@@ -928,6 +940,33 @@ canonCmd
     console.log(`Path:   ${chalk.cyan(info.path)}`);
     console.log(`Commit: ${info.commit ? chalk.yellow(info.commit) : chalk.gray('unknown')}`);
     console.log(`Remote: ${info.remote || chalk.gray('none')}`);
+  });
+
+canonCmd
+  .command('deploy')
+  .description('Deploy ALL canon skills to project .claude/skills/')
+  .option('-p, --project <path>', 'Project path', process.cwd())
+  .option('-f, --force', 'Overwrite existing skills', false)
+  .action((options) => {
+    const projectPath = validateProjectPathOrWarn(options.project);
+    if (!projectPath) return;
+
+    console.log(chalk.bold('\nDeploying Canon Skills'));
+    console.log(chalk.gray('─'.repeat(50)));
+    console.log(`Target: ${chalk.cyan(projectPath)}`);
+
+    const result = deployAllSkills(projectPath, { force: options.force });
+
+    console.log(chalk.green(`Deployed: ${result.deployed} skills`));
+    if (result.skipped > 0) {
+      console.log(chalk.yellow(`Skipped:  ${result.skipped} (already exist, use --force)`));
+    }
+    if (result.errors.length > 0) {
+      console.log(chalk.red(`Errors:`));
+      result.errors.forEach(e => console.log(chalk.red(`  - ${e}`)));
+    }
+
+    console.log(chalk.gray(`\nSkills installed to: ${projectPath}/.claude/skills/`));
   });
 
 // Workflow commands - universal workflow skills (not canon)

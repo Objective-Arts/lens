@@ -1,0 +1,74 @@
+{
+  "source": {
+    "type": "local",
+    "path": "/Users/steve/local-tech-projects/claude-optimal/workflow-skills",
+    "gitRemote": "https://github.com/sgrant613/claude-optimal.git"
+  },
+  "installedAt": "2026-01-25T15:17:19.013Z",
+  "sourceCommit": "c431726",
+  "skills": {
+    "build-from-plan": {
+      "installedAt": "2026-01-25T15:17:19.037Z",
+      "sourceFile": "build-from-plan/SKILL.md",
+      "hash": "34ddab0f6357fac0",
+      "modified": false,
+      "installedCommit": "c431726"
+    },
+    "implement": {
+      "installedAt": "2026-01-25T15:17:19.063Z",
+      "sourceFile": "implement/SKILL.md",
+      "hash": "037c937771de0cfd",
+      "modified": false,
+      "installedCommit": "c431726"
+    },
+    "plan": {
+      "installedAt": "2026-01-25T15:17:19.087Z",
+      "sourceFile": "plan/SKILL.md",
+      "hash": "02803325d2aacb4f",
+      "modified": false,
+      "installedCommit": "c431726"
+    },
+    "ralph-loop": {
+      "installedAt": "2026-01-25T15:17:19.114Z",
+      "sourceFile": "ralph-loop/SKILL.md",
+      "hash": "75f669e98d72234d",
+      "modified": false,
+      "installedCommit": "c431726"
+    },
+    "refactor-clean": {
+      "installedAt": "2026-01-25T15:17:19.140Z",
+      "sourceFile": "refactor-clean/SKILL.md",
+      "hash": "48eda7c76ef72bc0",
+      "modified": false,
+      "installedCommit": "c431726"
+    },
+    "review-hard": {
+      "installedAt": "2026-01-25T15:17:19.167Z",
+      "sourceFile": "review-hard/SKILL.md",
+      "hash": "20b57f10328b2be6",
+      "modified": false,
+      "installedCommit": "c431726"
+    },
+    "structure-first": {
+      "installedAt": "2026-01-25T15:17:19.194Z",
+      "sourceFile": "structure-first/SKILL.md",
+      "hash": "6eedcf1f7c2de6c5",
+      "modified": false,
+      "installedCommit": "c431726"
+    },
+    "test": {
+      "installedAt": "2026-01-25T15:17:19.221Z",
+      "sourceFile": "test/SKILL.md",
+      "hash": "8e98580af7921ba2",
+      "modified": false,
+      "installedCommit": "c431726"
+    },
+    "doc-code": {
+      "installedAt": "2026-01-25T20:09:11.589Z",
+      "sourceFile": "doc-code/SKILL.md",
+      "hash": "04fe520a6bb6e95a",
+      "modified": false,
+      "installedCommit": "85e87ea"
+    }
+  }
+}
