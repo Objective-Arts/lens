@@ -172,6 +172,51 @@ Programming is an intellectual discipline. Beauty and elegance are not decoratio
 
 ---
 
+## Dijkstra's Algorithm (1959)
+
+Dijkstra's most famous contribution: the shortest path algorithm, conceived in 20 minutes at a café without pencil and paper.
+
+### The Algorithm
+
+Find the shortest path from a source to all other nodes in a weighted graph:
+
+```python
+def dijkstra(graph, source):
+    dist = {node: float('inf') for node in graph}
+    dist[source] = 0
+    visited = set()
+
+    while len(visited) < len(graph):
+        # Find unvisited node with minimum distance
+        current = min(
+            (n for n in graph if n not in visited),
+            key=lambda n: dist[n]
+        )
+        visited.add(current)
+
+        # Update distances to neighbors
+        for neighbor, weight in graph[current].items():
+            new_dist = dist[current] + weight
+            if new_dist < dist[neighbor]:
+                dist[neighbor] = new_dist
+
+    return dist
+```
+
+### Why It Matters
+
+- **Ubiquitous:** Used in GPS, network routing (OSPF, IS-IS), game pathfinding
+- **Optimal:** Guarantees shortest path for non-negative weights
+- **Elegant:** Simple greedy approach, correctness provable by invariant
+
+### The Lesson: Simplicity Through Insight
+
+Dijkstra didn't brute-force the solution. He found the insight that makes it simple: always extend the shortest known path first. The invariant (all visited nodes have correct shortest distances) makes the proof trivial.
+
+> "The question of whether a machine can think is about as relevant as the question of whether a submarine can swim."
+
+---
+
 ## On Separation of Concerns
 
 ### Divide and Conquer
@@ -297,11 +342,13 @@ Dijkstra is the **formal methods skill**—use it when correctness must be prove
 
 ## Sources
 
+- Dijkstra, "A Note on Two Problems in Connexion with Graphs" (1959) - Shortest path algorithm
 - Dijkstra, "A Discipline of Programming" (1976)
 - Dijkstra, "Go To Statement Considered Harmful" (1968)
 - Dijkstra, "The Humble Programmer" (Turing Award lecture, 1972)
-- Dijkstra, EWD manuscripts (cs.utexas.edu/~EWD/)
+- Dijkstra, "Guarded Commands, Nondeterminacy and Formal Derivation" (EWD472, 1975)
 - Dijkstra, Dahl, Hoare, "Structured Programming" (1972)
+- EWD Archive (cs.utexas.edu/~EWD/) - ~1300 manuscripts
 
 ---
 

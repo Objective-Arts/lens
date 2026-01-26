@@ -187,7 +187,35 @@ func process(items []Item) ([]Result, error) {
 
 ## Regular Expressions (Thompson's Gift)
 
-Thompson invented the regex implementation used everywhere today. His approach: convert regex to NFA, run in linear time.
+Thompson invented the regex implementation used everywhere today in his 1968 paper "Regular Expression Search Algorithm."
+
+### The Thompson Construction (1968)
+
+Thompson's insight: convert a regex to a **Nondeterministic Finite Automaton (NFA)**, then simulate all possible states simultaneously. This guarantees **linear time** O(n) matching.
+
+```
+Regex: a(b|c)*d
+
+Thompson NFA:
+    ┌──→ b ──┐
+a → ●       ● → d
+    └──→ c ──┘
+    (loop back)
+```
+
+**Why this matters:**
+- Backtracking regex engines (Perl, Python, JavaScript) can be exponentially slow
+- Thompson's algorithm is always O(n) for pattern length m, text length n
+- Used in grep, awk, and Go's regexp package
+
+### The Lesson: Theoretical Foundations Matter
+
+Thompson's regex paper is 3 pages. It solved the problem correctly in 1968. Decades later, "improved" implementations introduced catastrophic backtracking vulnerabilities.
+
+**Apply this thinking:**
+1. Understand the theoretical complexity of your approach
+2. Simple algorithms with good bounds beat complex ones with bad bounds
+3. When performance matters, know your worst case
 
 ### Keep Patterns Simple
 
@@ -197,16 +225,18 @@ Thompson invented the regex implementation used everywhere today. His approach: 
 ```
 
 **This:**
-```go
-// Separate checks are clearer and more maintainable
-func validPassword(s string) bool {
-    if len(s) < 8 { return false }
-    hasUpper := regexp.MustCompile(`[A-Z]`).MatchString(s)
-    hasLower := regexp.MustCompile(`[a-z]`).MatchString(s)
-    hasDigit := regexp.MustCompile(`\d`).MatchString(s)
-    return hasUpper && hasLower && hasDigit
-}
+```python
+# Separate checks are clearer and more maintainable
+def valid_password(s):
+    if len(s) < 8:
+        return False
+    has_upper = any(c.isupper() for c in s)
+    has_lower = any(c.islower() for c in s)
+    has_digit = any(c.isdigit() for c in s)
+    return has_upper and has_lower and has_digit
 ```
+
+Lookaheads and complex patterns are hard to debug. Explicit checks are obvious.
 
 ---
 
@@ -281,11 +311,11 @@ Thompson is the **pragmatist's skill**—for getting things working, prototyping
 
 ## Sources
 
+- Thompson, "Regular Expression Search Algorithm" (CACM, 1968)
 - Thompson, "Reflections on Trusting Trust" (Turing Award Lecture, 1984)
-- Thompson & Ritchie, "The UNIX Time-Sharing System" (Bell System Technical Journal, 1978)
-- Kernighan & Pike interviews with Thompson
-- Thompson interviews on Go design decisions
-- Coders at Work (Peter Seibel interview with Thompson)
+- Thompson & Ritchie, "The UNIX Time-Sharing System" (CACM 1974, BSTJ 1978)
+- Coders at Work (Peter Seibel interview with Thompson, 2009)
+- Computer History Museum oral history (2005)
 
 ---
 

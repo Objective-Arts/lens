@@ -16,6 +16,53 @@ Don't explain what you're going to do. Do it. Let the code speak. If your code n
 
 ---
 
+## From "Just for Fun" (2001)
+
+Linus's autobiography reveals the philosophy behind Linux and Git.
+
+### The Three Motivations
+
+Linus describes three stages of motivation, applicable to any project:
+
+1. **Survival** - It needs to work. Basic functionality.
+2. **Social** - Others use it. Maintenance, compatibility, community.
+3. **Entertainment** - It's fun. Elegance, beauty, satisfaction.
+
+The best projects reach stage 3. Linux survived because it was *fun* to work on.
+
+### "Scratching Your Own Itch"
+
+> "I was just trying to do something for myself."
+
+Linux started as Linus's personal project to learn the 386 processor. He needed a Unix-like OS; none existed that he could afford or modify.
+
+**The lesson:** Build what you need. Real problems produce real solutions. Hypothetical problems produce bloatware.
+
+### Open Source Philosophy
+
+> "Given enough eyeballs, all bugs are shallow."
+
+Linus didn't plan to create a movement. He shared code because sharing was natural. The community emerged organically.
+
+**What made it work:**
+- Low barrier to contribution (patches via email)
+- Public discussion (mailing lists)
+- Meritocracy (good code accepted, bad code rejected)
+- Fun (people wanted to participate)
+
+### On Perfectionism
+
+> "Release early, release often."
+
+The first Linux release (0.01) was embarrassing by later standards. But it worked, and it shipped. Perfectionism kills projects.
+
+**The pattern:**
+1. Make it work (barely)
+2. Make it better (iterate)
+3. Make it elegant (eventually)
+
+---
+
 ## The Good Taste Test
 
 From Linus's TED talk, the canonical example of taste:
@@ -289,11 +336,11 @@ Linus is the **Linux kernel skill**—use it for kernel-style C, data structure 
 
 ## Sources
 
+- Torvalds & Diamond, "Just for Fun: The Story of an Accidental Revolutionary" (2001)
 - Torvalds, "Linux Kernel Coding Style" (Documentation/process/coding-style.rst)
-- Torvalds, TED Interview (2016) - "The mind behind Linux"
+- Torvalds, TED Talk "The mind behind Linux" (2016)
 - Linux kernel mailing list archives (lkml.org)
-- Torvalds on Git design and workflow
-- Various recorded talks and interviews
+- Git design documentation and interviews
 
 ---
 

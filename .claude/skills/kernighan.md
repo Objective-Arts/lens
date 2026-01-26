@@ -628,6 +628,159 @@ return DAYS[day]
 
 ---
 
+## From The Unix Programming Environment (1984)
+
+> "The UNIX system is not so much an operating system as an oral tradition."
+
+### The Unix Philosophy
+
+**Small tools that do one thing well:**
+```bash
+# Not this: one tool that does everything
+supertool --parse --filter --count --format input.txt
+
+# This: composable pipeline
+cat input.txt | grep pattern | sort | uniq -c
+```
+
+**Text streams as universal interface:**
+Everything is text. Programs read text, process it, write text. This enables infinite composition.
+
+**Filters transform data:**
+A filter reads stdin, transforms it, writes stdout. Pure and composable.
+```python
+# A filter in Python
+import sys
+for line in sys.stdin:
+    if "ERROR" in line:
+        print(line, end='')
+```
+
+### Shell Programming
+
+> "The shell is a programming language with somewhat unusual syntax."
+
+**Use the shell for glue:**
+```bash
+# Process all Python files
+for f in *.py; do
+    python -m py_compile "$f" && echo "OK: $f"
+done
+```
+
+**Pipelines over temp files:**
+```bash
+# Not this
+grep ERROR log.txt > /tmp/errors.txt
+wc -l /tmp/errors.txt
+rm /tmp/errors.txt
+
+# This
+grep ERROR log.txt | wc -l
+```
+
+**Let tools do the work:**
+```bash
+# Find large files
+find . -size +10M -type f
+
+# Count lines by file type
+find . -name "*.py" | xargs wc -l | tail -1
+
+# Replace text across files
+grep -l "old_name" *.py | xargs sed -i 's/old_name/new_name/g'
+```
+
+### Essential Unix Tools
+
+| Tool | Purpose | Example |
+|------|---------|---------|
+| `grep` | Find patterns | `grep -r "TODO" .` |
+| `sed` | Transform text | `sed 's/old/new/g' file` |
+| `awk` | Process columns | `awk '{print $1}' file` |
+| `sort` | Order lines | `sort -k2 -n file` |
+| `uniq` | Remove duplicates | `sort file \| uniq -c` |
+| `cut` | Extract columns | `cut -d: -f1 /etc/passwd` |
+| `tr` | Translate chars | `tr 'A-Z' 'a-z'` |
+| `wc` | Count lines/words | `wc -l file` |
+
+### Programming Lessons from Unix
+
+1. **Prototype in shell** - Test ideas with pipelines before writing code
+2. **Use existing tools** - Don't rewrite grep, use it
+3. **Text is universal** - JSON, CSV, logs—all text, all composable
+4. **Composition over monoliths** - Small programs, big pipelines
+
+---
+
+## From The AWK Programming Language (1988, 2nd ed. 2023)
+
+> "AWK is a language for processing text files."
+
+AWK embodies Kernighan's philosophy: a small, focused language for a specific domain.
+
+### Pattern-Action Programming
+
+AWK programs are rules: **pattern { action }**
+
+```awk
+# Print lines containing "error"
+/error/ { print }
+
+# Print second column of CSV
+{ print $2 }
+
+# Sum third column
+{ sum += $3 } END { print sum }
+```
+
+### When to Use AWK
+
+**Quick data extraction:**
+```bash
+# Get usernames from passwd
+awk -F: '{print $1}' /etc/passwd
+
+# Sum a column
+awk '{sum += $3} END {print sum}' data.txt
+
+# Filter and format
+awk '$3 > 100 {printf "%s: $%.2f\n", $1, $3}' sales.txt
+```
+
+**Field processing:**
+```bash
+# Swap columns
+awk '{print $2, $1}' file
+
+# Add line numbers
+awk '{print NR, $0}' file
+
+# Skip header
+awk 'NR > 1 {print}' file
+```
+
+### AWK vs Writing Code
+
+For simple text processing, AWK is often the right choice:
+
+| Task | AWK | Python |
+|------|-----|--------|
+| Sum a column | `awk '{s+=$1}END{print s}'` | 5+ lines |
+| Filter rows | `awk '$2>100'` | 3+ lines |
+| Count patterns | `awk '/error/{c++}END{print c}'` | 4+ lines |
+
+**The lesson:** Use the right tool. Don't write 20 lines when a one-liner works.
+
+### AWK Principles Applied to Programming
+
+1. **Domain-specific beats general** - AWK is perfect for its niche
+2. **Pattern-action is powerful** - Event-driven design, rule-based systems
+3. **Implicit loops reduce boilerplate** - Process all records automatically
+4. **Built-in variables save code** - NR, NF, $0, $1... no setup needed
+
+---
+
 ## The Kernighan Test
 
 Before committing any code, ask:
@@ -669,6 +822,8 @@ Kernighan is for **general application code clarity**—not specialized domains.
 ## Sources
 
 - Kernighan & Pike, "The Practice of Programming" (1999)
+- Kernighan & Pike, "The Unix Programming Environment" (1984)
+- Kernighan, Aho & Weinberger, "The AWK Programming Language" (1988, 2nd ed. 2023)
 - Kernighan & Plauger, "The Elements of Programming Style" (1978)
 - Kernighan & Ritchie, "The C Programming Language" (1978)
 
