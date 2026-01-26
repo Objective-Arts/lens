@@ -1,0 +1,56 @@
+name: typescript-cli
+description: TypeScript CLI/backend projects without frontend. Combines software-base with TypeScript canon.
+projectType: software
+composable: true
+
+# NOTE: Use with software-base for complete coverage:
+#   cc-config profile apply software-base+typescript-cli .
+#
+# Or use standalone for minimal TypeScript setup:
+#   cc-config profile apply typescript-cli .
+
+skills:
+  canon:
+    # TypeScript expertise
+    - cherny          # Programming TypeScript - inference, generics, type guards
+    - crockford       # JavaScript: The Good Parts - safe subset, avoiding pitfalls
+
+    # Node.js backend
+    - osmani          # Performance patterns, memory management, event loop
+
+    # If standalone (without software-base), include core canon:
+    # The baseline brain and testing canon are in software-base
+    # Only add these if using typescript-cli alone
+
+agents:
+  - code-reviewer
+  - test-engineer
+
+claudeMd:
+  standards:
+    - "Let TypeScript infer types - annotate minimally (Cherny)"
+    - "Use discriminated unions for state machines (Cherny)"
+    - "Prefer unknown over any, narrow with type guards (Cherny)"
+    - "Use const assertions for literal types (Cherny)"
+    - "Avoid the bad parts - with, eval, implied globals (Crockford)"
+    - "Profile before optimizing Node.js (Osmani)"
+
+  antiPatterns:
+    - "Over-annotating types that TypeScript can infer"
+    - "Using any instead of unknown"
+    - "Ignoring strict mode warnings"
+    - "Type assertions (as) instead of type guards"
+    - "Blocking the event loop with sync operations"
+    - "Memory leaks from unclosed handles or listeners"
+
+  autoInvoke:
+    - context: TypeScript types, generics, inference, utility types
+      action: INVOKE `/cherny`
+    - context: Type guards, discriminated unions, exhaustive checks
+      action: INVOKE `/cherny`
+    - context: JavaScript pitfalls, safe patterns
+      action: INVOKE `/crockford`
+    - context: Node.js performance, memory leaks, event loop
+      action: INVOKE `/osmani`
+    - context: CLI argument parsing, stdin/stdout handling
+      action: Apply Unix philosophy (McIlroy) - compose small tools
