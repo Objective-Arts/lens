@@ -19,6 +19,87 @@ Autonomous iteration loop that implements PRD items with quality gates. Designed
 - Exploration or research tasks
 - When PRD is not defined
 
+## ⚠️ MANDATORY: Loop Until ALL Items Complete
+
+```
+┌─────────────────────────────────────────────────────────────────┐
+│                    RALPH LOOP STATE MACHINE                      │
+│                                                                  │
+│  START → [Check PRD] → incomplete items exist?                   │
+│                              │                                   │
+│                    ┌────YES──┴──NO────┐                          │
+│                    ▼                  ▼                          │
+│              [Work on item]      [DONE - generate                │
+│                    │              canon-report]                  │
+│                    ▼                                             │
+│              [Item complete]                                     │
+│                    │                                             │
+│                    ▼                                             │
+│         ┌──── MORE ITEMS? ────┐                                  │
+│         │                     │                                  │
+│        YES                   NO                                  │
+│         │                     │                                  │
+│         ▼                     ▼                                  │
+│    [IMMEDIATELY           [DONE - generate                       │
+│     START NEXT             canon-report]                         │
+│     ITEM - NO                                                    │
+│     PAUSE]                                                       │
+│         │                                                        │
+│         └──────────────→ [Work on item] ←────────────────────────│
+│                                                                  │
+└─────────────────────────────────────────────────────────────────┘
+```
+
+### 🚨 STOPPING RULES (the ONLY valid exit conditions):
+
+1. **ALL PRD items marked `[x]`** → Generate canon-report → Exit
+2. **Max iterations (50) reached** → Report status → Exit
+3. **Idle detection (3 iterations, 0 commits)** → Report status → Exit
+
+### ❌ INVALID STOPS (bugs if these happen):
+
+- Stopping after item 1 when items 2-N exist
+- Stopping after item 2 when items 3-N exist
+- Stopping after ANY item when more incomplete items remain
+- Asking "should I continue?" at any point
+- Waiting for user input between items
+
+### ✅ MANDATORY ACTION after completing each item:
+
+```
+if more_incomplete_items_exist():
+    # THIS IS NOT OPTIONAL - YOU MUST DO THIS
+    print("Item N complete. Starting item N+1...")
+    immediately_begin_next_item()  # NO PAUSE, NO ASK
+else:
+    run_canon_report()
+    print_final_summary()
+```
+
+### Example Correct Behavior:
+
+```
+Item 1: User authentication
+  → implement → test → review → COMPLETE
+  → "Item 1 complete. 3 items remain. Starting Item 2..."
+
+Item 2: Session management
+  → implement → test → review → COMPLETE
+  → "Item 2 complete. 2 items remain. Starting Item 3..."
+
+Item 3: Password hashing
+  → implement → test → review → COMPLETE
+  → "Item 3 complete. 1 item remains. Starting Item 4..."
+
+Item 4: OAuth integration
+  → implement → test → review → COMPLETE
+  → "All 4 items complete. Generating canon-report..."
+  → [runs /canon-report]
+  → "Ralph Loop Complete ✓"
+```
+
+**NEVER output "complete" or stop until the last item is done.**
+
 ## Arguments
 
 | Argument | Description |
@@ -39,11 +120,46 @@ while PRD has incomplete items AND iteration < max:
 
         1. Read item requirements from PRD
         2. Check git log for related previous work
-        3. AUTO-INVOKE domain masters based on context:
-           - UI work? → /frost, /ive, /norman, etc.
-           - React? → /abramov
-           - TypeScript? → /cherny
-           - Tests? → /dodds
+
+        3. ⚠️ MANDATORY: Detect and invoke domain masters:
+
+           # Frontend Detection (MUST check these patterns)
+           if file matches *.tsx, *.jsx, *.vue, *.svelte:
+               OUTPUT: "🎨 Frontend detected → Invoking /frost, /ive, /norman"
+               INVOKE /frost   # Atomic Design structure
+               INVOKE /ive     # Visual design principles
+               INVOKE /norman  # Affordances, feedback
+
+           if file matches *.css, *.scss, *.styled.*:
+               OUTPUT: "🎨 CSS detected → Invoking /rams"
+               INVOKE /rams    # Simplicity, 10 principles
+
+           if PRD item mentions "form", "input", "validation":
+               OUTPUT: "📝 Form detected → Invoking /wroblewski, /norman"
+               INVOKE /wroblewski  # Forms expert
+               INVOKE /norman      # Affordances
+
+           if PRD item mentions "animation", "transition", "motion":
+               OUTPUT: "✨ Animation detected → Invoking /duarte"
+               INVOKE /duarte  # Meaningful motion
+
+           if PRD item mentions "mobile", "responsive", "touch":
+               OUTPUT: "📱 Mobile detected → Invoking /wroblewski, /buxton"
+               INVOKE /wroblewski  # Mobile-first
+               INVOKE /buxton      # Input fundamentals
+
+           # Code Quality Detection
+           if file matches *.tsx, *.jsx (React):
+               OUTPUT: "⚛️ React detected → Invoking /abramov"
+               INVOKE /abramov  # React mental models
+
+           if file matches *.ts (TypeScript):
+               OUTPUT: "📘 TypeScript detected → Invoking /cherny"
+               INVOKE /cherny   # Type design
+
+           # These skills provide the LENS for implementation
+           # Read the skill, apply its principles, then implement
+
         4. Implement (with canon lens active)
         5. ADD DOCUMENTATION:
            - JS/TS: JSDoc with @param, @returns, @example
@@ -74,8 +190,22 @@ while PRD has incomplete items AND iteration < max:
 
     iteration++
 
+    # ⚠️ MANDATORY CONTINUATION CHECK (execute this EVERY time)
+    remaining = count_incomplete_items(PRD)
+    if remaining > 0:
+        print(f"Item complete. {remaining} items remain. STARTING NEXT ITEM NOW...")
+        # DO NOT EXIT - loop continues automatically to next iteration
+        # The while loop condition handles this - just let it continue
+    else:
+        # ONLY exit when remaining == 0
+        break
+
+# Post-loop: ALL items complete (or max iterations)
+Run /canon-report (generates D3 visualization)
 Report final status
 ```
+
+**⚠️ The `while` loop MUST continue until `PRD has incomplete items` is FALSE.**
 
 ## PRD Format
 
@@ -115,7 +245,9 @@ Each PRD item must pass ALL gates before marked complete:
 
 **Important**: Inside the loop, use self-review only (no `--full`). Gemini and Qodana run as post-loop validation to prevent nested fix cycles.
 
-## Auto-Invoke Canon Masters
+## ⚠️ MANDATORY: Auto-Invoke Canon Masters
+
+**These are NOT optional. You MUST invoke the relevant skills before implementing.**
 
 When implementing PRD items, automatically invoke domain experts:
 
@@ -327,24 +459,48 @@ Each iteration reports:
 
 ## Final Report
 
-When loop exits:
+When loop exits, output depends on whether there's more work:
+
+### If MORE PRD items remain (NOT done yet):
 
 ```markdown
-## Ralph Loop Complete
+## Ralph Loop Iteration Complete
+
+**Item Completed**: [Name of completed item]
+**PRD Progress**: 3/7 items complete
+
+### CONTINUE SIGNAL
+🔄 **ACTION REQUIRED**: More PRD items remain. DO NOT EXIT.
+Continue to next incomplete item.
+
+### Next Item
+- [ ] Item 4: [Next incomplete item from PRD]
+```
+
+**CRITICAL**: Do NOT report "loop complete" or generate final reports until ALL items are done.
+
+### If ALL PRD items complete (truly done):
+
+```markdown
+## Ralph Loop Complete ✓
 
 **Iterations**: N
-**Exit Reason**: all_complete | max_iterations | idle_detected
+**Exit Reason**: all_complete
 
 ### PRD Status
 - [x] Item 1: User authentication
 - [x] Item 2: Session management
 - [x] Item 3: Password hashing
-- [ ] Item 4: OAuth integration (blocked: need API keys)
+- [x] Item 4: OAuth integration
 
 ### Quality Summary
 - Tests: 100% passing
 - Review: No critical issues
 - Security: Audited
+
+### Canon Report
+Generated: .claude/canon-report.html
+Open with: `open .claude/canon-report.html`
 
 ### Files Changed
 - src/auth/* (new)

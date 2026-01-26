@@ -9,6 +9,44 @@ Catch structural issues, security vulnerabilities, and quality problems through:
 2. **Gemini review** for architectural and logic issues
 3. **Qodana scan** for static analysis and code smells
 
+## CRITICAL: Auto-Continue Behavior (NO ASKING)
+
+**When invoked from /ralph-loop or any autonomous workflow:**
+
+### NEVER ASK - JUST DO:
+- ❌ DO NOT ask "Should I run Qodana?"
+- ❌ DO NOT ask "Ready to scan with Qodana?"
+- ❌ DO NOT ask for confirmation BEFORE any tool call
+- ❌ DO NOT ask for confirmation AFTER any tool returns
+- ❌ DO NOT ask "what would you like to do with these findings?"
+- ❌ DO NOT stop and wait for user input at ANY point
+
+### CORRECT FLOW (no pauses, no questions):
+```
+1. Self-review → [just do it]
+2. Call Gemini → [just call it, don't ask first]
+3. Gemini returns → [parse, don't ask]
+4. Call Qodana → [just call it, don't ask first]
+5. Qodana returns → [parse, don't ask]
+6. Return all results to caller → [done]
+```
+
+### WRONG (causes ralph to stop):
+```
+"I'll now run Qodana. Should I proceed?" ← WRONG
+"Gemini found 3 issues. What would you like to do?" ← WRONG
+"Ready to run the static analysis?" ← WRONG
+```
+
+### RIGHT (keeps ralph flowing):
+```
+"Running Qodana scan..." → [calls tool]
+"Gemini found 3 issues. Proceeding to Qodana..." → [calls tool]
+"Review complete. Results: [summary]" → [returns to caller]
+```
+
+**AUTONOMOUS MEANS AUTONOMOUS** - execute the full review pipeline without interruption.
+
 ## When to Invoke
 
 - Before presenting code as "complete"
@@ -20,12 +58,47 @@ Catch structural issues, security vulnerabilities, and quality problems through:
 
 ### Stage 1: Self-Review (Always)
 
-Check against project CLAUDE.md standards:
+#### Structure & Size
 - [ ] Functions under 30 lines
 - [ ] Single responsibility per function/class
-- [ ] No mixed concerns
-- [ ] Proper error handling
-- [ ] Security considerations addressed
+- [ ] No mixed concerns (UI/logic/data)
+- [ ] Max 3 levels of nesting
+- [ ] Max 4 parameters per function (use options object beyond that)
+
+#### Error Handling & Async
+- [ ] All error paths handled explicitly
+- [ ] No floating promises (all awaited or explicitly fire-and-forget)
+- [ ] Async errors caught and handled
+- [ ] Consistent error return pattern (throw OR Result type, not mixed)
+
+#### TypeScript Quality (Cherny)
+- [ ] No `any` types (use `unknown` for truly unknown)
+- [ ] No non-null assertions `!` without justification comment
+- [ ] Discriminated unions for state machines
+- [ ] Exhaustive switch with `never` guard for union types
+
+#### Security (OWASP)
+- [ ] User input validated at system boundaries
+- [ ] No secrets/credentials in code
+- [ ] Parameterized queries only (no string concatenation)
+- [ ] No `eval()`, `Function()`, or dynamic code execution
+- [ ] No sensitive data in logs
+
+#### Dependencies & Architecture
+- [ ] No circular imports
+- [ ] Dependencies flow downward (high-level → low-level)
+- [ ] No unused imports/exports
+
+#### Naming & Clarity
+- [ ] Booleans prefixed: is/has/can/should/will
+- [ ] Functions are verbs, classes/types are nouns
+- [ ] No magic numbers/strings (use named constants)
+- [ ] No abbreviations except standard (id, url, config, etc.)
+
+#### Testing (Dodds Trophy)
+- [ ] Integration test covers the feature path
+- [ ] Tests assert behavior, not implementation details
+- [ ] No mocking of internal modules (only external boundaries)
 
 ### Stage 2: Gemini Review (For Logic/Architecture)
 
@@ -101,9 +174,29 @@ Present review results in this format:
 ## --review-hard Results
 
 ### Self-Review
+
+**Structure & Size**
 - [x] Functions under 30 lines
 - [x] Single responsibility
-- [ ] Error handling needs improvement (line 45)
+- [ ] Max 3 nesting levels - `processData()` has 4 levels at line 87
+
+**Error Handling & Async**
+- [ ] Floating promise at line 42 - `fetchUser()` not awaited
+- [x] Error paths handled
+
+**TypeScript Quality**
+- [x] No `any` types
+- [x] Discriminated unions used correctly
+
+**Security**
+- [x] Input validation at boundaries
+- [x] No secrets in code
+
+**Dependencies**
+- [x] No circular imports
+
+**Naming**
+- [ ] `flag` should be `isEnabled` (line 23)
 
 ### Gemini Review
 **Focus: general**
@@ -127,17 +220,38 @@ Key findings:
 2. `src/auth.ts:15` - Weak password validation
 
 ### Action Items
-1. Fix SQL injection in api.ts
-2. Strengthen password validation
-3. Add error handling at line 45
+
+**Blocking (P0)**
+1. Fix floating promise at line 42
+2. Fix SQL injection in api.ts
+
+**Required (P1)**
+3. Rename `flag` → `isEnabled`
+4. Strengthen password validation
+
+**Advisory (P2)**
+5. Reduce nesting in `processData()`
 ```
 
 ## Quality Gates
 
-Code is NOT complete until:
+### Blocking (Must Fix)
 - [ ] No CRITICAL or HIGH Qodana issues
-- [ ] Gemini findings addressed
-- [ ] Self-review checklist passed
+- [ ] No `any` types without explicit justification
+- [ ] No floating promises
+- [ ] No security violations (OWASP items)
+- [ ] All error paths handled
+
+### Required (Should Fix)
+- [ ] Gemini findings addressed or documented as intentional
+- [ ] Functions under 30 lines
+- [ ] No magic numbers/strings
+- [ ] Naming conventions followed
+
+### Advisory (Consider)
+- [ ] Max 3 nesting levels
+- [ ] Boolean prefixes
+- [ ] Integration test coverage
 
 ## MCP Server Requirements
 

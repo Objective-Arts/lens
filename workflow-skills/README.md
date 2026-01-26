@@ -16,7 +16,7 @@ Universal workflow skills for Claude Code. These are **not** canon skills (domai
 
 ### Standard Flow
 ```
-/plan → /structure-first → /build-from-plan → /refactor-clean → /test → /review-hard
+/plan → /structure-first → /build-from-plan → /refactor-clean → /test → /doc-code → /review-hard
 ```
 
 ### Autonomous Flow (Ralph Integration)
@@ -55,6 +55,17 @@ Implement code from an approved plan file.
 /build-from-plan                    # Build from most recent plan
 /build-from-plan auth-system        # Build from specific plan
 /build-from-plan --resume           # Resume partially-completed plan
+```
+
+### /doc-code
+Generate documentation using Procida's Diátaxis framework.
+
+**Use when**: After implementing new features or public APIs.
+
+```
+/doc-code                           # Document recent changes
+/doc-code src/services/             # Document specific path
+/doc-code --type=how-to             # Force specific doc type
 ```
 
 ### /refactor-clean

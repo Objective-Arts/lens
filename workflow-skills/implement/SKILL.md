@@ -43,14 +43,69 @@ No more "I reviewed it" without evidence.
 | 1 | `/plan` | Kernighan (clarity), Pike (interfaces), Linus (data structures) | Decisions made, questions asked |
 | 2 | `/structure-first` | Cherny (types), Dijkstra (invariants) | Interfaces defined, contracts |
 | 3 | `/test` (write tests) | Dodds, Meszaros, Feathers | Test levels chosen, count by category |
-| 4 | TDD Red | - | All tests fail (count) |
+| 3.5 | E2E Tests (web only) | Playwright | E2E test count, actual browser execution results |
+| 4 | TDD Red | - | All tests fail (count) - MUST RUN TESTS |
 | 5 | `/build-from-plan` | Domain experts per code type | Implementation decisions |
-| 6 | TDD Green | - | Tests pass (count), iterations |
+| 6 | TDD Green | - | Tests pass (count), iterations - MUST RUN TESTS |
 | 7 | `/review-hard` (self) | Self-review | Issues by severity/flag |
 | 8 | Gemini Review | External model | Issues found, different perspective |
-| 9 | Qodana Scan | Static analysis | Issues found, deterministic |
+| 9 | Static Analysis | ESLint (JS) or Qodana | Issues found, deterministic |
 | 10 | Fix & Iterate | All applicable | Fixes applied, re-validation |
 | 11 | Final Validation | - | All tests pass, no critical issues |
+| 12 | `/sc:document` | Documentation | API docs, inline docs generated |
+
+## Web Project Requirements
+
+For projects with HTML/CSS/JS or frontend frameworks:
+
+1. **Step 3.5 is MANDATORY** - Use Playwright to run actual browser tests
+2. **Test execution proof required** - Session log must include actual pass/fail counts from test runner output
+3. **E2E tests must cover** - Page load, user interactions, visual regressions (if applicable)
+
+```bash
+# Example: Running browser tests with Playwright
+npx playwright test --reporter=json > test-results.json
+```
+
+## Canon Expert Proof Requirements
+
+**Text claims are NOT sufficient.** Each canon expert contribution MUST include:
+
+1. **Code reference** - File:line where the principle was applied
+2. **Before/after** - What would have been done WITHOUT the expert's guidance vs WITH
+3. **Verifiable artifact** - The code or config that proves application
+
+### Example: Provable Canon Contribution
+
+```json
+{
+  "name": "Pike",
+  "contribution": "Minimal interface",
+  "proof": {
+    "file": "app.js:18-22",
+    "code": "function formatTime(seconds) { ... }",
+    "without": "Would have added locale, timezone, format options",
+    "with": "Single pure function, one argument, one return"
+  }
+}
+```
+
+### BAD (Unprovable)
+```json
+{ "name": "Kernighan", "contribution": "Verified requirement clarity" }
+```
+
+### GOOD (Provable)
+```json
+{
+  "name": "Kernighan",
+  "contribution": "Verified requirement clarity",
+  "proof": {
+    "file": "PRD.md:15-20",
+    "before": "Timer should work well",
+    "after": "Timer displays MM:SS, counts down from 25:00, plays 880Hz chime at zero"
+  }
+}
 
 ## Session Log
 
@@ -87,8 +142,25 @@ At each step, append to `checkpoints`:
   "step": 1,
   "skill": "/plan",
   "canon_experts": [
-    { "name": "Kernighan", "contribution": "Questioned: Is this clear?" },
-    { "name": "Pike", "contribution": "Asked: How small can the interface be?" }
+    {
+      "name": "Kernighan",
+      "contribution": "Verified requirement specificity",
+      "proof": {
+        "file": "PRD.md:8-12",
+        "before": "Timer should display time remaining",
+        "after": "Timer displays MM:SS format, updates every 1000ms"
+      }
+    },
+    {
+      "name": "Pike",
+      "contribution": "Minimal interface design",
+      "proof": {
+        "file": "app.js:18-22",
+        "code": "function formatTime(seconds) { const mins = Math.floor(seconds / 60); ... }",
+        "without": "Would have parameters for locale, timezone, 12/24hr format",
+        "with": "Single argument, single purpose, 4 lines"
+      }
+    }
   ],
   "decisions": ["Pure function", "No external dependencies"],
   "artifacts": [".claude/plans/feature-name.md"],
@@ -98,20 +170,27 @@ At each step, append to `checkpoints`:
 
 ### Testing Progression
 
-Record test counts at each phase:
+Record test counts at each phase. **Counts must come from actual test execution, not estimates.**
 
 ```json
 "testing": {
   "levels": {
     "unit": { "count": 35, "status": "passed" },
-    "contract": { "count": 5, "status": "passed" },
+    "integration": { "count": 8, "status": "passed" },
+    "e2e": { "count": 5, "status": "passed", "runner": "playwright" },
     "edge_case": { "count": 7, "status": "passed" }
   },
   "progression": [
-    { "phase": "red", "passed": 0, "failed": 43 },
-    { "phase": "green-1", "passed": 37, "failed": 6 },
-    { "phase": "final", "passed": 43, "failed": 0 }
-  ]
+    { "phase": "red", "passed": 0, "failed": 55, "runner_output": "55 tests failed" },
+    { "phase": "green-1", "passed": 48, "failed": 7, "runner_output": "48 passed, 7 failed" },
+    { "phase": "final", "passed": 55, "failed": 0, "runner_output": "55 passed" }
+  ],
+  "e2e_results": {
+    "runner": "playwright",
+    "executed": true,
+    "report_path": "test-results.json",
+    "summary": "5 tests passed in 3 browsers (chromium, firefox, webkit)"
+  }
 }
 ```
 

@@ -7,6 +7,44 @@ description: Adversarial self-review with optional external Gemini and Qodana va
 
 Perform adversarial self-review on target code. Optionally run external reviewers (Gemini, Qodana) for comprehensive validation.
 
+## CRITICAL: Auto-Continue Behavior (NO ASKING)
+
+**When invoked from /ralph-loop or any autonomous workflow:**
+
+### NEVER ASK - JUST DO:
+- ❌ DO NOT ask "Should I run Qodana?"
+- ❌ DO NOT ask "Ready to scan with Qodana?"
+- ❌ DO NOT ask for confirmation BEFORE any tool call
+- ❌ DO NOT ask for confirmation AFTER any tool returns
+- ❌ DO NOT ask "what would you like to do with these findings?"
+- ❌ DO NOT stop and wait for user input at ANY point
+
+### CORRECT FLOW (no pauses, no questions):
+```
+1. Self-review → [just do it]
+2. Call Gemini → [just call it, don't ask first]
+3. Gemini returns → [parse, don't ask]
+4. Call Qodana → [just call it, don't ask first]
+5. Qodana returns → [parse, don't ask]
+6. Return all results to caller → [done]
+```
+
+### WRONG (causes ralph to stop):
+```
+"I'll now run Qodana. Should I proceed?" ← WRONG
+"Gemini found 3 issues. What would you like to do?" ← WRONG
+"Ready to run the static analysis?" ← WRONG
+```
+
+### RIGHT (keeps ralph flowing):
+```
+"Running Qodana scan..." → [calls tool]
+"Gemini found 3 issues. Proceeding to Qodana..." → [calls tool]
+"Review complete. Results: [summary]" → [returns to caller]
+```
+
+**AUTONOMOUS MEANS AUTONOMOUS** - execute the full review pipeline without interruption.
+
 ## Target
 
 If a path argument is provided, review that file/directory.
