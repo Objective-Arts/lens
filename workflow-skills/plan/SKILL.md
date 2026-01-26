@@ -51,7 +51,9 @@ The skill enforces discipline: plan first, create artifact, get approval, then i
 5. **Document** - Write plan to `.claude/plans/` file
 6. **Present** - Exit plan mode for user approval
 
-## Invoke Canon Skills
+## ⚠️ MANDATORY: Invoke Canon Skills
+
+**These are NOT optional. You MUST invoke the relevant canon skills before writing the plan.**
 
 Before designing, check the project's CLAUDE.md and profile for applicable canon skills. Invoke them to inform your plan:
 

@@ -48,7 +48,9 @@ As Linus says: "Bad programmers worry about the code. Good programmers worry abo
 6. **Validate with examples** - Do concrete examples fit the structure?
 7. **Document** - Write structure to `.claude/structures/` file
 
-## Invoke Canon Skills
+## ⚠️ MANDATORY: Invoke Canon Skills
+
+**These are NOT optional. You MUST invoke the relevant canon skills before defining types.**
 
 Before defining types, invoke domain-specific canon skills:
 

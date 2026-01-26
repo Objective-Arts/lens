@@ -74,7 +74,9 @@ When building from plan:
 - Don't refactor code outside the plan scope
 - If blocked, note the issue and continue with next step
 
-## Invoke Canon Skills
+## ⚠️ MANDATORY: Invoke Canon Skills
+
+**These are NOT optional. You MUST invoke the relevant canon skills before writing code.**
 
 While implementing, invoke domain-specific canon skills based on what you're building:
 

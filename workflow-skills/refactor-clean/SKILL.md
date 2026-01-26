@@ -47,7 +47,9 @@ Without this skill, Claude makes ad-hoc changes to legacy code without structure
 5. **Execute** - Apply each step with verification
 6. **Document** - Show before/after structure
 
-## Invoke Canon Skills
+## ⚠️ MANDATORY: Invoke Canon Skills
+
+**These are NOT optional. You MUST invoke the relevant canon skills before refactoring.**
 
 Legacy refactoring requires specific canon skills:
 
