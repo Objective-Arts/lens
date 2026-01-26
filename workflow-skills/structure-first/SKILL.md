@@ -23,25 +23,30 @@ You CANNOT skip phases. Each phase must complete before the next begins.
 
 ## PHASE 1: LOAD CANON (Required - No Code Until Complete)
 
-### Step 1.1: Read the Canon Files
+### Step 1.1: Read the Canon Files (Tiered Loading)
 
 **You MUST use the Read tool to load these files. Do not proceed from memory.**
 
+**First: Load SUMMARY.md files (~300 tokens each):**
 ```
-Required reads:
+Required summary reads:
 1. Read: CLAUDE.md (find Baseline Brain section)
-2. Read: .claude/skills/[language-canon]/SKILL.md (based on detected language)
-3. Read: .claude/skills/evans/SKILL.md (domain modeling)
-4. Read: .claude/skills/linus/SKILL.md (data structures first)
-5. Read: .claude/skills/gang-of-four/SKILL.md (structural patterns)
+2. Read: canon/gang-of-four/SUMMARY.md (structural patterns)
+3. Read: canon/linus/SUMMARY.md (data structures first)
+4. Read: canon/[language]/SUMMARY.md (based on detected language)
 ```
 
+**Then: Load full SKILL.md only when triggered:**
+- Applying a specific pattern in depth → Read full SKILL.md
+- Deep dive into a particular item → Read full SKILL.md
+- User explicitly requests full canon → Read full SKILL.md
+
 Detect language from file extensions or project structure:
-- `.java` → load `/bloch`
-- `.ts`, `.tsx` → load `/cherny`
-- `.py` → load `/ramalho`
-- `.go` → load `/pike`
-- `.cs` → load `/skeet`
+- `.java` → load `canon/bloch/SUMMARY.md`
+- `.ts`, `.tsx` → load `canon/javascript/cherny/SUMMARY.md`
+- `.py` → load `canon/python/ramalho/SUMMARY.md`
+- `.go` → load `canon/pike/SUMMARY.md`
+- `.cs` → load `canon/csharp/skeet/SUMMARY.md`
 
 ### Step 1.2: Output Proof of Loading
 

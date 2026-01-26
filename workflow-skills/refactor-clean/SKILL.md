@@ -30,21 +30,27 @@ Required reads:
 3. Read: CLAUDE.md (Baseline Brain section)
 ```
 
-### Step 1.2: Load Legacy Code Canon
+### Step 1.2: Load Legacy Code Canon (Tiered Loading)
 
 **You MUST use the Read tool. Legacy code requires specific canon.**
 
+**First: Load SUMMARY.md files (~300 tokens each):**
 ```
-Required for ALL legacy refactoring:
-1. Read: .claude/skills/feathers/SKILL.md (finding seams, characterization tests)
-2. Read: .claude/skills/fowler/SKILL.md (refactoring patterns)
-3. Read: .claude/skills/gang-of-four/SKILL.md (design patterns for restructuring)
+Required summary reads for ALL legacy refactoring:
+1. Read: canon/testing/feathers/SUMMARY.md (finding seams, characterization tests)
+2. Read: canon/testing/fowler-test/SUMMARY.md (test pyramid, testing strategy)
+3. Read: canon/gang-of-four/SUMMARY.md (design patterns for restructuring)
 ```
 
+**Then: Load full SKILL.md when triggered:**
+- Implementing Mikado Method → Read: canon/testing/feathers/SKILL.md
+- Complex seam types (Link, Preprocessing) → Read: canon/testing/feathers/SKILL.md
+- Specific design pattern in depth → Read: canon/gang-of-four/SKILL.md
+
 Also load based on concern:
-- SRP violations → Read: .claude/skills/liskov/SKILL.md
-- API cleanup → Read: .claude/skills/bloch/SKILL.md
-- Language-specific → Read appropriate language canon
+- SRP violations → Read: canon/liskov/SUMMARY.md (or SKILL.md if no summary)
+- API cleanup → Read: canon/bloch/SUMMARY.md
+- Language-specific → Read appropriate language canon summary
 
 ### Step 1.3: Output Proof of Loading
 

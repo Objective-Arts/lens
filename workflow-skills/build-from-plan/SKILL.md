@@ -30,26 +30,32 @@ Required reads:
 3. Read: CLAUDE.md (Baseline Brain section)
 ```
 
-### Step 1.2: Load Canon Skills
+### Step 1.2: Load Canon Skills (Tiered Loading)
 
 **You MUST use the Read tool to load canon. Do not proceed from memory.**
 
+**First: Load SUMMARY.md files (~300 tokens each):**
 ```
-Required for ALL new code:
-1. Read: .claude/skills/gang-of-four/SKILL.md (design patterns)
-2. Read: [language-specific canon] (see below)
+Required summary reads for ALL new code:
+1. Read: canon/gang-of-four/SUMMARY.md (design patterns)
+2. Read: canon/[language]/SUMMARY.md (see below)
 ```
 
-Detect language from project and load appropriate canon:
-- `.java` → Read: .claude/skills/bloch/SKILL.md
-- `.ts`, `.tsx` → Read: .claude/skills/cherny/SKILL.md
-- `.py` → Read: .claude/skills/ramalho/SKILL.md
-- `.go` → Read: .claude/skills/pike/SKILL.md
-- `.cs` → Read: .claude/skills/skeet/SKILL.md
+Detect language from project and load appropriate summary:
+- `.java` → Read: canon/bloch/SUMMARY.md
+- `.ts`, `.tsx` → Read: canon/javascript/cherny/SUMMARY.md
+- `.py` → Read: canon/python/ramalho/SUMMARY.md
+- `.go` → Read: canon/pike/SUMMARY.md
+- `.cs` → Read: canon/csharp/skeet/SUMMARY.md
 
 Also load based on concern:
-- Security code → Read: .claude/skills/schneier/SKILL.md
-- Tests → Read: .claude/skills/dodds/SKILL.md, .claude/skills/meszaros/SKILL.md
+- Security code → Read: canon/security/schneier/SUMMARY.md (or SKILL.md if no summary)
+- Tests → Read: canon/javascript/dodds/SUMMARY.md, canon/testing/meszaros/SUMMARY.md
+
+**Then: Load full SKILL.md only when triggered:**
+- Implementing a specific pattern in depth
+- Applying items not covered in summary
+- User explicitly requests full canon
 
 ### Step 1.3: Output Proof of Loading
 
