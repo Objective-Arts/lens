@@ -34,6 +34,12 @@ Required reads:
 
 **You MUST use the Read tool to load canon. Do not proceed from memory.**
 
+```
+Required for ALL new code:
+1. Read: .claude/skills/gang-of-four/SKILL.md (design patterns)
+2. Read: [language-specific canon] (see below)
+```
+
 Detect language from project and load appropriate canon:
 - `.java` → Read: .claude/skills/bloch/SKILL.md
 - `.ts`, `.tsx` → Read: .claude/skills/cherny/SKILL.md
@@ -74,8 +80,15 @@ Also load based on concern:
 ### Domain Canon Loaded
 | Canon | Items Loaded | Key Principle for This Task |
 |-------|--------------|---------------------------|
+| /gang-of-four | 23 patterns | [which patterns apply to this feature] |
 | /bloch | 90 items | [which items apply] |
 | /schneier | [X items] | [which items apply] |
+
+### Design Patterns Identified (Gang of Four)
+| Pattern | Where to Apply | Why |
+|---------|----------------|-----|
+| [Factory Method/Builder/etc.] | [component] | [reason] |
+| [Strategy/Observer/etc.] | [component] | [reason] |
 
 ### Implementation Approach
 Before writing code, I will:
@@ -161,6 +174,7 @@ For each file you write:
 ### Canon Application Summary
 | Canon | Times Applied | Examples |
 |-------|---------------|----------|
+| /gang-of-four | X | [patterns: Factory at X, Strategy at Y] |
 | /bloch | 12 | Items 1, 2, 17, 50 at [locations] |
 | Baseline/Joy | 4 | Error handling at [locations] |
 | Baseline/Dijkstra | 3 | Invariants at [locations] |
