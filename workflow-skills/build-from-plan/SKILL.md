@@ -9,101 +9,142 @@ description: Implement NEW CODE from an approved plan. Use after /plan and /stru
 
 For legacy code modernization, use `/refactor-clean` instead.
 
-## Why This Skill Exists
+---
 
-This skill consumes the plan artifact created by `/plan`:
+## ⚠️ ENFORCED PROCESS - THREE PHASES
 
-```
-/plan              → Creates .claude/plans/feature.md (artifact)
-                          ↓
-/build-from-plan   → Reads that file, implements exactly per plan
-```
+You CANNOT skip phases. Each phase must complete before writing implementation code.
 
-Without this separation:
-- Claude would re-explore and potentially change approach mid-implementation
-- No clear checkpoint between "agree on plan" and "execute plan"
-- Scope creep happens naturally without discipline
+---
 
-With `/build-from-plan`:
-- **Separation of concerns**: Planning and implementation are distinct phases
-- **Resumability**: Can resume a partially-implemented plan later
-- **Discipline**: Implementation follows the plan exactly, no scope creep
-- **Trackability**: Progress is marked against the plan steps
+## PHASE 1: LOAD REQUIREMENTS (Required - No Code Until Complete)
 
-## When to Use
+### Step 1.1: Load the Plan and Structure Files
 
-- After `/plan` has been approved
-- After `/structure-first` has defined the data structures
-- When resuming work on a partially-implemented plan
-- For complex features that need disciplined execution
-
-## When NOT to Use
-
-- Simple tasks that don't need a plan
-- When the plan hasn't been approved yet
-- When requirements have changed (update plan first)
-
-## Process
-
-1. **Load Plan** - Read the plan file from `.claude/plans/` or specified path
-2. **Verify Approval** - Confirm plan was approved
-3. **Execute Steps** - Implement each step in order
-4. **Track Progress** - Mark completed steps
-5. **Report** - Show implementation progress
-
-## Plan File Location
-
-Plans are stored in `.claude/plans/`:
-- `.claude/plans/auth-system.md`
-- `.claude/plans/payment-flow.md`
-- `.claude/plans/[feature-name].md`
-
-## Usage
+**You MUST use the Read tool. Do not proceed from memory.**
 
 ```
-/build-from-plan                    # Build from most recent plan
-/build-from-plan auth-system        # Build from specific plan
-/build-from-plan --resume           # Resume partially-completed plan
+Required reads:
+1. Read: .claude/plans/[plan-file].md (the approved plan)
+2. Read: .claude/structures/[feature].md (from /structure-first)
+3. Read: CLAUDE.md (Baseline Brain section)
 ```
 
-## Implementation Guidelines
+### Step 1.2: Load Canon Skills
 
-When building from plan:
-- Follow the plan steps exactly
-- Don't add features not in the plan
-- Don't refactor code outside the plan scope
-- If blocked, note the issue and continue with next step
+**You MUST use the Read tool to load canon. Do not proceed from memory.**
 
-## ⚠️ MANDATORY: Invoke Canon Skills
+Detect language from project and load appropriate canon:
+- `.java` → Read: .claude/skills/bloch/SKILL.md
+- `.ts`, `.tsx` → Read: .claude/skills/cherny/SKILL.md
+- `.py` → Read: .claude/skills/ramalho/SKILL.md
+- `.go` → Read: .claude/skills/pike/SKILL.md
+- `.cs` → Read: .claude/skills/skeet/SKILL.md
 
-**These are NOT optional. You MUST invoke the relevant canon skills before writing code.**
+Also load based on concern:
+- Security code → Read: .claude/skills/schneier/SKILL.md
+- Tests → Read: .claude/skills/dodds/SKILL.md, .claude/skills/meszaros/SKILL.md
 
-While implementing, invoke domain-specific canon skills based on what you're building:
+### Step 1.3: Output Proof of Loading
 
-| File Type | Canon Skills | What They Guide |
-|-----------|--------------|-----------------|
-| `.java` | `/bloch` | API design, immutability, builders |
-| `.py` | `/hettinger`, `/ramalho` | Pythonic idioms, data model |
-| `.ts`, `.js` | `/kyle-simpson`, `/cherny` | Closures, type system |
-| `.go` | `/pike` | Composition, interfaces |
-| Tests | `/dodds`, `/meszaros` | Testing patterns, test doubles |
+**You MUST output this section before writing ANY code:**
 
-**Also invoke based on concern:**
-- Security-sensitive code → `/schneier`, `/owasp`
-- Legacy code modifications → `/feathers`
-- Refactoring steps → `/fowler`
-- Data structures → `/linus`
+```markdown
+## Phase 1: Canon Loaded
 
-**Example**: Implementing a Java auth service from plan:
-1. Before writing code, invoke `/bloch` for Java idioms
-2. For security aspects, invoke `/schneier`
-3. For test steps, invoke `/meszaros`
+### Plan Loaded
+- **Plan file**: [path]
+- **Status**: Approved on [date] / Approved (no date)
+- **Steps**: [N steps to implement]
 
-Check the project's CLAUDE.md for additional domain-specific skills to invoke.
+### Structure Loaded
+- **Structure file**: [path]
+- **Types defined**: [list core types]
 
-## Output
+### Baseline Brain Active
+| Master | Principle I Will Apply |
+|--------|----------------------|
+| Kernighan | [specific application to this task] |
+| Thompson | [specific application to this task] |
+| Pike | [specific application to this task] |
+| Joy | [specific application to this task] |
+| Linus | [specific application to this task] |
+| Dijkstra | [specific application to this task] |
 
-After implementation, report:
+### Domain Canon Loaded
+| Canon | Items Loaded | Key Principle for This Task |
+|-------|--------------|---------------------------|
+| /bloch | 90 items | [which items apply] |
+| /schneier | [X items] | [which items apply] |
+
+### Implementation Approach
+Before writing code, I will:
+1. [First principle to apply, citing canon]
+2. [Second principle to apply, citing canon]
+3. [How I'll verify quality as I go]
+```
+
+**If this section is empty or generic, STOP. You have not loaded canon.**
+
+---
+
+## PHASE 2: IMPLEMENT WITH CANON (Required - Cite As You Go)
+
+### Step 2.1: Implement Each Plan Step
+
+For EACH step in the plan:
+
+```markdown
+### Implementing: [Step Name]
+
+**Canon guiding this step:**
+- [Canon]: [Specific principle]
+
+**Code:**
+```[language]
+// [Canon citation]: Why this approach
+[actual code]
+```
+
+**Verification:**
+- [ ] Kernighan: Method names are self-documenting
+- [ ] Linus: Data structure eliminates special cases
+- [ ] Joy: Failure paths handled
+- [ ] Dijkstra: Invariants maintained
+```
+
+### Step 2.2: Track Canon Application
+
+Maintain a running log:
+
+```markdown
+## Canon Application Log
+
+| Location | Canon Applied | Principle | Specific Change |
+|----------|---------------|-----------|-----------------|
+| PaymentService.cs:45 | Bloch Item 1 | Static factory | Used `Payment.create()` |
+| PaymentService.cs:67 | Joy | Failure handling | Added circuit breaker |
+| PaymentClient.cs:23 | Dijkstra | Invariants | Amount validated > 0 |
+```
+
+### Step 2.3: Do NOT Skip Quality
+
+For each file you write:
+
+**Before moving to next file, verify:**
+- [ ] Every method name passes Kernighan's clarity test
+- [ ] Data structures match the approved structure file
+- [ ] All external calls have error handling (Joy)
+- [ ] No illegal states are representable (Dijkstra)
+- [ ] Language canon was applied (Bloch/Cherny/etc.)
+
+**If ANY check fails, fix before proceeding.**
+
+---
+
+## PHASE 3: COMPLETION REPORT (Required)
+
+### Step 3.1: Summary with Evidence
 
 ```markdown
 ## Build Complete
@@ -111,39 +152,68 @@ After implementation, report:
 **Plan**: [plan name]
 **Steps Completed**: X/Y
 
-### Implemented
-- [x] Step 1: Created auth service
-- [x] Step 2: Added middleware
-- [ ] Step 3: (blocked - need database schema)
-
 ### Files Created/Modified
-- `src/auth/authService.ts` (new)
-- `src/middleware/auth.ts` (new)
+| File | Canon Applied | Key Decisions |
+|------|---------------|---------------|
+| src/Payment.ts | Bloch Item 1, 17 | Static factory, immutable |
+| src/PaymentClient.ts | Joy, Schneier | Circuit breaker, input validation |
+
+### Canon Application Summary
+| Canon | Times Applied | Examples |
+|-------|---------------|----------|
+| /bloch | 12 | Items 1, 2, 17, 50 at [locations] |
+| Baseline/Joy | 4 | Error handling at [locations] |
+| Baseline/Dijkstra | 3 | Invariants at [locations] |
+
+### Verification Checklist
+- [ ] All method names self-documenting (Kernighan)
+- [ ] No scattered null checks - types prevent them (Linus)
+- [ ] All external calls have timeout/retry/fallback (Joy)
+- [ ] No float/double for money (Dijkstra)
+- [ ] Language idioms followed ([language canon])
 
 ### Next Steps
-- Run `/test` to add tests
+- Run `/test` to add test coverage
 - Run `/review-hard` before PR
 ```
 
-## Workflow Position: New Code Flow
+---
+
+## What "Canon Loaded" Actually Means
+
+Loading canon is NOT:
+- ❌ Saying "I know about Bloch"
+- ❌ Vaguely mentioning principles
+- ❌ Proceeding from memory
+
+Loading canon IS:
+- ✅ Using Read tool to load the actual skill file
+- ✅ Citing specific items/principles that apply
+- ✅ Showing HOW they shape implementation decisions
+- ✅ Logging where they were applied in code
+
+---
+
+## Anti-Patterns (Violations of This Process)
+
+| If You Do This | You Violated |
+|----------------|--------------|
+| Start writing code before Phase 1 complete | Entire skill |
+| Skip loading the plan file | Step 1.1 |
+| Don't cite canon in implementation | Phase 2 |
+| Generic principles without specific application | Enforcement requirement |
+| No Canon Application Log in output | Step 2.2 |
+| Skip verification checklist | Step 2.3 |
+
+---
+
+## Workflow Position
 
 ```
-NEW CODE FLOW (this skill):
-PRD/Feature Request → /plan → /structure-first → /build-from-plan → [review gates]
-
-LEGACY CODE FLOW (use /refactor-clean instead):
-Existing Code → /plan → /structure-first → /refactor-clean → [review gates]
+NEW CODE FLOW:
+PRD → /plan → /structure-first → /build-from-plan → /test → /review-hard
+                                       ↑
+                                   YOU ARE HERE
 ```
 
-`/build-from-plan` is the implementation phase for NEW CODE - after planning and structure design, before review gates.
-
-### When to Use Which
-
-| Situation | Use |
-|-----------|-----|
-| Building new feature from PRD | `/build-from-plan` |
-| Adding new module/component | `/build-from-plan` |
-| Greenfield development | `/build-from-plan` |
-| Refactoring existing code | `/refactor-clean` |
-| Modernizing legacy code | `/refactor-clean` |
-| Cleaning up tech debt | `/refactor-clean` |
+`/build-from-plan` is implementation with enforced canon application.

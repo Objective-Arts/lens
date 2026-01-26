@@ -9,148 +9,271 @@ description: Modernize and refactor EXISTING CODE. Use after /plan and /structur
 
 For building new features, use `/build-from-plan` instead.
 
-## Why This Skill Exists
+---
 
-Without this skill, Claude makes ad-hoc changes to legacy code without structured analysis. The result:
+## ⚠️ ENFORCED PROCESS - THREE PHASES
 
-- Changes that break existing behavior
-- Incomplete refactoring (stopping halfway)
-- Missing the forest for the trees (fixing symptoms, not causes)
-- No clear before/after to validate the change
+You CANNOT skip phases. Each phase must complete before making any code changes.
 
-**This skill enforces disciplined refactoring:**
-- Analyze first, then change
-- Show before/after structure
-- Apply canon patterns systematically
-- Verify behavior preservation
+---
 
-## When to Use
+## PHASE 1: LOAD CANON FOR LEGACY CODE (Required - No Changes Until Complete)
 
-- Refactoring god classes/methods
-- Cleaning up technical debt
-- Modernizing legacy patterns
-- After `/plan` identified what needs cleaning
-- After `/structure-first` documented existing structure
+### Step 1.1: Load the Plan and Structure Files
 
-## When NOT to Use
+**You MUST use the Read tool. Do not proceed from memory.**
 
-- Building new features from PRD → Use `/build-from-plan`
-- Simple bug fixes (no structural change needed)
-- Exploratory changes without a plan
+```
+Required reads:
+1. Read: .claude/plans/[refactoring-plan].md (the approved plan)
+2. Read: .claude/structures/[existing-analysis].md (from /structure-first)
+3. Read: CLAUDE.md (Baseline Brain section)
+```
 
-## Process
+### Step 1.2: Load Legacy Code Canon
 
-1. **Load Plan** - Read refactoring plan from `.claude/plans/`
-2. **Load Structure** - Read existing structure from `.claude/structures/`
-3. **Invoke Canon** - Apply domain-specific expertise (see below)
-4. **Decompose** - Break down changes into safe steps
-5. **Execute** - Apply each step with verification
-6. **Document** - Show before/after structure
+**You MUST use the Read tool. Legacy code requires specific canon.**
 
-## ⚠️ MANDATORY: Invoke Canon Skills
+```
+Required for ALL legacy refactoring:
+1. Read: .claude/skills/feathers/SKILL.md (finding seams, characterization tests)
+2. Read: .claude/skills/fowler/SKILL.md (refactoring patterns)
+```
 
-**These are NOT optional. You MUST invoke the relevant canon skills before refactoring.**
+Also load based on concern:
+- SRP violations → Read: .claude/skills/liskov/SKILL.md
+- API cleanup → Read: .claude/skills/bloch/SKILL.md
+- Patterns → Read: .claude/skills/gang-of-four/SKILL.md
+- Language-specific → Read appropriate language canon
 
-Legacy refactoring requires specific canon skills:
+### Step 1.3: Output Proof of Loading
 
-| Concern | Canon Skills | What They Guide |
-|---------|--------------|-----------------|
-| Finding seams | `/feathers` | Where to safely change legacy code |
-| Code smells | `/fowler` | What to fix and how |
-| SRP violations | `/liskov` | Single responsibility decomposition |
-| API cleanup | `/bloch` | Interface design, immutability |
-| Clarity | `/kernighan` | Naming, readability, simplicity |
-| Patterns | `/gang-of-four` | Replace conditionals with polymorphism |
-
-**Example**: Refactoring a god controller:
-1. Invoke `/feathers` - find seams for safe changes
-2. Invoke `/liskov` - identify SRP violations
-3. Invoke `/fowler` - catalog code smells
-4. Invoke `/bloch` - apply composition over inheritance
-5. Invoke `/kernighan` - improve naming and clarity
-
-## Refactoring Priorities
-
-Apply in this order:
-
-1. **Security** - Fix HIPAA/PII/credential issues FIRST
-2. **Decompose** - Split functions >30 lines into single-responsibility units
-3. **Separate** - Data preparation from rendering/presentation
-4. **Unify** - Inconsistent patterns (pick one approach, apply everywhere)
-5. **Extract** - Inline calculations into named pure functions
-
-## Output Format
+**You MUST output this section before making ANY changes:**
 
 ```markdown
-## Refactoring: [target]
+## Phase 1: Legacy Canon Loaded
 
-### Before ([N] functions, [M] lines, [X] responsibilities):
+### Plan Loaded
+- **Plan file**: [path]
+- **Target**: [what we're refactoring]
+- **Goal**: [end state]
+
+### Structure Analysis Loaded
+- **Structure file**: [path]
+- **Current state**: [summary of existing code]
+- **Hidden domain objects found**: [if any]
+
+### Baseline Brain Active
+| Master | How It Applies to This Refactoring |
+|--------|-----------------------------------|
+| Kernighan | Will improve naming throughout |
+| Thompson | Won't over-engineer, keep changes focused |
+| Pike | Will reduce coupling, simplify interfaces |
+| Joy | Will add error handling where missing |
+| Linus | Will improve data structures to eliminate conditionals |
+| Dijkstra | Will make invariants explicit |
+
+### Legacy Canon Loaded (Feathers + Fowler)
+
+**From /feathers (Working Effectively with Legacy Code):**
+| Technique | How I'll Apply It |
+|-----------|-------------------|
+| Seams | [where I identified safe change points] |
+| Characterization tests | [what existing behavior to capture first] |
+| Sprout method/class | [where I'll add new code without changing old] |
+| Wrap method | [where I'll wrap existing behavior] |
+
+**From /fowler (Refactoring Catalog):**
+| Smell Identified | Refactoring to Apply |
+|------------------|---------------------|
+| [Long Method] | Extract Method |
+| [Feature Envy] | Move Method |
+| [God Class] | Extract Class |
+
+### Refactoring Approach
+Before changing ANY code:
+1. [First: Write characterization test for existing behavior]
+2. [Second: Identify seam for safe change]
+3. [Third: Apply specific refactoring]
+4. [Fourth: Verify behavior preserved]
 ```
-[function name]()
+
+**If this section is empty or generic, STOP. You have not loaded canon.**
+
+---
+
+## PHASE 2: REFACTOR WITH CANON (Required - Cite As You Go)
+
+### Step 2.1: Characterization Tests First (Feathers)
+
+**Before changing any code, capture existing behavior:**
+
+```markdown
+### Characterization Test: [target]
+
+**What the code currently does** (not what it should do):
+```[language]
+// Feathers: "A characterization test documents actual behavior"
+test('existing behavior', () => {
+  // Capture what the code DOES, not what we WANT
+  expect(legacyMethod(input)).toBe(actualCurrentOutput);
+});
+```
+
+**Existing behaviors captured:**
+- [ ] Happy path behavior
+- [ ] Edge case behaviors
+- [ ] Error behaviors (even if wrong)
+```
+
+### Step 2.2: Find Seams (Feathers)
+
+```markdown
+### Seam Analysis
+
+**Seams found** (safe change points):
+| Seam Location | Seam Type | Why Safe |
+|---------------|-----------|----------|
+| Constructor injection | Object seam | Can substitute dependency |
+| Interface boundary | Link seam | Can swap implementation |
+| Virtual method | Object seam | Can override in test |
+
+**Change strategy:**
+Using [seam type] at [location] to [what change]
+```
+
+### Step 2.3: Apply Refactorings (Fowler)
+
+For EACH refactoring:
+
+```markdown
+### Refactoring: [Name from Fowler's catalog]
+
+**Smell**: [What triggered this refactoring]
+**Pattern**: [Fowler's refactoring name]
+
+**Before** (captured in characterization test):
+```[language]
+[original code]
+```
+
+**After** (same behavior, better structure):
+```[language]
+// [Canon citation]: Why this change
+[refactored code]
+```
+
+**Verification:**
+- [ ] Characterization tests still pass
+- [ ] Behavior unchanged
+- [ ] Structure improved per [canon]
+```
+
+### Step 2.4: Track Canon Application
+
+Maintain a running log:
+
+```markdown
+## Canon Application Log
+
+| Location | Canon | Technique | Change Made |
+|----------|-------|-----------|-------------|
+| UserService.cs:45 | Feathers | Extract Method | Split 150-line method |
+| UserService.cs:78 | Fowler | Move Method | Moved to proper class |
+| UserService.cs:90 | Liskov | SRP | Single responsibility now |
+| UserController.cs:23 | Kernighan | Rename | `DoStuff` → `ValidateUserInput` |
+```
+
+---
+
+## PHASE 3: COMPLETION REPORT (Required)
+
+### Step 3.1: Before/After Summary
+
+```markdown
+## Refactoring Complete
+
+**Target**: [what was refactored]
+
+### Before
+```
+[OriginalClass] (X lines, Y responsibilities)
 ├── [responsibility 1]
 ├── [responsibility 2]
+├── [responsibility 3]
 └── [responsibility N]
 ```
 
-### After ([N] functions, max [M] lines each, 1 responsibility each):
+### After
 ```
-[function1]()  → [single responsibility]
-[function2]()  → [single responsibility]
-[function3]()  → [single responsibility]
-```
-
-### Canon Applied:
-- `/feathers` - Found seam at [location]
-- `/liskov` - Split by responsibility
-- `/bloch` - Extracted utility class
-
-### Changes Made:
-- [specific change 1]
-- [specific change 2]
-- [specific change N]
-
-### Next Steps:
-- Run `/hard-review` for adversarial review
-- Run tests to verify behavior preservation
+[Class1] (X lines) → [single responsibility]
+[Class2] (Y lines) → [single responsibility]
+[Class3] (Z lines) → [single responsibility]
 ```
 
-## Rules
+### Canon Applied
+| Canon | Times Applied | Key Changes |
+|-------|---------------|-------------|
+| /feathers | X | Seams at [locations], characterization tests |
+| /fowler | Y | [specific refactorings applied] |
+| /liskov | Z | SRP violations fixed at [locations] |
+| Baseline/Kernighan | W | Renamed [count] methods/variables |
 
-- Each function: ONE responsibility
-- Max 30 lines per function
-- Data prep functions must be pure (no side effects)
-- Rendering functions receive complete data (no fetching/calculating)
-- Match existing patterns in the codebase
-- Security fixes FIRST, always
+### Verification
+- [ ] All characterization tests pass
+- [ ] No behavior changes (existing tests pass)
+- [ ] Each class has single responsibility
+- [ ] No method exceeds 30 lines
+- [ ] Seams documented for future changes
 
-## Workflow Position: Legacy Code Flow
+### Files Changed
+| File | Lines Before | Lines After | Change |
+|------|--------------|-------------|--------|
+| UserService.cs | 450 | 120 | Extracted 3 classes |
+| UserValidator.cs | 0 | 85 | New (extracted) |
+
+### Next Steps
+- Run `/test` to add coverage for new seams
+- Run `/review-hard` before PR
+```
+
+---
+
+## The Feathers Discipline
+
+**Working with legacy code is different from greenfield:**
+
+| Greenfield (build-from-plan) | Legacy (refactor-clean) |
+|------------------------------|-------------------------|
+| Design then code | Understand then change |
+| Write tests first | Write characterization tests first |
+| Free to choose structure | Must find seams |
+| Canon guides design | Canon guides safe changes |
+
+**Feathers' key insight**: "Legacy code is code without tests. The first step is always to get the code into a test harness."
+
+---
+
+## Anti-Patterns (Violations of This Process)
+
+| If You Do This | You Violated |
+|----------------|--------------|
+| Change code before characterization tests | Feathers core principle |
+| Refactor without identifying seams | Feathers |
+| Make changes without citing Fowler pattern | Phase 2 |
+| Skip before/after comparison | Phase 3 |
+| Claim "behavior preserved" without tests proving it | Verification requirement |
+| Change behavior while refactoring | Refactoring definition |
+
+---
+
+## Workflow Position
 
 ```
-LEGACY CODE FLOW (this skill):
-Existing Code → /plan → /structure-first → /refactor-clean → [review gates]
-
-NEW CODE FLOW (use /build-from-plan instead):
-PRD/Feature Request → /plan → /structure-first → /build-from-plan → [review gates]
+LEGACY CODE FLOW:
+Existing Code → /plan → /structure-first → /refactor-clean → /test → /review-hard
+                                                 ↑
+                                             YOU ARE HERE
 ```
 
-`/refactor-clean` is the implementation phase for LEGACY CODE - after planning and structure analysis, before review gates.
-
-### When to Use Which
-
-| Situation | Use |
-|-----------|-----|
-| Refactoring existing code | `/refactor-clean` |
-| Modernizing legacy code | `/refactor-clean` |
-| Cleaning up tech debt | `/refactor-clean` |
-| Splitting god classes | `/refactor-clean` |
-| Building new feature from PRD | `/build-from-plan` |
-| Adding new module/component | `/build-from-plan` |
-| Greenfield development | `/build-from-plan` |
-
-## Case Study
-
-See [ClientController Refactoring](../docs/case-studies/CLIENT-CONTROLLER-REFACTORING.md) for a complete example:
-- 1,151-line god controller → 6 focused controllers
-- Canon applied: Bloch, Liskov, Kernighan, Gang of Four
-- HIPAA violations fixed
-- 77% reduction in main file size
+`/refactor-clean` is safe transformation with enforced Feathers/Fowler discipline.
