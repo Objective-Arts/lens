@@ -55,9 +55,45 @@ Kernighan ←——————→ Thompson
 |--------|-------|----------------|--------|
 | **Procida** | Diátaxis | Tutorials, how-tos, reference, explanation | `/procida` |
 
+### Writing
+
+| Master | Works | Key Principles | Invoke |
+|--------|-------|----------------|--------|
+| **Zinsser** | On Writing Well | Clarity, simplicity, remove clutter | `/zinsser` |
+| **Strunk & White** | Elements of Style | Omit needless words, active voice, be specific | `/strunk-white` |
+| **King** | On Writing | Kill your darlings, cut 10%, honest writing | `/king` |
+
+### Engineering Philosophy
+
+Five masters forming a complete philosophy of building:
+
+| Master | Works | Key Principles | Invoke |
+|--------|-------|----------------|--------|
+| **Petroski** | To Engineer Is Human, Design Paradigms | Form follows failure, case study methodology, constraints drive innovation | `/petroski` |
+| **Leveson** | Engineering a Safer World, Safeware | System accidents, STAMP/STPA, safety constraints, humans not the problem | `/leveson` |
+| **Taleb** | Antifragile, Black Swan, Skin in the Game | Antifragility, via negativa, optionality, bounded downside | `/taleb` |
+| **McIlroy** | Unix Philosophy | Do one thing well, pipelines, composition | `/mcilroy` |
+| **Carmack** | .plan files, Game Engines | Performance discipline, ship it, pragmatic optimization | `/carmack` |
+
+**The Engineering Pillars**:
+- Petroski: Learn from past failures (historical lens)
+- Leveson: Prevent future failures systematically (safety lens)
+- Taleb: Design systems that gain from failure (antifragility lens)
+- McIlroy: Compose small, focused tools (Unix philosophy)
+- Carmack: Ship working software, measure before optimizing (pragmatism)
+
 ---
 
 ## Domain Canon
+
+### Python
+
+| Master | Works | Key Principles | Invoke |
+|--------|-------|----------------|--------|
+| **Hettinger** | Transformative Python Talks | Pythonic idioms, generators, decorators | `/hettinger` |
+| **Beazley** | Python Essential Reference | Deep internals, concurrency, metaprogramming | `/beazley` |
+| **Ramalho** | Fluent Python | Data model, protocols, type hints | `/ramalho` |
+| **Slatkin** | Effective Python | 90 specific ways, practical patterns | `/slatkin` |
 
 ### Java
 
@@ -131,6 +167,61 @@ Kernighan ←——————→ Thompson
 | **Thompson** | Stratechery | Aggregation theory, platform dynamics | `/thompson-stratechery` |
 | **Horowitz** | Hard Thing About Hard Things | Peacetime/wartime CEO | `/horowitz` |
 
+### Shared from Engineering Canon
+
+| Master | Works | Business Application | Invoke |
+|--------|-------|---------------------|--------|
+| **Taleb** | Antifragile, Black Swan, Skin in the Game | Risk management, optionality, antifragile orgs | `/taleb` |
+| **Petroski** | To Engineer Is Human, Design Paradigms | Learning from failures, constraints drive innovation | `/petroski` |
+
+---
+
+## UI/UX Canon
+
+12 experts for building beautiful interfaces without being a designer.
+
+### Philosophy & Psychology
+
+| Master | Works | Key Principles | Invoke |
+|--------|-------|----------------|--------|
+| **Rams** | 10 Principles of Good Design | Less but better, 3 colors max, 4px grid | `/rams` |
+| **Norman** | Design of Everyday Things | Affordances, feedback, mental models | `/norman` |
+| **Cooper** | About Face | Goal-directed design, eliminate excise, undo over confirmation | `/cooper` |
+
+### Visual & Typography
+
+| Master | Works | Key Principles | Invoke |
+|--------|-------|----------------|--------|
+| **Ive** | Apple Design Language | Minimalism, material honesty, 4-level shadows | `/ive` |
+| **Kruzeniski** | Microsoft Fluent | Type-first hierarchy, content over chrome | `/kruzeniski` |
+
+### Motion & Interaction
+
+| Master | Works | Key Principles | Invoke |
+|--------|-------|----------------|--------|
+| **Duarte** | Material Design | Meaningful transitions, ease-out enter, 300ms max | `/duarte` |
+| **Buxton** | Sketching User Experiences | Input fundamentals, chunking, two-handed input | `/buxton` |
+
+### Patterns & Components
+
+| Master | Works | Key Principles | Invoke |
+|--------|-------|----------------|--------|
+| **Wroblewski** | Mobile First, Web Form Design | Thumb zones, 44px touch targets, inline validation | `/wroblewski` |
+| **Frost** | Atomic Design | Atoms → Molecules → Organisms, design tokens | `/frost` |
+
+### Governance & Handoff
+
+| Master | Works | Key Principles | Invoke |
+|--------|-------|----------------|--------|
+| **Curtis** | Modular Web Design | Versioning, documentation, design tokens | `/curtis` |
+| **Mall** | Design System Handbook | Hot potato handoff, designer-dev collaboration | `/mall` |
+
+### Data Visualization (shared with Visualization Canon)
+
+| Master | Works | Key Principles | Invoke |
+|--------|-------|----------------|--------|
+| **Tufte** | Visual Display of Quantitative Information | Data-ink ratio, no chartjunk | `/tufte` |
+
 ---
 
 ## CS Foundations (Reference)
@@ -141,5 +232,4 @@ Available as reference for deeper work:
 |--------|-------|--------------|--------|
 | **Knuth** | TAOCP | Algorithms, literate programming | `/knuth` |
 | **Liskov** | CLU, LSP | Abstraction, substitution | `/liskov` |
-| **Carmack** | .plan files | Performance discipline | `/carmack` |
-| **McIlroy** | Unix Philosophy | Do one thing well | `/mcilroy` |
+| **Gang of Four** | Design Patterns | Classic OOP patterns | `/gang-of-four` |
