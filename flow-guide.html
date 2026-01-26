@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Claude-Optimal Flow</title>
+    <title>Claude-Optimal Dual Workflow</title>
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; }
         html { scroll-behavior: smooth; }
@@ -30,14 +30,12 @@
             flex-direction: column;
         }
 
-        /* Page backgrounds */
         .page-1 { background: linear-gradient(180deg, #1a1a2e 0%, #16213e 100%); }
         .page-2 { background: linear-gradient(180deg, #16213e 0%, #1a2744 100%); }
-        .page-3 { background: linear-gradient(180deg, #1a2744 0%, #1e3d1e 100%); }
-        .page-4 { background: linear-gradient(180deg, #1e3d1e 0%, #3d3a1e 100%); }
-        .page-5 { background: linear-gradient(180deg, #3d3a1e 0%, #3d1e2e 100%); }
-        .page-6 { background: linear-gradient(180deg, #3d1e2e 0%, #1e3d2e 100%); }
-        .page-7 { background: linear-gradient(180deg, #1e3d2e 0%, #2a1a3a 100%); }
+        .page-3 { background: linear-gradient(180deg, #1a2744 0%, #1e3a1e 100%); }
+        .page-4 { background: linear-gradient(180deg, #1e3a1e 0%, #2a1e3a 100%); }
+        .page-5 { background: linear-gradient(180deg, #2a1e3a 0%, #3a2a1e 100%); }
+        .page-6 { background: linear-gradient(180deg, #3a2a1e 0%, #1a1a2e 100%); }
 
         .page-number {
             position: absolute;
@@ -46,25 +44,6 @@
             font-size: 0.8rem;
             color: rgba(255,255,255,0.25);
         }
-
-        .phase-indicator {
-            position: absolute;
-            top: 20px;
-            left: 30px;
-            font-size: 0.7rem;
-            text-transform: uppercase;
-            letter-spacing: 2px;
-            padding: 5px 10px;
-            border-radius: 15px;
-        }
-
-        .page-1 .phase-indicator { background: rgba(155, 89, 182, 0.3); color: #9b59b6; }
-        .page-2 .phase-indicator { background: rgba(52, 152, 219, 0.3); color: #3498db; }
-        .page-3 .phase-indicator { background: rgba(46, 204, 113, 0.3); color: #2ecc71; }
-        .page-4 .phase-indicator { background: rgba(241, 196, 15, 0.3); color: #f1c40f; }
-        .page-5 .phase-indicator { background: rgba(231, 76, 60, 0.3); color: #e74c3c; }
-        .page-6 .phase-indicator { background: rgba(26, 188, 156, 0.3); color: #1abc9c; }
-        .page-7 .phase-indicator { background: rgba(155, 89, 182, 0.3); color: #9b59b6; }
 
         .scroll-hint {
             position: absolute;
@@ -81,283 +60,263 @@
             50% { transform: translateX(-50%) translateY(5px); }
         }
 
-        h1 {
-            font-size: 3rem;
-            margin-bottom: 10px;
-            font-weight: 700;
-        }
+        h1 { font-size: 2.5rem; margin-bottom: 10px; font-weight: 700; }
+        .subtitle { font-size: 1.1rem; color: #888; margin-bottom: 25px; }
 
-        .page-1 h1 { color: #9b59b6; }
-        .page-2 h1 { color: #3498db; }
-        .page-3 h1 { color: #2ecc71; }
-        .page-4 h1 { color: #f1c40f; }
-        .page-5 h1 { color: #e74c3c; }
-        .page-6 h1 { color: #1abc9c; }
-        .page-7 h1 { color: #9b59b6; }
+        /* Flow colors */
+        .new-code { color: #4ade80; }
+        .legacy-code { color: #c084fc; }
+        .shared { color: #60a5fa; }
+        .review { color: #fbbf24; }
+        .baseline { color: #9b59b6; }
+        .security { color: #e74c3c; }
+        .testing { color: #2ecc71; }
+        .engineering { color: #f39c12; }
 
-        .subtitle {
-            font-size: 1.2rem;
-            color: #888;
-            margin-bottom: 30px;
-        }
-
-        h2 {
-            font-size: 1.1rem;
-            color: #888;
-            text-transform: uppercase;
-            letter-spacing: 1px;
-            margin: 25px 0 15px;
-        }
-
-        /* Master cards */
-        .masters-row {
-            display: flex;
-            gap: 18px;
+        /* Dual flow layout */
+        .dual-flow {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 30px;
             margin: 20px 0;
-        }
-
-        .master-card {
-            background: rgba(255,255,255,0.05);
-            border: 1px solid rgba(255,255,255,0.1);
-            border-radius: 10px;
-            padding: 22px 25px;
-            text-align: center;
             flex: 1;
         }
 
-        .master-card.baseline {
-            border-color: rgba(155, 89, 182, 0.5);
-            background: rgba(155, 89, 182, 0.1);
+        .flow-column {
+            background: rgba(0,0,0,0.2);
+            border-radius: 12px;
+            padding: 25px;
+            border-top: 4px solid;
         }
 
-        .master-card .name {
+        .flow-column.new { border-color: #4ade80; }
+        .flow-column.legacy { border-color: #c084fc; }
+
+        .flow-title {
+            font-size: 1.3rem;
             font-weight: 600;
-            color: #fff;
-            font-size: 1.1rem;
+            margin-bottom: 8px;
         }
 
-        .master-card .focus {
+        .flow-desc {
+            font-size: 0.9rem;
+            color: #888;
+            margin-bottom: 20px;
+        }
+
+        .flow-path {
+            font-family: 'Monaco', 'Menlo', monospace;
+            font-size: 0.85rem;
+            background: rgba(0,0,0,0.3);
+            padding: 12px 15px;
+            border-radius: 6px;
+            margin-bottom: 20px;
+        }
+
+        /* Step cards */
+        .step-card {
+            background: rgba(255,255,255,0.03);
+            border-radius: 8px;
+            padding: 15px;
+            margin-bottom: 12px;
+            border-left: 3px solid;
+        }
+
+        .step-card.new { border-color: #4ade80; }
+        .step-card.legacy { border-color: #c084fc; }
+        .step-card.shared { border-color: #60a5fa; }
+        .step-card.review { border-color: #fbbf24; }
+
+        .step-name {
+            font-family: 'Monaco', 'Menlo', monospace;
+            font-weight: 600;
+            font-size: 1rem;
+            margin-bottom: 6px;
+        }
+
+        .step-purpose {
             font-size: 0.85rem;
             color: #888;
-            text-transform: uppercase;
-            margin-top: 8px;
+            margin-bottom: 10px;
         }
 
-        /* Domain grids */
-        .domains-grid {
-            display: grid;
-            grid-template-columns: repeat(4, 1fr);
-            gap: 22px;
+        .canon-row {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 6px;
+        }
+
+        .canon-pill {
+            font-family: 'Monaco', 'Menlo', monospace;
+            font-size: 0.7rem;
+            padding: 3px 8px;
+            border-radius: 3px;
+            background: rgba(0,0,0,0.4);
+            border-left: 2px solid;
+        }
+
+        .canon-pill.baseline { border-color: #9b59b6; color: #9b59b6; }
+        .canon-pill.security { border-color: #e74c3c; color: #e74c3c; }
+        .canon-pill.testing { border-color: #2ecc71; color: #2ecc71; }
+        .canon-pill.engineering { border-color: #f39c12; color: #f39c12; }
+        .canon-pill.language { border-color: #3498db; color: #3498db; }
+
+        /* Shared section */
+        .shared-section {
+            background: rgba(251,191,36,0.1);
+            border: 1px solid rgba(251,191,36,0.3);
+            border-radius: 12px;
+            padding: 25px;
             margin-top: 20px;
-            flex: 1;
         }
 
-        .domain-box {
-            background: rgba(0,0,0,0.2);
-            border-radius: 10px;
-            padding: 22px;
-        }
-
-        .domain-box h3 {
-            color: #888;
-            font-size: 0.9rem;
-            text-transform: uppercase;
-            letter-spacing: 1px;
+        .shared-title {
+            font-size: 1.2rem;
+            font-weight: 600;
             margin-bottom: 15px;
         }
 
-        .domain-box .names {
-            color: #bbb;
-            font-size: 1.05rem;
-            line-height: 1.8;
-        }
-
-        /* Directory tree */
-        .dir-tree {
-            background: rgba(0,0,0,0.4);
-            border-radius: 8px;
-            padding: 25px 30px;
-            font-family: 'Monaco', 'Menlo', monospace;
-            font-size: 0.95rem;
-            line-height: 1.6;
-            flex: 1;
-            white-space: pre;
-            overflow-x: auto;
-        }
-
-        .dir-tree .folder { color: #3498db; }
-        .dir-tree .file { color: #2ecc71; }
-        .dir-tree .comment { color: #666; font-style: italic; }
-        .dir-tree .indent { color: #444; }
-
-        /* Command box */
-        .cmd {
-            background: rgba(0,0,0,0.4);
-            border-radius: 8px;
-            padding: 18px 22px;
-            font-family: 'Monaco', 'Menlo', monospace;
-            font-size: 1.05rem;
-            margin: 15px 0;
-        }
-
-        .cmd .prompt { color: #2ecc71; }
-        .cmd .flag { color: #f39c12; }
-        .cmd .arg { color: #9b59b6; }
-
-        /* Flag cards */
-        .flags-grid {
-            display: grid;
-            grid-template-columns: repeat(2, 1fr);
-            gap: 25px;
-            flex: 1;
-            margin-top: 10px;
-        }
-
-        .flag-card {
-            background: rgba(0,0,0,0.25);
-            border-radius: 10px;
-            padding: 28px;
-            border-left: 5px solid;
-            display: flex;
-            flex-direction: column;
-        }
-
-        .page-3 .flag-card { border-color: #2ecc71; }
-        .page-4 .flag-card { border-color: #f1c40f; }
-        .page-5 .flag-card { border-color: #e74c3c; }
-
-        .flag-card .flag-name {
-            font-family: monospace;
-            font-size: 1.4rem;
-            font-weight: 600;
-            margin-bottom: 12px;
-        }
-
-        .page-3 .flag-card .flag-name { color: #2ecc71; }
-        .page-4 .flag-card .flag-name { color: #f1c40f; }
-        .page-5 .flag-card .flag-name { color: #e74c3c; }
-
-        .flag-card .flag-desc {
-            color: #999;
-            font-size: 1.05rem;
-            margin-bottom: 18px;
-            line-height: 1.6;
-        }
-
-        .flag-card .example {
-            background: rgba(0,0,0,0.3);
-            border-radius: 6px;
-            padding: 16px 20px;
-            font-family: monospace;
-            font-size: 1rem;
-            color: #bbb;
-            line-height: 2;
-            margin-top: auto;
-        }
-
-        .flag-card .example .flag { color: #f39c12; }
-
-        /* Review stages */
-        .review-grid {
-            display: grid;
-            grid-template-columns: repeat(4, 1fr);
-            gap: 20px;
-            margin-top: 20px;
-            flex: 1;
-        }
-
-        .review-card {
-            background: rgba(0,0,0,0.25);
-            border-radius: 10px;
-            padding: 25px;
-            border-top: 5px solid #e74c3c;
-        }
-
-        .review-card .stage-num {
-            color: #e74c3c;
-            font-size: 0.85rem;
-            text-transform: uppercase;
-            letter-spacing: 1px;
-            margin-bottom: 10px;
-        }
-
-        .review-card h4 {
-            color: #fff;
-            font-size: 1.2rem;
-            margin-bottom: 12px;
-        }
-
-        .review-card p {
-            color: #888;
-            font-size: 1rem;
-            line-height: 1.6;
-        }
-
-        /* Outcome grid */
-        .outcome-grid {
+        .gates-row {
             display: grid;
             grid-template-columns: repeat(3, 1fr);
-            gap: 20px;
+            gap: 15px;
         }
 
-        .outcome-card {
-            background: rgba(26, 188, 156, 0.1);
-            border: 1px solid rgba(26, 188, 156, 0.3);
-            border-radius: 10px;
-            padding: 25px;
+        .gate-card {
+            background: rgba(0,0,0,0.2);
+            border-radius: 8px;
+            padding: 15px;
+            text-align: center;
+            border-top: 3px solid #fbbf24;
         }
 
-        .outcome-card h4 {
-            color: #1abc9c;
-            font-size: 1.2rem;
+        .gate-name {
+            font-family: 'Monaco', 'Menlo', monospace;
+            font-weight: 600;
+            margin-bottom: 6px;
+        }
+
+        .gate-desc {
+            font-size: 0.8rem;
+            color: #888;
             margin-bottom: 10px;
         }
 
-        .outcome-card p {
-            color: #999;
-            font-size: 1.05rem;
+        /* Feedback loop */
+        .feedback-loop {
+            background: rgba(231,76,60,0.1);
+            border: 1px dashed #e74c3c;
+            border-radius: 8px;
+            padding: 15px 20px;
+            margin-top: 15px;
+            text-align: center;
+        }
+
+        .feedback-text {
+            font-size: 0.9rem;
+            color: #e74c3c;
+        }
+
+        /* Decision tree */
+        .decision-box {
+            background: rgba(0,0,0,0.3);
+            border-radius: 10px;
+            padding: 25px;
+            max-width: 700px;
+            margin: 0 auto;
+        }
+
+        .decision-q {
+            background: rgba(96,165,250,0.2);
+            border-left: 4px solid #60a5fa;
+            padding: 12px 16px;
+            border-radius: 6px;
+            margin-bottom: 15px;
+            font-weight: 500;
+        }
+
+        .decision-a {
+            margin-left: 25px;
+            padding: 10px 15px;
+            border-radius: 6px;
+            margin-bottom: 10px;
+            font-size: 0.95rem;
+        }
+
+        .decision-a.new {
+            background: rgba(74,222,128,0.15);
+            border-left: 3px solid #4ade80;
+        }
+
+        .decision-a.legacy {
+            background: rgba(192,132,252,0.15);
+            border-left: 3px solid #c084fc;
+        }
+
+        .decision-a.fix {
+            background: rgba(251,191,36,0.15);
+            border-left: 3px solid #fbbf24;
+        }
+
+        /* Baseline brain */
+        .brain-grid {
+            display: grid;
+            grid-template-columns: repeat(6, 1fr);
+            gap: 15px;
+            margin: 20px 0;
+        }
+
+        .brain-card {
+            background: rgba(155,89,182,0.15);
+            border: 1px solid rgba(155,89,182,0.3);
+            border-radius: 8px;
+            padding: 15px;
+            text-align: center;
+        }
+
+        .brain-name {
+            font-weight: 600;
+            color: #9b59b6;
+            margin-bottom: 4px;
+        }
+
+        .brain-focus {
+            font-size: 0.8rem;
+            color: #888;
+        }
+
+        /* Practice groups */
+        .practice-grid {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 15px;
+            margin: 20px 0;
+        }
+
+        .practice-card {
+            background: rgba(0,0,0,0.2);
+            border-radius: 8px;
+            padding: 15px;
+            border-top: 3px solid;
+        }
+
+        .practice-card.security { border-color: #e74c3c; }
+        .practice-card.testing { border-color: #2ecc71; }
+        .practice-card.engineering { border-color: #f39c12; }
+        .practice-card.docs { border-color: #1abc9c; }
+
+        .practice-title {
+            font-weight: 600;
+            margin-bottom: 8px;
+        }
+
+        .practice-names {
+            font-size: 0.85rem;
+            color: #aaa;
             line-height: 1.6;
         }
 
-        /* Comparison */
-        .comparison {
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 25px;
-            margin-top: 25px;
-            flex: 1;
-        }
-
-        .comparison-box {
-            padding: 25px;
-            border-radius: 10px;
-        }
-
-        .comparison-box.before {
-            background: rgba(231, 76, 60, 0.1);
-            border: 1px solid rgba(231, 76, 60, 0.3);
-        }
-
-        .comparison-box.after {
-            background: rgba(26, 188, 156, 0.1);
-            border: 1px solid rgba(26, 188, 156, 0.3);
-        }
-
-        .comparison-box h4 {
-            font-size: 1.1rem;
-            margin-bottom: 12px;
-        }
-
-        .comparison-box.before h4 { color: #e74c3c; }
-        .comparison-box.after h4 { color: #1abc9c; }
-
-        .comparison-box p {
-            color: #888;
-            font-size: 1rem;
-            line-height: 1.7;
-        }
-
-        /* Insight */
+        /* Insight box */
         .insight {
             background: rgba(255,255,255,0.03);
             border: 1px solid rgba(255,255,255,0.08);
@@ -369,760 +328,648 @@
 
         .insight p {
             color: #fff;
-            font-size: 1.25rem;
+            font-size: 1.15rem;
             font-weight: 500;
         }
 
-        .final-quote {
-            text-align: center;
-            color: #555;
-            font-style: italic;
-            font-size: 1.1rem;
-            margin-top: auto;
-            padding-top: 20px;
+        /* Test centered */
+        .test-centered {
+            display: flex;
+            justify-content: center;
+            margin-top: 15px;
         }
 
-        /* Two column layout */
-        .two-col {
+        .test-card {
+            background: rgba(46,204,113,0.15);
+            border: 1px solid rgba(46,204,113,0.3);
+            border-radius: 8px;
+            padding: 15px 30px;
+            text-align: center;
+        }
+
+        /* Command reference */
+        .cmd-grid {
             display: grid;
-            grid-template-columns: 1fr 1fr;
+            grid-template-columns: repeat(3, 1fr);
             gap: 20px;
         }
 
-        .auto-invoke {
-            background: rgba(0,0,0,0.2);
-            border-radius: 8px;
-            padding: 20px 25px;
-        }
-
-        .auto-invoke h3 {
-            color: #3498db;
-            font-size: 1rem;
+        .cmd-group h3 {
+            font-size: 0.9rem;
+            text-transform: uppercase;
+            letter-spacing: 1px;
             margin-bottom: 12px;
         }
 
-        .rule-row {
-            display: flex;
-            justify-content: space-between;
-            padding: 10px 0;
-            border-bottom: 1px solid rgba(255,255,255,0.05);
-            font-size: 0.95rem;
+        .cmd-item {
+            font-family: 'Monaco', 'Menlo', monospace;
+            font-size: 0.85rem;
+            padding: 8px 12px;
+            background: rgba(0,0,0,0.3);
+            border-radius: 4px;
+            margin-bottom: 6px;
         }
 
-        .rule-row:last-child { border: none; }
-        .rule-row .context { color: #888; }
-        .rule-row .action { color: #2ecc71; font-family: monospace; }
+        .cmd-desc {
+            font-size: 0.75rem;
+            color: #666;
+            margin-top: 4px;
+        }
+
+        /* Foundation - always visible at top */
+        .foundation {
+            background: linear-gradient(135deg, rgba(155,89,182,0.15) 0%, rgba(155,89,182,0.05) 100%);
+            border: 2px solid rgba(155,89,182,0.4);
+            border-radius: 12px;
+            padding: 20px;
+            margin-bottom: 20px;
+        }
+
+        .foundation-header {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin-bottom: 15px;
+        }
+
+        .foundation-header h2 {
+            font-size: 1.1rem;
+            color: #9b59b6;
+            margin: 0;
+        }
+
+        .foundation-header .always-on {
+            background: #9b59b6;
+            color: #fff;
+            font-size: 0.65rem;
+            padding: 3px 8px;
+            border-radius: 3px;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        .brain-row {
+            display: grid;
+            grid-template-columns: repeat(6, 1fr);
+            gap: 10px;
+            margin-bottom: 15px;
+        }
+
+        .brain-card-mini {
+            background: rgba(155,89,182,0.2);
+            border: 1px solid rgba(155,89,182,0.5);
+            border-radius: 6px;
+            padding: 10px;
+            text-align: center;
+        }
+
+        .brain-card-mini .name {
+            font-weight: 700;
+            color: #c39bd3;
+            font-size: 0.9rem;
+        }
+
+        .brain-card-mini .focus {
+            font-size: 0.7rem;
+            color: #888;
+            margin-top: 2px;
+        }
+
+        .practices-row {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 10px;
+        }
+
+        .practice-card-mini {
+            background: rgba(0,0,0,0.25);
+            border-radius: 6px;
+            padding: 10px 12px;
+            border-left: 4px solid;
+        }
+
+        .practice-card-mini.security { border-color: #e74c3c; }
+        .practice-card-mini.testing { border-color: #2ecc71; }
+        .practice-card-mini.engineering { border-color: #f39c12; }
+        .practice-card-mini.docs { border-color: #1abc9c; }
+
+        .practice-card-mini .title {
+            font-weight: 600;
+            font-size: 0.8rem;
+            margin-bottom: 4px;
+        }
+
+        .practice-card-mini.security .title { color: #e74c3c; }
+        .practice-card-mini.testing .title { color: #2ecc71; }
+        .practice-card-mini.engineering .title { color: #f39c12; }
+        .practice-card-mini.docs .title { color: #1abc9c; }
+
+        .practice-card-mini .names {
+            font-size: 0.75rem;
+            color: #aaa;
+            line-height: 1.4;
+        }
     </style>
 </head>
 <body>
 
-    <!-- PAGE 1: EXPERTISE -->
-    <section class="page page-1" id="page1">
-        <div class="phase-indicator">Foundation</div>
-        <div class="page-number">1 / 7</div>
-        <div class="page-content">
-            <h1>Expertise</h1>
-            <p class="subtitle">Load the masters before writing code, not after as review.</p>
+<!-- PAGE 1: THE DUAL WORKFLOW -->
+<section class="page page-1" id="page1">
+    <div class="page-number">1 / 6</div>
+    <div class="page-content">
+        <h1>Canon-Driven Development</h1>
+        <p class="subtitle">Quality built in from the start, not forced by review when it's too late.</p>
 
-            <div class="insight">
-                <p>Claude knows best practices. It just doesn't apply them unless required.</p>
+        <!-- FOUNDATION: Always Active -->
+        <div class="foundation">
+            <div class="foundation-header">
+                <h2>Baseline Brain + Base Practices</h2>
+                <span class="always-on">Always Active</span>
+            </div>
+            <div class="brain-row">
+                <div class="brain-card-mini"><div class="name">Kernighan</div><div class="focus">Clarity</div></div>
+                <div class="brain-card-mini"><div class="name">Thompson</div><div class="focus">Pragmatism</div></div>
+                <div class="brain-card-mini"><div class="name">Pike</div><div class="focus">Composition</div></div>
+                <div class="brain-card-mini"><div class="name">Joy</div><div class="focus">Resilience</div></div>
+                <div class="brain-card-mini"><div class="name">Linus</div><div class="focus">Taste</div></div>
+                <div class="brain-card-mini"><div class="name">Dijkstra</div><div class="focus">Rigor</div></div>
+            </div>
+            <div class="practices-row">
+                <div class="practice-card-mini security"><div class="title">Security</div><div class="names">Schneier, OWASP</div></div>
+                <div class="practice-card-mini testing"><div class="title">Testing</div><div class="names">Dodds, Meszaros, Feathers</div></div>
+                <div class="practice-card-mini engineering"><div class="title">Engineering</div><div class="names">Petroski, Leveson, Taleb</div></div>
+                <div class="practice-card-mini docs"><div class="title">Docs</div><div class="names">Procida</div></div>
+            </div>
+        </div>
+
+        <div class="dual-flow">
+            <div class="flow-column new">
+                <div class="flow-title new-code">New Code Flow</div>
+                <div class="flow-desc">Building new features from PRD, requirements, or feature requests.</div>
+                <div class="flow-path new-code">
+                    PRD → /plan → /structure-first → /build-from-plan → [reviews]
+                </div>
+                <div class="step-card new">
+                    <div class="step-name new-code">/plan</div>
+                    <div class="step-purpose">Design architecture & security model</div>
+                    <div class="canon-row">
+                        <span class="canon-pill language">/bloch</span>
+                        <span class="canon-pill baseline">/pike</span>
+                        <span class="canon-pill security">/schneier</span>
+                    </div>
+                </div>
+                <div class="step-card new">
+                    <div class="step-name new-code">/structure-first</div>
+                    <div class="step-purpose">Design types & data structures before code</div>
+                    <div class="canon-row">
+                        <span class="canon-pill engineering">/evans</span>
+                        <span class="canon-pill baseline">/linus</span>
+                        <span class="canon-pill language">/bloch</span>
+                        <span class="canon-pill engineering">/gang-of-four</span>
+                    </div>
+                </div>
+                <div class="step-card new">
+                    <div class="step-name new-code">/build-from-plan</div>
+                    <div class="step-purpose">Implement from approved plan</div>
+                    <div class="canon-row">
+                        <span class="canon-pill language">Per language</span>
+                        <span class="canon-pill language">.java→/bloch</span>
+                        <span class="canon-pill language">.ts→/boris-cherny</span>
+                        <span class="canon-pill language">.py→/hettinger</span>
+                    </div>
+                </div>
             </div>
 
-            <h2>Baseline Brain — Always Active</h2>
-            <div class="masters-row">
-                <div class="master-card baseline"><div class="name">Brian Kernighan</div><div class="focus">Clarity</div></div>
-                <div class="master-card baseline"><div class="name">Ken Thompson</div><div class="focus">Pragmatism</div></div>
-                <div class="master-card baseline"><div class="name">Rob Pike</div><div class="focus">Composition</div></div>
-                <div class="master-card baseline"><div class="name">Bill Joy</div><div class="focus">Resilience</div></div>
-                <div class="master-card baseline"><div class="name">Linus Torvalds</div><div class="focus">Taste</div></div>
-                <div class="master-card baseline"><div class="name">Edsger Dijkstra</div><div class="focus">Rigor</div></div>
-            </div>
-
-            <h2>Base Practices — Always Active</h2>
-            <div class="masters-row">
-                <div class="master-card" style="border-color: rgba(231, 76, 60, 0.5); background: rgba(231, 76, 60, 0.1);">
-                    <div class="name" style="color:#e74c3c;">Security</div>
-                    <div class="focus">Bruce Schneier<br>OWASP</div>
+            <div class="flow-column legacy">
+                <div class="flow-title legacy-code">Legacy Code Flow</div>
+                <div class="flow-desc">Refactoring, cleaning up, or modernizing existing code.</div>
+                <div class="flow-path legacy-code">
+                    Existing → /plan → /structure-first → /refactor-clean → [reviews]
                 </div>
-                <div class="master-card" style="border-color: rgba(46, 204, 113, 0.5); background: rgba(46, 204, 113, 0.1);">
-                    <div class="name" style="color:#2ecc71;">Testing</div>
-                    <div class="focus">Kent C. Dodds<br>Gerard Meszaros<br>Michael Feathers</div>
+                <div class="step-card legacy">
+                    <div class="step-name legacy-code">/plan</div>
+                    <div class="step-purpose">Find seams, identify risks & smells</div>
+                    <div class="canon-row">
+                        <span class="canon-pill testing">/feathers</span>
+                        <span class="canon-pill engineering">/fowler</span>
+                        <span class="canon-pill engineering">/taleb</span>
+                    </div>
                 </div>
-                <div class="master-card" style="border-color: rgba(155, 89, 182, 0.5); background: rgba(155, 89, 182, 0.1);">
-                    <div class="name" style="color:#9b59b6;">Documentation</div>
-                    <div class="focus">Daniele Procida</div>
+                <div class="step-card legacy">
+                    <div class="step-name legacy-code">/structure-first</div>
+                    <div class="step-purpose">Document existing structures, find hidden domain</div>
+                    <div class="canon-row">
+                        <span class="canon-pill engineering">/evans</span>
+                        <span class="canon-pill testing">/feathers</span>
+                    </div>
                 </div>
-                <div class="master-card" style="border-color: rgba(241, 196, 15, 0.5); background: rgba(241, 196, 15, 0.1);">
-                    <div class="name" style="color:#f1c40f;">Engineering</div>
-                    <div class="focus">Henry Petroski<br>Nancy Leveson<br>Nassim Taleb<br>Doug McIlroy<br>John Carmack</div>
-                </div>
-            </div>
-            <div class="masters-row" style="justify-content: center;">
-                <div class="master-card" style="border-color: rgba(142, 68, 173, 0.5); background: rgba(142, 68, 173, 0.1); max-width: 280px;">
-                    <div class="name" style="color:#8e44ad;">Writing</div>
-                    <div class="focus">William Zinsser<br>Strunk & White<br>Stephen King</div>
-                </div>
-            </div>
-
-            <h2>Domain Masters — Per Profile</h2>
-            <div class="domains-grid">
-                <div class="domain-box">
-                    <h3>JavaScript</h3>
-                    <div class="names">Kyle Simpson<br>Boris Cherny<br>Douglas Crockford<br>Dan Abramov</div>
-                </div>
-                <div class="domain-box">
-                    <h3>Java</h3>
-                    <div class="names">Joshua Bloch<br>Gang of Four<br>Barbara Liskov</div>
-                </div>
-                <div class="domain-box">
-                    <h3>Visualization</h3>
-                    <div class="names">Mike Bostock<br>Edward Tufte<br>Stephen Few<br>Cole Knaflic</div>
-                </div>
-                <div class="domain-box">
-                    <h3>Angular</h3>
-                    <div class="names">Miško Hevery<br>John Papa<br>Deborah Kurata</div>
-                </div>
-                <div class="domain-box">
-                    <h3>UI/UX (11 experts)</h3>
-                    <div class="names" style="font-size: 0.85em;">Dieter Rams<br>Don Norman<br>Alan Cooper<br>Jony Ive<br>Brad Frost<br>Luke Wroblewski<br>Bill Buxton<br>Nancy Duarte<br>Nathan Curtis<br>Mike Kruzeniski<br>Dan Mall</div>
-                </div>
-                <div class="domain-box">
-                    <h3>C#</h3>
-                    <div class="names">Jon Skeet<br>Stephen Cleary<br>Anders Hejlsberg</div>
-                </div>
-                <div class="domain-box">
-                    <h3>Business</h3>
-                    <div class="names">Michael Porter<br>Richard Rumelt<br>Hamilton Helmer<br>Ben Horowitz</div>
-                </div>
-                <div class="domain-box">
-                    <h3>Writing</h3>
-                    <div class="names">William Zinsser<br>Strunk & White<br>Stephen King</div>
-                </div>
-                <div class="domain-box">
-                    <h3>Python</h3>
-                    <div class="names">Raymond Hettinger<br>David Beazley<br>Luciano Ramalho<br>Brett Slatkin</div>
+                <div class="step-card legacy">
+                    <div class="step-name legacy-code">/refactor-clean</div>
+                    <div class="step-purpose">Safe refactoring with seams</div>
+                    <div class="canon-row">
+                        <span class="canon-pill testing">/feathers</span>
+                        <span class="canon-pill engineering">/fowler</span>
+                        <span class="canon-pill baseline">/liskov</span>
+                        <span class="canon-pill language">/bloch</span>
+                        <span class="canon-pill baseline">/kernighan</span>
+                        <span class="canon-pill engineering">/gang-of-four</span>
+                    </div>
                 </div>
             </div>
         </div>
-        <div class="scroll-hint">Space / ↓</div>
-    </section>
 
-    <!-- PAGE 2: CONFIGURATION -->
-    <section class="page page-2" id="page2">
-        <div class="phase-indicator">Setup</div>
-        <div class="page-number">2 / 7</div>
-        <div class="page-content">
-            <h1>Configure</h1>
-            <p class="subtitle">Load expertise into your project with profiles.</p>
-
-            <div class="cmd">
-                <span class="prompt">$</span> cc-config profile apply <span class="arg">software-base+javascript+react</span> <span class="flag">-p ~/my-project</span>
-            </div>
-
-            <h2>What Gets Created</h2>
-            <div class="dir-tree" style="font-size: 0.82rem; line-height: 1.45;">
-<span style="color:#3498db; font-weight:600;">GENERATED BY CC-CONFIG</span>
-<span class="folder">my-project/</span>
-├── <span class="folder">.claude/</span>
-│   ├── <span class="file">settings.json</span>                    <span class="comment"># Project configuration</span>
-│   ├── <span class="file">canon-manifest.json</span>              <span class="comment"># Tracks canon skill versions</span>
-│   ├── <span class="file">workflow-manifest.json</span>           <span class="comment"># Tracks workflow skill versions</span>
-│   │
-│   └── <span class="folder">skills/</span>                          <span class="comment"># All skills COPIED (not symlinked)</span>
-│       │
-│       │ <span style="color:#888; font-size:0.9em;">CANON SKILLS — Domain Expertise</span>
-│       │
-│       │ <span style="color:#888; font-size:0.85em;">Baseline Brain (always active)</span>
-│       ├── <span class="folder" style="color:#9b59b6">kernighan/</span> <span class="folder" style="color:#9b59b6">thompson/</span> <span class="folder" style="color:#9b59b6">pike/</span> <span class="folder" style="color:#9b59b6">joy/</span> <span class="folder" style="color:#9b59b6">linus/</span> <span class="folder" style="color:#9b59b6">dijkstra/</span>
-│       │   └── <span class="file">SKILL.md</span>
-│       │
-│       │ <span style="color:#888; font-size:0.85em;">Base Practices (always active)</span>
-│       ├── <span class="folder" style="color:#e74c3c">schneier/</span> <span class="folder" style="color:#e74c3c">owasp/</span>                <span class="comment"># Security</span>
-│       ├── <span class="folder" style="color:#2ecc71">dodds/</span> <span class="folder" style="color:#2ecc71">meszaros/</span> <span class="folder" style="color:#2ecc71">feathers/</span>     <span class="comment"># Testing</span>
-│       ├── <span class="folder" style="color:#9b59b6">procida/</span> <span class="folder" style="color:#9b59b6">zinsser/</span> <span class="folder" style="color:#9b59b6">strunk-white/</span> <span class="folder" style="color:#9b59b6">king/</span> <span class="comment"># Documentation & Writing</span>
-│       ├── <span class="folder" style="color:#f1c40f">petroski/</span> <span class="folder" style="color:#f1c40f">leveson/</span> <span class="folder" style="color:#f1c40f">taleb/</span> <span class="folder" style="color:#f1c40f">mcilroy/</span> <span class="folder" style="color:#f1c40f">carmack/</span> <span class="comment"># Engineering</span>
-│       │
-│       │ <span style="color:#888; font-size:0.85em;">Domain (per your stack)</span>
-│       ├── <span class="folder" style="color:#3498db">simpson/</span> <span class="folder" style="color:#3498db">cherny/</span> <span class="folder" style="color:#3498db">abramov/</span>      <span class="comment"># JS/React example</span>
-│       │
-│       │ <span style="color:#f1c40f; font-size:0.9em;">WORKFLOW SKILLS — Universal Patterns</span>
-│       │
-│       ├── <span class="folder" style="color:#f1c40f">plan/</span>                           <span class="comment"># /plan</span>
-│       ├── <span class="folder" style="color:#f1c40f">structure-first/</span>                <span class="comment"># /structure-first</span>
-│       ├── <span class="folder" style="color:#f1c40f">build-from-plan/</span>                <span class="comment"># /build-from-plan</span>
-│       ├── <span class="folder" style="color:#f1c40f">refactor-clean/</span>                 <span class="comment"># /refactor-clean</span>
-│       ├── <span class="folder" style="color:#f1c40f">test/</span>                           <span class="comment"># /test [level]</span>
-│       ├── <span class="folder" style="color:#f1c40f">review-hard/</span>                    <span class="comment"># /review-hard</span>
-│       ├── <span class="folder" style="color:#e67e22">boris-skill-reviewer/</span>           <span class="comment"># /boris-skill-reviewer</span>
-│       └── <span class="folder" style="color:#e67e22">boris-skill-writer/</span>             <span class="comment"># /boris-skill-writer</span>
-│           └── <span class="file">SKILL.md</span>
-│
-├── <span class="file">CLAUDE.md</span>                             <span class="comment"># Auto-invoke rules + standards</span>
-├── <span class="file">.mcp.json</span>                             <span class="comment"># MCP server configurations</span>
-│
-<span style="color:#888; font-weight:600;">BUILT-IN TO CLAUDE CODE</span> <span class="comment">(optional — don't need canon)</span>
-├── <span style="color:#e67e22">security-auditor</span>                     <span class="comment"># Spawns agent for vulnerability review</span>
-├── <span style="color:#e67e22">test-engineer</span>, <span style="color:#e67e22">code-reviewer</span>, <span style="color:#e67e22">doc-writer</span>, <span style="color:#e67e22">css-expert</span>...
-
-└── <span class="folder">src/</span>, <span class="file">package.json</span>, etc.            <span class="comment"># Your existing code</span>
-            </div>
-
-            <h2>Auto-Invoke Rules <span style="font-weight: normal; color: #666;">(added to CLAUDE.md)</span></h2>
-            <div class="auto-invoke">
-                <div class="rule-row"><span class="context">React components (.jsx, .tsx)</span><span class="action">INVOKE /abramov</span></div>
-                <div class="rule-row"><span class="context">Auth, login, password, crypto</span><span class="action">INVOKE /schneier then /owasp</span></div>
-                <div class="rule-row"><span class="context">Test files (*.test.*, *.spec.*)</span><span class="action">INVOKE /dodds</span></div>
-                <div class="rule-row"><span class="context">TypeScript files</span><span class="action">INVOKE /cherny</span></div>
-                <div class="rule-row"><span class="context">New public APIs</span><span class="action">INVOKE --doc-code</span></div>
-            </div>
-        </div>
-        <div class="scroll-hint">Space / ↓</div>
-    </section>
-
-    <!-- PAGE 3: PLAN -->
-    <section class="page page-3" id="page3">
-        <div class="phase-indicator">Plan</div>
-        <div class="page-number">3 / 7</div>
-        <div class="page-content">
-            <h1>Plan</h1>
-            <p class="subtitle">Enforce quality before you write a single line.</p>
-
-            <div style="background: rgba(46,204,113,0.1); border: 1px solid rgba(46,204,113,0.3); border-radius: 8px; padding: 15px 20px; margin-bottom: 20px; text-align: center;">
-                <div style="color: #888; font-size: 0.8rem; margin-bottom: 8px;">WORKFLOW ORDER</div>
-                <div style="font-family: monospace; font-size: 0.9rem; color: #2ecc71;">
-                    <span style="background: rgba(155,89,182,0.3); padding: 4px 8px; border-radius: 4px;">/plan</span>
-                    <span style="color: #666;"> → </span>
-                    <span style="background: rgba(243,156,18,0.2); padding: 4px 8px; border-radius: 4px;">/structure-first</span>
-                    <span style="color: #666;"> → </span>
-                    <span style="background: rgba(46,204,113,0.2); padding: 4px 8px; border-radius: 4px;">/build-from-plan</span>
-                    <span style="color: #666;"> → </span>
-                    <span style="background: rgba(26,188,156,0.2); padding: 4px 8px; border-radius: 4px;">/refactor-clean</span>
-                    <span style="color: #666;"> → </span>
-                    <span style="background: rgba(52,152,219,0.2); padding: 4px 8px; border-radius: 4px;">/test</span>
-                    <span style="color: #666;"> → </span>
-                    <span style="background: rgba(231,76,60,0.2); padding: 4px 8px; border-radius: 4px;">/review-hard</span>
-                </div>
-            </div>
-
-            <div class="flags-grid">
-                <div class="flag-card">
-                    <div class="flag-name">/plan</div>
-                    <div class="flag-desc"><strong>Full planning.</strong> Creates .claude/plans/ file, enforces read-only exploration, requires explicit approval. For complex architecture.</div>
-                    <div class="example">
-                        <span class="prompt">></span> <span style="color:#3498db">/plan</span><br>
-                        <span class="prompt">></span> <span style="color:#3498db">/plan</span> auth-system
-                    </div>
-                </div>
-                <div class="flag-card">
-                    <div class="flag-name">/structure-first</div>
-                    <div class="flag-desc"><strong>Design data structures first.</strong> Define types, interfaces, and APIs before implementation. For features with clear boundaries.</div>
-                    <div class="example">
-                        <span class="prompt">></span> <span style="color:#3498db">/structure-first</span><br>
-                        <span class="prompt">></span> <span style="color:#3498db">/structure-first</span> UserAuth
-                    </div>
-                </div>
-            </div>
-
-            <h2>Why Canon Makes Claude a Better Planner</h2>
-            <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; font-size: 0.8rem;">
-                <div style="background: rgba(155,89,182,0.15); padding: 10px; border-radius: 8px; border-left: 3px solid #9b59b6;">
-                    <div style="color: #9b59b6; font-weight: 600; margin-bottom: 4px;">Kernighan</div>
-                    <div style="color: #aaa; font-style: italic;">"Is this clear to someone who didn't write it?"</div>
-                </div>
-                <div style="background: rgba(155,89,182,0.15); padding: 10px; border-radius: 8px; border-left: 3px solid #9b59b6;">
-                    <div style="color: #9b59b6; font-weight: 600; margin-bottom: 4px;">Pike</div>
-                    <div style="color: #aaa; font-style: italic;">"How small can this interface be?"</div>
-                </div>
-                <div style="background: rgba(155,89,182,0.15); padding: 10px; border-radius: 8px; border-left: 3px solid #9b59b6;">
-                    <div style="color: #9b59b6; font-weight: 600; margin-bottom: 4px;">Linus</div>
-                    <div style="color: #aaa; font-style: italic;">"What data structure eliminates special cases?"</div>
-                </div>
-                <div style="background: rgba(46,204,113,0.15); padding: 10px; border-radius: 8px; border-left: 3px solid #2ecc71;">
-                    <div style="color: #2ecc71; font-weight: 600; margin-bottom: 4px;">Thompson</div>
-                    <div style="color: #aaa; font-style: italic;">"Could brute force solve this simpler?"</div>
-                </div>
-                <div style="background: rgba(231,76,60,0.15); padding: 10px; border-radius: 8px; border-left: 3px solid #e74c3c;">
-                    <div style="color: #e74c3c; font-weight: 600; margin-bottom: 4px;">Dijkstra</div>
-                    <div style="color: #aaa; font-style: italic;">"What invariants must always hold?"</div>
-                </div>
-                <div style="background: rgba(52,152,219,0.15); padding: 10px; border-radius: 8px; border-left: 3px solid #3498db;">
-                    <div style="color: #3498db; font-weight: 600; margin-bottom: 4px;">Joy</div>
-                    <div style="color: #aaa; font-style: italic;">"What happens when this fails?"</div>
-                </div>
-                <div style="background: rgba(241,196,15,0.15); padding: 10px; border-radius: 8px; border-left: 3px solid #f1c40f;">
-                    <div style="color: #f1c40f; font-weight: 600; margin-bottom: 4px;">Petroski</div>
-                    <div style="color: #aaa; font-style: italic;">"What failures shaped this design?"</div>
-                </div>
-                <div style="background: rgba(241,196,15,0.15); padding: 10px; border-radius: 8px; border-left: 3px solid #f1c40f;">
-                    <div style="color: #f1c40f; font-weight: 600; margin-bottom: 4px;">Leveson</div>
-                    <div style="color: #aaa; font-style: italic;">"What safety constraints prevent hazards?"</div>
-                </div>
-                <div style="background: rgba(241,196,15,0.15); padding: 10px; border-radius: 8px; border-left: 3px solid #f1c40f;">
-                    <div style="color: #f1c40f; font-weight: 600; margin-bottom: 4px;">Taleb</div>
-                    <div style="color: #aaa; font-style: italic;">"Is this antifragile or just robust?"</div>
-                </div>
-            </div>
-
-            <div class="insight" style="margin-top: 15px;">
-                <p>Canon turns planning into a design review — before code exists.</p>
-            </div>
-        </div>
-        <div class="scroll-hint">Space / ↓</div>
-    </section>
-
-    <!-- PAGE 4: BUILD -->
-    <section class="page page-4" id="page4">
-        <div class="phase-indicator">Build</div>
-        <div class="page-number">4 / 7</div>
-        <div class="page-content">
-            <h1>Build</h1>
-            <p class="subtitle">New features or improving legacy — workflow skills for different goals.</p>
-
-            <div class="flags-grid">
-                <div class="flag-card">
-                    <div class="flag-name">/build-from-plan</div>
-                    <div class="flag-desc"><strong>Execute the plan.</strong> Implement code from approved plan file. Follows steps exactly without re-exploring.</div>
-                    <div class="example">
-                        <span class="prompt">></span> <span style="color:#3498db">/build-from-plan</span>              <span class="comment"># From most recent plan</span><br>
-                        <span class="prompt">></span> <span style="color:#3498db">/build-from-plan</span> auth-system  <span class="comment"># From specific plan</span>
-                    </div>
-                </div>
-                <div class="flag-card">
-                    <div class="flag-name">/refactor-clean</div>
-                    <div class="flag-desc"><strong>Clean up code.</strong> Systematic decomposition with before/after structure. Uses Feathers, Bloch, Kernighan, McIlroy, Pike.</div>
-                    <div class="example">
-                        <span class="prompt">></span> <span style="color:#3498db">/refactor-clean</span>              <span class="comment"># Recent code</span><br>
-                        <span class="prompt">></span> <span style="color:#3498db">/refactor-clean</span> src/legacy   <span class="comment"># Specific path</span>
-                    </div>
-                </div>
-            </div>
-            <div class="flags-grid" style="justify-content: center;">
-                <div class="flag-card" style="max-width: 400px;">
-                    <div class="flag-name">/test [level]</div>
-                    <div class="flag-desc"><strong>Write tests.</strong> Levels: unit, integration, e2e, or all. Uses Dodds, Meszaros, Feathers + domain canon.</div>
-                    <div class="example">
-                        <span class="prompt">></span> <span style="color:#3498db">/test</span>                    <span class="comment"># All levels</span><br>
-                        <span class="prompt">></span> <span style="color:#3498db">/test unit</span> src/utils     <span class="comment"># Unit tests for path</span>
-                    </div>
-                </div>
-            </div>
-
-            <div class="insight" style="margin-top: 15px;">
-                <p>Build quality in, don't bolt it on.</p>
-            </div>
-
-            <div style="background: rgba(241,196,15,0.1); border: 1px solid rgba(241,196,15,0.3); border-radius: 8px; padding: 15px 20px; margin-top: 15px;">
-                <div style="color: #f1c40f; font-weight: 600; font-size: 0.9rem; margin-bottom: 8px;">Workflow Skills vs Canon Skills</div>
-                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px; font-size: 0.85rem;">
-                    <div>
-                        <div style="color: #f1c40f; margin-bottom: 4px;">Workflow Skills</div>
-                        <div style="color: #aaa;">Universal patterns that apply to any project. Installed automatically with every profile.</div>
-                    </div>
-                    <div>
-                        <div style="color: #9b59b6; margin-bottom: 4px;">Canon Skills</div>
-                        <div style="color: #aaa;">Domain expert knowledge (Bloch for Java, Cherny for TypeScript). Installed per profile.</div>
-                    </div>
-                </div>
-            </div>
-
-            <h2 style="margin-top: 20px;">Autonomous Mode: Ralph Loop</h2>
-            <div style="background: linear-gradient(135deg, rgba(231,76,60,0.1), rgba(243,156,18,0.1)); border: 2px solid #e74c3c; border-radius: 10px; padding: 18px;">
-                <div style="display: flex; align-items: center; gap: 15px; margin-bottom: 12px;">
-                    <div style="background: rgba(231,76,60,0.2); border-radius: 8px; padding: 8px 12px;">
-                        <code style="color: #e74c3c; font-size: 1.1rem; font-weight: 600;">/ralph-loop</code>
-                    </div>
-                    <div style="color: #fff; font-weight: 500;">PRD-driven autonomous development with quality gates</div>
-                </div>
-                <div style="display: grid; grid-template-columns: repeat(8, 1fr); gap: 6px; margin: 15px 0; font-size: 0.7rem; text-align: center;">
-                    <div style="background: rgba(52,152,219,0.2); padding: 8px 4px; border-radius: 6px; border-top: 2px solid #3498db;">
-                        <div style="color: #3498db; font-weight: 600;">1</div>
-                        <div style="color: #888;">Read PRD</div>
-                    </div>
-                    <div style="background: rgba(52,152,219,0.2); padding: 8px 4px; border-radius: 6px; border-top: 2px solid #3498db;">
-                        <div style="color: #3498db; font-weight: 600;">2</div>
-                        <div style="color: #888;">Context</div>
-                    </div>
-                    <div style="background: rgba(243,156,18,0.2); padding: 8px 4px; border-radius: 6px; border-top: 2px solid #f39c12;">
-                        <div style="color: #f39c12; font-weight: 600;">3</div>
-                        <div style="color: #888;">Select</div>
-                    </div>
-                    <div style="background: rgba(46,204,113,0.2); padding: 8px 4px; border-radius: 6px; border-top: 2px solid #2ecc71;">
-                        <div style="color: #2ecc71; font-weight: 600;">4</div>
-                        <div style="color: #888;">Build</div>
-                    </div>
-                    <div style="background: rgba(231,76,60,0.2); padding: 8px 4px; border-radius: 6px; border-top: 2px solid #e74c3c;">
-                        <div style="color: #e74c3c; font-weight: 600;">5</div>
-                        <div style="color: #888;">Review</div>
-                    </div>
-                    <div style="background: rgba(231,76,60,0.2); padding: 8px 4px; border-radius: 6px; border-top: 2px solid #e74c3c;">
-                        <div style="color: #e74c3c; font-weight: 600;">6</div>
-                        <div style="color: #888;">Test</div>
-                    </div>
-                    <div style="background: rgba(155,89,182,0.2); padding: 8px 4px; border-radius: 6px; border-top: 2px solid #9b59b6;">
-                        <div style="color: #9b59b6; font-weight: 600;">7</div>
-                        <div style="color: #888;">Commit</div>
-                    </div>
-                    <div style="background: rgba(155,89,182,0.2); padding: 8px 4px; border-radius: 6px; border-top: 2px solid #9b59b6;">
-                        <div style="color: #9b59b6; font-weight: 600;">8</div>
-                        <div style="color: #888;">Loop?</div>
-                    </div>
-                </div>
-                <div style="display: flex; justify-content: space-between; align-items: center; font-size: 0.8rem;">
-                    <div style="color: #888;">
-                        <span style="color: #e74c3c;">Quality Gates:</span> Tests pass, Self-review, Standards, Security
-                    </div>
-                    <a href="ralph-loop.html" style="color: #f39c12; text-decoration: none;">
-                        View Interactive D3 Diagram →
-                    </a>
+        <div class="test-centered">
+            <div class="test-card">
+                <div class="step-name testing">/test [level]</div>
+                <div class="step-purpose">Write tests at unit, integration, or e2e level</div>
+                <div class="canon-row" style="justify-content: center;">
+                    <span class="canon-pill testing">/dodds</span>
+                    <span class="canon-pill testing">/meszaros</span>
                 </div>
             </div>
         </div>
-        <div class="scroll-hint">Space / ↓</div>
-    </section>
 
-    <!-- PAGE 5: REVIEW -->
-    <section class="page page-5" id="page5">
-        <div class="phase-indicator">Review</div>
-        <div class="page-number">5 / 7</div>
-        <div class="page-content">
-            <h1>Review</h1>
-            <p class="subtitle">Enforce quality after code is written.</p>
-
-            <div class="flag-card" style="border-color: #e74c3c;">
-                <div class="flag-name" style="color: #e74c3c;">/review-hard</div>
-                <div class="flag-desc">Adversarial self-review with optional multi-model validation. Claude critiques its own work, then optionally validates with Gemini and Qodana.</div>
-                <div class="example">
-                    <span class="prompt">></span> <span style="color:#3498db">/review-hard</span>              <span class="comment"># Review most recent code</span><br>
-                    <span class="prompt">></span> <span style="color:#3498db">/review-hard</span> src/api      <span class="comment"># Review specific path</span><br>
-                    <span class="prompt">></span> <span style="color:#3498db">/review-hard</span> --full       <span class="comment"># Include Gemini + Qodana</span>
+        <div class="shared-section">
+            <div class="shared-title review">Shared Review Gates — Both Flows Converge Here</div>
+            <div class="gates-row">
+                <div class="gate-card">
+                    <div class="gate-name review">/review-hard</div>
+                    <div class="gate-desc">Adversarial self-review</div>
+                    <div class="canon-row" style="justify-content: center;">
+                        <span class="canon-pill baseline">/dijkstra</span>
+                        <span class="canon-pill security">/schneier</span>
+                        <span class="canon-pill security">/owasp</span>
+                    </div>
+                </div>
+                <div class="gate-card">
+                    <div class="gate-name review">/gemini-review</div>
+                    <div class="gate-desc">External AI review</div>
+                    <div class="canon-row" style="justify-content: center;">
+                        <span class="canon-pill engineering">Gemini</span>
+                    </div>
+                </div>
+                <div class="gate-card">
+                    <div class="gate-name review">/qodana-review</div>
+                    <div class="gate-desc">Static analysis</div>
+                    <div class="canon-row" style="justify-content: center;">
+                        <span class="canon-pill engineering">Qodana</span>
+                    </div>
                 </div>
             </div>
-
-            <h2>The Review Pipeline — For Critical Code</h2>
-            <div class="review-grid">
-                <div class="review-card">
-                    <div class="stage-num">Stage 1</div>
-                    <h4>/review-hard</h4>
-                    <p>Self-review. Fast, free. Catches consistency issues and standard violations.</p>
-                </div>
-                <div class="review-card">
-                    <div class="stage-num">Stage 2</div>
-                    <h4>Gemini Review</h4>
-                    <p>Different model, different biases. Good for architecture review.</p>
-                </div>
-                <div class="review-card">
-                    <div class="stage-num">Stage 3</div>
-                    <h4>Qodana</h4>
-                    <p>Static analysis. Security, types, code smells. Deterministic.</p>
-                </div>
-            </div>
-
-            <div class="insight" style="margin-top: auto;">
-                <p>Different reviewers catch different problems.</p>
+            <div class="feedback-loop">
+                <span class="feedback-text">Issues found? → Return to <code class="new-code">/build-from-plan</code> or <code class="legacy-code">/refactor-clean</code> → fix → re-review until all gates pass</span>
             </div>
         </div>
-        <div class="scroll-hint">Space / ↓</div>
-    </section>
+    </div>
+    <div class="scroll-hint">Space / ↓</div>
+</section>
 
-    <!-- PAGE 6: OUTCOME -->
-    <section class="page page-6" id="page6">
-        <div class="phase-indicator">Result</div>
-        <div class="page-number">6 / 7</div>
-        <div class="page-content">
-            <h1>Outcome</h1>
-            <p class="subtitle">Every component shaped by canon knowledge. Portable. Upgradeable.</p>
+<!-- PAGE 2: WHICH FLOW? -->
+<section class="page page-2" id="page2">
+    <div class="page-number">2 / 6</div>
+    <div class="page-content">
+        <h1>Which Flow Do I Use?</h1>
+        <p class="subtitle">A simple decision tree to choose the right path.</p>
 
-            <div class="dir-tree" style="font-size: 0.82rem; line-height: 1.45;">
-<span style="color:#1abc9c; font-weight:600;">PROJECT STRUCTURE — FULLY PORTABLE</span>
-<span class="folder">my-app/</span>
-├── <span class="folder">.claude/</span>
-│   ├── <span class="file">settings.json</span>                    <span class="comment"># Project configuration</span>
-│   ├── <span class="file">canon-manifest.json</span>              <span class="comment"># Track versions → cc-config canon upgrade</span>
-│   ├── <span class="file">workflow-manifest.json</span>           <span class="comment"># Track versions → cc-config workflow upgrade</span>
-│   │
-│   └── <span class="folder">skills/</span>                          <span class="comment"># Skills COPIED (not symlinked)</span>
-│       │
-│       │ <span style="color:#9b59b6; font-size:0.9em;">CANON — Domain Expert Knowledge</span>
-│       ├── <span class="folder" style="color:#9b59b6">kernighan/</span> ... <span class="folder" style="color:#9b59b6">dijkstra/</span>     <span class="comment"># Baseline brain (6)</span>
-│       ├── <span class="folder" style="color:#e74c3c">schneier/</span> <span class="folder" style="color:#e74c3c">owasp/</span>               <span class="comment"># Security (2)</span>
-│       ├── <span class="folder" style="color:#2ecc71">dodds/</span> <span class="folder" style="color:#2ecc71">meszaros/</span> <span class="folder" style="color:#2ecc71">feathers/</span>    <span class="comment"># Testing (3)</span>
-│       ├── <span class="folder" style="color:#9b59b6">procida/</span> <span class="folder" style="color:#9b59b6">zinsser/</span> <span class="folder" style="color:#9b59b6">strunk-white/</span> <span class="folder" style="color:#9b59b6">king/</span> <span class="comment"># Docs & Writing (4)</span>
-│       ├── <span class="folder" style="color:#f1c40f">petroski/</span> <span class="folder" style="color:#f1c40f">leveson/</span> <span class="folder" style="color:#f1c40f">taleb/</span> <span class="folder" style="color:#f1c40f">mcilroy/</span> <span class="folder" style="color:#f1c40f">carmack/</span> <span class="comment"># Engineering (5)</span>
-│       ├── <span class="folder" style="color:#3498db">cherny/</span> <span class="folder" style="color:#3498db">simpson/</span> <span class="folder" style="color:#3498db">abramov/</span>     <span class="comment"># JS/React (per profile)</span>
-│       │
-│       │ <span style="color:#f1c40f; font-size:0.9em;">WORKFLOW — Universal Patterns</span>
-│       ├── <span class="folder" style="color:#f1c40f">plan/</span> <span class="folder" style="color:#f1c40f">structure-first/</span>          <span class="comment"># Planning phase</span>
-│       ├── <span class="folder" style="color:#f1c40f">build-from-plan/</span> <span class="folder" style="color:#f1c40f">refactor-clean/</span>  <span class="comment"># Build phase</span>
-│       ├── <span class="folder" style="color:#f1c40f">test/</span> <span class="folder" style="color:#f1c40f">review-hard/</span>              <span class="comment"># Test & Review</span>
-│       └── <span class="folder" style="color:#e67e22">boris-skill-reviewer/</span> <span class="folder" style="color:#e67e22">boris-skill-writer/</span> <span class="comment"># Meta-skills</span>
-│
-├── <span class="file">CLAUDE.md</span>                             <span class="comment"># Standards + auto-invoke rules</span>
-├── <span class="file">.mcp.json</span>                             <span class="comment"># MCP server configs</span>
-│
-<span style="color:#1abc9c; font-weight:600;">YOUR CODE — SHAPED BY CANON</span>
-├── <span class="folder">src/</span>
-│   ├── <span class="folder">features/auth/</span>                   <span class="comment"># One concern per folder</span>
-│   │   ├── <span class="file">authService.ts</span>               <span class="comment"># 30 lines max (Kernighan)</span>
-│   │   ├── <span class="file">authMiddleware.ts</span>            <span class="comment"># Minimal interface (Pike)</span>
-│   │   └── <span class="file">authController.ts</span>            <span class="comment"># Fail-safe defaults (Joy)</span>
-│   └── <span class="folder">shared/</span>                          <span class="comment"># Simple over clever (Thompson)</span>
-│
-├── <span class="folder">tests/</span>                                <span class="comment"># Testing Trophy (Dodds)</span>
-│   ├── <span class="file">auth.integration.spec.ts</span>        <span class="comment"># Integration-first</span>
-│   └── <span class="file">auth.e2e.spec.ts</span>                <span class="comment"># Real user flows</span>
-│
-└── <span class="folder">docs/</span>                                 <span class="comment"># Diátaxis (Procida)</span>
+        <div class="decision-box">
+            <div class="decision-q">Is there existing code?</div>
 
-<span class="comment"># Workflow order:</span>
-<span style="color:#9b59b6">/plan</span> → <span style="color:#f39c12">/structure-first</span> → <span style="color:#2ecc71">/build-from-plan</span> → <span style="color:#1abc9c">/refactor-clean</span> → <span style="color:#3498db">/test</span> → <span style="color:#e74c3c">/review-hard</span>
+            <div class="decision-a new">
+                <strong class="new-code">NO →</strong> New Code Flow<br>
+                <code style="color:#888;font-size:0.85rem;">/plan → /structure-first → /build-from-plan</code>
             </div>
 
-            <div class="outcome-grid" style="margin-top: 15px;">
-                <div class="outcome-card">
-                    <h4>Portable</h4>
-                    <p>Skills are copied, not symlinked. Project works standalone after git clone.</p>
-                </div>
-                <div class="outcome-card">
-                    <h4>Upgradeable</h4>
-                    <p>Manifests track versions. Run <code style="color:#1abc9c;">cc-config canon upgrade</code> to update.</p>
-                </div>
-                <div class="outcome-card">
-                    <h4>Customizable</h4>
-                    <p>Edit copied skills. Local changes detected and preserved on upgrade.</p>
-                </div>
+            <div class="decision-q" style="margin-left: 25px;">YES → Is it working correctly?</div>
+
+            <div class="decision-a legacy">
+                <strong class="legacy-code">YES, but messy →</strong> Legacy Code Flow (refactor)<br>
+                <code style="color:#888;font-size:0.85rem;">/plan → /structure-first → /refactor-clean</code>
             </div>
 
-            <div class="final-quote">
-                "Who has solved this before, and better than I could?"
+            <div class="decision-a fix">
+                <strong class="review">NO, has bugs →</strong> Fix first, then decide<br>
+                <span style="color:#888;font-size:0.85rem;">Bug fixes don't need full workflow</span>
             </div>
         </div>
-        <div class="scroll-hint">Space / ↓</div>
-    </section>
 
-    <!-- PAGE 7: RALPH LOOP -->
-    <section class="page page-7" id="page7">
-        <div class="phase-indicator">Autonomous</div>
-        <div class="page-number">7 / 7</div>
-        <div class="page-content">
-            <h1>Ralph Loop</h1>
-            <p class="subtitle">Canon-driven autonomous development. Every step invokes specific masters.</p>
+        <div class="insight" style="margin-top: 40px;">
+            <p>Same skills, different canon. The workflow adapts to your starting point.</p>
+        </div>
 
-            <!-- Loop Diagram -->
-            <div style="display: flex; gap: 8px; margin: 15px 0; align-items: center; justify-content: center; flex-wrap: wrap;">
-                <div style="background: rgba(243,156,18,0.2); border: 2px solid #f39c12; border-radius: 8px; padding: 8px 12px; text-align: center;">
-                    <div style="color: #f39c12; font-weight: 600; font-size: 0.8rem;">PRD.md</div>
-                </div>
-                <div style="color: #555;">→</div>
-                <div style="background: rgba(52,152,219,0.15); padding: 6px 10px; border-radius: 6px; border-top: 2px solid #3498db; text-align: center;">
-                    <div style="color: #3498db; font-size: 0.7rem; font-weight: 600;">1. PRD</div>
-                </div>
-                <div style="color: #555;">→</div>
-                <div style="background: rgba(52,152,219,0.15); padding: 6px 10px; border-radius: 6px; border-top: 2px solid #3498db; text-align: center;">
-                    <div style="color: #3498db; font-size: 0.7rem; font-weight: 600;">2. Context</div>
-                </div>
-                <div style="color: #555;">→</div>
-                <div style="background: rgba(231,76,60,0.15); padding: 6px 10px; border-radius: 6px; border-top: 2px solid #e74c3c; text-align: center;">
-                    <div style="color: #e74c3c; font-size: 0.7rem; font-weight: 600;">3. Select</div>
-                </div>
-                <div style="color: #555;">→</div>
-                <div style="background: rgba(46,204,113,0.15); padding: 6px 10px; border-radius: 6px; border-top: 2px solid #2ecc71; text-align: center;">
-                    <div style="color: #2ecc71; font-size: 0.7rem; font-weight: 600;">4. Build</div>
-                </div>
-                <div style="color: #555;">→</div>
-                <div style="background: rgba(243,156,18,0.15); padding: 6px 10px; border-radius: 6px; border-top: 2px solid #f39c12; text-align: center;">
-                    <div style="color: #f39c12; font-size: 0.7rem; font-weight: 600;">5. Review</div>
-                </div>
-                <div style="color: #555;">→</div>
-                <div style="background: rgba(243,156,18,0.15); padding: 6px 10px; border-radius: 6px; border-top: 2px solid #f39c12; text-align: center;">
-                    <div style="color: #f39c12; font-size: 0.7rem; font-weight: 600;">6. Test</div>
-                </div>
-                <div style="color: #555;">→</div>
-                <div style="background: rgba(26,188,156,0.15); padding: 6px 10px; border-radius: 6px; border-top: 2px solid #1abc9c; text-align: center;">
-                    <div style="color: #1abc9c; font-size: 0.7rem; font-weight: 600;">7. External</div>
-                </div>
-                <div style="color: #555;">→</div>
-                <div style="background: rgba(155,89,182,0.15); padding: 6px 10px; border-radius: 6px; border-top: 2px solid #9b59b6; text-align: center;">
-                    <div style="color: #9b59b6; font-size: 0.7rem; font-weight: 600;">8. Commit</div>
-                </div>
-                <div style="color: #555;">→</div>
-                <div style="color: #e74c3c; font-size: 0.75rem;">↺ Next Item</div>
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 30px; margin-top: 30px;">
+            <div>
+                <h3 class="new-code" style="margin-bottom: 15px;">New Code: Build Forward</h3>
+                <ul style="color: #aaa; line-height: 2; list-style: none;">
+                    <li>• Start with requirements (PRD)</li>
+                    <li>• Design types before implementation</li>
+                    <li>• Build incrementally from plan</li>
+                    <li>• Canon: architecture & language masters</li>
+                </ul>
             </div>
-
-            <!-- Three Loops Legend -->
-            <div style="display: flex; gap: 20px; justify-content: center; margin-bottom: 15px; font-size: 0.75rem;">
-                <div><span style="color: #e74c3c;">━━</span> Outer: PRD Items</div>
-                <div><span style="color: #f39c12;">━━</span> Inner: Self-Review (retry on fail)</div>
-                <div><span style="color: #2ecc71;">━━</span> Inner²: External (Gemini/Qodana)</div>
-            </div>
-
-            <!-- Canon Grid -->
-            <div style="display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; font-size: 0.78rem;">
-                <!-- Step 1 -->
-                <div style="background: rgba(52,152,219,0.1); border: 1px solid rgba(52,152,219,0.3); border-radius: 8px; padding: 12px;">
-                    <div style="color: #3498db; font-weight: 600; margin-bottom: 8px;">1. Read PRD</div>
-                    <div style="background: rgba(0,0,0,0.3); padding: 6px 8px; border-radius: 4px; border-left: 2px solid #9b59b6; margin-bottom: 6px;">
-                        <code style="color: #9b59b6;">/procida</code>
-                        <div style="color: #888; font-size: 0.7rem;">Diátaxis—understand requirement type</div>
-                    </div>
-                </div>
-
-                <!-- Step 2 -->
-                <div style="background: rgba(52,152,219,0.1); border: 1px solid rgba(52,152,219,0.3); border-radius: 8px; padding: 12px;">
-                    <div style="color: #3498db; font-weight: 600; margin-bottom: 8px;">2. Load Context</div>
-                    <div style="background: rgba(0,0,0,0.3); padding: 6px 8px; border-radius: 4px; border-left: 2px solid #2ecc71; margin-bottom: 6px;">
-                        <code style="color: #2ecc71;">/feathers</code>
-                        <div style="color: #888; font-size: 0.7rem;">Legacy code—seams, characterization</div>
-                    </div>
-                    <div style="background: rgba(0,0,0,0.3); padding: 6px 8px; border-radius: 4px; border-left: 2px solid #f1c40f;">
-                        <code style="color: #f1c40f;">/petroski</code>
-                        <div style="color: #888; font-size: 0.7rem;">Form follows failure—what broke?</div>
-                    </div>
-                </div>
-
-                <!-- Step 4: Build -->
-                <div style="background: rgba(46,204,113,0.1); border: 1px solid rgba(46,204,113,0.3); border-radius: 8px; padding: 12px; grid-column: span 2;">
-                    <div style="color: #2ecc71; font-weight: 600; margin-bottom: 8px;">4. Implement — Canon is the Algorithm</div>
-                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 8px;">
-                        <div>
-                            <div style="color: #666; font-size: 0.65rem; text-transform: uppercase; margin-bottom: 4px;">Base Brain (Always)</div>
-                            <div style="background: rgba(0,0,0,0.3); padding: 5px 7px; border-radius: 4px; border-left: 2px solid #9b59b6; margin-bottom: 4px;">
-                                <code style="color: #9b59b6; font-size: 0.7rem;">/kernighan</code> <span style="color: #666; font-size: 0.65rem;">clarity over cleverness</span>
-                            </div>
-                            <div style="background: rgba(0,0,0,0.3); padding: 5px 7px; border-radius: 4px; border-left: 2px solid #9b59b6; margin-bottom: 4px;">
-                                <code style="color: #9b59b6; font-size: 0.7rem;">/pike</code> <span style="color: #666; font-size: 0.65rem;">data dominates, minimal</span>
-                            </div>
-                            <div style="background: rgba(0,0,0,0.3); padding: 5px 7px; border-radius: 4px; border-left: 2px solid #9b59b6;">
-                                <code style="color: #9b59b6; font-size: 0.7rem;">/linus</code> <span style="color: #666; font-size: 0.65rem;">data structures first</span>
-                            </div>
-                        </div>
-                        <div>
-                            <div style="color: #666; font-size: 0.65rem; text-transform: uppercase; margin-bottom: 4px;">Language Masters (Per Stack)</div>
-                            <div style="background: rgba(0,0,0,0.3); padding: 5px 7px; border-radius: 4px; border-left: 2px solid #3498db; margin-bottom: 4px;">
-                                <code style="color: #3498db; font-size: 0.7rem;">/bloch</code> <span style="color: #666; font-size: 0.65rem;">Java: Effective patterns</span>
-                            </div>
-                            <div style="background: rgba(0,0,0,0.3); padding: 5px 7px; border-radius: 4px; border-left: 2px solid #3498db; margin-bottom: 4px;">
-                                <code style="color: #3498db; font-size: 0.7rem;">/skeet /toub</code> <span style="color: #666; font-size: 0.65rem;">C#: LINQ, async</span>
-                            </div>
-                            <div style="background: rgba(0,0,0,0.3); padding: 5px 7px; border-radius: 4px; border-left: 2px solid #3498db; margin-bottom: 4px;">
-                                <code style="color: #3498db; font-size: 0.7rem;">/crockford /simpson</code> <span style="color: #666; font-size: 0.65rem;">JS: Good Parts</span>
-                            </div>
-                            <div style="background: rgba(0,0,0,0.3); padding: 5px 7px; border-radius: 4px; border-left: 2px solid #3498db; margin-bottom: 4px;">
-                                <code style="color: #3498db; font-size: 0.7rem;">/abramov</code> <span style="color: #666; font-size: 0.65rem;">React: Hooks, composition</span>
-                            </div>
-                            <div style="background: rgba(0,0,0,0.3); padding: 5px 7px; border-radius: 4px; border-left: 2px solid #3498db;">
-                                <code style="color: #3498db; font-size: 0.7rem;">/hettinger /slatkin</code> <span style="color: #666; font-size: 0.65rem;">Python: idioms</span>
-                            </div>
-                        </div>
-                    </div>
-                    <div style="color: #666; font-size: 0.65rem; text-transform: uppercase; margin: 8px 0 4px;">UI/UX (If Frontend)</div>
-                    <div style="display: flex; gap: 6px; flex-wrap: wrap;">
-                        <code style="background: rgba(233,30,99,0.2); color: #e91e63; padding: 2px 6px; border-radius: 3px; font-size: 0.7rem;">/frost</code>
-                        <code style="background: rgba(233,30,99,0.2); color: #e91e63; padding: 2px 6px; border-radius: 3px; font-size: 0.7rem;">/ive</code>
-                        <code style="background: rgba(233,30,99,0.2); color: #e91e63; padding: 2px 6px; border-radius: 3px; font-size: 0.7rem;">/norman</code>
-                        <code style="background: rgba(233,30,99,0.2); color: #e91e63; padding: 2px 6px; border-radius: 3px; font-size: 0.7rem;">/cooper</code>
-                        <code style="background: rgba(233,30,99,0.2); color: #e91e63; padding: 2px 6px; border-radius: 3px; font-size: 0.7rem;">/rams</code>
-                    </div>
-                </div>
-
-                <!-- Step 5: Self-Review -->
-                <div style="background: rgba(243,156,18,0.1); border: 1px solid rgba(243,156,18,0.3); border-radius: 8px; padding: 12px;">
-                    <div style="color: #f39c12; font-weight: 600; margin-bottom: 8px;">5. Self-Review</div>
-                    <div style="background: rgba(0,0,0,0.3); padding: 5px 7px; border-radius: 4px; border-left: 2px solid #9b59b6; margin-bottom: 4px;">
-                        <code style="color: #9b59b6; font-size: 0.7rem;">/dijkstra</code>
-                        <div style="color: #888; font-size: 0.65rem;">Correctness by construction</div>
-                    </div>
-                    <div style="background: rgba(0,0,0,0.3); padding: 5px 7px; border-radius: 4px; border-left: 2px solid #e74c3c; margin-bottom: 4px;">
-                        <code style="color: #e74c3c; font-size: 0.7rem;">/schneier</code>
-                        <div style="color: #888; font-size: 0.65rem;">Think like an attacker</div>
-                    </div>
-                    <div style="background: rgba(0,0,0,0.3); padding: 5px 7px; border-radius: 4px; border-left: 2px solid #e74c3c; margin-bottom: 4px;">
-                        <code style="color: #e74c3c; font-size: 0.7rem;">/owasp</code>
-                        <div style="color: #888; font-size: 0.65rem;">Top 10 checklist</div>
-                    </div>
-                    <div style="background: rgba(0,0,0,0.3); padding: 5px 7px; border-radius: 4px; border-left: 2px solid #f1c40f;">
-                        <code style="color: #f1c40f; font-size: 0.7rem;">/leveson</code>
-                        <div style="color: #888; font-size: 0.65rem;">STAMP safety constraints</div>
-                    </div>
-                </div>
-
-                <!-- Step 6: Test -->
-                <div style="background: rgba(243,156,18,0.1); border: 1px solid rgba(243,156,18,0.3); border-radius: 8px; padding: 12px;">
-                    <div style="color: #f39c12; font-weight: 600; margin-bottom: 8px;">6. Run Tests</div>
-                    <div style="background: rgba(0,0,0,0.3); padding: 5px 7px; border-radius: 4px; border-left: 2px solid #2ecc71; margin-bottom: 4px;">
-                        <code style="color: #2ecc71; font-size: 0.7rem;">/dodds</code>
-                        <div style="color: #888; font-size: 0.65rem;">Testing Trophy—behavior, not impl</div>
-                    </div>
-                    <div style="background: rgba(0,0,0,0.3); padding: 5px 7px; border-radius: 4px; border-left: 2px solid #2ecc71;">
-                        <code style="color: #2ecc71; font-size: 0.7rem;">/meszaros</code>
-                        <div style="color: #888; font-size: 0.65rem;">xUnit patterns, avoid smells</div>
-                    </div>
-                </div>
-
-                <!-- Step 7: External -->
-                <div style="background: rgba(26,188,156,0.1); border: 1px solid rgba(26,188,156,0.3); border-radius: 8px; padding: 12px;">
-                    <div style="color: #1abc9c; font-weight: 600; margin-bottom: 8px;">7. External Validation</div>
-                    <div style="background: rgba(0,0,0,0.3); padding: 5px 7px; border-radius: 4px; border-left: 2px solid #1abc9c; margin-bottom: 4px;">
-                        <code style="color: #1abc9c; font-size: 0.7rem;">Gemini Review</code>
-                        <div style="color: #888; font-size: 0.65rem;">Different model = different blind spots</div>
-                    </div>
-                    <div style="background: rgba(0,0,0,0.3); padding: 5px 7px; border-radius: 4px; border-left: 2px solid #1abc9c;">
-                        <code style="color: #1abc9c; font-size: 0.7rem;">Qodana Scan</code>
-                        <div style="color: #888; font-size: 0.65rem;">Static analysis, security, smells</div>
-                    </div>
-                    <div style="color: #1abc9c; font-size: 0.65rem; margin-top: 6px;">Issues? → Back to Step 4</div>
-                </div>
-
-                <!-- Step 8: Commit -->
-                <div style="background: rgba(155,89,182,0.1); border: 1px solid rgba(155,89,182,0.3); border-radius: 8px; padding: 12px;">
-                    <div style="color: #9b59b6; font-weight: 600; margin-bottom: 8px;">8. Commit</div>
-                    <div style="color: #888; font-size: 0.75rem;">All gates passed. Conventional commit. Mark PRD item complete.</div>
-                    <div style="color: #e74c3c; font-size: 0.7rem; margin-top: 8px;">More items? → Step 3</div>
-                    <div style="color: #9b59b6; font-size: 0.7rem;">All done? → Exit</div>
-                </div>
-            </div>
-
-            <div class="cmd" style="margin-top: 15px;">
-                <span class="prompt">$</span> claude "<span style="color:#3498db">/ralph-loop</span> <span class="arg">PRD.md</span>"
-                <span style="color: #666; margin-left: 20px;"># Standard mode</span><br>
-                <span class="prompt">$</span> claude "<span style="color:#3498db">/ralph-loop</span> <span class="arg">PRD.md</span> <span class="flag">--external</span>"
-                <span style="color: #666; margin-left: 20px;"># + Gemini/Qodana</span>
-            </div>
-
-            <div class="insight">
-                <p>"The canon isn't advice—it's the algorithm. Each master provides a specific lens at the right moment."</p>
+            <div>
+                <h3 class="legacy-code" style="margin-bottom: 15px;">Legacy Code: Understand First</h3>
+                <ul style="color: #aaa; line-height: 2; list-style: none;">
+                    <li>• Start with existing code</li>
+                    <li>• Find seams for safe changes</li>
+                    <li>• Characterize before changing</li>
+                    <li>• Canon: Feathers, Fowler, refactoring masters</li>
+                </ul>
             </div>
         </div>
-    </section>
+    </div>
+    <div class="scroll-hint">Space / ↓</div>
+</section>
 
-    <script>
-        const pages = document.querySelectorAll('.page');
-        let currentPage = 0;
+<!-- PAGE 3: BASELINE BRAIN -->
+<section class="page page-3" id="page3">
+    <div class="page-number">3 / 6</div>
+    <div class="page-content">
+        <h1>The Baseline Brain</h1>
+        <p class="subtitle">Six masters always active in every interaction. They create productive tensions.</p>
 
-        document.addEventListener('keydown', (e) => {
-            if (e.code === 'Space' || e.code === 'ArrowDown' || e.code === 'PageDown') {
-                e.preventDefault();
-                if (currentPage < pages.length - 1) {
-                    currentPage++;
-                    pages[currentPage].scrollIntoView({ behavior: 'smooth' });
-                }
-            } else if (e.code === 'ArrowUp' || e.code === 'PageUp') {
-                e.preventDefault();
-                if (currentPage > 0) {
-                    currentPage--;
-                    pages[currentPage].scrollIntoView({ behavior: 'smooth' });
-                }
+        <div class="brain-grid">
+            <div class="brain-card">
+                <div class="brain-name">Kernighan</div>
+                <div class="brain-focus">Clarity</div>
+            </div>
+            <div class="brain-card">
+                <div class="brain-name">Thompson</div>
+                <div class="brain-focus">Pragmatism</div>
+            </div>
+            <div class="brain-card">
+                <div class="brain-name">Pike</div>
+                <div class="brain-focus">Composition</div>
+            </div>
+            <div class="brain-card">
+                <div class="brain-name">Joy</div>
+                <div class="brain-focus">Resilience</div>
+            </div>
+            <div class="brain-card">
+                <div class="brain-name">Linus</div>
+                <div class="brain-focus">Taste</div>
+            </div>
+            <div class="brain-card">
+                <div class="brain-name">Dijkstra</div>
+                <div class="brain-focus">Rigor</div>
+            </div>
+        </div>
+
+        <h2 style="margin: 30px 0 15px; color: #888;">Base Practices — Always Active</h2>
+        <div class="practice-grid">
+            <div class="practice-card security">
+                <div class="practice-title security">Security</div>
+                <div class="practice-names">Bruce Schneier<br>OWASP</div>
+            </div>
+            <div class="practice-card testing">
+                <div class="practice-title testing">Testing</div>
+                <div class="practice-names">Kent C. Dodds<br>Gerard Meszaros<br>Michael Feathers</div>
+            </div>
+            <div class="practice-card engineering">
+                <div class="practice-title engineering">Engineering</div>
+                <div class="practice-names">Henry Petroski<br>Nancy Leveson<br>Nassim Taleb</div>
+            </div>
+            <div class="practice-card docs">
+                <div class="practice-title" style="color: #1abc9c;">Docs</div>
+                <div class="practice-names">Daniele Procida</div>
+            </div>
+        </div>
+
+        <div class="insight">
+            <p>Claude knows best practices. Canon makes it apply them.</p>
+        </div>
+    </div>
+    <div class="scroll-hint">Space / ↓</div>
+</section>
+
+<!-- PAGE 4: CANON BY FLOW -->
+<section class="page page-4" id="page4">
+    <div class="page-number">4 / 6</div>
+    <div class="page-content">
+        <h1>Canon by Flow</h1>
+        <p class="subtitle">Different starting points invoke different masters at each phase.</p>
+
+        <div class="dual-flow">
+            <div class="flow-column new">
+                <div class="flow-title new-code">New Code Canon</div>
+
+                <h3 style="color:#888;margin:15px 0 10px;font-size:0.9rem;">PLANNING</h3>
+                <div class="canon-row" style="margin-bottom:15px;">
+                    <span class="canon-pill baseline">/pike</span>
+                    <span class="canon-pill language">/bloch</span>
+                    <span class="canon-pill security">/schneier</span>
+                </div>
+                <p style="color:#666;font-size:0.8rem;margin-bottom:20px;">Architecture, API design, security model</p>
+
+                <h3 style="color:#888;margin:15px 0 10px;font-size:0.9rem;">STRUCTURE</h3>
+                <div class="canon-row" style="margin-bottom:15px;">
+                    <span class="canon-pill engineering">/evans</span>
+                    <span class="canon-pill baseline">/linus</span>
+                    <span class="canon-pill language">/bloch</span>
+                    <span class="canon-pill engineering">/gang-of-four</span>
+                </div>
+                <p style="color:#666;font-size:0.8rem;margin-bottom:20px;">Domain modeling, data structures first, type design</p>
+
+                <h3 style="color:#888;margin:15px 0 10px;font-size:0.9rem;">IMPLEMENTATION</h3>
+                <div class="canon-row" style="margin-bottom:15px;">
+                    <span class="canon-pill language">/bloch (Java)</span>
+                    <span class="canon-pill language">/boris-cherny (TS)</span>
+                    <span class="canon-pill language">/hettinger (Python)</span>
+                    <span class="canon-pill language">/pike (Go)</span>
+                </div>
+                <p style="color:#666;font-size:0.8rem;">Language-specific idioms and patterns</p>
+            </div>
+
+            <div class="flow-column legacy">
+                <div class="flow-title legacy-code">Legacy Code Canon</div>
+
+                <h3 style="color:#888;margin:15px 0 10px;font-size:0.9rem;">PLANNING</h3>
+                <div class="canon-row" style="margin-bottom:15px;">
+                    <span class="canon-pill testing">/feathers</span>
+                    <span class="canon-pill engineering">/fowler</span>
+                    <span class="canon-pill engineering">/taleb</span>
+                </div>
+                <p style="color:#666;font-size:0.8rem;margin-bottom:20px;">Find seams, identify smells, assess risk</p>
+
+                <h3 style="color:#888;margin:15px 0 10px;font-size:0.9rem;">STRUCTURE</h3>
+                <div class="canon-row" style="margin-bottom:15px;">
+                    <span class="canon-pill engineering">/evans</span>
+                    <span class="canon-pill testing">/feathers</span>
+                </div>
+                <p style="color:#666;font-size:0.8rem;margin-bottom:20px;">Document existing domain, find hidden aggregates</p>
+
+                <h3 style="color:#888;margin:15px 0 10px;font-size:0.9rem;">REFACTORING</h3>
+                <div class="canon-row" style="margin-bottom:15px;">
+                    <span class="canon-pill testing">/feathers</span>
+                    <span class="canon-pill engineering">/fowler</span>
+                    <span class="canon-pill baseline">/liskov</span>
+                    <span class="canon-pill baseline">/kernighan</span>
+                    <span class="canon-pill engineering">/gang-of-four</span>
+                </div>
+                <p style="color:#666;font-size:0.8rem;">Legacy techniques, refactoring catalog, SRP</p>
+            </div>
+        </div>
+
+        <div class="shared-section" style="margin-top: 20px;">
+            <div class="shared-title review">Review Canon — Same for Both Flows</div>
+            <div style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 20px; margin-top: 15px;">
+                <div>
+                    <h4 style="color:#fbbf24;margin-bottom:10px;">/review-hard</h4>
+                    <div class="canon-row">
+                        <span class="canon-pill baseline">/dijkstra</span>
+                        <span class="canon-pill security">/schneier</span>
+                        <span class="canon-pill security">/owasp</span>
+                    </div>
+                    <p style="color:#666;font-size:0.8rem;margin-top:8px;">Correctness, think like attacker, OWASP Top 10</p>
+                </div>
+                <div>
+                    <h4 style="color:#2ecc71;margin-bottom:10px;">/test</h4>
+                    <div class="canon-row">
+                        <span class="canon-pill testing">/dodds</span>
+                        <span class="canon-pill testing">/meszaros</span>
+                    </div>
+                    <p style="color:#666;font-size:0.8rem;margin-top:8px;">Testing Trophy, xUnit patterns</p>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="scroll-hint">Space / ↓</div>
+</section>
+
+<!-- PAGE 5: DOMAIN MASTERS -->
+<section class="page page-5" id="page5">
+    <div class="page-number">5 / 6</div>
+    <div class="page-content">
+        <h1>Domain Masters</h1>
+        <p class="subtitle">Language and framework experts loaded per profile.</p>
+
+        <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 20px;">
+            <div class="practice-card" style="border-color: #3498db;">
+                <div class="practice-title" style="color: #3498db;">Python</div>
+                <div class="practice-names">Raymond Hettinger<br>David Beazley<br>Luciano Ramalho<br>Brett Slatkin</div>
+            </div>
+            <div class="practice-card" style="border-color: #3498db;">
+                <div class="practice-title" style="color: #3498db;">JavaScript / TypeScript</div>
+                <div class="practice-names">Kyle Simpson<br>Boris Cherny<br>Douglas Crockford<br>Dan Abramov</div>
+            </div>
+            <div class="practice-card" style="border-color: #3498db;">
+                <div class="practice-title" style="color: #3498db;">Java</div>
+                <div class="practice-names">Joshua Bloch<br>Gang of Four<br>Barbara Liskov</div>
+            </div>
+            <div class="practice-card" style="border-color: #3498db;">
+                <div class="practice-title" style="color: #3498db;">C#</div>
+                <div class="practice-names">Jon Skeet<br>Stephen Cleary<br>Anders Hejlsberg</div>
+            </div>
+            <div class="practice-card" style="border-color: #e91e63;">
+                <div class="practice-title" style="color: #e91e63;">Visualization</div>
+                <div class="practice-names">Mike Bostock<br>Edward Tufte<br>Stephen Few<br>Cole Knaflic</div>
+            </div>
+            <div class="practice-card" style="border-color: #e91e63;">
+                <div class="practice-title" style="color: #e91e63;">Angular</div>
+                <div class="practice-names">Miško Hevery<br>John Papa<br>Deborah Kurata</div>
+            </div>
+            <div class="practice-card" style="border-color: #9c27b0;">
+                <div class="practice-title" style="color: #9c27b0;">UI/UX</div>
+                <div class="practice-names" style="font-size:0.75rem;">Dieter Rams, Don Norman<br>Alan Cooper, Brad Frost<br>Luke Wroblewski</div>
+            </div>
+            <div class="practice-card" style="border-color: #ff9800;">
+                <div class="practice-title" style="color: #ff9800;">Business</div>
+                <div class="practice-names">Michael Porter<br>Richard Rumelt<br>Hamilton Helmer</div>
+            </div>
+            <div class="practice-card" style="border-color: #1abc9c;">
+                <div class="practice-title" style="color: #1abc9c;">Writing</div>
+                <div class="practice-names">William Zinsser<br>Strunk & White<br>Stephen King</div>
+            </div>
+        </div>
+    </div>
+    <div class="scroll-hint">Space / ↓</div>
+</section>
+
+<!-- PAGE 6: QUICK REFERENCE -->
+<section class="page page-6" id="page6">
+    <div class="page-number">6 / 6</div>
+    <div class="page-content">
+        <h1>Quick Reference</h1>
+        <p class="subtitle">All workflow commands at a glance.</p>
+
+        <div class="cmd-grid">
+            <div class="cmd-group">
+                <h3 class="new-code">New Code Commands</h3>
+                <div class="cmd-item new-code">/plan</div>
+                <div class="cmd-desc">Create plan for new feature</div>
+                <div class="cmd-item new-code">/structure-first</div>
+                <div class="cmd-desc">Design data structures</div>
+                <div class="cmd-item new-code">/build-from-plan</div>
+                <div class="cmd-desc">Implement from plan</div>
+                <div class="cmd-item new-code">/build-from-plan [name]</div>
+                <div class="cmd-desc">Implement specific plan</div>
+            </div>
+
+            <div class="cmd-group">
+                <h3 class="legacy-code">Legacy Code Commands</h3>
+                <div class="cmd-item legacy-code">/plan [file]</div>
+                <div class="cmd-desc">Plan refactoring</div>
+                <div class="cmd-item legacy-code">/structure-first</div>
+                <div class="cmd-desc">Document existing structure</div>
+                <div class="cmd-item legacy-code">/refactor-clean [file]</div>
+                <div class="cmd-desc">Refactor target file</div>
+                <div class="cmd-item legacy-code">/refactor-clean</div>
+                <div class="cmd-desc">Refactor recent code</div>
+            </div>
+
+            <div class="cmd-group">
+                <h3 class="review">Review Commands</h3>
+                <div class="cmd-item testing">/test [level]</div>
+                <div class="cmd-desc">Write tests (unit/integration/e2e)</div>
+                <div class="cmd-item review">/review-hard</div>
+                <div class="cmd-desc">Adversarial self-review</div>
+                <div class="cmd-item review">/gemini-review</div>
+                <div class="cmd-desc">External AI review</div>
+                <div class="cmd-item review">/qodana-review</div>
+                <div class="cmd-desc">Static analysis</div>
+            </div>
+        </div>
+
+        <div class="insight" style="margin-top: 30px;">
+            <p>"Who has solved this before, and better than I could?"</p>
+        </div>
+
+        <div style="text-align: center; margin-top: 30px; color: #666; font-size: 0.85rem;">
+            <a href="workflow-visualization.html" style="color: #60a5fa; text-decoration: none;">Interactive Visualization</a> &middot;
+            <a href="docs/WORKFLOW-GUIDE.md" style="color: #60a5fa; text-decoration: none;">Full Documentation</a> &middot;
+            <a href="docs/BASELINE-BRAIN.md" style="color: #60a5fa; text-decoration: none;">Baseline Brain Details</a>
+        </div>
+    </div>
+</section>
+
+<script>
+    const pages = document.querySelectorAll('.page');
+    let currentPage = 0;
+
+    document.addEventListener('keydown', (e) => {
+        if (e.code === 'Space' || e.code === 'ArrowDown' || e.code === 'PageDown') {
+            e.preventDefault();
+            if (currentPage < pages.length - 1) {
+                currentPage++;
+                pages[currentPage].scrollIntoView({ behavior: 'smooth' });
+            }
+        } else if (e.code === 'ArrowUp' || e.code === 'PageUp') {
+            e.preventDefault();
+            if (currentPage > 0) {
+                currentPage--;
+                pages[currentPage].scrollIntoView({ behavior: 'smooth' });
+            }
+        }
+    });
+
+    const observer = new IntersectionObserver((entries) => {
+        entries.forEach(entry => {
+            if (entry.isIntersecting) {
+                currentPage = Array.from(pages).indexOf(entry.target);
             }
         });
+    }, { threshold: 0.5 });
 
-        const observer = new IntersectionObserver((entries) => {
-            entries.forEach(entry => {
-                if (entry.isIntersecting) {
-                    currentPage = Array.from(pages).indexOf(entry.target);
-                }
-            });
-        }, { threshold: 0.5 });
-
-        pages.forEach(page => observer.observe(page));
-    </script>
+    pages.forEach(page => observer.observe(page));
+</script>
 </body>
 </html>
