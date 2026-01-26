@@ -1,6 +1,6 @@
 # UI/UX Canon
 
-11 experts providing prescriptive, concrete rules for building beautiful interfaces without being a designer.
+12 experts providing prescriptive, concrete rules for building beautiful interfaces without being a designer.
 
 ## The Experts
 
@@ -8,6 +8,7 @@
 |-------|--------|-------|-------|
 | **Philosophy** | Dieter Rams | 10 Principles - less but better | `/rams` |
 | **Psychology** | Don Norman | Affordances, feedback, mental models | `/norman` |
+| **Goal Design** | Alan Cooper | Goal-directed design, eliminate excise | `/cooper` |
 | **Information** | Edward Tufte | Data-ink ratio, clarity, no chartjunk | `/tufte` |
 | **Visual** | Jony Ive | Minimalism, material honesty, depth | `/ive` |
 | **Typography** | Mike Kruzeniski | Type-first hierarchy, Fluent | `/kruzeniski` |
@@ -25,15 +26,16 @@ Apply experts in this order:
 ```
 1. PHILOSOPHY   → /rams       "What can we remove?"
 2. PSYCHOLOGY   → /norman     "How will users understand this?"
-3. STRUCTURE    → /frost      "What components do we need?"
-4. VISUAL       → /ive        "How should it look?"
-5. TYPOGRAPHY   → /kruzeniski "How does type create hierarchy?"
-6. INTERACTION  → /buxton     "How do users interact?"
-7. PATTERNS     → /wroblewski "How does mobile work?"
-8. MOTION       → /duarte     "How do things move?"
-9. DATA VIZ     → /tufte      "How do we show data?"
-10. GOVERNANCE  → /curtis     "How do we document this?"
-11. HANDOFF     → /mall       "How do we ship this?"
+3. GOALS        → /cooper     "What goal does this serve? Eliminate excise."
+4. STRUCTURE    → /frost      "What components do we need?"
+5. VISUAL       → /ive        "How should it look?"
+6. TYPOGRAPHY   → /kruzeniski "How does type create hierarchy?"
+7. INTERACTION  → /buxton     "How do users interact?"
+8. PATTERNS     → /wroblewski "How does mobile work?"
+9. MOTION       → /duarte     "How do things move?"
+10. DATA VIZ    → /tufte      "How do we show data?"
+11. GOVERNANCE  → /curtis     "How do we document this?"
+12. HANDOFF     → /mall       "How do we ship this?"
 ```
 
 ## Quick Reference
@@ -96,6 +98,9 @@ autoInvoke:
   - context: Designing forms
     action: INVOKE `/wroblewski` then `/norman`
 
+  - context: Modals, dialogs, confirmations
+    action: INVOKE `/cooper` for goal-directed design
+
   - context: Adding animation
     action: INVOKE `/duarte`
 
@@ -114,21 +119,22 @@ autoInvoke:
 
 ## Combined Score
 
-Rate any UI against all 11 experts:
+Rate any UI against all 12 experts:
 
 | Expert | Score (0-10) | Weight |
 |--------|--------------|--------|
-| Rams (simplicity) | | 15% |
-| Norman (usability) | | 15% |
+| Rams (simplicity) | | 12% |
+| Norman (usability) | | 12% |
+| Cooper (goal-directed) | | 12% |
 | Ive (visual) | | 10% |
-| Kruzeniski (typography) | | 10% |
+| Kruzeniski (typography) | | 8% |
 | Duarte (motion) | | 5% |
-| Buxton (interaction) | | 10% |
+| Buxton (interaction) | | 8% |
 | Wroblewski (mobile) | | 10% |
 | Frost (components) | | 10% |
 | Curtis (documentation) | | 5% |
-| Mall (collaboration) | | 5% |
-| Tufte (data viz) | | 5% |
+| Mall (collaboration) | | 4% |
+| Tufte (data viz) | | 4% |
 | **Total** | | **100%** |
 
 **Passing score: 70+**
@@ -148,6 +154,7 @@ canon/ui-ux/
 ├── README.md         (this file)
 ├── rams/SKILL.md
 ├── norman/SKILL.md
+├── cooper/SKILL.md
 ├── ive/SKILL.md
 ├── kruzeniski/SKILL.md
 ├── duarte/SKILL.md

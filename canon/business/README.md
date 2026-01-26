@@ -51,4 +51,39 @@ These skills complement each other:
 
 ---
 
+## Shared from Engineering Canon
+
+These engineering philosophy skills apply directly to business:
+
+| Skill | Master | Business Application |
+|-------|--------|---------------------|
+| `/taleb` | Nassim Taleb | Risk management, optionality in investments, skin in the game for executives, antifragile organizations |
+| `/petroski` | Henry Petroski | Learning from business failures, constraints driving innovation, case study methodology |
+
+### When to Use
+
+| Situation | Skill |
+|-----------|-------|
+| Risk assessment, investment decisions | `taleb` (bounded downside, optionality) |
+| Post-mortem on failed initiative | `petroski` (form follows failure) |
+| Organizational design | `taleb` (skin in the game, antifragility) |
+| Innovation under constraints | `petroski` (constraints drive innovation) |
+| Strategic bets | `taleb` (barbell strategy) |
+| Learning from competitors' failures | `petroski` (case study methodology) |
+
+### Key Business Principles
+
+**From Taleb:**
+- Don't trust advice from consultants without skin in the game
+- Prefer optionality over optimization in uncertain markets
+- Barbell strategy: safe core business + risky experiments
+- Via negativa: what to stop doing matters more than what to start
+
+**From Petroski:**
+- Study why competitors failed, not just why they succeeded
+- Constraints (budget, time, regulation) force innovation
+- Success breeds complacency - the dangerous time is after a winning streak
+
+---
+
 *"The essence of strategy is choosing what not to do."* — Michael Porter
