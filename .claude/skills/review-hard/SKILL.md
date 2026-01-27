@@ -1,6 +1,6 @@
 # --review-hard: Integrated Code Review
 
-Rigorous multi-stage review using external analyzers before marking code complete.
+Integrated multi-stage code review using external analyzers before marking code complete.
 
 ## Purpose
 
@@ -68,21 +68,23 @@ Catch structural issues, security vulnerabilities, and quality problems through:
 #### Error Handling & Async
 - [ ] All error paths handled explicitly
 - [ ] No floating promises (all awaited or explicitly fire-and-forget)
-- [ ] Async errors caught and handled
+- [ ] Async operations have .catch() or try/catch - no unhandled rejections
 - [ ] Consistent error return pattern (throw OR Result type, not mixed)
 
 #### TypeScript Quality (Cherny)
-- [ ] No `any` types (use `unknown` for truly unknown)
-- [ ] No non-null assertions `!` without justification comment
+- [ ] No 'any' types (use 'unknown' for truly unknown)
+- [ ] No non-null assertions (!) without justification comment
 - [ ] Discriminated unions for state machines
-- [ ] Exhaustive switch with `never` guard for union types
+- [ ] Exhaustive switch with 'never' guard for union types
 
 #### Security (OWASP)
-- [ ] User input validated at system boundaries
-- [ ] No secrets/credentials in code
-- [ ] Parameterized queries only (no string concatenation)
-- [ ] No `eval()`, `Function()`, or dynamic code execution
-- [ ] No sensitive data in logs
+- [ ] User input validated and sanitized at boundaries (prevent XSS, injection)
+- [ ] No secrets/credentials in code (use env vars or secrets manager)
+- [ ] Parameterized queries only - never concatenate user input into SQL
+- [ ] No eval(), Function(), or dynamic code execution
+- [ ] No sensitive data in logs (mask PII, tokens, passwords)
+- [ ] Rate limiting on authentication and expensive operations
+- [ ] Principle of least privilege applied to permissions
 
 #### Dependencies & Architecture
 - [ ] No circular imports
@@ -95,12 +97,15 @@ Catch structural issues, security vulnerabilities, and quality problems through:
 - [ ] No magic numbers/strings (use named constants)
 - [ ] No abbreviations except standard (id, url, config, etc.)
 
-#### Testing (Dodds Trophy)
+#### Testing Principles
+Testing trophy approach: favor integration tests over unit tests for confidence.
 - [ ] Integration test covers the feature path
 - [ ] Tests assert behavior, not implementation details
 - [ ] No mocking of internal modules (only external boundaries)
 
 ### Stage 2: Gemini Review (For Logic/Architecture)
+
+**Gemini** is Google's LLM used here to identify architectural issues, logic errors, and code quality problems that static analysis misses.
 
 Use the `gemini_review` MCP tool:
 
@@ -121,6 +126,8 @@ gemini_review({
 
 ### Stage 3: Qodana Scan (For Static Analysis)
 
+**Qodana** is JetBrains' static analysis tool that detects code smells, potential bugs, security vulnerabilities, and style issues across many languages.
+
 Use the `qodana_scan` and `qodana_problems` MCP tools:
 
 ```
@@ -137,6 +144,21 @@ qodana_problems({
   limit: 20
 })
 ```
+
+## Failure Handling
+
+When external tools fail:
+
+| Tool | On Failure | Action |
+|------|------------|--------|
+| Gemini | Network/API error | Retry once, then continue with self-review only |
+| Gemini | Rate limited | Wait 30s, retry once, then skip |
+| Qodana | Docker unavailable | Skip Qodana, note in output |
+| Qodana | Scan timeout | Report partial results if available |
+
+**Thresholds:**
+- Max 2 retries per tool
+- If both external tools fail, complete self-review and flag for manual follow-up
 
 ## Integration Pattern
 
@@ -237,7 +259,7 @@ Key findings:
 
 ### Blocking (Must Fix)
 - [ ] No CRITICAL or HIGH Qodana issues
-- [ ] No `any` types without explicit justification
+- [ ] No 'any' types without explicit justification
 - [ ] No floating promises
 - [ ] No security violations (OWASP items)
 - [ ] All error paths handled
