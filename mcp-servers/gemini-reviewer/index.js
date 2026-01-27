@@ -69,10 +69,21 @@ Find:
 For each finding, specify the exact attack scenario and recommended fix.`,
 };
 
+// Base adversarial mindset applied to ALL reviews
+const ADVERSARIAL_BASELINE = `
+ALWAYS apply adversarial thinking to your review:
+- What if any step in a sequence fails mid-way? Is state left inconsistent?
+- Who controls each input (env vars, user input, DB data)? Can it be tampered?
+- Does this work in multi-instance deployment? (in-memory state isn't shared)
+- Can tokens/sessions be replayed? Are they properly invalidated?
+- Are multi-step state changes atomic or can partial updates occur?
+`;
+
 async function reviewWithGemini(code, context, focus = "general") {
   let prompt = `Review the following code:\n\n\`\`\`\n${code}\n\`\`\`\n\n`;
   if (context) prompt += `Context: ${context}\n\n`;
   prompt += FOCUS_PROMPTS[focus] || FOCUS_PROMPTS.general;
+  prompt += "\n\n" + ADVERSARIAL_BASELINE;
   prompt += "\n\nProvide specific, actionable feedback with code examples where helpful.";
 
   const model = genAI.getGenerativeModel({ model: "gemini-2.0-flash" });
