@@ -1,0 +1,431 @@
+#!/bin/bash
+#
+# ralph - Autonomous PRD implementation with quality gates
+#
+# Usage:
+#   ralph PRD.md --yes           # Run autonomously
+#   ralph PRD.md --resume        # Continue from checkpoint
+#   ralph PRD.md --skip-scan     # Skip Qodana scan
+#   ralph --create-baseline      # Create Qodana baseline
+#
+
+set -e
+
+# Colors
+RED='\033[0;31m'
+GREEN='\033[0;32m'
+YELLOW='\033[1;33m'
+BLUE='\033[0;34m'
+CYAN='\033[0;36m'
+DIM='\033[2m'
+NC='\033[0m'
+
+# Arguments
+PRD="${1:-PRD.md}"
+MAX=50
+RESUME=false
+YES=false
+CREATE_BASELINE=false
+SKIP_SCAN=false
+LOG_DIR=".claude/ralph-logs"
+SESSIONS_DIR=".claude/sessions"
+BASELINE_FILE=".qodana/baseline.sarif.json"
+
+for arg in "$@"; do
+  case $arg in
+    --resume) RESUME=true; YES=true ;;
+    --yes|-y) YES=true ;;
+    --max=*) MAX="${arg#*=}" ;;
+    --create-baseline) CREATE_BASELINE=true ;;
+    --skip-scan|--skip-qodana) SKIP_SCAN=true ;;
+  esac
+done
+
+# Handle --create-baseline
+if [ "$CREATE_BASELINE" = true ]; then
+  echo "Creating Qodana baseline..."
+  mkdir -p .qodana
+  if qodana scan --project-dir . --results-dir .qodana/results > /dev/null 2>&1; then
+    if [ -f ".qodana/results/qodana.sarif.json" ]; then
+      cp .qodana/results/qodana.sarif.json "$BASELINE_FILE"
+      ISSUE_COUNT=$(grep -c '"level": "error"' "$BASELINE_FILE" 2>/dev/null || echo 0)
+      echo -e "${GREEN}✓${NC} Baseline created ($ISSUE_COUNT existing issues baselined)"
+    fi
+  else
+    echo -e "${RED}✗${NC} Failed to create baseline"
+  fi
+  exit 0
+fi
+
+mkdir -p .claude "$LOG_DIR" "$SESSIONS_DIR"
+
+# Stage indicator with spinner
+run_stage() {
+  local icon=$1
+  local name=$2
+  local pid=$3
+  local spin='⠋⠙⠹⠸⠼⠴⠦⠧⠇⠏'
+  local i=0
+  local start=$(date +%s)
+
+  while kill -0 "$pid" 2>/dev/null; do
+    local now=$(date +%s)
+    local elapsed=$((now - start))
+    local m=$((elapsed / 60))
+    local s=$((elapsed % 60))
+    printf "\r  %s ${CYAN}%s${NC} %s ${DIM}[%02d:%02d]${NC}  " "$icon" "${spin:i++%10:1}" "$name" "$m" "$s"
+    sleep 0.1
+  done
+
+  local total=$(($(date +%s) - start))
+  printf "\r\033[K"
+}
+
+show_result() {
+  local icon=$1
+  local name=$2
+  local status=$3
+  local detail=$4
+  local time=$5
+
+  if [ "$status" = "ok" ]; then
+    printf "  %s ${GREEN}✓${NC} %s" "$icon" "$name"
+  elif [ "$status" = "skip" ]; then
+    printf "  %s ${YELLOW}○${NC} %s" "$icon" "$name"
+  else
+    printf "  %s ${RED}✗${NC} %s" "$icon" "$name"
+  fi
+
+  [ -n "$detail" ] && printf " ${DIM}%s${NC}" "$detail"
+  [ -n "$time" ] && printf " ${DIM}[%s]${NC}" "$time"
+  echo ""
+}
+
+# Helper functions
+count_incomplete() {
+  grep -cE "^[[:space:]]*[-*+][[:space:]]*\[[[:space:]]\]" "$PRD" 2>/dev/null | head -1 || echo 0
+}
+
+get_next_item() {
+  grep -E "^[[:space:]]*[-*+][[:space:]]*\[[[:space:]]\]" "$PRD" | head -1 | sed 's/^[[:space:]]*[-*+][[:space:]]*\[[[:space:]]\][[:space:]]*//'
+}
+
+mark_complete() {
+  local item="$1"
+  local escaped=$(printf '%s' "$item" | sed 's/[[\.*^$()+?{|]/\\&/g')
+  sed -i.bak "s/\([-*+][[:space:]]*\)\[[[:space:]]\]\([[:space:]]*${escaped}\)/\1[x]\2/" "$PRD"
+  rm -f "$PRD.bak"
+}
+
+format_time() {
+  local secs=$1
+  printf "%02d:%02d" $((secs / 60)) $((secs % 60))
+}
+
+# Ensure git repo exists
+if ! git rev-parse --git-dir >/dev/null 2>&1; then
+  git init && git add -A && git commit -m "Initial commit"
+fi
+
+# Validate PRD
+if [ ! -f "$PRD" ]; then
+  echo -e "${RED}Error:${NC} PRD not found: $PRD"
+  exit 1
+fi
+
+initial_incomplete=$(count_incomplete)
+if [ "$initial_incomplete" -eq 0 ]; then
+  echo -e "${GREEN}✓${NC} All items complete!"
+  exit 0
+fi
+
+# Header
+echo ""
+echo -e "${CYAN}Ralph${NC} — $PRD"
+echo -e "${DIM}$initial_incomplete items remaining${NC}"
+echo ""
+
+# Resume context
+RESUME_CONTEXT=""
+if [ "$RESUME" = true ]; then
+  latest=$(ls -t "$SESSIONS_DIR"/progress-*.md 2>/dev/null | head -1)
+  if [ -n "$latest" ]; then
+    echo -e "${DIM}Resuming from: $latest${NC}"
+    RESUME_CONTEXT=$(cat "$latest")
+  fi
+fi
+
+[ "$YES" = false ] && { echo "Press Enter to start..."; read -r; }
+
+# Stage prompts
+read -r -d '' BUILD_PROMPT << 'EOF' || true
+BUILD ONE PRD ITEM
+
+Read CLAUDE.md and __PRD__, then implement the NEXT item marked '- [ ]'.
+
+Steps:
+1. Find next incomplete item in PRD
+2. Write the code
+3. Write tests
+4. Run tests - must pass
+5. Commit changes
+
+Output at end:
+BUILD_COMPLETE: [item name]
+TESTS_PASSED: yes/no
+COMMIT_SHA: [hash]
+
+If blocked: BUILD_FAILED: [reason]
+EOF
+
+read -r -d '' CLEAN_PROMPT << 'EOF' || true
+CLEAN THE CODE
+
+Review code from last commit and apply structural improvements.
+
+Steps:
+1. Get changed files: git diff HEAD~1 --name-only
+2. For each file, apply:
+   - Extract methods over 30 lines
+   - Improve unclear names (Kernighan)
+   - Apply single responsibility
+   - Remove duplication
+3. Commit improvements
+
+Output at end:
+METHODS_EXTRACTED: [count]
+NAMES_IMPROVED: [count]
+CLEAN_COMPLETE
+
+If nothing to clean: CLEAN_SKIPPED
+EOF
+
+read -r -d '' TEST_PROMPT << 'EOF' || true
+RUN TESTS
+
+Execute test suite and verify all pass.
+
+Steps:
+1. Run: npm test (or project equivalent)
+2. If failures, fix them
+3. Re-run until green
+
+Output at end:
+TESTS_TOTAL: [count]
+TESTS_PASSED: [count]
+TEST_COMPLETE
+
+If stuck: TEST_FAILED: [reason]
+EOF
+
+read -r -d '' REVIEW_PROMPT << 'EOF' || true
+EXPERT REVIEW
+
+Review code using Gemini with adversarial analysis.
+
+Steps:
+1. Get changed files: git diff HEAD~1 --name-only
+2. Read each changed file
+3. Call gemini_review MCP tool for each file
+4. For critical issues (atomicity, race conditions, trust boundaries):
+   a. Fix the issue
+   b. Commit fix
+   c. Re-run gemini_review to verify
+   d. Max 3 attempts per file
+
+Output at end:
+ISSUES_FOUND: [count]
+ISSUES_FIXED: [count]
+VERIFIED_CLEAN: yes/no
+REVIEW_COMPLETE
+EOF
+
+# Main loop
+items_done=0
+item_num=$((initial_incomplete - $(count_incomplete) + 1))
+
+for iter in $(seq 1 $MAX); do
+  LOG="$LOG_DIR/item${item_num}_$(date +%H%M%S)"
+
+  remaining=$(count_incomplete)
+  [ "$remaining" -eq 0 ] && break
+
+  CURRENT_ITEM=$(get_next_item)
+  total_items=$initial_incomplete
+
+  # Item header
+  echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
+  echo -e "📋 ${CYAN}$CURRENT_ITEM${NC} ($item_num of $total_items)"
+  echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
+  echo ""
+
+  # ═══════════════════════════════════════════════════════════
+  # STAGE 1: BUILD
+  # ═══════════════════════════════════════════════════════════
+  P1="${BUILD_PROMPT/__PRD__/$PRD}"
+  [ -n "$RESUME_CONTEXT" ] && [ "$iter" -eq 1 ] && P1="RESUME CONTEXT:\n$RESUME_CONTEXT\n\n$P1"
+
+  START=$(date +%s)
+  claude --dangerously-skip-permissions -p "$P1" --output-format json > "$LOG.build.json" 2>&1 &
+  run_stage "🔨" "Building..." $!
+  wait $!
+  BUILD_TIME=$(format_time $(($(date +%s) - START)))
+
+  RESULT=$(jq -r '.result // empty' "$LOG.build.json" 2>/dev/null)
+  echo "$RESULT" > "$LOG.build.log"
+
+  if grep -q "BUILD_COMPLETE" "$LOG.build.log" 2>/dev/null; then
+    TESTS=$(grep "TESTS_PASSED:" "$LOG.build.log" 2>/dev/null | tail -1 | sed 's/.*: *//')
+    show_result "🔨" "Building" "ok" "tests: $TESTS" "$BUILD_TIME"
+  else
+    show_result "🔨" "Building" "fail" "" "$BUILD_TIME"
+    echo -e "    ${DIM}$(tail -3 "$LOG.build.log" 2>/dev/null)${NC}"
+    sleep 2
+    continue
+  fi
+
+  # ═══════════════════════════════════════════════════════════
+  # STAGE 2: CLEAN
+  # ═══════════════════════════════════════════════════════════
+  START=$(date +%s)
+  claude --dangerously-skip-permissions -p "$CLEAN_PROMPT" --output-format json > "$LOG.clean.json" 2>&1 &
+  run_stage "🧹" "Cleaning..." $!
+  wait $!
+  CLEAN_TIME=$(format_time $(($(date +%s) - START)))
+
+  RESULT=$(jq -r '.result // empty' "$LOG.clean.json" 2>/dev/null)
+  echo "$RESULT" > "$LOG.clean.log"
+
+  if grep -q "CLEAN_COMPLETE" "$LOG.clean.log" 2>/dev/null; then
+    EXTRACTED=$(grep "METHODS_EXTRACTED:" "$LOG.clean.log" 2>/dev/null | tail -1 | sed 's/.*: *//')
+    RENAMED=$(grep "NAMES_IMPROVED:" "$LOG.clean.log" 2>/dev/null | tail -1 | sed 's/.*: *//')
+    show_result "🧹" "Cleaning" "ok" "${EXTRACTED:-0} extracted, ${RENAMED:-0} renamed" "$CLEAN_TIME"
+  elif grep -q "CLEAN_SKIPPED" "$LOG.clean.log" 2>/dev/null; then
+    show_result "🧹" "Cleaning" "skip" "nothing to clean" "$CLEAN_TIME"
+  else
+    show_result "🧹" "Cleaning" "ok" "" "$CLEAN_TIME"
+  fi
+
+  # ═══════════════════════════════════════════════════════════
+  # STAGE 3: TEST
+  # ═══════════════════════════════════════════════════════════
+  START=$(date +%s)
+  claude --dangerously-skip-permissions -p "$TEST_PROMPT" --output-format json > "$LOG.test.json" 2>&1 &
+  run_stage "🧪" "Testing..." $!
+  wait $!
+  TEST_TIME=$(format_time $(($(date +%s) - START)))
+
+  RESULT=$(jq -r '.result // empty' "$LOG.test.json" 2>/dev/null)
+  echo "$RESULT" > "$LOG.test.log"
+
+  if grep -q "TEST_COMPLETE" "$LOG.test.log" 2>/dev/null; then
+    PASSED=$(grep "TESTS_PASSED:" "$LOG.test.log" 2>/dev/null | tail -1 | sed 's/.*: *//')
+    TOTAL=$(grep "TESTS_TOTAL:" "$LOG.test.log" 2>/dev/null | tail -1 | sed 's/.*: *//')
+    show_result "🧪" "Testing" "ok" "${PASSED:-all}/${TOTAL:-all} passed" "$TEST_TIME"
+  else
+    show_result "🧪" "Testing" "fail" "" "$TEST_TIME"
+  fi
+
+  # ═══════════════════════════════════════════════════════════
+  # STAGE 4: CODE SCAN (Qodana)
+  # ═══════════════════════════════════════════════════════════
+  if [ "$SKIP_SCAN" = true ]; then
+    show_result "🔍" "Code scan" "skip" "--skip-scan" ""
+  elif command -v qodana &>/dev/null; then
+    START=$(date +%s)
+
+    QODANA_CMD="qodana scan --within-docker=false --project-dir . --results-dir .qodana/results --commit HEAD~1"
+    [ -f "$BASELINE_FILE" ] && QODANA_CMD="$QODANA_CMD --baseline $BASELINE_FILE"
+
+    $QODANA_CMD > "$LOG.scan.log" 2>&1 &
+    run_stage "🔍" "Code scan..." $!
+    wait $!
+    SCAN_TIME=$(format_time $(($(date +%s) - START)))
+
+    if [ -f ".qodana/results/qodana.sarif.json" ]; then
+      CRIT=$(jq '[.runs[].results[] | select(.level == "error")] | length' .qodana/results/qodana.sarif.json 2>/dev/null || echo 0)
+      if [ "$CRIT" -gt 0 ]; then
+        show_result "🔍" "Code scan" "ok" "$CRIT issues → fixing" "$SCAN_TIME"
+
+        ISSUES=$(jq '.runs[].results[] | select(.level == "error")' .qodana/results/qodana.sarif.json 2>/dev/null | head -100)
+        claude --dangerously-skip-permissions -p "Fix these issues. Commit when done. Output SCAN_FIXED when complete:\n$ISSUES" > "$LOG.scan.fix.log" 2>&1
+      else
+        show_result "🔍" "Code scan" "ok" "no issues" "$SCAN_TIME"
+      fi
+    else
+      show_result "🔍" "Code scan" "ok" "" "$SCAN_TIME"
+    fi
+  else
+    show_result "🔍" "Code scan" "skip" "qodana not installed" ""
+  fi
+
+  # ═══════════════════════════════════════════════════════════
+  # STAGE 5: EXPERT REVIEW (Gemini)
+  # ═══════════════════════════════════════════════════════════
+  START=$(date +%s)
+  claude --dangerously-skip-permissions -p "$REVIEW_PROMPT" --output-format json > "$LOG.review.json" 2>&1 &
+  run_stage "👁️" "Expert review..." $!
+  wait $!
+  REVIEW_TIME=$(format_time $(($(date +%s) - START)))
+
+  RESULT=$(jq -r '.result // empty' "$LOG.review.json" 2>/dev/null)
+  echo "$RESULT" > "$LOG.review.log"
+
+  if grep -q "REVIEW_COMPLETE" "$LOG.review.log" 2>/dev/null; then
+    FOUND=$(grep "ISSUES_FOUND:" "$LOG.review.log" 2>/dev/null | tail -1 | sed 's/.*: *//')
+    FIXED=$(grep "ISSUES_FIXED:" "$LOG.review.log" 2>/dev/null | tail -1 | sed 's/.*: *//')
+    CLEAN=$(grep "VERIFIED_CLEAN:" "$LOG.review.log" 2>/dev/null | tail -1 | sed 's/.*: *//')
+
+    if [ "$CLEAN" = "yes" ]; then
+      show_result "👁️" "Expert review" "ok" "${FIXED:-0} fixed, verified clean" "$REVIEW_TIME"
+    else
+      show_result "👁️" "Expert review" "ok" "${FOUND:-0} found, ${FIXED:-0} fixed" "$REVIEW_TIME"
+    fi
+  else
+    show_result "👁️" "Expert review" "ok" "" "$REVIEW_TIME"
+  fi
+
+  # ═══════════════════════════════════════════════════════════
+  # COMPLETE
+  # ═══════════════════════════════════════════════════════════
+  mark_complete "$CURRENT_ITEM"
+  NEW_REM=$(count_incomplete)
+
+  echo ""
+  if [ "$NEW_REM" -eq 0 ]; then
+    echo -e "✅ ${GREEN}Complete${NC} — all items done!"
+  else
+    echo -e "✅ ${GREEN}Complete${NC} → $NEW_REM items remaining"
+  fi
+  echo ""
+
+  items_done=$((items_done + 1))
+  item_num=$((item_num + 1))
+
+  # Checkpoint every 3 items
+  if [ $((items_done % 3)) -eq 0 ]; then
+    ts=$(date +%Y-%m-%dT%H-%M-%S)
+    PROG="$SESSIONS_DIR/progress-${ts}.md"
+    cat > "$PROG" << CHECKPOINT
+# Ralph Progress - $ts
+PRD: $PRD ($items_done items done, $NEW_REM remaining)
+Last item: $CURRENT_ITEM
+Resume: ralph $PRD --resume
+CHECKPOINT
+    git add "$PROG" && git commit -m "Checkpoint: $items_done items" 2>/dev/null || true
+    echo -e "${DIM}Checkpoint saved${NC}"
+  fi
+
+  sleep 1
+done
+
+# Final report
+echo ""
+echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
+remaining=$(count_incomplete)
+done_count=$((initial_incomplete - remaining))
+echo -e "📊 ${CYAN}Summary${NC}: $done_count/$initial_incomplete complete"
+echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
+grep -E "^[[:space:]]*[-*+][[:space:]]*\[" "$PRD" | head -10
+echo ""
+echo -e "${DIM}Logs: $LOG_DIR${NC}"
