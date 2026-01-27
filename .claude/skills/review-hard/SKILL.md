@@ -25,10 +25,12 @@ Catch structural issues, security vulnerabilities, and quality problems through:
 ```
 1. Self-review → [just do it]
 2. Call Gemini → [just call it, don't ask first]
-3. Gemini returns → [parse, don't ask]
-4. Call Qodana → [just call it, don't ask first]
-5. Qodana returns → [parse, don't ask]
-6. Return all results to caller → [done]
+3. Gemini returns → [parse findings, don't ask]
+4. FIX Gemini findings → [edit code to address issues]
+5. Call Qodana → [just call it, don't ask first]
+6. Qodana returns → [parse findings, don't ask]
+7. FIX Qodana HIGH/CRITICAL → [edit code to address issues]
+8. Return results with fixes applied → [done]
 ```
 
 ### WRONG (causes ralph to stop):
@@ -40,9 +42,11 @@ Catch structural issues, security vulnerabilities, and quality problems through:
 
 ### RIGHT (keeps ralph flowing):
 ```
-"Running Qodana scan..." → [calls tool]
-"Gemini found 3 issues. Proceeding to Qodana..." → [calls tool]
-"Review complete. Results: [summary]" → [returns to caller]
+"Running Gemini review..." → [calls tool]
+"Gemini found 3 issues. Fixing..." → [edits code]
+"Fixed 3 issues. Running Qodana..." → [calls tool]
+"Qodana found 2 HIGH issues. Fixing..." → [edits code]
+"Review complete. Fixed 5 issues total." → [returns to caller]
 ```
 
 **AUTONOMOUS MEANS AUTONOMOUS** - execute the full review pipeline without interruption.
@@ -144,6 +148,28 @@ qodana_problems({
   limit: 20
 })
 ```
+
+### Stage 4: Fix Findings (MANDATORY)
+
+**After each review stage, FIX the issues found before proceeding.**
+
+#### Gemini Findings
+For each Gemini finding:
+1. Read the specific file/line mentioned
+2. Apply the fix Gemini recommends
+3. If fix is unclear, use best judgment based on the issue type
+4. Track what was fixed
+
+#### Qodana Findings
+For HIGH and CRITICAL severity:
+1. Navigate to the file:line reported
+2. Fix the issue (security, bug, code smell)
+3. Re-run qodana_problems to verify fix
+
+#### What NOT to fix automatically
+- MODERATE/LOW Qodana issues (report only)
+- Findings that require architectural changes (flag for user)
+- Findings in files outside the current task scope
 
 ## Failure Handling
 
