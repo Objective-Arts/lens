@@ -374,7 +374,84 @@ export function listProfiles(): ComposableProfile[] {
  */
 export function getProfile(name: string): ComposableProfile | null {
   const profiles = listProfiles();
-  return profiles.find(p => p.name === name) ?? null;
+  const profile = profiles.find(p => p.name === name) ?? null;
+
+  if (!profile) {
+    return null;
+  }
+
+  // Resolve extends chain
+  return resolveProfileExtends(profile, profiles, new Set());
+}
+
+/**
+ * Resolve a profile's extends chain, merging parent profiles.
+ *
+ * @param profile - The profile to resolve
+ * @param allProfiles - All available profiles for lookup
+ * @param visited - Set of already-visited profile names (cycle detection)
+ * @returns Merged profile with all extended profiles applied
+ */
+function resolveProfileExtends(
+  profile: ComposableProfile,
+  allProfiles: ComposableProfile[],
+  visited: Set<string>
+): ComposableProfile {
+  // No extends - return as-is
+  if (!profile.extends) {
+    return profile;
+  }
+
+  // Cycle detection
+  if (visited.has(profile.name)) {
+    console.warn(`Circular extends detected: ${profile.name}`);
+    return profile;
+  }
+  visited.add(profile.name);
+
+  // Find parent profile
+  const parent = allProfiles.find(p => p.name === profile.extends);
+  if (!parent) {
+    console.warn(`Extended profile not found: ${profile.extends} (from ${profile.name})`);
+    return profile;
+  }
+
+  // Recursively resolve parent's extends
+  const resolvedParent = resolveProfileExtends(parent, allProfiles, visited);
+
+  // Merge parent into child (child overrides parent)
+  return mergeProfiles(resolvedParent, profile);
+}
+
+/**
+ * Merge two profiles, with child overriding/extending parent.
+ */
+function mergeProfiles(parent: ComposableProfile, child: ComposableProfile): ComposableProfile {
+  return {
+    name: child.name,
+    description: child.description ?? parent.description,
+    projectType: child.projectType ?? parent.projectType,
+    composable: child.composable ?? parent.composable,
+    // Don't carry extends forward - it's been resolved
+    skills: {
+      security: mergeArrays(parent.skills?.security ?? [], child.skills?.security ?? []),
+      tech: mergeArrays(parent.skills?.tech ?? [], child.skills?.tech ?? []),
+      canon: mergeArrays(parent.skills?.canon ?? [], child.skills?.canon ?? []),
+      global: mergeArrays(parent.skills?.global ?? [], child.skills?.global ?? [])
+    },
+    agents: mergeArrays(parent.agents ?? [], child.agents ?? []),
+    commands: mergeArrays(parent.commands ?? [], child.commands ?? []),
+    claudeMd: {
+      standards: mergeArrays(parent.claudeMd?.standards ?? [], child.claudeMd?.standards ?? []),
+      antiPatterns: mergeArrays(parent.claudeMd?.antiPatterns ?? [], child.claudeMd?.antiPatterns ?? []),
+      autoInvoke: mergeArrays(parent.claudeMd?.autoInvoke ?? [], child.claudeMd?.autoInvoke ?? [])
+    },
+    mcpServers: {
+      enable: mergeArrays(parent.mcpServers?.enable ?? [], child.mcpServers?.enable ?? []),
+      disable: mergeArrays(parent.mcpServers?.disable ?? [], child.mcpServers?.disable ?? [])
+    },
+    ralph: { ...parent.ralph, ...child.ralph }
+  };
 }
 
 /**
@@ -385,7 +462,14 @@ export function getProfile(name: string): ComposableProfile | null {
  */
 export async function getProfileAsync(name: string): Promise<ComposableProfile | null> {
   const profiles = await listProfilesAsync();
-  return profiles.find(p => p.name === name) ?? null;
+  const profile = profiles.find(p => p.name === name) ?? null;
+
+  if (!profile) {
+    return null;
+  }
+
+  // Resolve extends chain
+  return resolveProfileExtends(profile, profiles, new Set());
 }
 
 // ============================================================================
@@ -1082,7 +1166,7 @@ async function applyCommandsToProject(
   projectPath: string,
   result: ApplyResult
 ): Promise<void> {
-  if (!profile.commands) return;
+  if (!profile.commands || profile.commands.length === 0) return;
 
   const projectClaudePath = path.join(projectPath, CLAUDE_DIR_NAME);
   const globalClaudePath = path.join(homedir(), CLAUDE_DIR_NAME);
