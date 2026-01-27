@@ -1,5 +1,5 @@
 ---
-name: raymond-hettinger
+name: hettinger
 description: "Hettinger's Pythonic idioms - itertools, descriptors, 'there must be a better way'"
 ---
 

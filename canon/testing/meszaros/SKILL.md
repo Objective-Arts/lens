@@ -1,5 +1,5 @@
 ---
-name: gerard-meszaros
+name: meszaros
 description: "xUnit test patterns, test doubles, and test smells"
 ---
 

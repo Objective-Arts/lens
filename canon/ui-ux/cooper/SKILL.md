@@ -1,5 +1,5 @@
 ---
-name: alan-cooper
+name: cooper
 description: "Cooper's Goal-Directed Design - personas, polite software, eliminate excise"
 ---
 

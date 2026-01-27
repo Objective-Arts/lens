@@ -1,5 +1,5 @@
 ---
-name: nassim-taleb
+name: taleb
 description: "Taleb's antifragility - systems that gain from disorder, via negativa, skin in the game"
 ---
 

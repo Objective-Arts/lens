@@ -1,5 +1,5 @@
 ---
-name: david-beazley
+name: beazley
 description: "Beazley's advanced Python - generators, coroutines, metaprogramming, execution model"
 ---
 

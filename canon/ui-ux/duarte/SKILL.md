@@ -1,5 +1,5 @@
 ---
-name: matias-duarte
+name: duarte
 description: "Duarte's Material motion - meaningful animation, physical metaphors"
 ---
 

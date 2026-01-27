@@ -1,5 +1,5 @@
 ---
-name: nancy-leveson
+name: leveson
 description: "Leveson's system safety - STAMP/STPA, accidents as system failures, safety constraints"
 ---
 

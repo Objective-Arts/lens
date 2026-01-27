@@ -1,5 +1,5 @@
 ---
-name: dan-mall
+name: mall
 description: "Mall's design-dev collaboration - hot potato, handoff, shared language"
 ---
 

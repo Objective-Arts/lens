@@ -1,5 +1,5 @@
 ---
-name: tufte-visualization-review
+name: tufte
 description: "Tufte's graphical integrity"
 ---
 

@@ -1,5 +1,5 @@
 ---
-name: mike-bostock
+name: bostock
 description: "Bostock's D3 patterns and philosophy"
 ---
 

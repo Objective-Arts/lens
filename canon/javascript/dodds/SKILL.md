@@ -1,5 +1,5 @@
 ---
-name: kent-c-dodds
+name: dodds
 description: "Dodds' React and testing patterns"
 ---
 

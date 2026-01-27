@@ -1,5 +1,5 @@
 ---
-name: stephen-few-dashboard
+name: few
 description: "Few's dashboard design principles"
 ---
 

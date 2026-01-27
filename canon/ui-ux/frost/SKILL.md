@@ -1,5 +1,5 @@
 ---
-name: brad-frost
+name: frost
 description: "Frost's Atomic Design - atoms, molecules, organisms, templates, pages"
 ---
 

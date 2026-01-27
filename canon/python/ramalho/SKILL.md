@@ -1,5 +1,5 @@
 ---
-name: luciano-ramalho
+name: ramalho
 description: "Ramalho's Fluent Python - data model, protocols, dunder methods, Pythonic design"
 ---
 

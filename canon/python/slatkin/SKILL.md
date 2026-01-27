@@ -1,5 +1,5 @@
 ---
-name: brett-slatkin
+name: slatkin
 description: "Slatkin's Effective Python - 90 specific ways to write better Python code"
 ---
 

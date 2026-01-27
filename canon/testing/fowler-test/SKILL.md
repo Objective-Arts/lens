@@ -1,5 +1,5 @@
 ---
-name: martin-fowler-testing
+name: fowler-test
 description: "Test pyramid, testing strategy, and when to use which test type"
 ---
 
