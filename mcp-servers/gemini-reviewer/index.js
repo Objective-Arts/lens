@@ -37,7 +37,7 @@ const TOOLS = [
         },
         focus: {
           type: "string",
-          enum: ["general", "security", "performance", "readability", "bugs"],
+          enum: ["general", "security", "performance", "readability", "bugs", "adversarial"],
           description: "What aspect to focus on (default: general)",
         },
       },
@@ -52,6 +52,21 @@ const FOCUS_PROMPTS = {
   performance: "Focus on performance bottlenecks, algorithmic complexity, memory usage, and optimization opportunities.",
   readability: "Focus on code clarity, naming, structure, documentation, and maintainability.",
   bugs: "Focus on finding bugs, edge cases, error handling issues, and logical errors.",
+  adversarial: `Think like an attacker. Assume:
+- Attacker controls environment variables and config
+- Network/DB calls can fail mid-sequence
+- App runs multi-instance (in-memory state not shared)
+- Tokens will be replayed if valid
+
+Find:
+1. FAILURE MODES: What if step 2 fails after step 1 succeeds? Is state inconsistent?
+2. RACE CONDITIONS: Are multi-step operations atomic? TOCTOU vulnerabilities?
+3. TRUST BOUNDARIES: Who controls each input (env, user, DB)? Is it validated?
+4. DEPLOYMENT ISSUES: Does this work when scaled? In-memory rate limiting? Session storage?
+5. REPLAY ATTACKS: Can captured tokens be reused? Are they invalidated properly?
+6. TRANSACTION GAPS: Are related state changes atomic or can partial updates occur?
+
+For each finding, specify the exact attack scenario and recommended fix.`,
 };
 
 async function reviewWithGemini(code, context, focus = "general") {
