@@ -5,10 +5,12 @@
   "type": "module",
   "main": "dist/index.js",
   "bin": {
-    "cc-config": "./dist/cli/index.js"
+    "cc-config": "./dist/cli/index.js",
+    "ralph": "./bin/ralph"
   },
   "scripts": {
-    "build": "tsc",
+    "build": "tsc && npm run copy-assets",
+    "copy-assets": "mkdir -p dist/ui && cp src/ui/*.html dist/ui/ 2>/dev/null || true",
     "dev": "tsx src/cli/index.ts",
     "start": "node dist/cli/index.js",
     "test": "vitest"
