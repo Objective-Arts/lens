@@ -208,6 +208,13 @@ format_time() {
 # Brief description for each skill
 skill_desc() {
   case "$1" in
+    # Composite skills (chain to individuals)
+    planning-masters) echo "→ kernighan, pike, dijkstra, bloch..." ;;
+    security-canon) echo "→ schneier, owasp, threat-model..." ;;
+    testing-experts) echo "→ dodds, meszaros, hevery..." ;;
+    docs-masters) echo "→ procida, tufte, strunk-white..." ;;
+    refactor-masters) echo "→ kernighan, feathers, gang-of-four..." ;;
+    # Individual experts
     kernighan) echo "clarity" ;;
     pike) echo "simplicity" ;;
     thompson) echo "elegance" ;;
@@ -285,22 +292,11 @@ PLAN IMPLEMENTATION
 
 Read CLAUDE.md and __PRD__, then create an implementation plan for the NEXT item marked '- [ ]'.
 
-IMPORTANT: Use the Skill tool to invoke MULTIPLE canon skills. Honor those who came before.
+IMPORTANT: Use the Skill tool to invoke composite skills that chain to individual experts.
 
-For PLANNING, invoke these experts using the Skill tool:
-- skill="kernighan" - clarity and simplicity
-- skill="mcilroy" - Unix philosophy, composition
-- skill="pike" - systems design, Go philosophy
-- skill="thompson" - elegant minimalism
-- skill="dijkstra" - correctness, formal thinking
-- skill="cherny" - type-driven design
-- skill="bloch" - API design
-- skill="liskov" - substitution, contracts
-
-For SECURITY planning, also invoke:
-- skill="schneier" - security mindset
-- skill="threat-model" - threat modeling
-- skill="defense-in-depth" - layered security
+Invoke these composite skills:
+- skill="planning-masters" - chains to: kernighan, pike, thompson, dijkstra, liskov, bloch, mcilroy, cherny
+- skill="security-canon" - chains to: schneier, owasp, threat-model, defense-in-depth
 
 Steps:
 1. Read CLAUDE.md - invoke ALL relevant skills per auto-invoke rules
@@ -336,29 +332,11 @@ BUILD FROM PLAN
 
 Read the plan at __PLAN_FILE__ and implement it.
 
-IMPORTANT: Use the Skill tool to invoke MULTIPLE canon skills. Honor those who came before.
+IMPORTANT: Use the Skill tool to invoke composite skills that chain to individual experts.
 
-For IMPLEMENTATION, invoke these experts:
-- skill="kernighan" - clarity above all
-- skill="pike" - simplicity, systems thinking
-- skill="thompson" - elegant code
-- skill="mcilroy" - compose small tools
-- skill="linus" - practical systems code
-- skill="bloch" - defensive programming
-- skill="crockford" - JavaScript patterns
-- skill="knuth" - algorithmic thinking
-
-For TYPE SAFETY and ARCHITECTURE:
-- skill="cherny" - type-driven design
-- skill="liskov" - contracts, substitution
-- skill="gang-of-four" - design patterns
-- skill="hejlsberg" - type system design
-
-For SECURITY in implementation:
-- skill="owasp" - secure coding
-- skill="schneier" - security mindset
-- skill="tanya-janca" - AppSec
-- skill="defense-in-depth" - layered protection
+Invoke these composite skills:
+- skill="planning-masters" - for architecture (kernighan, pike, dijkstra, bloch, liskov)
+- skill="security-canon" - for secure coding (owasp, schneier, defense-in-depth)
 
 Steps:
 1. Read CLAUDE.md - invoke ALL relevant skills
@@ -381,24 +359,10 @@ CLEAN THE CODE
 
 Review code from last commit and apply structural improvements.
 
-IMPORTANT: Use the Skill tool to invoke MULTIPLE canon skills for refactoring.
+IMPORTANT: Use the Skill tool to invoke composite skills that chain to individual experts.
 
-For CODE CLARITY, invoke:
-- skill="kernighan" - clarity, meaningful names
-- skill="pike" - simplicity
-- skill="mcilroy" - do one thing well
-- skill="strunk-white" - omit needless code
-
-For REFACTORING patterns:
-- skill="feathers" - working with legacy code
-- skill="bloch" - API design
-- skill="crockford" - JavaScript idioms
-- skill="liskov" - proper abstractions
-
-For ARCHITECTURE review:
-- skill="gang-of-four" - design patterns
-- skill="petroski" - learning from failure
-- skill="taleb" - antifragile design
+Invoke this composite skill:
+- skill="refactor-masters" - chains to: kernighan, pike, mcilroy, feathers, gang-of-four, bloch, liskov
 
 Steps:
 1. Read CLAUDE.md - invoke ALL relevant skills
@@ -419,23 +383,10 @@ RUN TESTS
 
 Execute test suite and verify all pass.
 
-IMPORTANT: Use the Skill tool to invoke MULTIPLE testing experts.
+IMPORTANT: Use the Skill tool to invoke composite skills that chain to individual experts.
 
-For TESTING philosophy, invoke:
-- skill="dodds" - testing library, user-centric tests
-- skill="meszaros" - xUnit patterns, test structure
-- skill="fowler-test" - test pyramids, strategies
-- skill="hevery" - testable code design
-
-For TEST QUALITY:
-- skill="kernighan" - clear test names
-- skill="bloch" - edge cases, contracts
-- skill="dijkstra" - correctness proofs
-
-For DEBUGGING failures:
-- skill="kernighan" - debugging wisdom
-- skill="pike" - systematic debugging
-- skill="thompson" - trace the logic
+Invoke this composite skill:
+- skill="testing-experts" - chains to: dodds, meszaros, fowler-test, hevery, kernighan, bloch
 
 Steps:
 1. Read CLAUDE.md - invoke ALL relevant skills
@@ -456,27 +407,10 @@ EXPERT REVIEW
 
 Review code using Gemini with security analysis.
 
-IMPORTANT: Use the Skill tool to invoke the FULL security canon. This is critical.
+IMPORTANT: Use the Skill tool to invoke composite skills that chain to individual experts.
 
-For SECURITY MINDSET, invoke:
-- skill="schneier" - think like an attacker
-- skill="security-mindset" - security thinking
-- skill="bruce-schneier" - cryptography, trust
-
-For VULNERABILITY analysis:
-- skill="owasp" - top 10, secure coding
-- skill="tanya-janca" - application security
-- skill="troy-hunt" - real-world breaches
-- skill="threat-model" - systematic threats
-
-For DEFENSE strategy:
-- skill="defense-in-depth" - layered security
-- skill="leveson" - safety engineering
-
-For CODE QUALITY in review:
-- skill="kernighan" - clarity reveals bugs
-- skill="bloch" - defensive coding
-- skill="liskov" - contract violations
+Invoke this composite skill:
+- skill="security-canon" - chains to: schneier, owasp, tanya-janca, troy-hunt, threat-model, defense-in-depth, leveson
 
 Steps:
 1. Read CLAUDE.md - invoke ALL security skills
@@ -495,46 +429,42 @@ EOF
 read -r -d '' DOC_PROMPT << 'EOF' || true
 DOCUMENTATION
 
-IMPORTANT: Use the Skill tool to invoke the FULL documentation canon.
+IMPORTANT: Use the Skill tool to invoke skill="docs-masters".
 
-For STRUCTURE, invoke:
-- skill="procida" - Diátaxis framework
-- skill="tufte" - information design
+You MUST create or update these specific files:
 
-For WRITING CLARITY:
-- skill="kernighan" - clear technical writing
-- skill="strunk-white" - omit needless words
-- skill="zinsser" - simplicity, humanity
+1. Get changed files: git diff HEAD~1 --name-only
 
-For API DOCUMENTATION:
-- skill="bloch" - API design docs
-- skill="pike" - Go-style doc comments
+2. For EACH changed source file, you MUST:
+   - Read the file
+   - Add JSDoc/docstring to EVERY exported function
+   - Include @param, @returns, @example for each
+   - Write the updated file
 
-Update documentation based on the code changes made in this session.
+3. Create/update docs/CHANGELOG.md:
+   - Add entry for today's changes
+   - Format: ## [date] - [item name]
+   - List what was added/changed
 
-Steps:
-1. Invoke ALL documentation skills
-2. Get changed files: git diff HEAD~1 --name-only
-3. Determine what documentation types are needed (per Diátaxis):
-   - REFERENCE: API docs, JSDoc for all exported functions
-   - HOW-TO: Usage guides for new features
-   - EXPLANATION: Architecture decisions if applicable
-4. For each changed file:
-   - Add/update JSDoc comments with expert guidance
-   - Include examples for every function
-5. Update or create README.md:
-   - Project overview
-   - Installation (how-to)
-   - Quick start (tutorial-like)
-   - API reference section
-   - Environment variables required
-6. Keep reference docs structured by code, not by tasks
-7. Commit documentation changes
+4. Update README.md (create if missing):
+   - Ensure Installation section exists
+   - Ensure Usage section with example exists
+   - Add any new CLI commands or APIs
+
+5. Commit all documentation with message "docs: update for [item name]"
+
+VERIFICATION: Before outputting DOC_COMPLETE, confirm:
+- [ ] JSDoc added to all new functions
+- [ ] CHANGELOG.md updated
+- [ ] README.md has usage examples
 
 Output at end:
-FILES_DOCUMENTED: [count]
+JSDOC_ADDED: [count of functions documented]
+CHANGELOG_UPDATED: yes/no
 README_UPDATED: yes/no
 DOC_COMPLETE
+
+If no code files changed: DOC_SKIPPED
 EOF
 
 # Main loop
