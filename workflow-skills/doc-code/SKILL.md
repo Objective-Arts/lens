@@ -1,6 +1,6 @@
 ---
 name: doc-code
-description: "Generate documentation using Procida's Diátaxis framework"
+description: Generate documentation using Procida's Diátaxis framework. Use after code is complete.
 ---
 
 # /doc-code Command
@@ -301,3 +301,17 @@ Cons: Token revocation requires blacklist
 - Session-based auth (rejected: scaling)
 - Magic links (rejected: UX for frequent actions)
 ```
+
+---
+
+## 🛑 MANDATORY STOP
+
+**After outputting the documentation summary above, you MUST STOP.**
+
+- DO NOT proceed to any other workflow step
+- DO NOT make additional code changes
+- DO NOT continue with "let me also..." or "I'll go ahead and..."
+
+**Your turn ends here.** Output the documentation summary and STOP. Wait for the user to provide the next instruction.
+
+This is typically the final step in the workflow. The user will review the documentation and provide feedback or move on.

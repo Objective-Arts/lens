@@ -95,3 +95,18 @@ All tests passing.
 If code is untested legacy:
 1. Write **characterization tests** first (capture current behavior)
 2. Then add focused tests for new/changed behavior
+
+---
+
+## 🛑 MANDATORY STOP
+
+**After outputting the test results above, you MUST STOP.**
+
+- DO NOT proceed to `/refactor-clean`
+- DO NOT proceed to `/review-hard`
+- DO NOT make any code changes
+- DO NOT continue with "let me also..." or "I'll go ahead and..."
+
+**Your turn ends here.** Output the test summary and STOP. Wait for the user to explicitly type the next command.
+
+The user will type `/refactor-clean` or `/review-hard` when ready. Until then, do nothing.

@@ -292,3 +292,18 @@ Existing Code → /plan → /structure-first → /refactor-clean → /test → /
 ```
 
 `/refactor-clean` is safe transformation with enforced Feathers/Fowler discipline.
+
+---
+
+## 🛑 MANDATORY STOP
+
+**After outputting the refactoring completion report above, you MUST STOP.**
+
+- DO NOT proceed to `/test`
+- DO NOT proceed to `/review-hard`
+- DO NOT write any new files
+- DO NOT continue with "let me also..." or "I'll go ahead and..."
+
+**Your turn ends here.** Output the completion report and STOP. Wait for the user to explicitly type the next command.
+
+The user will type `/test` when ready. Until then, do nothing.

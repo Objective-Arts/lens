@@ -42,6 +42,19 @@ The skill enforces discipline: plan first, create artifact, get approval, then i
 - Tasks with specific, detailed instructions
 - Pure research/exploration (use explore agent)
 
+## ⚠️ NO INTERVIEW QUESTIONS
+
+**Do NOT ask the user clarifying questions before planning.**
+
+- Do NOT use AskUserQuestion to ask about scope, approach, or preferences
+- Do NOT present multiple-choice options
+- Do NOT ask "should I do X or Y?"
+- Make reasonable assumptions based on the prompt
+- If the prompt says "use existing X", assume X exists
+- Proceed directly to exploration and planning
+
+If truly ambiguous, state your assumption in the plan and proceed.
+
 ## Process
 
 1. **Explore** - Use Glob, Grep, Read to understand existing code
@@ -115,6 +128,21 @@ Plan written to: `.claude/plans/[name].md`
 
 Ready for approval.
 ```
+
+---
+
+## 🛑 MANDATORY STOP
+
+**After outputting the plan summary above, you MUST STOP.**
+
+- DO NOT proceed to `/structure-first`
+- DO NOT start writing any code
+- DO NOT create any implementation files
+- DO NOT continue with "let me also..." or "I'll go ahead and..."
+
+**Your turn ends here.** Output the plan summary and STOP. Wait for the user to explicitly type the next command.
+
+The user will type `/structure-first` when ready. Until then, do nothing.
 
 ## Integration with Claude Code
 

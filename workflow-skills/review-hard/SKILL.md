@@ -194,3 +194,21 @@ Be hostile. Assume external reviewers will scrutinize everything. Find issues be
 **Ask**: "What would Gemini flag? What would Qodana catch?"
 
 Then run them to verify.
+
+---
+
+## 🛑 MANDATORY STOP (Manual Mode)
+
+**When NOT in /ralph-loop or autonomous workflow:**
+
+After outputting the review results above, you MUST STOP.
+
+- DO NOT start fixing code automatically
+- DO NOT proceed to documentation
+- DO NOT continue with "let me also..." or "I'll go ahead and..."
+
+**Your turn ends here.** Output the review findings and STOP. Wait for the user to decide what to fix.
+
+The user will tell you what to fix, or type the next workflow command. Until then, do nothing.
+
+**Note**: This stop does NOT apply when invoked from `/ralph-loop` - in autonomous mode, continue without pausing.

@@ -199,6 +199,21 @@ For each file you write:
 
 ---
 
+## 🛑 MANDATORY STOP
+
+**After outputting the build completion report above, you MUST STOP.**
+
+- DO NOT proceed to `/test`
+- DO NOT proceed to `/review-hard`
+- DO NOT write any test files
+- DO NOT continue with "let me also..." or "I'll go ahead and..."
+
+**Your turn ends here.** Output the completion report and STOP. Wait for the user to explicitly type the next command.
+
+The user will type `/test` when ready. Until then, do nothing.
+
+---
+
 ## What "Canon Loaded" Actually Means
 
 Loading canon is NOT:
