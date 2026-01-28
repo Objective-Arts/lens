@@ -267,11 +267,11 @@ Read CLAUDE.md and __PRD__, then create an implementation plan for the NEXT item
 
 CRITICAL: Do NOT modify __PRD__. Ralph manages the checklist. Only create the plan file.
 
-IMPORTANT: Use the Skill tool to invoke composite skills that chain to individual experts.
+MANDATORY: Before doing ANY other work, you MUST use the Skill tool to invoke BOTH of these:
+1. Use Skill tool with skill="planning-masters"
+2. Use Skill tool with skill="security-canon"
 
-Invoke these composite skills:
-- skill="planning-masters" - chains to: kernighan, pike, thompson, dijkstra, liskov, bloch, mcilroy, cherny
-- skill="security-canon" - chains to: schneier, owasp, threat-model, defense-in-depth
+DO NOT SKIP THIS STEP. Invoke both skills FIRST, then proceed with the steps below.
 
 Steps:
 1. Read CLAUDE.md - invoke ALL relevant skills per auto-invoke rules
@@ -309,15 +309,14 @@ Read the plan at __PLAN_FILE__ and implement it.
 
 CRITICAL: Do NOT modify the PRD file. Ralph manages the checklist.
 
-IMPORTANT: Use the Skill tool to invoke composite skills that chain to individual experts.
+MANDATORY: Before doing ANY other work, you MUST use the Skill tool to invoke BOTH of these:
+1. Use Skill tool with skill="planning-masters"
+2. Use Skill tool with skill="security-canon"
 
-Invoke these composite skills:
-- skill="planning-masters" - for architecture (kernighan, pike, dijkstra, bloch, liskov)
-- skill="security-canon" - for secure coding (owasp, schneier, defense-in-depth)
+DO NOT SKIP THIS STEP. Invoke both skills FIRST, then proceed.
 
 Steps:
-1. Read CLAUDE.md - invoke ALL relevant skills
-2. Read the plan file
+1. Read the plan file
 3. Implement each file change with expert guidance
 4. Write tests as specified in plan
 5. Run tests - must pass
@@ -338,14 +337,13 @@ Review code from last commit and apply structural improvements.
 
 CRITICAL: Do NOT modify the PRD file. Ralph manages the checklist.
 
-IMPORTANT: Use the Skill tool to invoke composite skills that chain to individual experts.
+MANDATORY: Before doing ANY other work, you MUST use the Skill tool:
+1. Use Skill tool with skill="refactor-masters"
 
-Invoke this composite skill:
-- skill="refactor-masters" - chains to: kernighan, pike, mcilroy, feathers, gang-of-four, bloch, liskov
+DO NOT SKIP THIS STEP. Invoke the skill FIRST, then proceed.
 
 Steps:
-1. Read CLAUDE.md - invoke ALL relevant skills
-2. Get changed files: git diff HEAD~1 --name-only
+1. Get changed files: git diff HEAD~1 --name-only
 3. For each file, apply improvements with expert guidance
 4. Commit improvements
 
@@ -364,14 +362,13 @@ Execute test suite and verify all pass.
 
 CRITICAL: Do NOT modify the PRD file. Ralph manages the checklist.
 
-IMPORTANT: Use the Skill tool to invoke composite skills that chain to individual experts.
+MANDATORY: Before doing ANY other work, you MUST use the Skill tool:
+1. Use Skill tool with skill="testing-experts"
 
-Invoke this composite skill:
-- skill="testing-experts" - chains to: dodds, meszaros, fowler-test, hevery, kernighan, bloch
+DO NOT SKIP THIS STEP. Invoke the skill FIRST, then proceed.
 
 Steps:
-1. Read CLAUDE.md - invoke ALL relevant skills
-2. Run: npm test (or project equivalent)
+1. Run: npm test (or project equivalent)
 3. If failures, consult experts and fix
 4. Re-run until green
 
@@ -390,14 +387,13 @@ Review code using Gemini with security analysis.
 
 CRITICAL: Do NOT modify the PRD file. Ralph manages the checklist.
 
-IMPORTANT: Use the Skill tool to invoke composite skills that chain to individual experts.
+MANDATORY: Before doing ANY other work, you MUST use the Skill tool:
+1. Use Skill tool with skill="security-canon"
 
-Invoke this composite skill:
-- skill="security-canon" - chains to: schneier, owasp, tanya-janca, troy-hunt, threat-model, defense-in-depth, leveson
+DO NOT SKIP THIS STEP. Invoke the skill FIRST, then proceed.
 
 Steps:
-1. Read CLAUDE.md - invoke ALL security skills
-2. Get changed files: git diff HEAD~1 --name-only
+1. Get changed files: git diff HEAD~1 --name-only
 3. Read each file through security lens
 4. Call gemini_review MCP tool for each file
 5. For critical issues: fix, commit, re-verify (max 3 attempts)
@@ -414,7 +410,10 @@ DOCUMENTATION
 
 CRITICAL: Do NOT modify the PRD file. Ralph manages the checklist.
 
-IMPORTANT: Use the Skill tool to invoke skill="docs-masters".
+MANDATORY: Before doing ANY other work, you MUST use the Skill tool:
+1. Use Skill tool with skill="docs-masters"
+
+DO NOT SKIP THIS STEP. Invoke the skill FIRST, then proceed.
 
 You MUST create or update these specific files:
 
