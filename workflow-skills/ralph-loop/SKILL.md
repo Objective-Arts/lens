@@ -5,7 +5,7 @@ description: Execute PRD items with quality gates in an autonomous iteration loo
 
 # /ralph-loop [prd-file] [--max N] [--resume]
 
-Autonomous iteration loop that implements PRD items with quality gates. Designed as the inner loop for Ralph-style autonomous development.
+Autonomous iteration loop that implements PRD items with **bash-enforced quality gates**. Designed as the inner loop for Ralph-style autonomous development.
 
 ## When to Use
 
@@ -19,42 +19,59 @@ Autonomous iteration loop that implements PRD items with quality gates. Designed
 - Exploration or research tasks
 - When PRD is not defined
 
-## ⚠️ MANDATORY: Loop Until ALL Items Complete
+## Architecture: Multi-Phase with Bash Enforcement
+
+The `ralph` bash script orchestrates quality gates that Claude cannot skip:
 
 ```
-┌─────────────────────────────────────────────────────────────────┐
-│                    RALPH LOOP STATE MACHINE                      │
-│                                                                  │
-│  START → [Check PRD] → incomplete items exist?                   │
-│                              │                                   │
-│                    ┌────YES──┴──NO────┐                          │
-│                    ▼                  ▼                          │
-│              [Work on item]      [DONE - generate                │
-│                    │              canon-report]                  │
-│                    ▼                                             │
-│              [Item complete]                                     │
-│                    │                                             │
-│                    ▼                                             │
-│         ┌──── MORE ITEMS? ────┐                                  │
-│         │                     │                                  │
-│        YES                   NO                                  │
-│         │                     │                                  │
-│         ▼                     ▼                                  │
-│    [IMMEDIATELY           [DONE - generate                       │
-│     START NEXT             canon-report]                         │
-│     ITEM - NO                                                    │
-│     PAUSE]                                                       │
-│         │                                                        │
-│         └──────────────→ [Work on item] ←────────────────────────│
-│                                                                  │
-└─────────────────────────────────────────────────────────────────┘
+┌─────────────────────────────────────────────────────────────┐
+│                    BASH ORCHESTRATOR                         │
+│                                                              │
+│  Phase 1: IMPLEMENT                                          │
+│    → Claude implements ONE item, writes tests                │
+│    → Bash verifies: PHASE1_COMPLETE marker exists            │
+│                                                              │
+│  Phase 2: QODANA (bash runs directly - NOT Claude)           │
+│    → Bash runs: qodana scan                                  │
+│    → Bash checks results for critical/high issues            │
+│    → If issues: Claude fixes, qodana re-runs                 │
+│                                                              │
+│  Phase 3: GEMINI REVIEW                                      │
+│    → Claude runs mcp__gemini-reviewer__gemini_review         │
+│    → Bash verifies: PHASE3_COMPLETE marker exists            │
+│                                                              │
+│  Phase 4: MARK COMPLETE (bash does this - NOT Claude)        │
+│    → Only after ALL phases pass                              │
+│    → Bash updates PRD checkbox                               │
+│                                                              │
+└─────────────────────────────────────────────────────────────┘
 ```
+
+### Key Design Decisions
+
+| Decision | Why |
+|----------|-----|
+| Bash runs qodana | Claude can't skip it - bash enforces |
+| Bash marks PRD complete | Only happens after all phases pass |
+| Short focused prompts | ~50 lines vs 300+ - Claude follows them |
+| Separate Claude invocations | Fresh context per phase |
+| Marker verification | Bash greps for PHASE1_COMPLETE, etc. |
+
+### Trade-offs
+
+| Pros | Cons |
+|------|------|
+| Quality gates enforced | More Claude invocations (higher cost) |
+| Short prompts followed | Slower overall (sequential phases) |
+| Qodana runs reliably | More complex bash script |
+| Fresh context per phase | |
 
 ### 🚨 STOPPING RULES (the ONLY valid exit conditions):
 
 1. **ALL PRD items marked `[x]`** → Generate canon-report → Exit
 2. **Max iterations (50) reached** → Report status → Exit
 3. **Idle detection (3 iterations, 0 commits)** → Report status → Exit
+4. **Checkpoint trigger** (3 items, 10 iterations, or re-read) → Run /save-progress → Exit for session handoff
 
 ### ❌ INVALID STOPS (bugs if these happen):
 
@@ -189,6 +206,23 @@ while PRD has incomplete items AND iteration < max:
             12. Commit completion marker
 
     iteration++
+    items_completed_this_session++
+
+    # ⚠️ CONTEXT CHECK (execute EVERY iteration - HARD TRIGGERS)
+    checkpoint_needed = (
+        items_completed_this_session >= 3 OR      # Every 3 items
+        iteration >= 10 OR                         # Every 10 iterations
+        any_file_read_twice_this_session()        # Sign of forgetting
+    )
+
+    if checkpoint_needed:
+        print("⚠️ Checkpoint trigger reached. Saving progress...")
+        commit_current_work()                      # Even if WIP
+        run_save_progress()                        # Externalize state to disk
+        commit_progress_file()
+        print("Session saved to .claude/sessions/progress-{timestamp}.md")
+        print("Run `/ralph-loop --resume` in new session to continue.")
+        exit_for_handoff()                         # Clean exit, NOT a failure
 
     # ⚠️ MANDATORY CONTINUATION CHECK (execute this EVERY time)
     remaining = count_incomplete_items(PRD)
@@ -421,13 +455,129 @@ After implementing each PRD item:
 
 **Findings accumulate in** `.claude/ext-validation-findings.md` — review periodically and promote recurring patterns to CLAUDE.md.
 
-## Context Preservation
+## Context Management
 
-Between iterations, context is preserved via:
-- **Git history**: Previous commits show completed work
-- **PRD checkboxes**: Track completion state
-- **CLAUDE.md**: Canon standards persist
-- **Skills directory**: Expert perspectives available
+### Philosophy: Clear and Document (NOT Compact)
+
+Ralph loops use **disk as memory**, not LLM context. This prevents "context rot" where quality degrades as context fills.
+
+```
+❌ WRONG: Let context fill → compact → degraded attention → errors
+✅ RIGHT: Monitor context → checkpoint to disk → fresh session → consistent quality
+```
+
+### Why This Matters
+
+| Approach | Behavior | Result |
+|----------|----------|--------|
+| Let Claude Compact | Context summarized, details lost | Quality degrades over time |
+| Clear and Document | State externalized to files | Consistent quality for hours |
+
+### State Externalization
+
+Between iterations, state is preserved via **disk**, not context:
+
+| State Type | Storage Location | How Retrieved |
+|------------|------------------|---------------|
+| Completed work | Git commits | `git log --oneline` |
+| Progress tracking | PRD checkboxes | Read PRD file |
+| Decisions made | `.claude/sessions/progress-*.md` | /save-progress output |
+| Files explored | `.claude/sessions/progress-*.md` | /save-progress output |
+| Standards | CLAUDE.md | Always loaded |
+| Expert perspectives | Skills directory | Invoked as needed |
+
+### Context Monitoring
+
+**Checkpoint triggers (check EVERY iteration):**
+
+```
+MANDATORY CHECKPOINT after ANY of these:
+1. Every 3 completed PRD items (hard rule)
+2. Every 10 iterations regardless of completion
+3. Any file read twice in same session (sign of forgetting)
+4. User says "save progress" or "checkpoint"
+
+DO NOT WAIT for "feeling" of context issues - use hard triggers above.
+```
+
+**Self-check (secondary indicators):**
+```
+Warning signs you may have missed a checkpoint:
+- Asking about something discussed earlier
+- Re-reading a file you already read
+- Uncertainty about decisions already made
+- Response latency noticeably increasing
+
+If ANY of these occur → IMMEDIATE /save-progress
+```
+
+### /save-progress Integration
+
+When checkpoint trigger fires (3 items, 10 iterations, or re-read detected), the loop:
+
+1. **Commits current work** (even if WIP)
+2. **Runs /save-progress** which writes to `.claude/sessions/progress-{timestamp}.md`:
+   - Current PRD item being worked on
+   - Decisions made this session
+   - Files explored (even unchanged ones)
+   - Approach being taken
+   - Blockers or open questions
+3. **Commits the progress file**
+4. **Exits cleanly** with handoff instructions
+
+### Session Handoff
+
+**Output when checkpoint triggers:**
+
+```markdown
+## Ralph Loop: Context Checkpoint
+
+**Reason**: [3 items completed | 10 iterations reached | re-read detected]
+**This is NOT a failure** - this is how Ralph maintains quality.
+
+### Current State
+- **PRD Progress**: 3/7 items complete
+- **Current Item**: Item 4 - OAuth integration (in progress)
+- **Last Commit**: abc1234 - Add OAuth scaffold
+
+### Saved To
+`.claude/sessions/progress-2024-01-15T10-30-00.md`
+
+### To Continue
+Start a new session and run:
+```
+/ralph-loop PRD.md --resume
+```
+
+The new session will:
+1. Read the progress file
+2. Check git log for context
+3. Continue from where you left off
+```
+
+### --resume Behavior
+
+When `/ralph-loop --resume` is called:
+
+```
+1. Find latest progress file in .claude/sessions/
+2. Read progress summary
+3. Read PRD to find incomplete items
+4. Read git log for recent commits
+5. Output: "Resuming from: [last item]. Context restored from disk."
+6. Continue loop from next incomplete item
+```
+
+### Manual Checkpoint
+
+You can also checkpoint manually at any time:
+
+```
+User: "save progress"
+Claude: [runs /save-progress]
+        [commits progress file]
+        "Progress saved. You can continue now or start fresh with --resume"
+```
 
 ## Perfectionism Prevention
 
