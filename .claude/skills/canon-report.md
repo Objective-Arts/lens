@@ -1,3 +1,8 @@
+---
+name: canon-report
+description: "Generate D3 visualization of canon master skill invocations"
+---
+
 # /canon-report - Canon Masters Usage Report
 
 Generate a D3 visualization of canon master skill invocations from the current session.
