@@ -34,19 +34,17 @@ export function getBinDir(): string {
 }
 
 /**
- * The ralph script template - autonomous PRD implementation loop
+ * The ralph script template - autonomous PRD implementation loop with quality gates
  */
 const RALPH_SCRIPT = `#!/bin/bash
 #
-# ralph - Autonomous PRD implementation loop
-#
-# Wraps Claude Code to continuously implement PRD items until complete.
-# Uses git for state persistence between iterations.
+# ralph - Autonomous PRD implementation with quality gates
 #
 # Usage:
-#   ralph [prd-file] [max-iterations]
-#   ralph PRD.md 50
-#   ralph docs/requirements.md
+#   ralph PRD.md --yes           # Run autonomously
+#   ralph PRD.md --resume        # Continue from checkpoint
+#   ralph PRD.md --skip-scan     # Skip Qodana scan
+#   ralph --create-baseline      # Create Qodana baseline
 #
 
 set -e
@@ -57,966 +55,695 @@ GREEN='\\033[0;32m'
 YELLOW='\\033[1;33m'
 BLUE='\\033[0;34m'
 CYAN='\\033[0;36m'
-NC='\\033[0m' # No Color
-
-# Spinner function - shows activity while Claude is working
-spinner() {
-  local pid=$1
-  local delay=0.15
-  local spinstr='⠋⠙⠹⠸⠼⠴⠦⠧⠇⠏'
-  local i=0
-  local start_time=$(date +%s)
-
-  while kill -0 "$pid" 2>/dev/null; do
-    local now=$(date +%s)
-    local elapsed=$((now - start_time))
-    local mins=$((elapsed / 60))
-    local secs=$((elapsed % 60))
-    local char="\${spinstr:i++%\${#spinstr}:1}"
-    printf "\\r\${CYAN}%s\${NC} Claude is working... \${BLUE}[%02d:%02d]\${NC}  " "$char" "$mins" "$secs"
-    sleep $delay
-  done
-  printf "\\r\\033[K" # Clear the spinner line
-}
+DIM='\\033[2m'
+NC='\\033[0m'
 
 # Arguments
 PRD="\${1:-PRD.md}"
-MAX="\${2:-50}"
-LOG_FILE=".claude/ralph-log.txt"
+MAX=50
+RESUME=false
+YES=false
+CREATE_BASELINE=false
+SKIP_SCAN=false
+LOG_DIR=".claude/ralph-logs"
+SESSIONS_DIR=".claude/sessions"
+BASELINE_FILE=".qodana/baseline.sarif.json"
 
-# Ensure .claude directory exists
-mkdir -p .claude
+for arg in "$@"; do
+  case $arg in
+    --resume) RESUME=true; YES=true ;;
+    --yes|-y) YES=true ;;
+    --max=*) MAX="\${arg#*=}" ;;
+    --create-baseline) CREATE_BASELINE=true ;;
+    --skip-scan|--skip-qodana) SKIP_SCAN=true ;;
+  esac
+done
 
-# Header
-echo ""
-echo -e "\${CYAN}╔═══════════════════════════════════════════════════════════╗\${NC}"
-echo -e "\${CYAN}║              RALPH - Autonomous PRD Loop                  ║\${NC}"
-echo -e "\${CYAN}╚═══════════════════════════════════════════════════════════╝\${NC}"
-echo ""
-echo -e "  \${BLUE}PRD File:\${NC}        $PRD"
-echo -e "  \${BLUE}Max Iterations:\${NC}  $MAX"
-echo -e "  \${BLUE}Log File:\${NC}        $LOG_FILE"
-echo ""
-
-# Check PRD exists
-if [ ! -f "$PRD" ]; then
-  echo -e "\${RED}Error: PRD file not found: $PRD\${NC}"
-  exit 1
-fi
-
-# Count initial incomplete items
-initial_incomplete=$(grep -cE "^[[:space:]]*[-*+][[:space:]]*\\[[[:space:]]\\]" "$PRD" 2>/dev/null) || true
-initial_incomplete=\${initial_incomplete:-0}
-echo -e "  \${BLUE}Incomplete Items:\${NC} $initial_incomplete"
-echo ""
-
-if [ "$initial_incomplete" -eq 0 ]; then
-  echo -e "\${GREEN}All PRD items already complete!\${NC}"
+# Handle --create-baseline
+if [ "$CREATE_BASELINE" = true ]; then
+  echo "Creating Qodana baseline..."
+  mkdir -p .qodana
+  if qodana scan --project-dir . --results-dir .qodana/results > /dev/null 2>&1; then
+    if [ -f ".qodana/results/qodana.sarif.json" ]; then
+      cp .qodana/results/qodana.sarif.json "$BASELINE_FILE"
+      ISSUE_COUNT=$(grep -c '"level": "error"' "$BASELINE_FILE" 2>/dev/null || echo 0)
+      echo -e "\${GREEN}✓\${NC} Baseline created ($ISSUE_COUNT existing issues baselined)"
+    fi
+  else
+    echo -e "\${RED}✗\${NC} Failed to create baseline"
+  fi
   exit 0
 fi
 
-# Confirm before starting
-echo -e "\${YELLOW}This will run Claude autonomously with --dangerously-skip-permissions\${NC}"
-echo -e "\${YELLOW}Press Enter to start, Ctrl+C to cancel...\${NC}"
-read -r
+mkdir -p .claude "$LOG_DIR" "$SESSIONS_DIR"
 
-# Log start
-echo "=== Ralph Loop Started: $(date) ===" >> "$LOG_FILE"
-echo "PRD: $PRD, Max: $MAX" >> "$LOG_FILE"
+# Skill tracking file for session summary
+SKILL_LOG="$LOG_DIR/skills-$(date +%Y%m%d-%H%M%S).txt"
+touch "$SKILL_LOG"
 
-# Track iterations without progress for idle detection
-idle_count=0
-last_complete_count=$((initial_incomplete))
+# Run stage with spinner and skill invocation feedback
+# Usage: run_stage SESSION_ID icon name prompt logfile [is_first]
+run_stage() {
+  local session_id=$1
+  local icon=$2
+  local name=$3
+  local prompt=$4
+  local logfile=$5
+  local is_first=$6
 
-for i in $(seq 1 $MAX); do
+  local start=$(date +%s)
+
+  # Print stage header
   echo ""
-  echo -e "\${CYAN}═══════════════════════════════════════════════════════════\${NC}"
-  echo -e "\${CYAN}  ITERATION $i / $MAX\${NC}"
-  echo -e "\${CYAN}═══════════════════════════════════════════════════════════\${NC}"
-  echo ""
-
-  # Log iteration
-  echo "" >> "$LOG_FILE"
-  echo "--- Iteration $i: $(date) ---" >> "$LOG_FILE"
-
-  # Run Claude with detailed ralph-loop instructions
-  # Using heredoc with quoted delimiter to prevent bash interpretation of backticks
-  RALPH_PROMPT=$(cat <<'RALPH_PROMPT_END'
-RALPH LOOP ITERATION __ITER__ - AUTONOMOUS PRD IMPLEMENTATION
-
-## PRODUCTION READINESS REQUIRED
-
-All code MUST be production-ready. This means:
-- NO shortcuts, hacks, or "good enough" implementations
-- NO TODO comments left behind
-- NO skipped error handling
-- NO hardcoded values that should be configurable
-- FULL test coverage for critical paths
-- PROPER security considerations
-- CODE REVIEW must pass before marking complete
-
-Read __PRD__ and find the NEXT incomplete item (marked with '- [ ]').
-
-## MANDATORY WORKFLOW - EACH STEP REQUIRED
-
-### STEP 0: PLAN (REQUIRED)
-Create a plan file and continue. DO NOT use EnterPlanMode or ExitPlanMode tools.
-
-1. Explore the codebase to understand current state
-2. Design the implementation approach
-3. Write the plan to .claude/plans/[item-slug].md using the Write tool
-4. Plans are AUTO-APPROVED in autonomous mode - no approval needed
-5. IMMEDIATELY continue to Step 1
-
-⚠️ CRITICAL: Do NOT use EnterPlanMode or ExitPlanMode tools in autonomous mode.
-These tools pause for user approval which breaks the autonomous loop.
-Just write plan files directly and continue.
-
-AUTONOMOUS MODE RULES (--dangerously-skip-permissions is active):
-- ALL file operations are pre-approved: Write, Edit, create, delete
-- ALL directory operations are pre-approved: mkdir, rmdir
-- ALL Bash commands are pre-approved
-- ALL MCP tools are pre-approved: mcp__gemini-reviewer__*, mcp__qodana__*, etc.
-- ALL Skill invocations are pre-approved
-- After ANY tool call, proceed IMMEDIATELY - no waiting
-- Do NOT output "waiting for approval" or ask for confirmation
-- Do NOT pause for user input at any point
-- NEVER present options or ask the user to choose
-- NEVER ask user to "process results" or "review output" - just process it yourself
-- Just execute everything directly and move on
-GEMINI REVIEW: Process results automatically. Fix issues found. Do not ask user to review.
-QODANA SCAN: Process results automatically. Fix issues found. Do not ask user to review.
-
-## ⚠️ MANDATORY CONTINUATION RULES
-
-After completing EACH item, you MUST:
-1. Check how many incomplete items remain
-2. If remaining > 0: Output "Item complete. X items remain. STARTING NEXT ITEM NOW..."
-3. IMMEDIATELY begin working on the next item
-4. DO NOT output "loop complete" until ALL items are done
-
-INVALID (these are BUGS):
-- Stopping after item 1 when items 2-N exist
-- Stopping after item 2 when items 3-N exist
-- Asking "should I continue?" at any point
-- Outputting "complete" before all items done
-
-The ONLY valid exit conditions:
-1. ALL PRD items marked [x]
-2. Max iterations reached
-3. Idle detection (3 iterations, 0 commits)
-
-### STEP 1: INVOKE SKILLS (REQUIRED)
-You MUST invoke canon master skills using the Skill tool.
-
-## ALWAYS INVOKE FIRST — BASELINE BRAIN + BASE PRACTICES
-These masters apply to EVERY implementation. Invoke ALL of them at the start:
-
-OUTPUT: "🧠 Loading baseline brain + base practices..."
-
-**Baseline Brain (6 masters):**
-1. /kernighan - Clarity over cleverness
-2. /thompson - Pragmatism, simplicity
-3. /pike - Composition, minimal interfaces
-4. /joy - Resilience, failure handling
-5. /linus - Taste, data structures first
-6. /dijkstra - Rigor, correctness
-
-**Base Practices - Security (2 masters):**
-7. /schneier - Think like an attacker
-8. /owasp - Top 10 checklist
-
-**Base Practices - Testing (3 masters):**
-9. /dodds - Testing Trophy methodology
-10. /meszaros - xUnit patterns, test smells
-11. /feathers - Legacy code, characterization tests
-
-**Base Practices - Documentation (1 master):**
-12. /procida - Diátaxis framework
-
-**Base Practices - Engineering (5 masters):**
-13. /petroski - Form follows failure
-14. /leveson - STAMP safety constraints
-15. /taleb - Antifragility, via negativa
-16. /mcilroy - Do one thing well, Unix pipes
-17. /carmack - Performance, ship working software
-
-⚠️ BLOCKING: You MUST invoke ALL 17 base masters before proceeding to domain-specific skills.
-
-## DOMAIN MASTERS — INVOKE PER LANGUAGE/STACK
-
-**JavaScript/TypeScript:**
-- /simpson - JS fundamentals, scope, closures
-- /crockford - The Good Parts
-- /cherny - TypeScript patterns
-
-**React:**
-- /abramov - Hooks, composition, mental models
-
-**Python:**
-- /hettinger - Pythonic idioms, transformative talks
-- /beazley - Deep Python internals, concurrency
-- /ramalho - Fluent Python, data model
-- /slatkin - Effective Python, 90 ways
-
-**Java:**
-- /bloch - Effective Java patterns
-
-**C#:**
-- /skeet - LINQ, async patterns
-- /cleary - Async/await
-
-**Writing (for docs, READMEs, comments):**
-- /zinsser - Clarity, remove clutter
-- /strunk-white - Omit needless words, active voice
-- /king - Kill your darlings, practical advice
-
-## UI/UX — INVOKE IF FRONTEND WORK DETECTED
-
-If PRD item mentions ANY of: UI, component, frontend, page, view, button, form, modal, CSS, style, layout, responsive, mobile, .jsx, .tsx, React, Angular, Vue, HTML, DOM, render
-
-OUTPUT: "🎨 Frontend detected → Loading UI/UX masters..."
-- /frost - Atomic Design (atoms, molecules, organisms)
-- /ive - Visual design, minimalism
-- /norman - Affordances, feedback, mental models
-- /rams - 10 Principles of Good Design
-- /cooper - Interaction design, personas
-- Forms → /wroblewski - Form design, mobile-first
-- Animation → /duarte - Motion design
-- Mobile → /buxton - Input, sketching
-- Design systems → /curtis - Tokens, governance
-- Typography → /kruzeniski - Type hierarchy
-
-BLOCKING: If UI/UX work detected but no UI/UX skills invoked, you CANNOT proceed.
-
-### STEP 2: IMPLEMENT
-Write the code following the perspective from Step 1.
-
-### STEP 3: DOCUMENT
-Invoke /procida for Diataxis documentation methodology, then:
-- Add inline documentation (required for all public functions):
-  - JS/TS: JSDoc with @param, @returns, @example
-  - C#: XML comments with summary, param, example tags
-  - Python: Google-style docstrings
-- For new modules: Create README.md
-
-### STEP 4: TEST (REQUIRED FOR ALL CODE)
-ALL code MUST have tests. No exceptions.
-
-OUTPUT: "🧪 Loading testing masters..."
-1. Invoke testing skills first:
-   - /dodds - Testing Trophy methodology (integration > unit)
-   - /meszaros - xUnit patterns, test smells
-   - /feathers - Legacy code, characterization tests
-
-2. Write tests appropriate for the language:
-
-**JavaScript/TypeScript:**
-- Integration tests (most valuable)
-- Unit tests for complex logic
-- Run: npm test or equivalent
-
-**C#/.NET:**
-- xUnit or NUnit tests
-- Run: dotnet test
-
-**Python:**
-- pytest tests
-- Run: pytest
-
-**Go:**
-- Go test files
-- Run: go test ./...
-
-3. Fix ALL failures before proceeding
-
-**FOR WEB PROJECTS (React, Next.js, Vue, etc.):**
-- E2E tests are MANDATORY for user-facing features
-- Use Playwright or Cypress
-- Run: npm run test:e2e or npx playwright test
-- E2E must pass before marking complete
-
-**FOR APIs:**
-- Integration tests hitting actual endpoints
-- Test error cases, not just happy paths
-
-ANTI-PATTERN: Never skip tests for ANY code - "simple" code breaks too!
-BLOCKING: No tests = not production ready = cannot mark complete
-
-### STEP 5: REVIEW (PRODUCTION GATE)
-This is a BLOCKING gate. Code cannot proceed without passing review.
-
-1. Run /review-hard skill and fix ALL issues (not just critical)
-2. Use mcp__gemini-reviewer__gemini_review for second opinion on:
-   - Security vulnerabilities
-   - Performance issues
-   - Code quality
-3. Run mcp__qodana__qodana_scan for static analysis
-4. Fix ALL high/critical issues before proceeding
-
-If any review finds issues, fix them and re-review. Do NOT skip this step.
-
-### STEP 6: VERIFICATION CHECKLIST (ALL MUST PASS)
-Before marking complete, verify ALL apply:
-
-**Planning:**
-- [ ] Plan was created in .claude/plans/
-
-**Skills (REQUIRED):**
-- [ ] Canon skills invoked and listed in output
-- [ ] If UI/UX work: /frost, /ive, /norman invoked (at minimum)
-- [ ] If forms: /wroblewski invoked
-- [ ] If architecture: /taleb and/or /petroski invoked
-
-**Code Quality:**
-- [ ] No TODO comments remain in code
-- [ ] No hardcoded secrets or credentials
-- [ ] Error handling is comprehensive
-- [ ] No console.log/print statements (use proper logging)
-
-**Documentation:**
-- [ ] JSDoc added for JS/TS (show sample in output)
-- [ ] XML comments added for C# (show sample in output)
-- [ ] README.md exists for new modules
-
-**Testing (REQUIRED FOR ALL CODE):**
-- [ ] Tests written and ALL passing
-- [ ] E2E tests written and passing (for web projects)
-- [ ] API integration tests (for APIs)
-- [ ] Edge cases and error paths covered
-- [ ] Test output shown in report
-
-**Review (REQUIRED):**
-- [ ] /review-hard passed
-- [ ] Gemini review passed (no critical issues)
-- [ ] Qodana scan passed (no high/critical issues)
-
-**Final:**
-- [ ] Changes committed with descriptive message
-
-BLOCKING: Cannot mark complete without showing documentation samples in output!
-BLOCKING: Web projects MUST have e2e tests passing!
-
-ANTI-PATTERNS - NEVER DO:
-- Marking items complete without documentation
-- Skipping tests for 'simple' code
-- Saying 'tests not needed here'
-
-### STEP 7: MARK COMPLETE
-Only after verification passes: Update PRD '- [ ]' to '- [x]'
-
-## OUTPUT FORMAT (REQUIRED - Show your work)
-PLAN FILE: .claude/plans/item-name.md
-
-SKILLS INVOKED:
-  UI/UX: /frost, /ive, /norman, /wroblewski, /rams (list all used)
-  Architecture: /taleb, /petroski (if applicable)
-  Code: /abramov, /cherny (if applicable)
-  Testing: /dodds
-  Docs: /procida
-
-DOCUMENTATION ADDED:
-  - File: src/example.ts
-  - Sample JSDoc shown
-  - For C#: Show XML comments with summary, param tags
-
-TESTS (REQUIRED):
-  - Test files created: path/to/tests/
-  - Test command run: npm test / dotnet test / pytest / etc.
-  - Results: X passed, Y failed, Z skipped
-  - E2E (web/API): path/to/e2e/ (X passed, Y failed)
-  - Coverage: X% (if available)
-
-PRODUCTION REVIEWS:
-  - /review-hard: PASSED/FAILED (issues fixed: X)
-  - Gemini Review: PASSED/FAILED (focus: security/performance/quality)
-  - Qodana Scan: PASSED/FAILED (critical: X, high: X, moderate: X)
-
-PRODUCTION READY: yes/no
-MARKING COMPLETE: yes/no (reason if no)
-
-BLOCKING RULES:
-- If TESTS section is empty or shows failures, you CANNOT mark complete.
-- If DOCUMENTATION ADDED section is empty, you CANNOT mark complete.
-- If web project and E2E tests are missing/failing, you CANNOT mark complete.
-- If PRODUCTION READY is "no", you CANNOT mark complete.
-- If any review has unresolved critical/high issues, you CANNOT mark complete.
-
-NO EXCEPTIONS. ALL code needs tests. "Simple" code, utilities, scripts - everything.
-
-If blocked, note reason in PRD and move to next item.
-
-START NOW.
-RALPH_PROMPT_END
-)
-  # Replace placeholders with actual values
-  RALPH_PROMPT="\${RALPH_PROMPT/__ITER__/$i}"
-  RALPH_PROMPT="\${RALPH_PROMPT/__PRD__/$PRD}"
-
-  # Run Claude with real-time output AND logging
-  start_time=$(date +%s)
-  echo -e "\${CYAN}[$(date '+%H:%M:%S')] Starting Claude...\${NC}"
-  echo -e "\${BLUE}  PRD: $PRD\${NC}"
-  echo -e "\${BLUE}  Items remaining: $((initial_incomplete - \${completed:-0}))\${NC}"
-  echo ""
-  echo "--- Iteration $i Start: $(date) ---" >> "$LOG_FILE"
-
-  # Run claude with all permissions bypassed
-  # Use script command on macOS for unbuffered real-time output
-  script -q "$LOG_FILE.tmp" claude --dangerously-skip-permissions --permission-mode bypassPermissions "$RALPH_PROMPT"
-  CLAUDE_EXIT=\$?
-  cat "$LOG_FILE.tmp" >> "$LOG_FILE"
-  rm -f "$LOG_FILE.tmp"
-
-  end_time=$(date +%s)
-  elapsed=$((end_time - start_time))
-  echo ""
-  echo -e "\${CYAN}[$(date '+%H:%M:%S')] Claude finished (\${elapsed}s)\${NC}"
-
-  echo "--- Iteration $i End: $(date), Exit: $CLAUDE_EXIT ---" >> "$LOG_FILE"
-
-  if [ $CLAUDE_EXIT -ne 0 ]; then
-    echo -e "\${YELLOW}Warning: Claude exited with code $CLAUDE_EXIT\${NC}"
+  echo "════════════════════════════════════════════════════════"
+  echo "  $icon $name"
+  echo "════════════════════════════════════════════════════════"
+
+  # Start spinner in background (disown to suppress termination message)
+  local spinstr='⠋⠙⠹⠸⠼⠴⠦⠧⠇⠏'
+  local spin_pid
+  (
+    trap '' TERM
+    while true; do
+      for ((i=0; i<\${#spinstr}; i++)); do
+        printf "\\r  \${DIM}\${spinstr:\$i:1} Working...\${NC}"
+        sleep 0.15
+      done
+    done
+  ) 2>/dev/null &
+  spin_pid=$!
+  disown \$spin_pid 2>/dev/null
+
+  # Run claude with stream-json to capture skill invocations
+  # < /dev/null prevents stdin blocking, || true prevents set -e from exiting on pipeline failures
+  claude --dangerously-skip-permissions \\
+    --output-format stream-json --verbose \\
+    -p "$prompt" < /dev/null 2>&1 | \\
+    tee "$logfile.json" | \\
+    grep --line-buffered -o '"skill":"[^"]*"\\|"tool_use"' | \\
+    while IFS= read -r match; do
+      # Kill spinner on first output
+      if kill -0 \$spin_pid 2>/dev/null; then
+        kill \$spin_pid 2>/dev/null
+        wait \$spin_pid 2>/dev/null
+        printf "\\r\\033[K"  # Clear line completely
+        sleep 0.05  # Brief pause to ensure line is cleared
+      fi
+      if [[ "$match" == *'"skill":'* ]]; then
+        skill=$(echo "$match" | sed 's/"skill":"//;s/"//')
+        printf "\\r\\033[K"  # Ensure clean line before skill
+        desc=$(skill_desc "$skill")
+        if [ -n "$desc" ]; then
+          echo -e "  \${GREEN}⚡ /\$skill\${NC} \${DIM}(\$desc)\${NC}"
+        else
+          echo -e "  \${GREEN}⚡ /\$skill\${NC}"
+        fi
+        echo "\$skill" >> "$SKILL_LOG"
+      else
+        # Print a dot for each tool use to show progress
+        printf "."
+      fi
+    done || true
+
+  # Kill spinner if still running (no output case)
+  if kill -0 \$spin_pid 2>/dev/null; then
+    kill \$spin_pid 2>/dev/null
+    wait \$spin_pid 2>/dev/null
+    printf "\\r\\033[K"  # Clear line completely
   fi
 
-  # Count remaining incomplete items
-  remaining=$(grep -cE "^[[:space:]]*[-*+][[:space:]]*\\[[[:space:]]\\]" "$PRD" 2>/dev/null) || true
-  remaining=\${remaining:-0}
-  completed=$((initial_incomplete - remaining))
+  # Extract final result from stream-json output
+  grep -o '"result":"[^"]*"' "$logfile.json" 2>/dev/null | tail -1 | sed 's/"result":"//;s/"$//' > "$logfile.raw" || true
 
+  local elapsed=$(($(date +%s) - start))
   echo ""
-  echo -e "\${BLUE}Progress: $completed / $initial_incomplete items complete\${NC}"
+  echo "  ✓ $name done ($(format_time $elapsed))"
+}
 
-  # Check if all items complete
-  if [ "$remaining" -eq 0 ]; then
-    echo ""
-    echo -e "\${GREEN}╔═══════════════════════════════════════════════════════════╗\${NC}"
-    echo -e "\${GREEN}║                  ALL PRD ITEMS COMPLETE!                  ║\${NC}"
-    echo -e "\${GREEN}╚═══════════════════════════════════════════════════════════╝\${NC}"
-    echo ""
-    echo "=== Ralph Loop Complete: $(date) ===" >> "$LOG_FILE"
-    break
+
+# Helper functions
+count_incomplete() {
+  grep -cE "^[[:space:]]*[-*+][[:space:]]*\\[[[:space:]]\\]" "$PRD" 2>/dev/null | head -1 || echo 0
+}
+
+get_next_item() {
+  grep -E "^[[:space:]]*[-*+][[:space:]]*\\[[[:space:]]\\]" "$PRD" | head -1 | sed 's/^[[:space:]]*[-*+][[:space:]]*\\[[[:space:]]\\][[:space:]]*//'
+}
+
+mark_complete() {
+  # Find the line number of the first incomplete item and mark it complete
+  local line_num=$(grep -nE "^[[:space:]]*[-*+][[:space:]]*\\[[[:space:]]\\]" "$PRD" | head -1 | cut -d: -f1)
+  if [ -n "$line_num" ]; then
+    # Replace [ ] with [x] on that specific line
+    sed -i.bak "\${line_num}s/\\[[[:space:]]\\]/[x]/" "$PRD"
+    rm -f "$PRD.bak"
+  fi
+}
+
+format_time() {
+  local secs=$1
+  printf "%02d:%02d" $((secs / 60)) $((secs % 60))
+}
+
+# Brief description for each skill
+skill_desc() {
+  case "$1" in
+    kernighan) echo "clarity" ;;
+    pike) echo "simplicity" ;;
+    thompson) echo "elegance" ;;
+    mcilroy) echo "unix philosophy" ;;
+    dijkstra) echo "correctness" ;;
+    knuth) echo "algorithms" ;;
+    linus) echo "taste" ;;
+    bloch) echo "API design" ;;
+    liskov) echo "contracts" ;;
+    cherny) echo "type-driven" ;;
+    crockford) echo "JS patterns" ;;
+    hejlsberg) echo "type systems" ;;
+    gang-of-four) echo "design patterns" ;;
+    feathers) echo "refactoring" ;;
+    schneier|bruce-schneier) echo "security mindset" ;;
+    security-mindset) echo "think like attacker" ;;
+    owasp) echo "secure coding" ;;
+    tanya-janca) echo "appsec" ;;
+    troy-hunt) echo "breach lessons" ;;
+    threat-model) echo "threat analysis" ;;
+    defense-in-depth) echo "layered security" ;;
+    leveson) echo "safety engineering" ;;
+    dodds) echo "testing" ;;
+    meszaros) echo "test patterns" ;;
+    fowler-test) echo "test strategy" ;;
+    hevery) echo "testable code" ;;
+    procida) echo "diátaxis" ;;
+    tufte) echo "information design" ;;
+    strunk-white) echo "concise writing" ;;
+    zinsser) echo "clarity in prose" ;;
+    taleb) echo "antifragile" ;;
+    petroski) echo "failure analysis" ;;
+    *) echo "" ;;
+  esac
+}
+
+# Ensure git repo exists
+if ! git rev-parse --git-dir >/dev/null 2>&1; then
+  git init && git add -A && git commit -m "Initial commit"
+fi
+
+# Validate PRD
+if [ ! -f "$PRD" ]; then
+  echo -e "\${RED}Error:\${NC} PRD not found: $PRD"
+  exit 1
+fi
+
+initial_incomplete=$(count_incomplete)
+if [ "$initial_incomplete" -eq 0 ]; then
+  echo -e "\${GREEN}✓\${NC} All items complete!"
+  exit 0
+fi
+
+# Header
+echo ""
+echo -e "\${CYAN}Ralph\${NC} — $PRD"
+echo -e "\${DIM}$initial_incomplete items remaining\${NC}"
+echo ""
+
+# Resume context
+RESUME_CONTEXT=""
+if [ "$RESUME" = true ]; then
+  latest=$(ls -t "$SESSIONS_DIR"/progress-*.md 2>/dev/null | head -1)
+  if [ -n "$latest" ]; then
+    echo -e "\${DIM}Resuming from: $latest\${NC}"
+    RESUME_CONTEXT=$(cat "$latest")
+  fi
+fi
+
+[ "$YES" = false ] && { echo "Press Enter to start..."; read -r; }
+
+# Stage prompts
+read -r -d '' PLAN_PROMPT << 'EOF' || true
+PLAN IMPLEMENTATION
+
+Read CLAUDE.md and __PRD__, then create an implementation plan for the NEXT item marked '- [ ]'.
+
+IMPORTANT: Use the Skill tool to invoke MULTIPLE canon skills. Honor those who came before.
+
+For PLANNING, invoke these experts using the Skill tool:
+- skill="kernighan" - clarity and simplicity
+- skill="mcilroy" - Unix philosophy, composition
+- skill="pike" - systems design, Go philosophy
+- skill="thompson" - elegant minimalism
+- skill="dijkstra" - correctness, formal thinking
+- skill="cherny" - type-driven design
+- skill="bloch" - API design
+- skill="liskov" - substitution, contracts
+
+For SECURITY planning, also invoke:
+- skill="schneier" - security mindset
+- skill="threat-model" - threat modeling
+- skill="defense-in-depth" - layered security
+
+Steps:
+1. Read CLAUDE.md - invoke ALL relevant skills per auto-invoke rules
+2. Find next incomplete item in PRD
+3. Explore the codebase to understand current architecture
+4. Identify files that need to be created or modified
+5. Write plan to .claude/plans/[item-slug].md
+
+Plan format:
+## [Item Name]
+
+### Approach
+[1-2 sentences on implementation strategy]
+
+### Files to Change
+- path/to/file.ts - [what changes]
+
+### Security Considerations
+- [any trust boundaries, atomicity needs, etc.]
+
+### Tests Needed
+- [test cases to write]
+
+Output at end:
+PLAN_FILE: [path to plan]
+PLAN_COMPLETE
+
+If blocked: PLAN_FAILED: [reason]
+EOF
+
+read -r -d '' BUILD_PROMPT << 'EOF' || true
+BUILD FROM PLAN
+
+Read the plan at __PLAN_FILE__ and implement it.
+
+IMPORTANT: Use the Skill tool to invoke MULTIPLE canon skills. Honor those who came before.
+
+For IMPLEMENTATION, invoke these experts:
+- skill="kernighan" - clarity above all
+- skill="pike" - simplicity, systems thinking
+- skill="thompson" - elegant code
+- skill="mcilroy" - compose small tools
+- skill="linus" - practical systems code
+- skill="bloch" - defensive programming
+- skill="crockford" - JavaScript patterns
+- skill="knuth" - algorithmic thinking
+
+For TYPE SAFETY and ARCHITECTURE:
+- skill="cherny" - type-driven design
+- skill="liskov" - contracts, substitution
+- skill="gang-of-four" - design patterns
+- skill="hejlsberg" - type system design
+
+For SECURITY in implementation:
+- skill="owasp" - secure coding
+- skill="schneier" - security mindset
+- skill="tanya-janca" - AppSec
+- skill="defense-in-depth" - layered protection
+
+Steps:
+1. Read CLAUDE.md - invoke ALL relevant skills
+2. Read the plan file
+3. Implement each file change with expert guidance
+4. Write tests as specified in plan
+5. Run tests - must pass
+6. Commit changes
+
+Output at end:
+BUILD_COMPLETE: [item name]
+TESTS_PASSED: yes/no
+COMMIT_SHA: [hash]
+
+If blocked: BUILD_FAILED: [reason]
+EOF
+
+read -r -d '' CLEAN_PROMPT << 'EOF' || true
+CLEAN THE CODE
+
+Review code from last commit and apply structural improvements.
+
+IMPORTANT: Use the Skill tool to invoke MULTIPLE canon skills for refactoring.
+
+For CODE CLARITY, invoke:
+- skill="kernighan" - clarity, meaningful names
+- skill="pike" - simplicity
+- skill="mcilroy" - do one thing well
+- skill="strunk-white" - omit needless code
+
+For REFACTORING patterns:
+- skill="feathers" - working with legacy code
+- skill="bloch" - API design
+- skill="crockford" - JavaScript idioms
+- skill="liskov" - proper abstractions
+
+For ARCHITECTURE review:
+- skill="gang-of-four" - design patterns
+- skill="petroski" - learning from failure
+- skill="taleb" - antifragile design
+
+Steps:
+1. Read CLAUDE.md - invoke ALL relevant skills
+2. Get changed files: git diff HEAD~1 --name-only
+3. For each file, apply improvements with expert guidance
+4. Commit improvements
+
+Output at end:
+METHODS_EXTRACTED: [count]
+NAMES_IMPROVED: [count]
+CLEAN_COMPLETE
+
+If nothing to clean: CLEAN_SKIPPED
+EOF
+
+read -r -d '' TEST_PROMPT << 'EOF' || true
+RUN TESTS
+
+Execute test suite and verify all pass.
+
+IMPORTANT: Use the Skill tool to invoke MULTIPLE testing experts.
+
+For TESTING philosophy, invoke:
+- skill="dodds" - testing library, user-centric tests
+- skill="meszaros" - xUnit patterns, test structure
+- skill="fowler-test" - test pyramids, strategies
+- skill="hevery" - testable code design
+
+For TEST QUALITY:
+- skill="kernighan" - clear test names
+- skill="bloch" - edge cases, contracts
+- skill="dijkstra" - correctness proofs
+
+For DEBUGGING failures:
+- skill="kernighan" - debugging wisdom
+- skill="pike" - systematic debugging
+- skill="thompson" - trace the logic
+
+Steps:
+1. Read CLAUDE.md - invoke ALL relevant skills
+2. Run: npm test (or project equivalent)
+3. If failures, consult experts and fix
+4. Re-run until green
+
+Output at end:
+TESTS_TOTAL: [count]
+TESTS_PASSED: [count]
+TEST_COMPLETE
+
+If stuck: TEST_FAILED: [reason]
+EOF
+
+read -r -d '' REVIEW_PROMPT << 'EOF' || true
+EXPERT REVIEW
+
+Review code using Gemini with security analysis.
+
+IMPORTANT: Use the Skill tool to invoke the FULL security canon. This is critical.
+
+For SECURITY MINDSET, invoke:
+- skill="schneier" - think like an attacker
+- skill="security-mindset" - security thinking
+- skill="bruce-schneier" - cryptography, trust
+
+For VULNERABILITY analysis:
+- skill="owasp" - top 10, secure coding
+- skill="tanya-janca" - application security
+- skill="troy-hunt" - real-world breaches
+- skill="threat-model" - systematic threats
+
+For DEFENSE strategy:
+- skill="defense-in-depth" - layered security
+- skill="leveson" - safety engineering
+
+For CODE QUALITY in review:
+- skill="kernighan" - clarity reveals bugs
+- skill="bloch" - defensive coding
+- skill="liskov" - contract violations
+
+Steps:
+1. Read CLAUDE.md - invoke ALL security skills
+2. Get changed files: git diff HEAD~1 --name-only
+3. Read each file through security lens
+4. Call gemini_review MCP tool for each file
+5. For critical issues: fix, commit, re-verify (max 3 attempts)
+
+Output at end:
+ISSUES_FOUND: [count]
+ISSUES_FIXED: [count]
+VERIFIED_CLEAN: yes/no
+REVIEW_COMPLETE
+EOF
+
+read -r -d '' DOC_PROMPT << 'EOF' || true
+DOCUMENTATION
+
+IMPORTANT: Use the Skill tool to invoke the FULL documentation canon.
+
+For STRUCTURE, invoke:
+- skill="procida" - Diátaxis framework
+- skill="tufte" - information design
+
+For WRITING CLARITY:
+- skill="kernighan" - clear technical writing
+- skill="strunk-white" - omit needless words
+- skill="zinsser" - simplicity, humanity
+
+For API DOCUMENTATION:
+- skill="bloch" - API design docs
+- skill="pike" - Go-style doc comments
+
+Update documentation based on the code changes made in this session.
+
+Steps:
+1. Invoke ALL documentation skills
+2. Get changed files: git diff HEAD~1 --name-only
+3. Determine what documentation types are needed (per Diátaxis):
+   - REFERENCE: API docs, JSDoc for all exported functions
+   - HOW-TO: Usage guides for new features
+   - EXPLANATION: Architecture decisions if applicable
+4. For each changed file:
+   - Add/update JSDoc comments with expert guidance
+   - Include examples for every function
+5. Update or create README.md:
+   - Project overview
+   - Installation (how-to)
+   - Quick start (tutorial-like)
+   - API reference section
+   - Environment variables required
+6. Keep reference docs structured by code, not by tasks
+7. Commit documentation changes
+
+Output at end:
+FILES_DOCUMENTED: [count]
+README_UPDATED: yes/no
+DOC_COMPLETE
+EOF
+
+# Main loop
+items_done=0
+item_num=$((initial_incomplete - $(count_incomplete) + 1))
+
+for iter in $(seq 1 $MAX); do
+  LOG="$LOG_DIR/item\${item_num}_$(date +%H%M%S)"
+
+  remaining=$(count_incomplete)
+  [ "$remaining" -eq 0 ] && break
+
+  CURRENT_ITEM=$(get_next_item)
+  total_items=$initial_incomplete
+
+  # Generate session ID for this item (reuse across all stages)
+  SESSION_ID=$(uuidgen | tr '[:upper:]' '[:lower:]')
+
+  # Item header
+  echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
+  echo -e "📋 \${CYAN}$CURRENT_ITEM\${NC} ($item_num of $total_items)"
+  echo -e "\${DIM}Session: $SESSION_ID\${NC}"
+  echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
+
+  # ═══════════════════════════════════════════════════════════
+  # STAGE 1: PLAN
+  # ═══════════════════════════════════════════════════════════
+  ITEM_SLUG=$(echo "$CURRENT_ITEM" | tr '[:upper:]' '[:lower:]' | sed 's/[^a-z0-9]/-/g' | sed 's/--*/-/g' | sed 's/^-//' | sed 's/-$//')
+  PLAN_FILE=".claude/plans/\${ITEM_SLUG}.md"
+  mkdir -p .claude/plans
+
+  P0="\${PLAN_PROMPT/__PRD__/$PRD}"
+  [ -n "$RESUME_CONTEXT" ] && [ "$iter" -eq 1 ] && P0="RESUME CONTEXT:\\n$RESUME_CONTEXT\\n\\n$P0"
+
+  run_stage "$SESSION_ID" "📝" "Planning" "$P0" "$LOG.plan" "true"
+
+  if grep -q "PLAN_COMPLETE" "$LOG.plan.raw" 2>/dev/null; then
+    echo -e "  📝 \${GREEN}✓\${NC} Plan created: $(pwd)/$PLAN_FILE"
+  else
+    echo -e "  📝 \${RED}✗\${NC} Planning failed"
+    sleep 2
+    continue
   fi
 
-  # Idle detection - if no progress for 3 iterations, exit
-  if [ "$remaining" -eq "$last_complete_count" ]; then
-    idle_count=$((idle_count + 1))
-    if [ "$idle_count" -ge 3 ]; then
-      echo ""
-      echo -e "\${YELLOW}Warning: No progress for 3 iterations. Exiting to prevent infinite loop.\${NC}"
-      echo "=== Ralph Loop Idle Exit: $(date) ===" >> "$LOG_FILE"
-      break
+  # ═══════════════════════════════════════════════════════════
+  # STAGE 2: BUILD
+  # ═══════════════════════════════════════════════════════════
+  P1="\${BUILD_PROMPT/__PLAN_FILE__/$PLAN_FILE}"
+
+  run_stage "$SESSION_ID" "🔨" "Building" "$P1" "$LOG.build"
+
+  if grep -q "BUILD_COMPLETE" "$LOG.build.raw" 2>/dev/null; then
+    TESTS=$(grep "TESTS_PASSED:" "$LOG.build.raw" 2>/dev/null | tail -1 | sed 's/.*: *//')
+    echo -e "  🔨 \${GREEN}✓\${NC} Build complete (tests: \${TESTS:-unknown})"
+  else
+    echo -e "  🔨 \${RED}✗\${NC} Build failed"
+    sleep 2
+    continue
+  fi
+
+  # ═══════════════════════════════════════════════════════════
+  # STAGE 3: REFACTOR OPPORTUNITY CHECK
+  # ═══════════════════════════════════════════════════════════
+  run_stage "$SESSION_ID" "🧹" "Refactor Opportunity Check" "$CLEAN_PROMPT" "$LOG.clean"
+
+  if grep -q "CLEAN_COMPLETE" "$LOG.clean.raw" 2>/dev/null; then
+    EXTRACTED=$(grep "METHODS_EXTRACTED:" "$LOG.clean.raw" 2>/dev/null | tail -1 | sed 's/.*: *//')
+    RENAMED=$(grep "NAMES_IMPROVED:" "$LOG.clean.raw" 2>/dev/null | tail -1 | sed 's/.*: *//')
+    echo -e "  🧹 \${GREEN}✓\${NC} Clean complete (\${EXTRACTED:-0} extracted, \${RENAMED:-0} renamed)"
+  elif grep -q "CLEAN_SKIPPED" "$LOG.clean.raw" 2>/dev/null; then
+    echo -e "  🧹 \${YELLOW}○\${NC} Nothing to refactor"
+  else
+    echo -e "  🧹 \${GREEN}✓\${NC} Clean complete"
+  fi
+
+  # ═══════════════════════════════════════════════════════════
+  # STAGE 4: TEST
+  # ═══════════════════════════════════════════════════════════
+  run_stage "$SESSION_ID" "🧪" "Testing" "$TEST_PROMPT" "$LOG.test"
+
+  if grep -q "TEST_COMPLETE" "$LOG.test.raw" 2>/dev/null; then
+    PASSED=$(grep "TESTS_PASSED:" "$LOG.test.raw" 2>/dev/null | tail -1 | sed 's/.*: *//')
+    TOTAL=$(grep "TESTS_TOTAL:" "$LOG.test.raw" 2>/dev/null | tail -1 | sed 's/.*: *//')
+    echo -e "  🧪 \${GREEN}✓\${NC} Tests passed (\${PASSED:-all}/\${TOTAL:-all})"
+  else
+    echo -e "  🧪 \${RED}✗\${NC} Tests failed"
+  fi
+
+  # ═══════════════════════════════════════════════════════════
+  # STAGE 5: EXTERNAL STATIC ANALYSIS (Qodana)
+  # ═══════════════════════════════════════════════════════════
+  if [ "$SKIP_SCAN" = true ]; then
+    echo -e "  🔍 \${YELLOW}○\${NC} Code scan skipped (--skip-scan)"
+  elif command -v qodana &>/dev/null; then
+    echo -e "  🔍 \${CYAN}External Static Analysis...\${NC}"
+
+    QODANA_CMD="qodana scan --within-docker=false --project-dir . --results-dir .qodana/results --commit HEAD~1"
+    [ -f "$BASELINE_FILE" ] && QODANA_CMD="$QODANA_CMD --baseline $BASELINE_FILE"
+
+    $QODANA_CMD > "$LOG.scan.log" 2>&1
+
+    if [ -f ".qodana/results/qodana.sarif.json" ]; then
+      CRIT=$(jq '[.runs[].results[] | select(.level == "error")] | length' .qodana/results/qodana.sarif.json 2>/dev/null || echo 0)
+      if [ "$CRIT" -gt 0 ]; then
+        echo -e "  🔍 \${YELLOW}Found $CRIT issues → fixing\${NC}"
+        ISSUES=$(jq '.runs[].results[] | select(.level == "error")' .qodana/results/qodana.sarif.json 2>/dev/null | head -100)
+        run_stage "$SESSION_ID" "🔧" "Fixing scan issues" "Fix these issues. Commit when done. Output SCAN_FIXED when complete:\\n$ISSUES" "$LOG.scan.fix"
+        echo -e "  🔍 \${GREEN}✓\${NC} Scan issues fixed"
+      else
+        echo -e "  🔍 \${GREEN}✓\${NC} No issues found"
+      fi
+    else
+      echo -e "  🔍 \${GREEN}✓\${NC} Scan complete"
     fi
   else
-    idle_count=0
-    last_complete_count=$remaining
+    echo -e "  🔍 \${YELLOW}○\${NC} Qodana not installed"
   fi
 
-  # Small delay to avoid rate limits
-  sleep 2
+  # ═══════════════════════════════════════════════════════════
+  # STAGE 6: ADVERSARIAL REVIEW (Gemini)
+  # ═══════════════════════════════════════════════════════════
+  run_stage "$SESSION_ID" "👁️" "Adversarial Review (Gemini)" "$REVIEW_PROMPT" "$LOG.review"
+
+  # Extract review results from JSON log (more reliable than .raw)
+  FOUND=$(grep -o 'ISSUES_FOUND:[[:space:]]*[0-9]*' "$LOG.review.json" 2>/dev/null | tail -1 | sed 's/.*:[[:space:]]*//')
+  FIXED=$(grep -o 'ISSUES_FIXED:[[:space:]]*[0-9]*' "$LOG.review.json" 2>/dev/null | tail -1 | sed 's/.*:[[:space:]]*//')
+  CLEAN=$(grep -o 'VERIFIED_CLEAN:[[:space:]]*[a-z]*' "$LOG.review.json" 2>/dev/null | tail -1 | sed 's/.*:[[:space:]]*//')
+
+  if [ -n "$FOUND" ] || [ -n "$FIXED" ]; then
+    if [ "$CLEAN" = "yes" ]; then
+      echo -e "  👁️ \${GREEN}✓\${NC} Gemini: \${FOUND:-0} issues found, \${FIXED:-0} fixed, verified clean"
+    else
+      echo -e "  👁️ \${GREEN}✓\${NC} Gemini: \${FOUND:-0} issues found, \${FIXED:-0} fixed"
+    fi
+  else
+    echo -e "  👁️ \${GREEN}✓\${NC} Gemini: no issues reported"
+  fi
+
+  # ═══════════════════════════════════════════════════════════
+  # STAGE 7: DOCUMENTATION
+  # ═══════════════════════════════════════════════════════════
+  run_stage "$SESSION_ID" "📚" "Documentation" "$DOC_PROMPT" "$LOG.doc"
+
+  if grep -q "DOC_COMPLETE" "$LOG.doc.raw" 2>/dev/null; then
+    FILES_DOC=$(grep "FILES_DOCUMENTED:" "$LOG.doc.raw" 2>/dev/null | tail -1 | sed 's/.*: *//')
+    README=$(grep "README_UPDATED:" "$LOG.doc.raw" 2>/dev/null | tail -1 | sed 's/.*: *//')
+    echo -e "  📚 \${GREEN}✓\${NC} Documentation complete (\${FILES_DOC:-0} files, README: \${README:-no})"
+  else
+    echo -e "  📚 \${GREEN}✓\${NC} Documentation complete"
+  fi
+
+  # ═══════════════════════════════════════════════════════════
+  # COMPLETE
+  # ═══════════════════════════════════════════════════════════
+  mark_complete "$CURRENT_ITEM"
+  NEW_REM=$(count_incomplete)
+
+  echo ""
+  if [ "$NEW_REM" -eq 0 ]; then
+    echo -e "✅ \${GREEN}Complete\${NC} — all items done!"
+  else
+    echo -e "✅ \${GREEN}Complete\${NC} → $NEW_REM items remaining"
+  fi
+  echo ""
+
+  items_done=$((items_done + 1))
+  item_num=$((item_num + 1))
+
+  # Checkpoint every 3 items
+  if [ $((items_done % 3)) -eq 0 ]; then
+    ts=$(date +%Y-%m-%dT%H-%M-%S)
+    PROG="$SESSIONS_DIR/progress-\${ts}.md"
+    cat > "$PROG" << CHECKPOINT
+# Ralph Progress - $ts
+PRD: $PRD ($items_done items done, $NEW_REM remaining)
+Last item: $CURRENT_ITEM
+Resume: ralph $PRD --resume
+CHECKPOINT
+    git add "$PROG" && git commit -m "Checkpoint: $items_done items" 2>/dev/null || true
+    echo -e "\${DIM}Checkpoint saved\${NC}"
+  fi
+
+  sleep 1
 done
 
 # Final report
 echo ""
-echo -e "\${CYAN}═══════════════════════════════════════════════════════════\${NC}"
-echo -e "\${CYAN}  FINAL REPORT\${NC}"
-echo -e "\${CYAN}═══════════════════════════════════════════════════════════\${NC}"
-echo ""
-echo -e "\${BLUE}PRD Status:\${NC}"
-grep -E "^[[:space:]]*[-*+][[:space:]]*\\[" "$PRD" | head -20
-echo ""
+echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
+remaining=$(count_incomplete)
+done_count=$((initial_incomplete - remaining))
+echo -e "📊 \${CYAN}Summary\${NC}: $done_count/$initial_incomplete complete"
+echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
+grep -E "^[[:space:]]*[-*+][[:space:]]*\\[" "$PRD" | head -10
 
-remaining=$(grep -cE "^[[:space:]]*[-*+][[:space:]]*\\[[[:space:]]\\]" "$PRD" 2>/dev/null) || true
-remaining=\${remaining:-0}
-completed_final=$((initial_incomplete - remaining))
-
-if [ "$remaining" -eq 0 ]; then
-  echo -e "\${GREEN}Result: All $initial_incomplete items completed!\${NC}"
-else
-  echo -e "\${YELLOW}Result: $completed_final / $initial_incomplete items completed\${NC}"
-  echo -e "\${YELLOW}        $remaining items remaining\${NC}"
-fi
-
-echo ""
-echo -e "\${BLUE}Log saved to:\${NC} $LOG_FILE"
-echo ""
-
-# Generate canon master report
-CANON_LOG=".claude/canon-masters.json"
-CANON_REPORT=".claude/canon-report.html"
-
-echo -e "\${CYAN}Generating canon master report...\${NC}"
-
-# Define the 15 ALWAYS-ACTIVE base masters
-BASE_BRAIN="kernighan thompson pike joy linus dijkstra"
-BASE_SECURITY="schneier owasp"
-BASE_TESTING="dodds meszaros feathers"
-BASE_DOCS="procida"
-BASE_ENGINEERING="petroski leveson taleb mcilroy carmack"
-ALL_BASE_MASTERS="$BASE_BRAIN $BASE_SECURITY $BASE_TESTING $BASE_DOCS $BASE_ENGINEERING"
-
-# Extract skill invocations from log
-skills_raw=$(grep -oE '/[a-z]+-?[a-z]*' "$LOG_FILE" 2>/dev/null | sort | uniq -c | sort -rn)
-
-# Count base master coverage
-base_invoked=0
-base_missing=""
-for master in $ALL_BASE_MASTERS; do
-  if echo "$skills_raw" | grep -q "/$master"; then
-    base_invoked=$((base_invoked + 1))
-  else
-    base_missing="$base_missing /$master"
-  fi
-done
-
-echo -e "\${BLUE}Base Masters Coverage:\${NC} $base_invoked / 17"
-if [ -n "$base_missing" ]; then
-  echo -e "\${YELLOW}Missing:$base_missing\${NC}"
-fi
-
-# Build JSON for canon masters
-cat > "$CANON_LOG" << 'CANON_JSON_START'
-{
-  "session": {
-CANON_JSON_START
-
-echo "    \\"timestamp\\": \\"$(date -Iseconds)\\"," >> "$CANON_LOG"
-echo "    \\"prd\\": \\"$PRD\\"," >> "$CANON_LOG"
-echo "    \\"iterations\\": $i," >> "$CANON_LOG"
-echo "    \\"completed\\": $completed_final," >> "$CANON_LOG"
-echo "    \\"total\\": $initial_incomplete" >> "$CANON_LOG"
-echo "  }," >> "$CANON_LOG"
-
-# Add base masters coverage
-echo '  "baseMasters": {' >> "$CANON_LOG"
-echo '    "required": ["kernighan","thompson","pike","joy","linus","dijkstra","schneier","owasp","dodds","meszaros","feathers","procida","petroski","leveson","taleb","mcilroy","carmack"],' >> "$CANON_LOG"
-echo "    \\"invoked\\": $base_invoked," >> "$CANON_LOG"
-echo "    \\"total\\": 17," >> "$CANON_LOG"
-
-# Build missing array
-echo -n '    "missing": [' >> "$CANON_LOG"
-missing_first=true
-for master in $ALL_BASE_MASTERS; do
-  if ! echo "$skills_raw" | grep -q "/$master"; then
-    if [ "$missing_first" = true ]; then
-      missing_first=false
-    else
-      echo -n "," >> "$CANON_LOG"
-    fi
-    echo -n "\\"$master\\"" >> "$CANON_LOG"
-  fi
-done
-echo '],' >> "$CANON_LOG"
-
-# Build hierarchy
-echo '    "hierarchy": {' >> "$CANON_LOG"
-echo '      "brain": ["kernighan","thompson","pike","joy","linus","dijkstra"],' >> "$CANON_LOG"
-echo '      "security": ["schneier","owasp"],' >> "$CANON_LOG"
-echo '      "testing": ["dodds","meszaros","feathers"],' >> "$CANON_LOG"
-echo '      "documentation": ["procida"],' >> "$CANON_LOG"
-echo '      "engineering": ["petroski","leveson","taleb","mcilroy","carmack"]' >> "$CANON_LOG"
-echo '    }' >> "$CANON_LOG"
-echo '  },' >> "$CANON_LOG"
-
-# Extract skills with counts
-echo '  "skills": [' >> "$CANON_LOG"
-first=true
-while read -r count skill; do
-  [ -z "$skill" ] && continue
-  # Skip non-skill patterns
-  case "$skill" in
-    /dev|/dev/*|/api/*|/etc/*|/tmp/*|/usr/*|/bin/*|/var/*) continue ;;
-  esac
-  if [ "$first" = true ]; then
-    first=false
-  else
-    echo "," >> "$CANON_LOG"
-  fi
-  # Extract skill name without slash
-  skillname=\${skill#/}
-  # Categorize: base-* for always-active, domain for others
-  case "$skillname" in
-    kernighan|thompson|pike|joy|linus|dijkstra)
-      domain="base-brain" ;;
-    schneier|owasp)
-      domain="base-security" ;;
-    dodds|meszaros|feathers)
-      domain="base-testing" ;;
-    procida)
-      domain="base-documentation" ;;
-    petroski|leveson|taleb|mcilroy|carmack)
-      domain="base-engineering" ;;
-    frost|ive|norman|wroblewski|duarte|buxton|curtis|kruzeniski|rams|cooper)
-      domain="domain-ui-ux" ;;
-    simpson|crockford|cherny|abramov)
-      domain="domain-javascript" ;;
-    hettinger|slatkin|ramalho|beazley)
-      domain="domain-python" ;;
-    bloch|liskov)
-      domain="domain-java" ;;
-    skeet|cleary|hejlsberg)
-      domain="domain-csharp" ;;
-    porter|rumelt|helmer|horowitz)
-      domain="domain-business" ;;
-    zinsser|strunk-white|king)
-      domain="domain-writing" ;;
-    plan|review-hard|structure-first|build-from-plan|refactor-clean)
-      domain="workflow" ;;
-    *)
-      domain="other" ;;
-  esac
-  printf '    {"name": "%s", "count": %d, "domain": "%s"}' "$skill" "$count" "$domain" >> "$CANON_LOG"
-done <<< "$skills_raw"
-echo "" >> "$CANON_LOG"
-echo "  ]," >> "$CANON_LOG"
-
-# Extract co-occurrences (skills mentioned together in same output block)
-echo '  "connections": [' >> "$CANON_LOG"
-# Parse log for SKILLS INVOKED lines and find pairs
-grep -E "SKILLS INVOKED:" "$LOG_FILE" 2>/dev/null | while read -r line; do
-  skills_in_line=$(echo "$line" | grep -oE '/[a-z]+-?[a-z]*' | sort -u)
-  # Generate pairs
-  echo "$skills_in_line" | while read -r s1; do
-    echo "$skills_in_line" | while read -r s2; do
-      [ "$s1" \\< "$s2" ] && echo "$s1 $s2"
-    done
+# Skill invocation summary
+if [ -s "$SKILL_LOG" ]; then
+  echo ""
+  echo -e "\${CYAN}Skills Invoked:\${NC}"
+  # Count and sort skills, display in columns
+  sort "$SKILL_LOG" | uniq -c | sort -rn | while read count skill; do
+    printf "  \${GREEN}%-20s\${NC} %d\\n" "/\$skill" "\$count"
   done
-done | sort | uniq -c | sort -rn | head -50 | while read -r cnt s1 s2; do
-  [ -z "$s1" ] && continue
-  echo "    {\\"source\\": \\"$s1\\", \\"target\\": \\"$s2\\", \\"weight\\": $cnt},"
-done >> "$CANON_LOG"
-# Remove trailing comma (sed trick)
-sed -i.bak '$ s/,$//' "$CANON_LOG" 2>/dev/null || true
-rm -f "$CANON_LOG.bak"
-echo "  ]" >> "$CANON_LOG"
-echo "}" >> "$CANON_LOG"
-
-# Generate D3 HTML report
-cat > "$CANON_REPORT" << 'HTML_END'
-<!DOCTYPE html>
-<html lang="en">
-<head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Canon Masters Report - Ralph Session</title>
-  <script src="https://d3js.org/d3.v7.min.js"></script>
-  <style>
-    * { margin: 0; padding: 0; box-sizing: border-box; }
-    body {
-      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-      background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
-      color: #eee;
-      min-height: 100vh;
-    }
-    .container { max-width: 1400px; margin: 0 auto; padding: 2rem; }
-    h1 { text-align: center; margin-bottom: 0.5rem; color: #00d9ff; }
-    .subtitle { text-align: center; color: #888; margin-bottom: 2rem; }
-    .stats {
-      display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-      gap: 1rem;
-      margin-bottom: 2rem;
-    }
-    .stat-card {
-      background: rgba(255,255,255,0.05);
-      border-radius: 12px;
-      padding: 1.5rem;
-      text-align: center;
-      border: 1px solid rgba(255,255,255,0.1);
-    }
-    .stat-value { font-size: 2.5rem; font-weight: bold; color: #00d9ff; }
-    .stat-label { color: #888; margin-top: 0.5rem; }
-    .graph-container {
-      background: rgba(0,0,0,0.3);
-      border-radius: 16px;
-      padding: 1rem;
-      margin-bottom: 2rem;
-      min-height: 500px;
-    }
-    .legend {
-      display: flex;
-      justify-content: center;
-      gap: 2rem;
-      flex-wrap: wrap;
-      margin-bottom: 1rem;
-    }
-    .legend-item {
-      display: flex;
-      align-items: center;
-      gap: 0.5rem;
-    }
-    .legend-dot {
-      width: 12px;
-      height: 12px;
-      border-radius: 50%;
-    }
-    .skills-table {
-      width: 100%;
-      border-collapse: collapse;
-      background: rgba(255,255,255,0.05);
-      border-radius: 12px;
-      overflow: hidden;
-    }
-    .skills-table th, .skills-table td {
-      padding: 1rem;
-      text-align: left;
-      border-bottom: 1px solid rgba(255,255,255,0.1);
-    }
-    .skills-table th { background: rgba(0,217,255,0.1); color: #00d9ff; }
-    .skills-table tr:hover { background: rgba(255,255,255,0.05); }
-    .domain-badge {
-      display: inline-block;
-      padding: 0.25rem 0.75rem;
-      border-radius: 20px;
-      font-size: 0.8rem;
-      font-weight: 500;
-    }
-    .domain-base-brain { background: #9b59b6; }
-    .domain-base-security { background: #e74c3c; }
-    .domain-base-testing { background: #2ecc71; }
-    .domain-base-documentation { background: #9b59b6; }
-    .domain-base-engineering { background: #f39c12; }
-    .domain-domain-ui-ux { background: #e91e63; }
-    .domain-domain-javascript { background: #f7df1e; color: #000; }
-    .domain-domain-python { background: #3776ab; }
-    .domain-domain-java { background: #007396; }
-    .domain-domain-csharp { background: #68217a; }
-    .domain-domain-business { background: #34495e; }
-    .domain-domain-writing { background: #8e44ad; }
-    .domain-workflow { background: #607d8b; }
-    .domain-other { background: #795548; }
-    svg text { font-size: 11px; fill: #fff; }
-    .node circle { stroke: #fff; stroke-width: 2px; }
-    .link { stroke: rgba(255,255,255,0.3); stroke-opacity: 0.6; }
-    .base-coverage { margin-bottom: 2rem; }
-    .base-coverage h2 { color: #9b59b6; margin-bottom: 1rem; }
-    .base-grid { display: grid; grid-template-columns: repeat(5, 1fr); gap: 1rem; }
-    .base-group { background: rgba(0,0,0,0.3); border-radius: 10px; padding: 1rem; }
-    .base-group h3 { font-size: 0.8rem; color: #888; text-transform: uppercase; margin-bottom: 0.75rem; }
-    .base-master { display: flex; align-items: center; gap: 0.5rem; padding: 0.4rem 0; font-size: 0.9rem; }
-    .base-master.invoked { color: #2ecc71; }
-    .base-master.missing { color: #e74c3c; }
-    .base-master .icon { font-size: 1rem; }
-    .coverage-bar { background: rgba(0,0,0,0.3); border-radius: 20px; height: 24px; margin: 1rem 0; overflow: hidden; }
-    .coverage-fill { height: 100%; border-radius: 20px; display: flex; align-items: center; justify-content: center; font-weight: 600; font-size: 0.85rem; }
-    .coverage-full { background: linear-gradient(90deg, #2ecc71, #27ae60); }
-    .coverage-partial { background: linear-gradient(90deg, #f39c12, #e74c3c); }
-  </style>
-</head>
-<body>
-  <div class="container">
-    <h1>Canon Masters Report</h1>
-    <p class="subtitle">Ralph Autonomous PRD Session</p>
-    <div class="stats" id="stats"></div>
-
-    <div class="base-coverage">
-      <h2>Always-Active Base Practices (17 Required)</h2>
-      <div class="coverage-bar"><div class="coverage-fill" id="coverage-fill"></div></div>
-      <div class="base-grid" id="base-grid"></div>
-    </div>
-
-    <div class="legend" id="legend"></div>
-    <div class="graph-container">
-      <svg id="graph" width="100%" height="500"></svg>
-    </div>
-    <h2 style="margin-bottom: 1rem;">All Skills Invoked</h2>
-    <table class="skills-table">
-      <thead><tr><th>Skill</th><th>Category</th><th>Invocations</th></tr></thead>
-      <tbody id="skills-body"></tbody>
-    </table>
-  </div>
-  <script>
-HTML_END
-
-# Inject JSON data
-echo "const data = " >> "$CANON_REPORT"
-cat "$CANON_LOG" >> "$CANON_REPORT"
-echo ";" >> "$CANON_REPORT"
-
-cat >> "$CANON_REPORT" << 'HTML_SCRIPT'
-    const domainColors = {
-      'base-brain': '#9b59b6',
-      'base-security': '#e74c3c',
-      'base-testing': '#2ecc71',
-      'base-documentation': '#9b59b6',
-      'base-engineering': '#f39c12',
-      'domain-ui-ux': '#e91e63',
-      'domain-javascript': '#f7df1e',
-      'domain-python': '#3776ab',
-      'domain-java': '#007396',
-      'domain-csharp': '#68217a',
-      'domain-business': '#34495e',
-      'domain-writing': '#8e44ad',
-      'workflow': '#607d8b',
-      'other': '#795548'
-    };
-
-    const domainLabels = {
-      'base-brain': 'Baseline Brain',
-      'base-security': 'Security',
-      'base-testing': 'Testing',
-      'base-documentation': 'Documentation',
-      'base-engineering': 'Engineering',
-      'domain-ui-ux': 'UI/UX',
-      'domain-javascript': 'JavaScript',
-      'domain-python': 'Python',
-      'domain-java': 'Java',
-      'domain-csharp': 'C#',
-      'domain-business': 'Business',
-      'domain-writing': 'Writing',
-      'workflow': 'Workflow',
-      'other': 'Other'
-    };
-
-    // Get invoked skill names
-    const invokedSkills = new Set(data.skills.map(s => s.name.replace('/', '')));
-
-    // Base masters coverage
-    const bm = data.baseMasters;
-    const coveragePct = (bm.invoked / bm.total) * 100;
-    const coverageFill = document.getElementById('coverage-fill');
-    coverageFill.style.width = coveragePct + '%';
-    coverageFill.className = 'coverage-fill ' + (bm.invoked === bm.total ? 'coverage-full' : 'coverage-partial');
-    coverageFill.textContent = bm.invoked + ' / ' + bm.total + (bm.invoked === bm.total ? ' ✓ All Invoked' : ' — Missing: ' + bm.missing.join(', '));
-
-    // Base grid
-    const hierarchyLabels = {
-      brain: 'Baseline Brain',
-      security: 'Security',
-      testing: 'Testing',
-      documentation: 'Documentation',
-      engineering: 'Engineering'
-    };
-    const baseGridHtml = Object.entries(bm.hierarchy).map(([group, masters]) => \`
-      <div class="base-group">
-        <h3>\${hierarchyLabels[group]}</h3>
-        \${masters.map(m => \`
-          <div class="base-master \${invokedSkills.has(m) ? 'invoked' : 'missing'}">
-            <span class="icon">\${invokedSkills.has(m) ? '✓' : '✗'}</span>
-            <span>/\${m}</span>
-          </div>
-        \`).join('')}
-      </div>
-    \`).join('');
-    document.getElementById('base-grid').innerHTML = baseGridHtml;
-
-    // Stats
-    const statsHtml = \`
-      <div class="stat-card">
-        <div class="stat-value">\${data.session.iterations}</div>
-        <div class="stat-label">Iterations</div>
-      </div>
-      <div class="stat-card">
-        <div class="stat-value">\${data.session.completed}/\${data.session.total}</div>
-        <div class="stat-label">PRD Items</div>
-      </div>
-      <div class="stat-card">
-        <div class="stat-value" style="color: \${bm.invoked === bm.total ? '#2ecc71' : '#e74c3c'}">\${bm.invoked}/\${bm.total}</div>
-        <div class="stat-label">Base Masters</div>
-      </div>
-      <div class="stat-card">
-        <div class="stat-value">\${data.skills.length}</div>
-        <div class="stat-label">Total Masters</div>
-      </div>
-    \`;
-    document.getElementById('stats').innerHTML = statsHtml;
-
-    // Legend - only show domains that were used
-    const domains = [...new Set(data.skills.map(s => s.domain))];
-    const legendHtml = domains.map(d => \`
-      <div class="legend-item">
-        <div class="legend-dot" style="background: \${domainColors[d] || '#888'}"></div>
-        <span>\${domainLabels[d] || d}</span>
-      </div>
-    \`).join('');
-    document.getElementById('legend').innerHTML = legendHtml;
-
-    // Skills table
-    const tableHtml = data.skills.map(s => \`
-      <tr>
-        <td><strong>\${s.name}</strong></td>
-        <td><span class="domain-badge domain-\${s.domain}">\${domainLabels[s.domain] || s.domain}</span></td>
-        <td>\${s.count}</td>
-      </tr>
-    \`).join('');
-    document.getElementById('skills-body').innerHTML = tableHtml;
-
-    // D3 Force Graph
-    const svg = d3.select('#graph');
-    const width = svg.node().getBoundingClientRect().width;
-    const height = 500;
-
-    const nodes = data.skills.map(s => ({
-      id: s.name,
-      count: s.count,
-      domain: s.domain
-    }));
-
-    const links = (data.connections || []).map(c => ({
-      source: c.source,
-      target: c.target,
-      weight: c.weight
-    })).filter(l => nodes.find(n => n.id === l.source) && nodes.find(n => n.id === l.target));
-
-    const simulation = d3.forceSimulation(nodes)
-      .force('link', d3.forceLink(links).id(d => d.id).distance(100))
-      .force('charge', d3.forceManyBody().strength(-300))
-      .force('center', d3.forceCenter(width / 2, height / 2))
-      .force('collision', d3.forceCollide().radius(d => Math.sqrt(d.count) * 10 + 20));
-
-    const link = svg.append('g')
-      .selectAll('line')
-      .data(links)
-      .join('line')
-      .attr('class', 'link')
-      .attr('stroke-width', d => Math.sqrt(d.weight) * 2);
-
-    const node = svg.append('g')
-      .selectAll('g')
-      .data(nodes)
-      .join('g')
-      .call(d3.drag()
-        .on('start', (e, d) => { if (!e.active) simulation.alphaTarget(0.3).restart(); d.fx = d.x; d.fy = d.y; })
-        .on('drag', (e, d) => { d.fx = e.x; d.fy = e.y; })
-        .on('end', (e, d) => { if (!e.active) simulation.alphaTarget(0); d.fx = null; d.fy = null; }));
-
-    node.append('circle')
-      .attr('r', d => Math.sqrt(d.count) * 8 + 10)
-      .attr('fill', d => domainColors[d.domain] || '#888');
-
-    node.append('text')
-      .text(d => d.id)
-      .attr('text-anchor', 'middle')
-      .attr('dy', 4);
-
-    simulation.on('tick', () => {
-      link
-        .attr('x1', d => d.source.x)
-        .attr('y1', d => d.source.y)
-        .attr('x2', d => d.target.x)
-        .attr('y2', d => d.target.y);
-      node.attr('transform', d => \`translate(\${d.x},\${d.y})\`);
-    });
-  </script>
-</body>
-</html>
-HTML_SCRIPT
-
-echo -e "\${GREEN}Canon report generated:\${NC} $CANON_REPORT"
-echo -e "\${BLUE}Canon data:\${NC} $CANON_LOG"
-echo ""
-
-# Auto-open the report
-if command -v open &> /dev/null; then
-  echo -e "\${CYAN}Opening report...\${NC}"
-  open "$CANON_REPORT"
-elif command -v xdg-open &> /dev/null; then
-  echo -e "\${CYAN}Opening report...\${NC}"
-  xdg-open "$CANON_REPORT"
-else
-  echo -e "Open the report: \${CYAN}open $CANON_REPORT\${NC}"
+  total_skills=$(wc -l < "$SKILL_LOG" | tr -d ' ')
+  unique_skills=$(sort "$SKILL_LOG" | uniq | wc -l | tr -d ' ')
+  echo -e "\${DIM}  Total: \$total_skills invocations, \$unique_skills unique skills\${NC}"
 fi
+
 echo ""
+echo -e "\${DIM}Logs: $LOG_DIR\${NC}"
 `;
 
 /**
@@ -1463,7 +1190,7 @@ export function isToolInstalled(name: string): boolean {
  */
 export function installTool(
   name: string,
-  options: { force?: boolean } = {}
+  options: { force?: boolean; projectDir?: string } = {}
 ): ToolInstallResult {
   const tool = AVAILABLE_TOOLS[name];
 
@@ -1493,6 +1220,68 @@ export function installTool(
 
   // Write the script
   fs.writeFileSync(toolPath, tool.script, { mode: 0o755 });
+
+  // For ralph, also setup MCP servers in project .mcp.json
+  if (name === 'ralph') {
+    const projectDir = options.projectDir || process.cwd();
+    const mcpPath = path.join(projectDir, '.mcp.json');
+    let mcpConfig: { mcpServers?: Record<string, unknown> } = { mcpServers: {} };
+
+    if (fs.existsSync(mcpPath)) {
+      try {
+        mcpConfig = JSON.parse(fs.readFileSync(mcpPath, 'utf-8'));
+        if (!mcpConfig.mcpServers) mcpConfig.mcpServers = {};
+      } catch {
+        mcpConfig = { mcpServers: {} };
+      }
+    }
+
+    // Get base path: dist/tools -> dist -> cli -> claude-optimal
+    const currentFileUrl = new URL(import.meta.url);
+    const currentDir = path.dirname(currentFileUrl.pathname);
+    const baseDir = path.resolve(currentDir, '..', '..', '..');
+
+    // Add gemini-reviewer MCP
+    const geminiPath = path.join(baseDir, 'mcp-servers', 'gemini-reviewer', 'index.js');
+    if (fs.existsSync(geminiPath)) {
+      mcpConfig.mcpServers!['gemini-reviewer'] = {
+        type: 'stdio',
+        command: 'node',
+        args: [geminiPath],
+        env: { GEMINI_API_KEY: process.env.GEMINI_API_KEY || '' }
+      };
+      console.log(`  Added MCP: gemini-reviewer`);
+    } else {
+      console.log(`  Warning: gemini-reviewer not found at ${geminiPath}`);
+    }
+
+    // Add qodana MCP
+    const qodanaPath = path.join(baseDir, 'mcp-servers', 'qodana', 'dist', 'index.js');
+    if (fs.existsSync(qodanaPath)) {
+      mcpConfig.mcpServers!['qodana'] = {
+        type: 'stdio',
+        command: 'node',
+        args: [qodanaPath]
+      };
+      console.log(`  Added MCP: qodana`);
+    } else {
+      console.log(`  Warning: qodana not found at ${qodanaPath}`);
+    }
+
+    try {
+      const content = JSON.stringify(mcpConfig, null, 2);
+      console.log(`  Writing to: ${mcpPath}`);
+      fs.writeFileSync(mcpPath, content);
+      // Verify it was written
+      if (fs.existsSync(mcpPath)) {
+        console.log(`  ✓ Created: ${mcpPath}`);
+      } else {
+        console.log(`  ✗ FAILED: File not found after write!`);
+      }
+    } catch (err) {
+      console.log(`  ✗ Write error: ${err}`);
+    }
+  }
 
   return {
     success: true,

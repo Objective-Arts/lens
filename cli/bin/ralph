@@ -59,47 +59,89 @@ fi
 
 mkdir -p .claude "$LOG_DIR" "$SESSIONS_DIR"
 
-# Stage indicator with spinner
+# Skill tracking file for session summary
+SKILL_LOG="$LOG_DIR/skills-$(date +%Y%m%d-%H%M%S).txt"
+touch "$SKILL_LOG"
+
+# Run stage with spinner and skill invocation feedback
+# Usage: run_stage SESSION_ID icon name prompt logfile [is_first]
 run_stage() {
-  local icon=$1
-  local name=$2
-  local pid=$3
-  local spin='⠋⠙⠹⠸⠼⠴⠦⠧⠇⠏'
-  local i=0
+  local session_id=$1
+  local icon=$2
+  local name=$3
+  local prompt=$4
+  local logfile=$5
+  local is_first=$6
+
   local start=$(date +%s)
 
-  while kill -0 "$pid" 2>/dev/null; do
-    local now=$(date +%s)
-    local elapsed=$((now - start))
-    local m=$((elapsed / 60))
-    local s=$((elapsed % 60))
-    printf "\r  %s ${CYAN}%s${NC} %s ${DIM}[%02d:%02d]${NC}  " "$icon" "${spin:i++%10:1}" "$name" "$m" "$s"
-    sleep 0.1
-  done
+  # Print stage header
+  echo ""
+  echo "════════════════════════════════════════════════════════"
+  echo "  $icon $name"
+  echo "════════════════════════════════════════════════════════"
 
-  local total=$(($(date +%s) - start))
-  printf "\r\033[K"
-}
+  # Start spinner in background (disown to suppress termination message)
+  local spinstr='⠋⠙⠹⠸⠼⠴⠦⠧⠇⠏'
+  local spin_pid
+  (
+    trap '' TERM
+    while true; do
+      for ((i=0; i<${#spinstr}; i++)); do
+        printf "\r  ${DIM}${spinstr:$i:1} Working...${NC}"
+        sleep 0.15
+      done
+    done
+  ) 2>/dev/null &
+  spin_pid=$!
+  disown $spin_pid 2>/dev/null
 
-show_result() {
-  local icon=$1
-  local name=$2
-  local status=$3
-  local detail=$4
-  local time=$5
+  # Run claude with stream-json to capture skill invocations
+  # < /dev/null prevents stdin blocking, || true prevents set -e from exiting on pipeline failures
+  claude --dangerously-skip-permissions \
+    --output-format stream-json --verbose \
+    -p "$prompt" < /dev/null 2>&1 | \
+    tee "$logfile.json" | \
+    grep --line-buffered -o '"skill":"[^"]*"\|"tool_use"' | \
+    while IFS= read -r match; do
+      # Kill spinner on first output
+      if kill -0 $spin_pid 2>/dev/null; then
+        kill $spin_pid 2>/dev/null
+        wait $spin_pid 2>/dev/null
+        printf "\r\033[K"  # Clear line completely
+        sleep 0.05  # Brief pause to ensure line is cleared
+      fi
+      if [[ "$match" == *'"skill":'* ]]; then
+        skill=$(echo "$match" | sed 's/"skill":"//;s/"//')
+        printf "\r\033[K"  # Ensure clean line before skill
+        desc=$(skill_desc "$skill")
+        if [ -n "$desc" ]; then
+          echo -e "  ${GREEN}⚡ /$skill${NC} ${DIM}($desc)${NC}"
+        else
+          echo -e "  ${GREEN}⚡ /$skill${NC}"
+        fi
+        echo "$skill" >> "$SKILL_LOG"
+      else
+        # Print a dot for each tool use to show progress
+        printf "."
+      fi
+    done || true
 
-  if [ "$status" = "ok" ]; then
-    printf "  %s ${GREEN}✓${NC} %s" "$icon" "$name"
-  elif [ "$status" = "skip" ]; then
-    printf "  %s ${YELLOW}○${NC} %s" "$icon" "$name"
-  else
-    printf "  %s ${RED}✗${NC} %s" "$icon" "$name"
+  # Kill spinner if still running (no output case)
+  if kill -0 $spin_pid 2>/dev/null; then
+    kill $spin_pid 2>/dev/null
+    wait $spin_pid 2>/dev/null
+    printf "\r\033[K"  # Clear line completely
   fi
 
-  [ -n "$detail" ] && printf " ${DIM}%s${NC}" "$detail"
-  [ -n "$time" ] && printf " ${DIM}[%s]${NC}" "$time"
+  # Extract final result from stream-json output
+  grep -o '"result":"[^"]*"' "$logfile.json" 2>/dev/null | tail -1 | sed 's/"result":"//;s/"$//' > "$logfile.raw" || true
+
+  local elapsed=$(($(date +%s) - start))
   echo ""
+  echo "  ✓ $name done ($(format_time $elapsed))"
 }
+
 
 # Helper functions
 count_incomplete() {
@@ -111,15 +153,57 @@ get_next_item() {
 }
 
 mark_complete() {
-  local item="$1"
-  local escaped=$(printf '%s' "$item" | sed 's/[[\.*^$()+?{|]/\\&/g')
-  sed -i.bak "s/\([-*+][[:space:]]*\)\[[[:space:]]\]\([[:space:]]*${escaped}\)/\1[x]\2/" "$PRD"
-  rm -f "$PRD.bak"
+  # Find the line number of the first incomplete item and mark it complete
+  local line_num=$(grep -nE "^[[:space:]]*[-*+][[:space:]]*\[[[:space:]]\]" "$PRD" | head -1 | cut -d: -f1)
+  if [ -n "$line_num" ]; then
+    # Replace [ ] with [x] on that specific line
+    sed -i.bak "${line_num}s/\[[[:space:]]\]/[x]/" "$PRD"
+    rm -f "$PRD.bak"
+  fi
 }
 
 format_time() {
   local secs=$1
   printf "%02d:%02d" $((secs / 60)) $((secs % 60))
+}
+
+# Brief description for each skill
+skill_desc() {
+  case "$1" in
+    kernighan) echo "clarity" ;;
+    pike) echo "simplicity" ;;
+    thompson) echo "elegance" ;;
+    mcilroy) echo "unix philosophy" ;;
+    dijkstra) echo "correctness" ;;
+    knuth) echo "algorithms" ;;
+    linus) echo "taste" ;;
+    bloch) echo "API design" ;;
+    liskov) echo "contracts" ;;
+    cherny) echo "type-driven" ;;
+    crockford) echo "JS patterns" ;;
+    hejlsberg) echo "type systems" ;;
+    gang-of-four) echo "design patterns" ;;
+    feathers) echo "refactoring" ;;
+    schneier|bruce-schneier) echo "security mindset" ;;
+    security-mindset) echo "think like attacker" ;;
+    owasp) echo "secure coding" ;;
+    tanya-janca) echo "appsec" ;;
+    troy-hunt) echo "breach lessons" ;;
+    threat-model) echo "threat analysis" ;;
+    defense-in-depth) echo "layered security" ;;
+    leveson) echo "safety engineering" ;;
+    dodds) echo "testing" ;;
+    meszaros) echo "test patterns" ;;
+    fowler-test) echo "test strategy" ;;
+    hevery) echo "testable code" ;;
+    procida) echo "diátaxis" ;;
+    tufte) echo "information design" ;;
+    strunk-white) echo "concise writing" ;;
+    zinsser) echo "clarity in prose" ;;
+    taleb) echo "antifragile" ;;
+    petroski) echo "failure analysis" ;;
+    *) echo "" ;;
+  esac
 }
 
 # Ensure git repo exists
@@ -158,17 +242,93 @@ fi
 [ "$YES" = false ] && { echo "Press Enter to start..."; read -r; }
 
 # Stage prompts
-read -r -d '' BUILD_PROMPT << 'EOF' || true
-BUILD ONE PRD ITEM
+read -r -d '' PLAN_PROMPT << 'EOF' || true
+PLAN IMPLEMENTATION
 
-Read CLAUDE.md and __PRD__, then implement the NEXT item marked '- [ ]'.
+Read CLAUDE.md and __PRD__, then create an implementation plan for the NEXT item marked '- [ ]'.
+
+IMPORTANT: Use the Skill tool to invoke MULTIPLE canon skills. Honor those who came before.
+
+For PLANNING, invoke these experts using the Skill tool:
+- skill="kernighan" - clarity and simplicity
+- skill="mcilroy" - Unix philosophy, composition
+- skill="pike" - systems design, Go philosophy
+- skill="thompson" - elegant minimalism
+- skill="dijkstra" - correctness, formal thinking
+- skill="cherny" - type-driven design
+- skill="bloch" - API design
+- skill="liskov" - substitution, contracts
+
+For SECURITY planning, also invoke:
+- skill="schneier" - security mindset
+- skill="threat-model" - threat modeling
+- skill="defense-in-depth" - layered security
 
 Steps:
-1. Find next incomplete item in PRD
-2. Write the code
-3. Write tests
-4. Run tests - must pass
-5. Commit changes
+1. Read CLAUDE.md - invoke ALL relevant skills per auto-invoke rules
+2. Find next incomplete item in PRD
+3. Explore the codebase to understand current architecture
+4. Identify files that need to be created or modified
+5. Write plan to .claude/plans/[item-slug].md
+
+Plan format:
+## [Item Name]
+
+### Approach
+[1-2 sentences on implementation strategy]
+
+### Files to Change
+- path/to/file.ts - [what changes]
+
+### Security Considerations
+- [any trust boundaries, atomicity needs, etc.]
+
+### Tests Needed
+- [test cases to write]
+
+Output at end:
+PLAN_FILE: [path to plan]
+PLAN_COMPLETE
+
+If blocked: PLAN_FAILED: [reason]
+EOF
+
+read -r -d '' BUILD_PROMPT << 'EOF' || true
+BUILD FROM PLAN
+
+Read the plan at __PLAN_FILE__ and implement it.
+
+IMPORTANT: Use the Skill tool to invoke MULTIPLE canon skills. Honor those who came before.
+
+For IMPLEMENTATION, invoke these experts:
+- skill="kernighan" - clarity above all
+- skill="pike" - simplicity, systems thinking
+- skill="thompson" - elegant code
+- skill="mcilroy" - compose small tools
+- skill="linus" - practical systems code
+- skill="bloch" - defensive programming
+- skill="crockford" - JavaScript patterns
+- skill="knuth" - algorithmic thinking
+
+For TYPE SAFETY and ARCHITECTURE:
+- skill="cherny" - type-driven design
+- skill="liskov" - contracts, substitution
+- skill="gang-of-four" - design patterns
+- skill="hejlsberg" - type system design
+
+For SECURITY in implementation:
+- skill="owasp" - secure coding
+- skill="schneier" - security mindset
+- skill="tanya-janca" - AppSec
+- skill="defense-in-depth" - layered protection
+
+Steps:
+1. Read CLAUDE.md - invoke ALL relevant skills
+2. Read the plan file
+3. Implement each file change with expert guidance
+4. Write tests as specified in plan
+5. Run tests - must pass
+6. Commit changes
 
 Output at end:
 BUILD_COMPLETE: [item name]
@@ -183,14 +343,30 @@ CLEAN THE CODE
 
 Review code from last commit and apply structural improvements.
 
+IMPORTANT: Use the Skill tool to invoke MULTIPLE canon skills for refactoring.
+
+For CODE CLARITY, invoke:
+- skill="kernighan" - clarity, meaningful names
+- skill="pike" - simplicity
+- skill="mcilroy" - do one thing well
+- skill="strunk-white" - omit needless code
+
+For REFACTORING patterns:
+- skill="feathers" - working with legacy code
+- skill="bloch" - API design
+- skill="crockford" - JavaScript idioms
+- skill="liskov" - proper abstractions
+
+For ARCHITECTURE review:
+- skill="gang-of-four" - design patterns
+- skill="petroski" - learning from failure
+- skill="taleb" - antifragile design
+
 Steps:
-1. Get changed files: git diff HEAD~1 --name-only
-2. For each file, apply:
-   - Extract methods over 30 lines
-   - Improve unclear names (Kernighan)
-   - Apply single responsibility
-   - Remove duplication
-3. Commit improvements
+1. Read CLAUDE.md - invoke ALL relevant skills
+2. Get changed files: git diff HEAD~1 --name-only
+3. For each file, apply improvements with expert guidance
+4. Commit improvements
 
 Output at end:
 METHODS_EXTRACTED: [count]
@@ -205,10 +381,29 @@ RUN TESTS
 
 Execute test suite and verify all pass.
 
+IMPORTANT: Use the Skill tool to invoke MULTIPLE testing experts.
+
+For TESTING philosophy, invoke:
+- skill="dodds" - testing library, user-centric tests
+- skill="meszaros" - xUnit patterns, test structure
+- skill="fowler-test" - test pyramids, strategies
+- skill="hevery" - testable code design
+
+For TEST QUALITY:
+- skill="kernighan" - clear test names
+- skill="bloch" - edge cases, contracts
+- skill="dijkstra" - correctness proofs
+
+For DEBUGGING failures:
+- skill="kernighan" - debugging wisdom
+- skill="pike" - systematic debugging
+- skill="thompson" - trace the logic
+
 Steps:
-1. Run: npm test (or project equivalent)
-2. If failures, fix them
-3. Re-run until green
+1. Read CLAUDE.md - invoke ALL relevant skills
+2. Run: npm test (or project equivalent)
+3. If failures, consult experts and fix
+4. Re-run until green
 
 Output at end:
 TESTS_TOTAL: [count]
@@ -221,23 +416,87 @@ EOF
 read -r -d '' REVIEW_PROMPT << 'EOF' || true
 EXPERT REVIEW
 
-Review code using Gemini with adversarial analysis.
+Review code using Gemini with security analysis.
+
+IMPORTANT: Use the Skill tool to invoke the FULL security canon. This is critical.
+
+For SECURITY MINDSET, invoke:
+- skill="schneier" - think like an attacker
+- skill="security-mindset" - security thinking
+- skill="bruce-schneier" - cryptography, trust
+
+For VULNERABILITY analysis:
+- skill="owasp" - top 10, secure coding
+- skill="tanya-janca" - application security
+- skill="troy-hunt" - real-world breaches
+- skill="threat-model" - systematic threats
+
+For DEFENSE strategy:
+- skill="defense-in-depth" - layered security
+- skill="leveson" - safety engineering
+
+For CODE QUALITY in review:
+- skill="kernighan" - clarity reveals bugs
+- skill="bloch" - defensive coding
+- skill="liskov" - contract violations
 
 Steps:
-1. Get changed files: git diff HEAD~1 --name-only
-2. Read each changed file
-3. Call gemini_review MCP tool for each file
-4. For critical issues (atomicity, race conditions, trust boundaries):
-   a. Fix the issue
-   b. Commit fix
-   c. Re-run gemini_review to verify
-   d. Max 3 attempts per file
+1. Read CLAUDE.md - invoke ALL security skills
+2. Get changed files: git diff HEAD~1 --name-only
+3. Read each file through security lens
+4. Call gemini_review MCP tool for each file
+5. For critical issues: fix, commit, re-verify (max 3 attempts)
 
 Output at end:
 ISSUES_FOUND: [count]
 ISSUES_FIXED: [count]
 VERIFIED_CLEAN: yes/no
 REVIEW_COMPLETE
+EOF
+
+read -r -d '' DOC_PROMPT << 'EOF' || true
+DOCUMENTATION
+
+IMPORTANT: Use the Skill tool to invoke the FULL documentation canon.
+
+For STRUCTURE, invoke:
+- skill="procida" - Diátaxis framework
+- skill="tufte" - information design
+
+For WRITING CLARITY:
+- skill="kernighan" - clear technical writing
+- skill="strunk-white" - omit needless words
+- skill="zinsser" - simplicity, humanity
+
+For API DOCUMENTATION:
+- skill="bloch" - API design docs
+- skill="pike" - Go-style doc comments
+
+Update documentation based on the code changes made in this session.
+
+Steps:
+1. Invoke ALL documentation skills
+2. Get changed files: git diff HEAD~1 --name-only
+3. Determine what documentation types are needed (per Diátaxis):
+   - REFERENCE: API docs, JSDoc for all exported functions
+   - HOW-TO: Usage guides for new features
+   - EXPLANATION: Architecture decisions if applicable
+4. For each changed file:
+   - Add/update JSDoc comments with expert guidance
+   - Include examples for every function
+5. Update or create README.md:
+   - Project overview
+   - Installation (how-to)
+   - Quick start (tutorial-like)
+   - API reference section
+   - Environment variables required
+6. Keep reference docs structured by code, not by tasks
+7. Commit documentation changes
+
+Output at end:
+FILES_DOCUMENTED: [count]
+README_UPDATED: yes/no
+DOC_COMPLETE
 EOF
 
 # Main loop
@@ -253,136 +512,140 @@ for iter in $(seq 1 $MAX); do
   CURRENT_ITEM=$(get_next_item)
   total_items=$initial_incomplete
 
+  # Generate session ID for this item (reuse across all stages)
+  SESSION_ID=$(uuidgen | tr '[:upper:]' '[:lower:]')
+
   # Item header
   echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
   echo -e "📋 ${CYAN}$CURRENT_ITEM${NC} ($item_num of $total_items)"
+  echo -e "${DIM}Session: $SESSION_ID${NC}"
   echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
-  echo ""
 
   # ═══════════════════════════════════════════════════════════
-  # STAGE 1: BUILD
+  # STAGE 1: PLAN
   # ═══════════════════════════════════════════════════════════
-  P1="${BUILD_PROMPT/__PRD__/$PRD}"
-  [ -n "$RESUME_CONTEXT" ] && [ "$iter" -eq 1 ] && P1="RESUME CONTEXT:\n$RESUME_CONTEXT\n\n$P1"
+  ITEM_SLUG=$(echo "$CURRENT_ITEM" | tr '[:upper:]' '[:lower:]' | sed 's/[^a-z0-9]/-/g' | sed 's/--*/-/g' | sed 's/^-//' | sed 's/-$//')
+  PLAN_FILE=".claude/plans/${ITEM_SLUG}.md"
+  mkdir -p .claude/plans
 
-  START=$(date +%s)
-  claude --dangerously-skip-permissions -p "$P1" --output-format json > "$LOG.build.json" 2>&1 &
-  run_stage "🔨" "Building..." $!
-  wait $!
-  BUILD_TIME=$(format_time $(($(date +%s) - START)))
+  P0="${PLAN_PROMPT/__PRD__/$PRD}"
+  [ -n "$RESUME_CONTEXT" ] && [ "$iter" -eq 1 ] && P0="RESUME CONTEXT:\n$RESUME_CONTEXT\n\n$P0"
 
-  RESULT=$(jq -r '.result // empty' "$LOG.build.json" 2>/dev/null)
-  echo "$RESULT" > "$LOG.build.log"
+  run_stage "$SESSION_ID" "📝" "Planning" "$P0" "$LOG.plan" "true"
 
-  if grep -q "BUILD_COMPLETE" "$LOG.build.log" 2>/dev/null; then
-    TESTS=$(grep "TESTS_PASSED:" "$LOG.build.log" 2>/dev/null | tail -1 | sed 's/.*: *//')
-    show_result "🔨" "Building" "ok" "tests: $TESTS" "$BUILD_TIME"
+  if grep -q "PLAN_COMPLETE" "$LOG.plan.raw" 2>/dev/null; then
+    echo -e "  📝 ${GREEN}✓${NC} Plan created: $(pwd)/$PLAN_FILE"
   else
-    show_result "🔨" "Building" "fail" "" "$BUILD_TIME"
-    echo -e "    ${DIM}$(tail -3 "$LOG.build.log" 2>/dev/null)${NC}"
+    echo -e "  📝 ${RED}✗${NC} Planning failed"
     sleep 2
     continue
   fi
 
   # ═══════════════════════════════════════════════════════════
-  # STAGE 2: CLEAN
+  # STAGE 2: BUILD
   # ═══════════════════════════════════════════════════════════
-  START=$(date +%s)
-  claude --dangerously-skip-permissions -p "$CLEAN_PROMPT" --output-format json > "$LOG.clean.json" 2>&1 &
-  run_stage "🧹" "Cleaning..." $!
-  wait $!
-  CLEAN_TIME=$(format_time $(($(date +%s) - START)))
+  P1="${BUILD_PROMPT/__PLAN_FILE__/$PLAN_FILE}"
 
-  RESULT=$(jq -r '.result // empty' "$LOG.clean.json" 2>/dev/null)
-  echo "$RESULT" > "$LOG.clean.log"
+  run_stage "$SESSION_ID" "🔨" "Building" "$P1" "$LOG.build"
 
-  if grep -q "CLEAN_COMPLETE" "$LOG.clean.log" 2>/dev/null; then
-    EXTRACTED=$(grep "METHODS_EXTRACTED:" "$LOG.clean.log" 2>/dev/null | tail -1 | sed 's/.*: *//')
-    RENAMED=$(grep "NAMES_IMPROVED:" "$LOG.clean.log" 2>/dev/null | tail -1 | sed 's/.*: *//')
-    show_result "🧹" "Cleaning" "ok" "${EXTRACTED:-0} extracted, ${RENAMED:-0} renamed" "$CLEAN_TIME"
-  elif grep -q "CLEAN_SKIPPED" "$LOG.clean.log" 2>/dev/null; then
-    show_result "🧹" "Cleaning" "skip" "nothing to clean" "$CLEAN_TIME"
+  if grep -q "BUILD_COMPLETE" "$LOG.build.raw" 2>/dev/null; then
+    TESTS=$(grep "TESTS_PASSED:" "$LOG.build.raw" 2>/dev/null | tail -1 | sed 's/.*: *//')
+    echo -e "  🔨 ${GREEN}✓${NC} Build complete (tests: ${TESTS:-unknown})"
   else
-    show_result "🧹" "Cleaning" "ok" "" "$CLEAN_TIME"
+    echo -e "  🔨 ${RED}✗${NC} Build failed"
+    sleep 2
+    continue
   fi
 
   # ═══════════════════════════════════════════════════════════
-  # STAGE 3: TEST
+  # STAGE 3: REFACTOR OPPORTUNITY CHECK
   # ═══════════════════════════════════════════════════════════
-  START=$(date +%s)
-  claude --dangerously-skip-permissions -p "$TEST_PROMPT" --output-format json > "$LOG.test.json" 2>&1 &
-  run_stage "🧪" "Testing..." $!
-  wait $!
-  TEST_TIME=$(format_time $(($(date +%s) - START)))
+  run_stage "$SESSION_ID" "🧹" "Refactor Opportunity Check" "$CLEAN_PROMPT" "$LOG.clean"
 
-  RESULT=$(jq -r '.result // empty' "$LOG.test.json" 2>/dev/null)
-  echo "$RESULT" > "$LOG.test.log"
-
-  if grep -q "TEST_COMPLETE" "$LOG.test.log" 2>/dev/null; then
-    PASSED=$(grep "TESTS_PASSED:" "$LOG.test.log" 2>/dev/null | tail -1 | sed 's/.*: *//')
-    TOTAL=$(grep "TESTS_TOTAL:" "$LOG.test.log" 2>/dev/null | tail -1 | sed 's/.*: *//')
-    show_result "🧪" "Testing" "ok" "${PASSED:-all}/${TOTAL:-all} passed" "$TEST_TIME"
+  if grep -q "CLEAN_COMPLETE" "$LOG.clean.raw" 2>/dev/null; then
+    EXTRACTED=$(grep "METHODS_EXTRACTED:" "$LOG.clean.raw" 2>/dev/null | tail -1 | sed 's/.*: *//')
+    RENAMED=$(grep "NAMES_IMPROVED:" "$LOG.clean.raw" 2>/dev/null | tail -1 | sed 's/.*: *//')
+    echo -e "  🧹 ${GREEN}✓${NC} Clean complete (${EXTRACTED:-0} extracted, ${RENAMED:-0} renamed)"
+  elif grep -q "CLEAN_SKIPPED" "$LOG.clean.raw" 2>/dev/null; then
+    echo -e "  🧹 ${YELLOW}○${NC} Nothing to refactor"
   else
-    show_result "🧪" "Testing" "fail" "" "$TEST_TIME"
+    echo -e "  🧹 ${GREEN}✓${NC} Clean complete"
   fi
 
   # ═══════════════════════════════════════════════════════════
-  # STAGE 4: CODE SCAN (Qodana)
+  # STAGE 4: TEST
+  # ═══════════════════════════════════════════════════════════
+  run_stage "$SESSION_ID" "🧪" "Testing" "$TEST_PROMPT" "$LOG.test"
+
+  if grep -q "TEST_COMPLETE" "$LOG.test.raw" 2>/dev/null; then
+    PASSED=$(grep "TESTS_PASSED:" "$LOG.test.raw" 2>/dev/null | tail -1 | sed 's/.*: *//')
+    TOTAL=$(grep "TESTS_TOTAL:" "$LOG.test.raw" 2>/dev/null | tail -1 | sed 's/.*: *//')
+    echo -e "  🧪 ${GREEN}✓${NC} Tests passed (${PASSED:-all}/${TOTAL:-all})"
+  else
+    echo -e "  🧪 ${RED}✗${NC} Tests failed"
+  fi
+
+  # ═══════════════════════════════════════════════════════════
+  # STAGE 5: EXTERNAL STATIC ANALYSIS (Qodana)
   # ═══════════════════════════════════════════════════════════
   if [ "$SKIP_SCAN" = true ]; then
-    show_result "🔍" "Code scan" "skip" "--skip-scan" ""
+    echo -e "  🔍 ${YELLOW}○${NC} Code scan skipped (--skip-scan)"
   elif command -v qodana &>/dev/null; then
-    START=$(date +%s)
+    echo -e "  🔍 ${CYAN}External Static Analysis...${NC}"
 
     QODANA_CMD="qodana scan --within-docker=false --project-dir . --results-dir .qodana/results --commit HEAD~1"
     [ -f "$BASELINE_FILE" ] && QODANA_CMD="$QODANA_CMD --baseline $BASELINE_FILE"
 
-    $QODANA_CMD > "$LOG.scan.log" 2>&1 &
-    run_stage "🔍" "Code scan..." $!
-    wait $!
-    SCAN_TIME=$(format_time $(($(date +%s) - START)))
+    $QODANA_CMD > "$LOG.scan.log" 2>&1
 
     if [ -f ".qodana/results/qodana.sarif.json" ]; then
       CRIT=$(jq '[.runs[].results[] | select(.level == "error")] | length' .qodana/results/qodana.sarif.json 2>/dev/null || echo 0)
       if [ "$CRIT" -gt 0 ]; then
-        show_result "🔍" "Code scan" "ok" "$CRIT issues → fixing" "$SCAN_TIME"
-
+        echo -e "  🔍 ${YELLOW}Found $CRIT issues → fixing${NC}"
         ISSUES=$(jq '.runs[].results[] | select(.level == "error")' .qodana/results/qodana.sarif.json 2>/dev/null | head -100)
-        claude --dangerously-skip-permissions -p "Fix these issues. Commit when done. Output SCAN_FIXED when complete:\n$ISSUES" > "$LOG.scan.fix.log" 2>&1
+        run_stage "$SESSION_ID" "🔧" "Fixing scan issues" "Fix these issues. Commit when done. Output SCAN_FIXED when complete:\n$ISSUES" "$LOG.scan.fix"
+        echo -e "  🔍 ${GREEN}✓${NC} Scan issues fixed"
       else
-        show_result "🔍" "Code scan" "ok" "no issues" "$SCAN_TIME"
+        echo -e "  🔍 ${GREEN}✓${NC} No issues found"
       fi
     else
-      show_result "🔍" "Code scan" "ok" "" "$SCAN_TIME"
+      echo -e "  🔍 ${GREEN}✓${NC} Scan complete"
     fi
   else
-    show_result "🔍" "Code scan" "skip" "qodana not installed" ""
+    echo -e "  🔍 ${YELLOW}○${NC} Qodana not installed"
   fi
 
   # ═══════════════════════════════════════════════════════════
-  # STAGE 5: EXPERT REVIEW (Gemini)
+  # STAGE 6: ADVERSARIAL REVIEW (Gemini)
   # ═══════════════════════════════════════════════════════════
-  START=$(date +%s)
-  claude --dangerously-skip-permissions -p "$REVIEW_PROMPT" --output-format json > "$LOG.review.json" 2>&1 &
-  run_stage "👁️" "Expert review..." $!
-  wait $!
-  REVIEW_TIME=$(format_time $(($(date +%s) - START)))
+  run_stage "$SESSION_ID" "👁️" "Adversarial Review (Gemini)" "$REVIEW_PROMPT" "$LOG.review"
 
-  RESULT=$(jq -r '.result // empty' "$LOG.review.json" 2>/dev/null)
-  echo "$RESULT" > "$LOG.review.log"
+  # Extract review results from JSON log (more reliable than .raw)
+  FOUND=$(grep -o 'ISSUES_FOUND:[[:space:]]*[0-9]*' "$LOG.review.json" 2>/dev/null | tail -1 | sed 's/.*:[[:space:]]*//')
+  FIXED=$(grep -o 'ISSUES_FIXED:[[:space:]]*[0-9]*' "$LOG.review.json" 2>/dev/null | tail -1 | sed 's/.*:[[:space:]]*//')
+  CLEAN=$(grep -o 'VERIFIED_CLEAN:[[:space:]]*[a-z]*' "$LOG.review.json" 2>/dev/null | tail -1 | sed 's/.*:[[:space:]]*//')
 
-  if grep -q "REVIEW_COMPLETE" "$LOG.review.log" 2>/dev/null; then
-    FOUND=$(grep "ISSUES_FOUND:" "$LOG.review.log" 2>/dev/null | tail -1 | sed 's/.*: *//')
-    FIXED=$(grep "ISSUES_FIXED:" "$LOG.review.log" 2>/dev/null | tail -1 | sed 's/.*: *//')
-    CLEAN=$(grep "VERIFIED_CLEAN:" "$LOG.review.log" 2>/dev/null | tail -1 | sed 's/.*: *//')
-
+  if [ -n "$FOUND" ] || [ -n "$FIXED" ]; then
     if [ "$CLEAN" = "yes" ]; then
-      show_result "👁️" "Expert review" "ok" "${FIXED:-0} fixed, verified clean" "$REVIEW_TIME"
+      echo -e "  👁️ ${GREEN}✓${NC} Gemini: ${FOUND:-0} issues found, ${FIXED:-0} fixed, verified clean"
     else
-      show_result "👁️" "Expert review" "ok" "${FOUND:-0} found, ${FIXED:-0} fixed" "$REVIEW_TIME"
+      echo -e "  👁️ ${GREEN}✓${NC} Gemini: ${FOUND:-0} issues found, ${FIXED:-0} fixed"
     fi
   else
-    show_result "👁️" "Expert review" "ok" "" "$REVIEW_TIME"
+    echo -e "  👁️ ${GREEN}✓${NC} Gemini: no issues reported"
+  fi
+
+  # ═══════════════════════════════════════════════════════════
+  # STAGE 7: DOCUMENTATION
+  # ═══════════════════════════════════════════════════════════
+  run_stage "$SESSION_ID" "📚" "Documentation" "$DOC_PROMPT" "$LOG.doc"
+
+  if grep -q "DOC_COMPLETE" "$LOG.doc.raw" 2>/dev/null; then
+    FILES_DOC=$(grep "FILES_DOCUMENTED:" "$LOG.doc.raw" 2>/dev/null | tail -1 | sed 's/.*: *//')
+    README=$(grep "README_UPDATED:" "$LOG.doc.raw" 2>/dev/null | tail -1 | sed 's/.*: *//')
+    echo -e "  📚 ${GREEN}✓${NC} Documentation complete (${FILES_DOC:-0} files, README: ${README:-no})"
+  else
+    echo -e "  📚 ${GREEN}✓${NC} Documentation complete"
   fi
 
   # ═══════════════════════════════════════════════════════════
@@ -427,5 +690,19 @@ done_count=$((initial_incomplete - remaining))
 echo -e "📊 ${CYAN}Summary${NC}: $done_count/$initial_incomplete complete"
 echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
 grep -E "^[[:space:]]*[-*+][[:space:]]*\[" "$PRD" | head -10
+
+# Skill invocation summary
+if [ -s "$SKILL_LOG" ]; then
+  echo ""
+  echo -e "${CYAN}Skills Invoked:${NC}"
+  # Count and sort skills, display in columns
+  sort "$SKILL_LOG" | uniq -c | sort -rn | while read count skill; do
+    printf "  ${GREEN}%-20s${NC} %d\n" "/$skill" "$count"
+  done
+  total_skills=$(wc -l < "$SKILL_LOG" | tr -d ' ')
+  unique_skills=$(sort "$SKILL_LOG" | uniq | wc -l | tr -d ' ')
+  echo -e "${DIM}  Total: $total_skills invocations, $unique_skills unique skills${NC}"
+fi
+
 echo ""
 echo -e "${DIM}Logs: $LOG_DIR${NC}"
