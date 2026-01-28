@@ -75,6 +75,90 @@
       "sourceFile": "ui-ux/mall",
       "hash": "19cd4358d4d30694d0268eca8b01da8b951e71253c22072310a9f08844cb663e",
       "modified": false
+    },
+    "security-mindset": {
+      "installedAt": "2026-01-28T04:14:40.549Z",
+      "sourceFile": "security/security-mindset",
+      "hash": "65a49a48463e074358605f049f69c9f953b90107e9655adde969f4dbfff38d40",
+      "modified": false
+    },
+    "owasp": {
+      "installedAt": "2026-01-28T04:14:40.555Z",
+      "sourceFile": "security/owasp",
+      "hash": "d1a4c7c1db703d25cde579d6e953960d6db49b2ca41540686f07b7abe1821cb7",
+      "modified": false
+    },
+    "bruce-schneier": {
+      "installedAt": "2026-01-28T04:14:40.555Z",
+      "sourceFile": "security/bruce-schneier",
+      "hash": "86b1f5ddb821ed948c5b3aeb922f52a4ed8b2552e3a93a28b7584a6963749c1e",
+      "modified": false
+    },
+    "tanya-janca": {
+      "installedAt": "2026-01-28T04:14:40.555Z",
+      "sourceFile": "security/tanya-janca",
+      "hash": "0d4c3a2d0c3b77cc4dc08ac0ee8fcfa258aee9521eca9da1dbee3b501c59f5e4",
+      "modified": false
+    },
+    "troy-hunt": {
+      "installedAt": "2026-01-28T04:14:40.556Z",
+      "sourceFile": "security/troy-hunt",
+      "hash": "99fbdead97bae015fb68cf976ada633ba2f7d28a5c529f3338ad496847059079",
+      "modified": false
+    },
+    "kyle-simpson": {
+      "installedAt": "2026-01-28T04:14:40.556Z",
+      "sourceFile": "javascript/kyle-simpson",
+      "hash": "bf3935aaa91481017b393cf9ac8ab86ee826f0b072ce223e1f94b5d8f7c0644c",
+      "modified": false
+    },
+    "abramov": {
+      "installedAt": "2026-01-28T04:14:40.556Z",
+      "sourceFile": "javascript/abramov",
+      "hash": "eed1aa15e587dfd01a930ddfa11dc44fc39c6cad6c32a39437ffa6e8fa641333",
+      "modified": false
+    },
+    "ashkenas": {
+      "installedAt": "2026-01-28T04:14:40.557Z",
+      "sourceFile": "javascript/ashkenas",
+      "hash": "7a98720d764b63f5817966f75896c7425afd2bf12218b14079b8689ac70f67b1",
+      "modified": false
+    },
+    "cherny": {
+      "installedAt": "2026-01-28T04:14:40.557Z",
+      "sourceFile": "javascript/cherny",
+      "hash": "2d94a4c8406ffa8b6273d0cd2869f3d28568412384c7d5d99d5facdb4ae14122",
+      "modified": false
+    },
+    "crockford": {
+      "installedAt": "2026-01-28T04:14:40.558Z",
+      "sourceFile": "javascript/crockford",
+      "hash": "f17f702f6f69d74c6f43ebfe155bef049184d5f7bfa693ef86b6c5770a162e8e",
+      "modified": false
+    },
+    "dodds": {
+      "installedAt": "2026-01-28T04:14:40.558Z",
+      "sourceFile": "javascript/dodds",
+      "hash": "b7c29f19350edc3bd6a28faa94840eb7f05c8ea31bf85b34ef9472a01d2d1b26",
+      "modified": false
+    },
+    "harris": {
+      "installedAt": "2026-01-28T04:14:40.558Z",
+      "sourceFile": "javascript/harris",
+      "hash": "ea87b482c16bbc4fa76b6f5ae008f17ebad7e9855f43100c2fca368f62e9ee54",
+      "modified": false
+    },
+    "osmani": {
+      "installedAt": "2026-01-28T04:14:40.559Z",
+      "sourceFile": "javascript/osmani",
+      "hash": "498961011cfadfcf6627335060958e79fe3d769de91c0d7a390ab0f0b20e2d0c",
+      "modified": false
+    },
+    "frontend-design": {
+      "installedAt": "2026-01-28T04:14:40.559Z",
+      "sourceFile": "ui-ux/frontend-design",
+      "hash": "f559146509164acbfc96be853c9ced0ce2b4e759142a47ccb4a9cd77b5be9833",
+      "modified": false
     }
   }
 }

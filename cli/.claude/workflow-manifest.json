@@ -69,6 +69,20 @@
       "hash": "04fe520a6bb6e95a",
       "modified": false,
       "installedCommit": "85e87ea"
+    },
+    "canon-report": {
+      "installedAt": "2026-01-28T04:14:40.597Z",
+      "sourceFile": "canon-report/SKILL.md",
+      "hash": "447ff5b11eae2177",
+      "modified": false,
+      "installedCommit": "8db7d11"
+    },
+    "status": {
+      "installedAt": "2026-01-28T04:14:40.627Z",
+      "sourceFile": "status/SKILL.md",
+      "hash": "fd7cc7d7424be173",
+      "modified": false,
+      "installedCommit": "8db7d11"
     }
   }
 }
