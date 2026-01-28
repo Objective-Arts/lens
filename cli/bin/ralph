@@ -11,6 +11,15 @@
 
 set -e
 
+# Track spinner PID for cleanup
+CURRENT_SPINNER_PID=""
+
+# Cleanup function to kill orphan spinner on exit
+cleanup() {
+  [ -n "$CURRENT_SPINNER_PID" ] && kill $CURRENT_SPINNER_PID 2>/dev/null || true
+}
+trap cleanup EXIT
+
 # Colors
 RED='\033[0;31m'
 GREEN='\033[0;32m'
@@ -94,6 +103,7 @@ run_stage() {
     done
   ) 2>/dev/null &
   spin_pid=$!
+  CURRENT_SPINNER_PID=$spin_pid
   disown $spin_pid 2>/dev/null
 
   # Run claude with stream-json to capture skill invocations
@@ -133,6 +143,7 @@ run_stage() {
     wait $spin_pid 2>/dev/null
     printf "\r\033[K"  # Clear line completely
   fi
+  CURRENT_SPINNER_PID=""
 
   # Extract final result from stream-json output
   grep -o '"result":"[^"]*"' "$logfile.json" 2>/dev/null | tail -1 | sed 's/"result":"//;s/"$//' > "$logfile.raw" || true
