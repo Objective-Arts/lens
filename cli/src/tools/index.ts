@@ -303,6 +303,8 @@ PLAN IMPLEMENTATION
 
 Read CLAUDE.md and __PRD__, then create an implementation plan for the NEXT item marked '- [ ]'.
 
+CRITICAL: Do NOT modify __PRD__. Ralph manages the checklist. Only create the plan file.
+
 IMPORTANT: Use the Skill tool to invoke composite skills that chain to individual experts.
 
 Invoke these composite skills:
@@ -343,6 +345,8 @@ BUILD FROM PLAN
 
 Read the plan at __PLAN_FILE__ and implement it.
 
+CRITICAL: Do NOT modify the PRD file. Ralph manages the checklist.
+
 IMPORTANT: Use the Skill tool to invoke composite skills that chain to individual experts.
 
 Invoke these composite skills:
@@ -370,6 +374,8 @@ CLEAN THE CODE
 
 Review code from last commit and apply structural improvements.
 
+CRITICAL: Do NOT modify the PRD file. Ralph manages the checklist.
+
 IMPORTANT: Use the Skill tool to invoke composite skills that chain to individual experts.
 
 Invoke this composite skill:
@@ -393,6 +399,8 @@ read -r -d '' TEST_PROMPT << 'EOF' || true
 RUN TESTS
 
 Execute test suite and verify all pass.
+
+CRITICAL: Do NOT modify the PRD file. Ralph manages the checklist.
 
 IMPORTANT: Use the Skill tool to invoke composite skills that chain to individual experts.
 
@@ -418,6 +426,8 @@ EXPERT REVIEW
 
 Review code using Gemini with security analysis.
 
+CRITICAL: Do NOT modify the PRD file. Ralph manages the checklist.
+
 IMPORTANT: Use the Skill tool to invoke composite skills that chain to individual experts.
 
 Invoke this composite skill:
@@ -439,6 +449,8 @@ EOF
 
 read -r -d '' DOC_PROMPT << 'EOF' || true
 DOCUMENTATION
+
+CRITICAL: Do NOT modify the PRD file. Ralph manages the checklist.
 
 IMPORTANT: Use the Skill tool to invoke skill="docs-masters".
 
