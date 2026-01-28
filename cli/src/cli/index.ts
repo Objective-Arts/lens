@@ -43,7 +43,8 @@ import {
   diffSkill,
   copySkill,
   getCanonSourceInfo,
-  deployAllSkills
+  deployAllSkills,
+  verifySkillsMatch
 } from '../canon/index.js';
 import {
   listWorkflowSkills,
@@ -327,11 +328,13 @@ profileCmd
   });
 
 profileCmd
-  .command('apply <profiles>')
+  .command('apply <profiles> [projectPath]')
   .description('Apply profile(s) to a project. Use + to combine: base-tech+javascript+react')
-  .option('-p, --project <path>', 'Project path', process.cwd())
+  .option('-p, --project <path>', 'Project path')
   .option('--dry-run', 'Show what would be done without making changes')
-  .action(async (profiles, options) => {
+  .action(async (profiles, projectPath, options) => {
+    // Support both positional arg and -p option (positional takes precedence)
+    const targetPath = projectPath || options.project || process.cwd();
     // Parse profile string (supports + syntax)
     const profileNames = parseProfileString(profiles);
     let profile: ComposableProfile | null;
@@ -360,7 +363,7 @@ profileCmd
       console.log(chalk.yellow('DRY RUN - No changes will be made\n'));
       console.log(chalk.bold('Would apply:'));
       console.log(`  Profile: ${profile.name}`);
-      console.log(`  Project: ${options.project}`);
+      console.log(`  Project: ${targetPath}`);
 
       if (profile.skills) {
         for (const [category, skills] of Object.entries(profile.skills)) {
@@ -378,22 +381,33 @@ profileCmd
       return;
     }
 
-    console.log(chalk.blue(`Applying profile "${profile.name}" to ${options.project}...\n`));
+    console.log(chalk.blue(`Applying profile "${profile.name}" to ${targetPath}...\n`));
 
     console.log(chalk.cyan('[1/4] Setting up project structure...'));
-    const result = await applyComposableProfile(profile, options.project);
+    const result = await applyComposableProfile(profile, targetPath);
 
     console.log(chalk.cyan('[2/4] Processing results...'));
     // Print results using helper (Ashkenas: DRY)
+    // Filter out skill copies from "Linked" since deployAllSkills will show them
+    const nonSkillLinked = result.linked.filter(item => !item.includes('(copied from'));
     printList('Created', result.created, chalk.green, '+');
-    printList('Linked', result.linked, chalk.cyan, '→');
+    printList('Linked', nonSkillLinked, chalk.cyan, '→');
     printList('Skipped', result.skipped, chalk.gray, '-');
     printList('Errors', result.errors, chalk.red, '✗');
 
     // Deploy all canon skills to project
     console.log(chalk.cyan('\n[3/4] Deploying canon skills...'));
-    const deployResult = deployAllSkills(options.project, { force: true });
+    const deployResult = deployAllSkills(targetPath, { force: true });
     console.log(chalk.green(`  ✓ Deployed ${deployResult.deployed} canon skills`));
+    if (deployResult.deployedNames.length > 0) {
+      // Show deployed skills in columns
+      const columns = 4;
+      const skillNames = deployResult.deployedNames.sort();
+      for (let i = 0; i < skillNames.length; i += columns) {
+        const row = skillNames.slice(i, i + columns).map(s => s.padEnd(20)).join('');
+        console.log(chalk.gray(`    ${row}`));
+      }
+    }
     if (deployResult.errors.length > 0) {
       deployResult.errors.forEach(e => console.log(chalk.red(`  Error: ${e}`)));
     }
@@ -770,6 +784,63 @@ mcpCmd
     console.log(chalk.gray(`Registry file: ${getRegistryPath()}/${name}.yaml`));
   });
 
+mcpCmd
+  .command('setup')
+  .description('Setup ralph MCP servers (gemini-reviewer, qodana) for a project')
+  .option('-p, --project <path>', 'Project directory (defaults to current directory)')
+  .action(async (options) => {
+    const path = await import('path');
+    const projectDir = options.project || process.cwd();
+    const mcpPath = path.join(projectDir, '.mcp.json');
+
+    // Load existing config or create new
+    let mcpConfig: { mcpServers?: Record<string, unknown> } = { mcpServers: {} };
+    if (fs.existsSync(mcpPath)) {
+      try {
+        mcpConfig = JSON.parse(fs.readFileSync(mcpPath, 'utf-8'));
+        if (!mcpConfig.mcpServers) mcpConfig.mcpServers = {};
+      } catch {
+        mcpConfig = { mcpServers: {} };
+      }
+    }
+
+    // Get MCP server paths (dist/cli -> dist -> cli -> claude-optimal)
+    const currentFileUrl = new URL(import.meta.url);
+    const currentDir = new URL('.', currentFileUrl).pathname;
+    const baseDir = path.resolve(currentDir, '..', '..', '..');
+
+    // Add gemini-reviewer
+    const geminiPath = path.join(baseDir, 'mcp-servers', 'gemini-reviewer', 'index.js');
+    if (fs.existsSync(geminiPath)) {
+      mcpConfig.mcpServers!['gemini-reviewer'] = {
+        type: 'stdio',
+        command: 'node',
+        args: [geminiPath],
+        env: { GEMINI_API_KEY: process.env.GEMINI_API_KEY || '' }
+      };
+      console.log(chalk.green(`  ✓ Added: gemini-reviewer`));
+    } else {
+      console.log(chalk.yellow(`  ⚠ Not found: gemini-reviewer at ${geminiPath}`));
+    }
+
+    // Add qodana
+    const qodanaPath = path.join(baseDir, 'mcp-servers', 'qodana', 'dist', 'index.js');
+    if (fs.existsSync(qodanaPath)) {
+      mcpConfig.mcpServers!['qodana'] = {
+        type: 'stdio',
+        command: 'node',
+        args: [qodanaPath]
+      };
+      console.log(chalk.green(`  ✓ Added: qodana`));
+    } else {
+      console.log(chalk.yellow(`  ⚠ Not found: qodana at ${qodanaPath}`));
+    }
+
+    // Write config
+    fs.writeFileSync(mcpPath, JSON.stringify(mcpConfig, null, 2));
+    console.log(chalk.green(`\nCreated: ${mcpPath}`));
+  });
+
 // Canon commands - copy-with-manifest skill management
 const canonCmd = program.command('canon').description('Manage canon skills (copy-with-manifest system)');
 
@@ -958,6 +1029,15 @@ canonCmd
     const result = deployAllSkills(projectPath, { force: options.force });
 
     console.log(chalk.green(`Deployed: ${result.deployed} skills`));
+    if (result.deployedNames.length > 0) {
+      // Show deployed skills in columns
+      const columns = 4;
+      const skillNames = result.deployedNames.sort();
+      for (let i = 0; i < skillNames.length; i += columns) {
+        const row = skillNames.slice(i, i + columns).map(s => s.padEnd(20)).join('');
+        console.log(chalk.gray(`  ${row}`));
+      }
+    }
     if (result.skipped > 0) {
       console.log(chalk.yellow(`Skipped:  ${result.skipped} (already exist, use --force)`));
     }
@@ -967,6 +1047,67 @@ canonCmd
     }
 
     console.log(chalk.gray(`\nSkills installed to: ${projectPath}/.claude/skills/`));
+  });
+
+canonCmd
+  .command('verify')
+  .description('Verify installed skills match canon source exactly')
+  .option('-p, --project <path>', 'Project path', process.cwd())
+  .option('-v, --verbose', 'Show all matches, not just differences')
+  .action((options) => {
+    const projectPath = validateProjectPathOrWarn(options.project);
+    if (!projectPath) return;
+
+    const sourceInfo = getCanonSourceInfo();
+
+    console.log(chalk.bold('\nVerifying Canon Skills'));
+    console.log(chalk.gray('─'.repeat(50)));
+    console.log(`Source:  ${chalk.cyan(sourceInfo.path)}`);
+    console.log(`Project: ${chalk.cyan(projectPath)}`);
+    console.log();
+
+    const result = verifySkillsMatch(projectPath);
+
+    // Show differences
+    if (result.differs.length > 0) {
+      console.log(chalk.red(`Differs (${result.differs.length}):`));
+      result.differs.forEach(d => console.log(chalk.red(`  ✗ ${d.name}: ${d.reason}`)));
+      console.log();
+    }
+
+    // Show missing in project
+    if (result.missingInProject.length > 0) {
+      console.log(chalk.yellow(`Missing in project (${result.missingInProject.length}):`));
+      result.missingInProject.forEach(m => console.log(chalk.yellow(`  ? ${m}`)));
+      console.log();
+    }
+
+    // Show extra in project (non-canon skills)
+    if (result.extraInProject.length > 0 && options.verbose) {
+      console.log(chalk.gray(`Extra in project (${result.extraInProject.length} non-canon skills):`));
+      result.extraInProject.forEach(e => console.log(chalk.gray(`  + ${e}`)));
+      console.log();
+    }
+
+    // Show matches if verbose
+    if (options.verbose && result.matches.length > 0) {
+      console.log(chalk.green(`Matches (${result.matches.length}):`));
+      result.matches.forEach(m => console.log(chalk.green(`  ✓ ${m}`)));
+      console.log();
+    }
+
+    // Summary
+    console.log(chalk.gray('─'.repeat(50)));
+    console.log(`Matches:  ${chalk.green(result.matches.length.toString())}`);
+    console.log(`Differs:  ${result.differs.length > 0 ? chalk.red(result.differs.length.toString()) : '0'}`);
+    console.log(`Missing:  ${result.missingInProject.length > 0 ? chalk.yellow(result.missingInProject.length.toString()) : '0'}`);
+
+    if (result.allMatch) {
+      console.log(chalk.green('\n✓ All canon skills are identical to source!'));
+    } else {
+      console.log(chalk.yellow('\n⚠ Some skills differ from source. Run `cc-config canon deploy --force` to sync.'));
+      process.exit(1);
+    }
   });
 
 // Workflow commands - universal workflow skills (not canon)
@@ -1159,8 +1300,12 @@ toolsCmd
   .command('install <tool>')
   .description('Install a companion tool (e.g., ralph)')
   .option('-f, --force', 'Overwrite existing installation')
+  .option('-p, --project <path>', 'Project directory to configure MCP servers in')
   .action((toolName, options) => {
-    const result = installTool(toolName, { force: options.force });
+    const result = installTool(toolName, {
+      force: options.force,
+      projectDir: options.project
+    });
 
     if (result.success) {
       console.log(chalk.green(result.message));
@@ -1190,6 +1335,19 @@ toolsCmd
     } else {
       console.log(chalk.red(result.message));
     }
+  });
+
+// UI command - local web dashboard
+program
+  .command('ui')
+  .description('Launch local web UI for managing Claude Code configuration')
+  .option('--port <port>', 'Port to run on', '3847')
+  .action(async (options) => {
+    const port = parseInt(options.port, 10);
+
+    // Dynamic import to avoid bundling UI server in main CLI
+    const { runUI } = await import('../ui/server.js');
+    runUI({ port });
   });
 
 // Print helpers

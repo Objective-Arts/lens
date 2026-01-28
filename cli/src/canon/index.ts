@@ -36,7 +36,7 @@ const SECURITY_SKILL_PATH = path.join(homedir(), '.claude', 'skill-library', 'se
 const TECH_SKILL_PATH = path.join(homedir(), '.claude', 'skill-library', 'tech');
 
 // Subdirectories to search in canon-skills
-const CANON_SUBDIRS = ['', 'javascript', 'typescript', 'go', 'java', 'python', 'angular', 'testing', 'visualization', 'business', 'ui-ux', 'csharp', 'react', 'security', 'engineering', 'writing'];
+const CANON_SUBDIRS = ['', 'javascript', 'go', 'java', 'python', 'angular', 'testing', 'visualization', 'business', 'ui-ux', 'csharp', 'react', 'security', 'engineering', 'writing', 'patterns'];
 
 /**
  * Get the configured canon source path.
@@ -74,13 +74,13 @@ export function getCanonSourcePath(): string {
  */
 export function listCanonSkills(): CanonListItem[] {
   const canonPath = getCanonSourcePath();
-  const skills: CanonListItem[] = [];
+  const skillsByName = new Map<string, CanonListItem>();
 
   if (!fs.existsSync(canonPath)) {
-    return skills;
+    return [];
   }
 
-  // Search in all subdirectories
+  // Search in all subdirectories of canon source (preferred)
   for (const subdir of CANON_SUBDIRS) {
     const searchPath = subdir ? path.join(canonPath, subdir) : canonPath;
 
@@ -98,16 +98,19 @@ export function listCanonSkills(): CanonListItem[] {
 
       // Only include if it has a SKILL.md file
       if (fs.existsSync(skillMdPath)) {
-        skills.push({
-          name: entry.name,
-          path: skillPath,
-          category: subdir || 'root'
-        });
+        // Canon source always wins - don't overwrite
+        if (!skillsByName.has(entry.name)) {
+          skillsByName.set(entry.name, {
+            name: entry.name,
+            path: skillPath,
+            category: subdir || 'root'
+          });
+        }
       }
     }
   }
 
-  // Also add security skills
+  // Also add security skills from skill-library (fallback for skills not in canon)
   if (fs.existsSync(SECURITY_SKILL_PATH)) {
     const entries = fs.readdirSync(SECURITY_SKILL_PATH, { withFileTypes: true });
     for (const entry of entries) {
@@ -117,16 +120,19 @@ export function listCanonSkills(): CanonListItem[] {
       const skillMdPath = path.join(skillPath, 'SKILL.md');
 
       if (fs.existsSync(skillMdPath)) {
-        skills.push({
-          name: entry.name,
-          path: skillPath,
-          category: 'security'
-        });
+        // Only add if not already in canon
+        if (!skillsByName.has(entry.name)) {
+          skillsByName.set(entry.name, {
+            name: entry.name,
+            path: skillPath,
+            category: 'security'
+          });
+        }
       }
     }
   }
 
-  return skills.sort((a, b) => a.name.localeCompare(b.name));
+  return Array.from(skillsByName.values()).sort((a, b) => a.name.localeCompare(b.name));
 }
 
 /**
@@ -514,10 +520,25 @@ export function getCanonSourceInfo(): { path: string; commit?: string; remote?: 
 export function deployAllSkills(
   projectPath: string,
   options: { force?: boolean } = {}
-): { deployed: number; skipped: number; errors: string[] } {
-  const result = { deployed: 0, skipped: 0, errors: [] as string[] };
+): { deployed: number; skipped: number; errors: string[]; deployedNames: string[] } {
+  const result = { deployed: 0, skipped: 0, errors: [] as string[], deployedNames: [] as string[] };
 
-  const skills = listCanonSkills();
+  // Deduplicate skills, preferring canon source over skill-library
+  const allSkills = listCanonSkills();
+  const canonSourcePath = getCanonSourcePath();
+  const skillsByName = new Map<string, typeof allSkills[0]>();
+
+  for (const skill of allSkills) {
+    const existing = skillsByName.get(skill.name);
+    if (!existing) {
+      skillsByName.set(skill.name, skill);
+    } else if (skill.path.startsWith(canonSourcePath) && !existing.path.startsWith(canonSourcePath)) {
+      // Prefer canon source over skill-library
+      skillsByName.set(skill.name, skill);
+    }
+  }
+
+  const skills = Array.from(skillsByName.values());
   const skillsDir = path.join(projectPath, '.claude', 'skills');
 
   // Ensure skills directory exists
@@ -527,24 +548,135 @@ export function deployAllSkills(
 
   for (const skill of skills) {
     const sourceFile = path.join(skill.path, 'SKILL.md');
-    const targetFile = path.join(skillsDir, `${skill.name}.md`);
+    const targetDir = path.join(skillsDir, skill.name);
 
     if (!fs.existsSync(sourceFile)) {
       result.errors.push(`${skill.name}: SKILL.md not found`);
       continue;
     }
 
-    // Check if already exists
-    if (fs.existsSync(targetFile) && !options.force) {
+    // Check if directory already exists (skip to avoid duplicates)
+    if (fs.existsSync(targetDir) && !options.force) {
       result.skipped++;
       continue;
     }
 
     try {
-      fs.copyFileSync(sourceFile, targetFile);
+      // Remove existing directory if force
+      if (fs.existsSync(targetDir)) {
+        fs.rmSync(targetDir, { recursive: true });
+      }
+      // Copy entire directory (preserves SKILL.md, SUMMARY.md, etc.)
+      copyDirectoryRecursive(skill.path, targetDir);
       result.deployed++;
+      result.deployedNames.push(skill.name);
     } catch (err) {
       result.errors.push(`${skill.name}: ${err instanceof Error ? err.message : 'copy failed'}`);
+    }
+  }
+
+  return result;
+}
+
+/**
+ * Verify that installed skills match the canon source exactly.
+ *
+ * Compares each skill in the project against the source canon repository
+ * to identify any differences, missing skills, or extra files.
+ *
+ * @param projectPath - Project directory containing installed skills
+ * @returns Verification result with matches, differences, and summary
+ *
+ * @example
+ * ```typescript
+ * const result = verifySkillsMatch('./myproject');
+ * if (result.allMatch) {
+ *   console.log('All skills are identical to canon source');
+ * } else {
+ *   console.log(`${result.differs.length} skills differ`);
+ * }
+ * ```
+ */
+export function verifySkillsMatch(projectPath: string): {
+  matches: string[];
+  differs: { name: string; reason: string }[];
+  missingInProject: string[];
+  extraInProject: string[];
+  allMatch: boolean;
+} {
+  const result = {
+    matches: [] as string[],
+    differs: [] as { name: string; reason: string }[],
+    missingInProject: [] as string[],
+    extraInProject: [] as string[],
+    allMatch: true
+  };
+
+  const skillsDir = path.join(projectPath, '.claude', 'skills');
+  if (!fs.existsSync(skillsDir)) {
+    result.allMatch = false;
+    return result;
+  }
+
+  // Get all canon skills from source, deduplicated by name
+  // Prefer canon source path over skill-library
+  const allSkills = listCanonSkills();
+  const canonSourcePath = getCanonSourcePath();
+  const skillsByName = new Map<string, typeof allSkills[0]>();
+
+  for (const skill of allSkills) {
+    const existing = skillsByName.get(skill.name);
+    if (!existing) {
+      skillsByName.set(skill.name, skill);
+    } else if (skill.path.startsWith(canonSourcePath) && !existing.path.startsWith(canonSourcePath)) {
+      // Prefer canon source over skill-library
+      skillsByName.set(skill.name, skill);
+    }
+  }
+
+  const canonSkills = Array.from(skillsByName.values());
+  const canonSkillNames = new Set(canonSkills.map(s => s.name));
+
+  // Get installed skill directories (not flat .md files)
+  const installedFiles = fs.readdirSync(skillsDir)
+    .filter(f => {
+      const fullPath = path.join(skillsDir, f);
+      return fs.statSync(fullPath).isDirectory() && !f.startsWith('.');
+    });
+
+  // Compare each canon skill (deduplicated)
+  for (const skill of canonSkills) {
+    const sourceFile = path.join(skill.path, 'SKILL.md');
+    const targetDir = path.join(skillsDir, skill.name);
+    const targetFile = path.join(targetDir, 'SKILL.md');
+
+    if (!fs.existsSync(sourceFile)) {
+      continue; // Skip if source doesn't have SKILL.md
+    }
+
+    if (!fs.existsSync(targetDir) || !fs.existsSync(targetFile)) {
+      result.missingInProject.push(skill.name);
+      result.allMatch = false;
+      continue;
+    }
+
+    // Compare content
+    const sourceContent = fs.readFileSync(sourceFile, 'utf-8');
+    const targetContent = fs.readFileSync(targetFile, 'utf-8');
+
+    if (sourceContent === targetContent) {
+      result.matches.push(skill.name);
+    } else {
+      result.differs.push({ name: skill.name, reason: 'content differs' });
+      result.allMatch = false;
+    }
+  }
+
+  // Find extra files in project not in canon
+  for (const installed of installedFiles) {
+    if (!canonSkillNames.has(installed)) {
+      // Check if it's a workflow skill or other non-canon skill
+      result.extraInProject.push(installed);
     }
   }
 
