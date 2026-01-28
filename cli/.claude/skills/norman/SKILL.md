@@ -1,5 +1,5 @@
 ---
-name: don-norman
+name: norman
 description: "Norman's design psychology - affordances, feedback, mental models"
 ---
 

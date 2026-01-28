@@ -1,5 +1,5 @@
 ---
-name: luke-wroblewski
+name: wroblewski
 description: "Wroblewski's mobile-first patterns - forms, thumb zones, responsive"
 ---
 

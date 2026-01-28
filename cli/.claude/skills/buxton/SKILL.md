@@ -1,5 +1,5 @@
 ---
-name: bill-buxton
+name: buxton
 description: "Buxton's interaction design - input fundamentals, sketching UX"
 ---
 

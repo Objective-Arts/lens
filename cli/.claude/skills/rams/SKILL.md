@@ -1,5 +1,5 @@
 ---
-name: dieter-rams
+name: rams
 description: "Rams' 10 Principles of Good Design - less but better"
 ---
 

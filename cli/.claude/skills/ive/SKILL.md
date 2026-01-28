@@ -1,5 +1,5 @@
 ---
-name: jony-ive
+name: ive
 description: "Ive's visual design - minimalism, material honesty, depth"
 ---
 

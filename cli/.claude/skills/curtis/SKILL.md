@@ -1,5 +1,5 @@
 ---
-name: nathan-curtis
+name: curtis
 description: "Curtis' design system governance - versioning, documentation, tokens"
 ---
 
