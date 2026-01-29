@@ -4,7 +4,7 @@ Task-oriented guides for specific goals.
 
 ---
 
-## Add a Custom Detection Rule {#add-rule}
+## Add a Custom Detection Rule
 
 **Goal**: Add skills that trigger when specific keywords appear in tasks.
 
@@ -34,7 +34,7 @@ Task-oriented guides for specific goals.
 
 ---
 
-## Combine Multiple Profiles {#combine-profiles}
+## Combine Multiple Profiles
 
 **Goal**: Apply multiple profiles to get combined expertise.
 
@@ -51,7 +51,7 @@ Profiles are combined left-to-right:
 
 ---
 
-## Create a New Profile {#create-profile}
+## Create a New Profile
 
 **Goal**: Create a profile for your tech stack.
 
@@ -91,7 +91,7 @@ Profiles are combined left-to-right:
 
 ---
 
-## Add Workflow-Specific Defaults {#workflow-defaults}
+## Add Workflow-Specific Defaults
 
 **Goal**: Ensure certain experts always run for a workflow command.
 
@@ -113,7 +113,7 @@ Now `/my-workflow` always invokes `expert1` and `expert2`.
 
 ---
 
-## Debug Skill Detection {#debug-detection}
+## Debug Skill Detection
 
 **Goal**: See which skills are being selected and why.
 
@@ -154,7 +154,7 @@ console.log('Rules loaded:', rules.length);
 
 ---
 
-## Override Profile Skills for One Stage {#override-stage}
+## Override Profile Skills for One Stage
 
 **Goal**: Use different skills for one stage without changing the profile.
 
@@ -171,7 +171,7 @@ This overrides only the `review` stage; other stages use profile defaults.
 
 ---
 
-## Make Patterns Match Partial Words {#partial-match}
+## Make Patterns Match Partial Words
 
 **Goal**: Match `authenticate` with an `auth` pattern.
 
@@ -194,7 +194,7 @@ patterns:
 
 ---
 
-## Disable a Detection Rule Temporarily {#disable-rule}
+## Disable a Detection Rule Temporarily
 
 **Goal**: Stop a rule from firing without deleting it.
 
@@ -221,7 +221,7 @@ rules:
 
 ---
 
-## Use Different Rules Per Project {#per-project-rules}
+## Use Different Rules Per Project
 
 **Goal**: Have project-specific detection rules.
 

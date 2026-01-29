@@ -16,7 +16,7 @@ Complete specification of formats, APIs, and file locations.
 
 ---
 
-## skill-rules.yaml Format {#skill-rules-yaml}
+## skill-rules.yaml Format
 
 ### Top-Level Structure
 
@@ -109,7 +109,7 @@ rules:
 
 ---
 
-## Profile YAML Format {#profile-yaml}
+## Profile YAML Format
 
 ### Top-Level Structure
 
@@ -175,7 +175,7 @@ Content generated into `.claude/CLAUDE.md`.
 
 ---
 
-## API Functions {#api}
+## API Functions
 
 ### loadSkillRules
 
@@ -291,7 +291,7 @@ Clears both rules and workflow defaults caches.
 
 ---
 
-## Types {#types}
+## Types
 
 ### SkillRule
 
