@@ -38,7 +38,7 @@ workflow-defaults:
       - kernighan    # Clarity throughout
     phases:
       plan: [pike, linus]
-      structure: [cherny, dijkstra]
+      structure: [cherny, dijkstra, gang-of-four]
       build: [thompson, bill-joy]
       test: [meszaros, fowler-test, dodds]
       review: [schneier, owasp]
@@ -347,6 +347,7 @@ rules:
       - tufte
       - few
       - knaflic
+      - bostock
     stages: [build]
     workflows: [implement]
 

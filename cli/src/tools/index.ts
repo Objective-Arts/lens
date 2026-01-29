@@ -301,21 +301,15 @@ fi
 read -r -d '' PLAN_PROMPT << 'EOF' || true
 PLAN IMPLEMENTATION
 
-Read CLAUDE.md and __PRD__, then create an implementation plan for the NEXT item marked '- [ ]'.
-
 CRITICAL: Do NOT modify __PRD__. Ralph manages the checklist. Only create the plan file.
 
-MANDATORY: Before doing ANY other work, you MUST use the Skill tool to invoke BOTH of these:
-1. Use Skill tool with skill="planning-masters"
-2. Use Skill tool with skill="security-canon"
-
-DO NOT SKIP THIS STEP. Invoke both skills FIRST, then proceed with the steps below.
-
 Steps:
-1. Find next incomplete item in PRD
-3. Explore the codebase to understand current architecture
-4. Identify files that need to be created or modified
-5. Write plan to .claude/plans/[item-slug].md
+1. Invoke skills: Use Skill tool for each: "kernighan", "pike", "dijkstra"
+__LANG_SKILLS_STEP__
+3. Read __PRD__ and find next incomplete item marked '- [ ]'
+4. Explore the codebase to understand current architecture
+5. Identify files that need to be created or modified
+6. Write plan to .claude/plans/[item-slug].md
 
 Plan format:
 ## [Item Name]
@@ -342,22 +336,16 @@ EOF
 read -r -d '' BUILD_PROMPT << 'EOF' || true
 BUILD FROM PLAN
 
-Read the plan at __PLAN_FILE__ and implement it.
-
 CRITICAL: Do NOT modify the PRD file. Ralph manages the checklist.
 
-MANDATORY: Before doing ANY other work, you MUST use the Skill tool to invoke BOTH of these:
-1. Use Skill tool with skill="planning-masters"
-2. Use Skill tool with skill="security-canon"
-
-DO NOT SKIP THIS STEP. Invoke both skills FIRST, then proceed.
-
 Steps:
-1. Read the plan file
-3. Implement each file change with expert guidance
-4. Write tests as specified in plan
-5. Run tests - must pass
-6. Commit changes
+1. Invoke skills: Use Skill tool for each: "kernighan", "pike", "bloch"
+__LANG_SKILLS_STEP__
+3. Read the plan at __PLAN_FILE__
+4. Implement each file change
+5. Write tests as specified in plan
+6. Run tests - must pass
+7. Commit changes
 
 Output at end:
 BUILD_COMPLETE: [item name]
@@ -370,18 +358,12 @@ EOF
 read -r -d '' CLEAN_PROMPT << 'EOF' || true
 CLEAN THE CODE
 
-Review code from last commit and apply structural improvements.
-
 CRITICAL: Do NOT modify the PRD file. Ralph manages the checklist.
 
-MANDATORY: Before doing ANY other work, you MUST use the Skill tool:
-1. Use Skill tool with skill="refactor-masters"
-
-DO NOT SKIP THIS STEP. Invoke the skill FIRST, then proceed.
-
 Steps:
-1. Get changed files: git diff HEAD~1 --name-only
-3. For each file, apply improvements with expert guidance
+1. Invoke skills: Use Skill tool for each: "feathers", "gang-of-four"
+2. Get changed files: git diff HEAD~1 --name-only
+3. For each file, apply structural improvements
 4. Commit improvements
 
 Output at end:
@@ -395,18 +377,12 @@ EOF
 read -r -d '' TEST_PROMPT << 'EOF' || true
 RUN TESTS
 
-Execute test suite and verify all pass.
-
 CRITICAL: Do NOT modify the PRD file. Ralph manages the checklist.
 
-MANDATORY: Before doing ANY other work, you MUST use the Skill tool:
-1. Use Skill tool with skill="testing-experts"
-
-DO NOT SKIP THIS STEP. Invoke the skill FIRST, then proceed.
-
 Steps:
-1. Run: npm test (or project equivalent)
-3. If failures, consult experts and fix
+1. Invoke skills: Use Skill tool for each: "dodds", "meszaros"
+2. Run: npm test (or project equivalent)
+3. If failures, fix them
 4. Re-run until green
 
 Output at end:
@@ -420,17 +396,11 @@ EOF
 read -r -d '' REVIEW_PROMPT << 'EOF' || true
 EXPERT REVIEW
 
-Review code using Gemini with security analysis.
-
 CRITICAL: Do NOT modify the PRD file. Ralph manages the checklist.
 
-MANDATORY: Before doing ANY other work, you MUST use the Skill tool:
-1. Use Skill tool with skill="security-canon"
-
-DO NOT SKIP THIS STEP. Invoke the skill FIRST, then proceed.
-
 Steps:
-1. Get changed files: git diff HEAD~1 --name-only
+1. Invoke skills: Use Skill tool for each: "schneier", "owasp"
+2. Get changed files: git diff HEAD~1 --name-only
 3. Read each file through security lens
 4. Call gemini_review MCP tool for each file
 5. For critical issues: fix, commit, re-verify (max 3 attempts)
@@ -447,10 +417,10 @@ DOCUMENTATION
 
 CRITICAL: Do NOT modify the PRD file. Ralph manages the checklist.
 
-MANDATORY: Before doing ANY other work, you MUST use the Skill tool:
-1. Use Skill tool with skill="docs-masters"
-
-DO NOT SKIP THIS STEP. Invoke the skill FIRST, then proceed.
+Steps:
+1. Invoke skills: Use Skill tool for each: "procida", "strunk-white"
+__LANG_SKILLS_STEP__
+3. Get changed files: git diff HEAD~1 --name-only
 
 You MUST create or update these specific files:
 
@@ -1169,8 +1139,20 @@ export function installTool(
     fs.mkdirSync(binDir, { recursive: true });
   }
 
+  // For ralph, read from bin/ralph source file instead of embedded script
+  let scriptContent = tool.script;
+  if (name === 'ralph') {
+    const currentFileUrl = new URL(import.meta.url);
+    const currentDir = path.dirname(currentFileUrl.pathname);
+    const binRalphPath = path.resolve(currentDir, '..', '..', 'bin', 'ralph');
+    if (fs.existsSync(binRalphPath)) {
+      scriptContent = fs.readFileSync(binRalphPath, 'utf-8');
+      console.log(`  Using bin/ralph source`);
+    }
+  }
+
   // Write the script
-  fs.writeFileSync(toolPath, tool.script, { mode: 0o755 });
+  fs.writeFileSync(toolPath, scriptContent, { mode: 0o755 });
 
   // For ralph, also setup MCP servers in project .mcp.json
   if (name === 'ralph') {

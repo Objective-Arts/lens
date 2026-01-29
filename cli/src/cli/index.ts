@@ -239,8 +239,7 @@ profileCmd
       }
       // Count skills across all categories
       const skillCount = Object.values(profile.skills || {}).flat().length;
-      const agentCount = profile.agents?.length || 0;
-      console.log(chalk.gray(`    Skills: ${skillCount}, Agents: ${agentCount}`));
+      console.log(chalk.gray(`    Skills: ${skillCount}`));
     }
 
     console.log(chalk.gray('\nTip: Combine profiles with + syntax:'));
@@ -304,10 +303,11 @@ profileCmd
       profile.commands.forEach(c => console.log(`  • ${c}`));
     }
 
-    if (profile.agents && profile.agents.length > 0) {
-      console.log(chalk.cyan('\nAgents:'));
-      profile.agents.forEach(a => console.log(`  • ${a}`));
-    }
+    // Agents output suppressed - still considering how to integrate agents
+    // if (profile.agents && profile.agents.length > 0) {
+    //   console.log(chalk.cyan('\nAgents:'));
+    //   profile.agents.forEach(a => console.log(`  • ${a}`));
+    // }
 
     if (profile.claudeMd?.autoInvoke?.length) {
       console.log(chalk.cyan('\nAuto-invoke rules:'));
@@ -372,9 +372,10 @@ profileCmd
           }
         }
       }
-      if (profile.agents?.length) {
-        console.log(`  Agents: ${profile.agents.join(', ')}`);
-      }
+      // Agents output suppressed
+      // if (profile.agents?.length) {
+      //   console.log(`  Agents: ${profile.agents.join(', ')}`);
+      // }
       if (profile.claudeMd?.autoInvoke?.length) {
         console.log(`  Auto-invoke rules: ${profile.claudeMd.autoInvoke.length}`);
       }
