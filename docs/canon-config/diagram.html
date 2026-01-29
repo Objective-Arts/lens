@@ -1,0 +1,360 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Canon Configuration Flow</title>
+  <script src="https://d3js.org/d3.v7.min.js"></script>
+  <style>
+    :root {
+      --font-sans: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      --gray-50: #f9fafb;
+      --gray-100: #f3f4f6;
+      --gray-200: #e5e7eb;
+      --gray-400: #9ca3af;
+      --gray-600: #4b5563;
+      --gray-700: #374151;
+      --gray-800: #1f2937;
+      --blue-500: #3b82f6;
+      --blue-100: #dbeafe;
+      --green-500: #10b981;
+      --green-100: #d1fae5;
+      --purple-500: #8b5cf6;
+      --purple-100: #ede9fe;
+      --orange-500: #f97316;
+      --orange-100: #ffedd5;
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: var(--font-sans);
+      background: var(--gray-50);
+      padding: 40px;
+      min-height: 100vh;
+    }
+
+    h1 {
+      font-size: 28px;
+      color: var(--gray-800);
+      margin-bottom: 8px;
+      text-align: center;
+    }
+
+    .subtitle {
+      font-size: 14px;
+      color: var(--gray-600);
+      text-align: center;
+      margin-bottom: 32px;
+    }
+
+    .container {
+      max-width: 1200px;
+      margin: 0 auto;
+    }
+
+    .diagram-container {
+      background: white;
+      border-radius: 12px;
+      box-shadow: 0 4px 6px rgba(0,0,0,0.05);
+      padding: 32px;
+      margin-bottom: 32px;
+    }
+
+    .legend {
+      display: flex;
+      gap: 24px;
+      justify-content: center;
+      flex-wrap: wrap;
+      margin-top: 24px;
+      padding-top: 24px;
+      border-top: 1px solid var(--gray-200);
+    }
+
+    .legend-item {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      font-size: 13px;
+      color: var(--gray-600);
+    }
+
+    .legend-color {
+      width: 16px;
+      height: 16px;
+      border-radius: 4px;
+    }
+
+    .node rect {
+      stroke-width: 2px;
+      rx: 8;
+    }
+
+    .node text {
+      font-size: 12px;
+      font-weight: 500;
+    }
+
+    .node .label {
+      font-size: 14px;
+      font-weight: 600;
+    }
+
+    .link {
+      fill: none;
+      stroke: var(--gray-400);
+      stroke-width: 2px;
+    }
+
+    .link.flow {
+      stroke: var(--blue-500);
+      stroke-width: 3px;
+      marker-end: url(#arrowhead);
+    }
+
+    .link.merge {
+      stroke: var(--green-500);
+      stroke-dasharray: 5,5;
+    }
+
+    .annotation {
+      font-size: 11px;
+      fill: var(--gray-600);
+    }
+
+    .section-title {
+      font-size: 11px;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      fill: var(--gray-400);
+    }
+
+    /* Interactive states */
+    .node:hover rect {
+      filter: brightness(0.95);
+    }
+
+    .skill-list {
+      font-size: 10px;
+      fill: var(--gray-600);
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>Canon Configuration Flow</h1>
+    <p class="subtitle">How profiles, skill rules, and detection merge to select canon experts</p>
+
+    <div class="diagram-container">
+      <svg id="diagram"></svg>
+
+      <div class="legend">
+        <div class="legend-item">
+          <div class="legend-color" style="background: var(--blue-100); border: 2px solid var(--blue-500);"></div>
+          <span>Configuration Source</span>
+        </div>
+        <div class="legend-item">
+          <div class="legend-color" style="background: var(--green-100); border: 2px solid var(--green-500);"></div>
+          <span>Merge / Processing</span>
+        </div>
+        <div class="legend-item">
+          <div class="legend-color" style="background: var(--purple-100); border: 2px solid var(--purple-500);"></div>
+          <span>Output</span>
+        </div>
+        <div class="legend-item">
+          <div class="legend-color" style="background: var(--orange-100); border: 2px solid var(--orange-500);"></div>
+          <span>Input / Context</span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    const width = 1100;
+    const height = 700;
+
+    const svg = d3.select('#diagram')
+      .attr('width', width)
+      .attr('height', height);
+
+    // Arrow marker
+    svg.append('defs').append('marker')
+      .attr('id', 'arrowhead')
+      .attr('viewBox', '-0 -5 10 10')
+      .attr('refX', 8)
+      .attr('refY', 0)
+      .attr('orient', 'auto')
+      .attr('markerWidth', 6)
+      .attr('markerHeight', 6)
+      .append('path')
+      .attr('d', 'M 0,-5 L 10,0 L 0,5')
+      .attr('fill', '#3b82f6');
+
+    // Node definitions
+    const nodes = [
+      // Configuration sources
+      { id: 'profile', label: 'Profile', sublabel: 'profiles/*.yaml', x: 100, y: 120, w: 140, h: 70, type: 'source',
+        skills: 'ralph.skills.*' },
+      { id: 'workflow-defaults', label: 'Workflow Defaults', sublabel: 'skill-rules.yaml', x: 100, y: 250, w: 140, h: 70, type: 'source',
+        skills: 'workflow-defaults.*' },
+      { id: 'rules', label: 'Detection Rules', sublabel: 'skill-rules.yaml', x: 100, y: 380, w: 140, h: 70, type: 'source',
+        skills: 'rules.*.patterns' },
+
+      // Context inputs
+      { id: 'task', label: 'Task Text', sublabel: '"Add JWT auth"', x: 100, y: 510, w: 140, h: 70, type: 'input' },
+      { id: 'stage', label: 'Current Stage', sublabel: 'plan | build | ...', x: 280, y: 510, w: 140, h: 70, type: 'input' },
+      { id: 'workflow', label: 'Workflow', sublabel: '/implement | /plan', x: 460, y: 510, w: 140, h: 70, type: 'input' },
+
+      // Processing
+      { id: 'pattern-match', label: 'Pattern Match', sublabel: 'Regex detection', x: 350, y: 380, w: 140, h: 60, type: 'process' },
+      { id: 'stage-filter', label: 'Stage Filter', sublabel: 'stages: [plan, build]', x: 530, y: 300, w: 140, h: 60, type: 'process' },
+      { id: 'workflow-filter', label: 'Workflow Filter', sublabel: 'workflows: [implement]', x: 530, y: 380, w: 140, h: 60, type: 'process' },
+
+      // Merge
+      { id: 'merge', label: 'Merge & Dedupe', sublabel: 'Combine all skills', x: 720, y: 280, w: 160, h: 80, type: 'process' },
+
+      // Outputs
+      { id: 'skills', label: 'Final Skills', sublabel: 'kernighan, schneier, ...', x: 920, y: 200, w: 150, h: 70, type: 'output' },
+      { id: 'canon', label: 'Canon SKILL.md', sublabel: 'Loaded guidance', x: 920, y: 320, w: 150, h: 70, type: 'output' },
+    ];
+
+    // Links
+    const links = [
+      { source: 'profile', target: 'merge', type: 'flow' },
+      { source: 'workflow-defaults', target: 'merge', type: 'flow' },
+      { source: 'rules', target: 'pattern-match', type: 'flow' },
+      { source: 'task', target: 'pattern-match', type: 'flow' },
+      { source: 'pattern-match', target: 'stage-filter', type: 'flow' },
+      { source: 'pattern-match', target: 'workflow-filter', type: 'flow' },
+      { source: 'stage', target: 'stage-filter', type: 'flow' },
+      { source: 'workflow', target: 'workflow-filter', type: 'flow' },
+      { source: 'stage-filter', target: 'merge', type: 'flow' },
+      { source: 'workflow-filter', target: 'merge', type: 'flow' },
+      { source: 'merge', target: 'skills', type: 'flow' },
+      { source: 'skills', target: 'canon', type: 'flow' },
+    ];
+
+    // Color scheme
+    const colors = {
+      source: { fill: '#dbeafe', stroke: '#3b82f6' },
+      input: { fill: '#ffedd5', stroke: '#f97316' },
+      process: { fill: '#d1fae5', stroke: '#10b981' },
+      output: { fill: '#ede9fe', stroke: '#8b5cf6' },
+    };
+
+    // Draw links
+    const linkGroup = svg.append('g').attr('class', 'links');
+
+    links.forEach(link => {
+      const source = nodes.find(n => n.id === link.source);
+      const target = nodes.find(n => n.id === link.target);
+
+      const x1 = source.x + source.w;
+      const y1 = source.y + source.h / 2;
+      const x2 = target.x;
+      const y2 = target.y + target.h / 2;
+
+      // Create curved path
+      const midX = (x1 + x2) / 2;
+
+      linkGroup.append('path')
+        .attr('class', `link ${link.type}`)
+        .attr('d', `M ${x1} ${y1} C ${midX} ${y1}, ${midX} ${y2}, ${x2} ${y2}`);
+    });
+
+    // Draw nodes
+    const nodeGroup = svg.append('g').attr('class', 'nodes');
+
+    nodes.forEach(node => {
+      const g = nodeGroup.append('g')
+        .attr('class', 'node')
+        .attr('transform', `translate(${node.x}, ${node.y})`);
+
+      // Rectangle
+      g.append('rect')
+        .attr('width', node.w)
+        .attr('height', node.h)
+        .attr('fill', colors[node.type].fill)
+        .attr('stroke', colors[node.type].stroke);
+
+      // Label
+      g.append('text')
+        .attr('class', 'label')
+        .attr('x', node.w / 2)
+        .attr('y', node.h / 2 - 6)
+        .attr('text-anchor', 'middle')
+        .attr('fill', '#1f2937')
+        .text(node.label);
+
+      // Sublabel
+      g.append('text')
+        .attr('class', 'sublabel')
+        .attr('x', node.w / 2)
+        .attr('y', node.h / 2 + 12)
+        .attr('text-anchor', 'middle')
+        .attr('font-size', '11px')
+        .attr('fill', '#6b7280')
+        .text(node.sublabel);
+
+      // Skills hint
+      if (node.skills) {
+        g.append('text')
+          .attr('class', 'skill-list')
+          .attr('x', node.w / 2)
+          .attr('y', node.h / 2 + 26)
+          .attr('text-anchor', 'middle')
+          .text(node.skills);
+      }
+    });
+
+    // Section labels
+    svg.append('text')
+      .attr('class', 'section-title')
+      .attr('x', 100)
+      .attr('y', 80)
+      .text('CONFIGURATION');
+
+    svg.append('text')
+      .attr('class', 'section-title')
+      .attr('x', 100)
+      .attr('y', 480)
+      .text('CONTEXT');
+
+    svg.append('text')
+      .attr('class', 'section-title')
+      .attr('x', 450)
+      .attr('y', 260)
+      .text('FILTERING');
+
+    svg.append('text')
+      .attr('class', 'section-title')
+      .attr('x', 720)
+      .attr('y', 240)
+      .text('MERGE');
+
+    svg.append('text')
+      .attr('class', 'section-title')
+      .attr('x', 920)
+      .attr('y', 170)
+      .text('OUTPUT');
+
+    // Annotations
+    const annotations = [
+      { x: 260, y: 140, text: 'Static per stage', anchor: 'start' },
+      { x: 260, y: 270, text: 'always + phases', anchor: 'start' },
+      { x: 260, y: 400, text: 'patterns → skills', anchor: 'start' },
+      { x: 800, y: 350, text: 'Deduplicated list', anchor: 'start' },
+    ];
+
+    annotations.forEach(a => {
+      svg.append('text')
+        .attr('class', 'annotation')
+        .attr('x', a.x)
+        .attr('y', a.y)
+        .attr('text-anchor', a.anchor)
+        .text(a.text);
+    });
+  </script>
+</body>
+</html>
