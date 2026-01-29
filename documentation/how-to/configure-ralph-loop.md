@@ -12,22 +12,34 @@
 Stack with your base profile:
 
 ```bash
-cc-config profile apply csharp+ralph-integration -p .
+cc-config profile apply javascript+ralph-integration -p .
 ```
 
-### 2. Configure iteration limits
+### 2. Configure skill detection (optional)
 
-Edit `.claude/settings.json`:
+Edit `canon/skill-rules.yaml` to customize which canon experts are invoked:
 
-```json
-{
-  "ralph": {
-    "max_iterations": 50,
-    "max_iterations_per_item": 5,
-    "exit_on_idle_commits": 3
-  }
-}
+```yaml
+# Workflow defaults - always invoked for /ralph-loop stages
+workflow-defaults:
+  plan:
+    always: [kernighan, pike, linus]
+  build:
+    always: [thompson]
+  review:
+    always: [schneier]
+
+# Detection rules - add skills based on task keywords
+rules:
+  security:
+    patterns: [auth, password, jwt]
+    skills: [schneier, owasp, security-mindset]
+    stages: [plan, build, review]
 ```
+
+### 3. Configure iteration limits
+
+The ralph-integration profile sets defaults. Override in your profile or settings:
 
 | Setting | Default | Description |
 |---------|---------|-------------|
@@ -35,59 +47,56 @@ Edit `.claude/settings.json`:
 | `max_iterations_per_item` | 5 | Max attempts per PRD item |
 | `exit_on_idle_commits` | 3 | Stop if no changes for N iterations |
 
-### 3. Configure quality gates
-
-```json
-{
-  "ralph": {
-    "quality_gates": {
-      "tests_required": true,
-      "review_mode": "self",
-      "review_threshold": "no_critical"
-    }
-  }
-}
-```
+### 4. Configure quality gates
 
 | Setting | Options | Description |
 |---------|---------|-------------|
 | `tests_required` | true/false | Run tests before commit |
-| `review_mode` | "self", "external", "both" | Review type during iteration |
-| `review_threshold` | "no_critical", "no_high", "perfect" | When to pass |
+| `review_mode` | "self", "full" | Review type during iteration |
+| `review_threshold` | "no_critical", "no_high", "clean" | When to pass |
 
-### 4. Configure post-loop validation
+### 5. Configure post-loop validation
 
-```json
-{
-  "ralph": {
-    "post_loop_validation": {
-      "enabled": true,
-      "gemini": true,
-      "qodana": true,
-      "action": "report"
-    }
-  }
-}
-```
+External validation runs AFTER the loop completes (not during):
 
 | Setting | Options | Description |
 |---------|---------|-------------|
 | `enabled` | true/false | Run external validation after loop |
 | `gemini` | true/false | Use Gemini code review |
 | `qodana` | true/false | Use Qodana static analysis |
-| `action` | "report", "fix", "defer" | What to do with findings |
+| `action` | "report", "fix" | What to do with findings |
 
-### 5. Run the loop
+### 6. Run the loop
 
+Basic:
 ```bash
-claude "/ralph-loop PRD.md"
+/ralph-loop PRD.md
 ```
 
 With options:
-
 ```bash
-claude "/ralph-loop PRD.md --max 10 --validate"
+/ralph-loop PRD.md --max 10 --external
 ```
+
+| Flag | Description |
+|------|-------------|
+| `--max N` | Override max iterations |
+| `--resume` | Continue from last incomplete item |
+| `--external` | Run Gemini + Qodana after loop |
+| `--dry-run` | Show what would be done |
+
+## Understanding the Pipeline
+
+Ralph runs this pipeline for each PRD item:
+
+```
+plan → build → refactor → test → review → doc
+```
+
+At each stage:
+1. Profile skills are loaded (static)
+2. Detection rules add skills based on PRD item text (dynamic)
+3. Stage executes with combined skills
 
 ## Troubleshooting
 
@@ -101,11 +110,23 @@ Increase `exit_on_idle_commits`.
 
 ### Quality gates too strict
 
-Change `review_threshold` from "perfect" to "no_critical".
+Change `review_threshold` from "clean" to "no_critical".
+
+### Wrong skills being loaded
+
+Check `canon/skill-rules.yaml`:
+- Are patterns matching your task text?
+- Are stages correct for when you want the skill?
 
 ### Gemini/Qodana not running
 
 Check:
 1. `GEMINI_API_KEY` is set
 2. Qodana CLI is installed
-3. `post_loop_validation.enabled` is true
+3. Using `--external` flag
+
+## See Also
+
+- [Canon Loading Strategy](../reference/canon-loading-strategy.md)
+- [Profile Reference](../reference/profiles.md)
+- [External Validation](external-validation.md)

@@ -92,16 +92,24 @@ See [Installation Reference](reference/installation.md) for complete setup guide
 | Reference | Description |
 |-----------|-------------|
 | [Installation](reference/installation.md) | System requirements, API keys, troubleshooting |
-| [Profiles](reference/profiles.md) | All available profiles |
+| [Profiles](reference/profiles.md) | All available profiles and composition |
 | [Canon Catalog](reference/canon-catalog.md) | Complete list of masters by domain |
+| [Canon Loading Strategy](reference/canon-loading-strategy.md) | How skills are detected and loaded |
 | [Quality Flags](reference/flags.md) | All flags with parameters |
 | [API Design Standards](reference/api-design-standards.md) | Bloch-style API design principles |
 | [Framework Templates](reference/framework-templates.md) | D3, Angular, React, Node, Go, Java standards |
 | [Structural Standards](reference/structural-standards.md) | Universal code quality rules |
 | [Design Patterns](reference/patterns.md) | Canon Factory, Profile Builder, etc. |
 | [Hooks](reference/hooks.md) | Pre-commit and quality gate hooks |
-| [Canon Loading Strategy](reference/canon-loading-strategy.md) | How skills are detected and loaded |
 | [Sample CLAUDE.md](reference/sample-claude-md.md) | Example generated configuration |
+
+### Key Configuration Files
+
+| File | Location | Purpose |
+|------|----------|---------|
+| skill-rules.yaml | `canon/skill-rules.yaml` | Skill detection for Ralph + workflows |
+| Profiles | `profiles/*.yaml` | Project type configurations |
+| Canon Skills | `canon/*/SKILL.md` | Expert guidance content |
 
 ---
 

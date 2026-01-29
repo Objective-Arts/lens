@@ -1,31 +1,112 @@
 # Canon Loading Strategy
 
-## The Problem
+## Overview
 
-Canon-Driven Development requires loading expert knowledge before writing code. But loading full canon files creates significant token costs:
+Canon skills are loaded through two mechanisms:
 
-| Canon Skill | Full Size | If All Loaded |
-|-------------|-----------|---------------|
-| /bloch | ~2,000 tokens | |
-| /evans | ~1,500 tokens | |
-| /gang-of-four | ~2,500 tokens | |
-| /feathers | ~1,800 tokens | |
-| /fowler | ~2,000 tokens | |
-| **Total per workflow** | | **8,000-15,000 tokens** |
+1. **Profile Configuration** - Static skills assigned per Ralph stage
+2. **Dynamic Detection** - Skills added based on task keywords via `skill-rules.yaml`
 
-Loading 10,000+ tokens of canon before writing code is wasteful when only 10-20% of items apply to any given task.
+---
 
-## The Solution: Tiered Canon Loading
+## Configuration File
+
+**Location**: `canon/skill-rules.yaml`
+
+This single file configures skill detection for both:
+- **Ralph stages** (plan, build, refactor, test, review, doc)
+- **Workflow commands** (/implement, /plan, /review-hard, etc.)
+
+### Structure
+
+```yaml
+# Core canons for each workflow command
+workflow-defaults:
+  plan:
+    always: [kernighan, pike, linus]
+    phases:
+      design: [cherny, dijkstra]
+
+  implement:
+    always: [kernighan]
+    phases:
+      plan: [pike, linus]
+      build: [thompson, bill-joy]
+      review: [schneier, owasp]
+
+# Keyword-based skill detection
+rules:
+  security:
+    patterns: [auth, password, jwt, token]
+    skills: [schneier, owasp, security-mindset]
+    stages: [plan, build, review]      # Ralph stages
+    workflows: [implement, review-hard] # Workflow commands
+```
+
+---
+
+## How Skills Are Selected
+
+### For Ralph Stages
+
+```
+Profile Skills (static)     +     Detected Skills (dynamic)
+─────────────────────────         ──────────────────────────
+ralph.skills.build:               Task: "Add JWT auth"
+  - cherny                        Matches: security rule
+  - crockford                     Adds: schneier, owasp
+
+                                  = Final: cherny, crockford, schneier, owasp
+```
+
+### For Workflow Commands
+
+```
+Workflow Defaults           +     Detected Skills (dynamic)
+─────────────────────────         ──────────────────────────
+workflow-defaults.plan:           Task: "Design auth API"
+  always: [kernighan, pike]       Matches: security, api rules
+                                  Adds: schneier, bloch
+
+                                  = Final: kernighan, pike, schneier, bloch
+```
+
+---
+
+## Tiered Canon Loading
 
 Each canon skill has two files:
 
 ```
-.claude/skills/bloch/
+canon/bloch/
 ├── SKILL.md          # Full content (~2000 tokens)
 └── SUMMARY.md        # Essential items (~300 tokens)
 ```
 
-### SUMMARY.md Format
+### Loading Protocol
+
+**Phase 1: Load Summaries First** (~1,000-1,500 tokens)
+- Summaries provide essential items and trigger conditions
+- Always loaded for relevant canons
+
+**Phase 2: Load Full When Needed**
+- When applying specific item not in summary
+- When deep dive into pattern required
+- When user explicitly requests
+
+### Token Cost Comparison
+
+| Approach | Tokens | When |
+|----------|--------|------|
+| Load Everything | 10,000-15,000 | Every task |
+| Tiered Loading | 1,000-2,000 | Most tasks |
+| Tiered + Full | 3,000-5,000 | Complex tasks |
+
+**Savings: 60-80% reduction**
+
+---
+
+## SUMMARY.md Format
 
 ```markdown
 # /[canon] Summary
@@ -36,128 +117,93 @@ Each canon skill has two files:
 | # | Item | When |
 |---|------|------|
 | 1 | [Name] | [Trigger condition] |
-| 2 | [Name] | [Trigger condition] |
-...(5-10 items max)
 
 ## Load Full Skill When
-- [Specific situation requiring full content]
-- [Specific situation requiring full content]
+- [Specific situation]
 
 ## Quick Reference
-[Condensed decision tree or table]
+[Decision tree or table]
 ```
 
-### Loading Protocol
+### Requirements
 
-**Phase 1: Load Summaries (~1,000-1,500 tokens total)**
-```
-Required reads:
-1. Read: CLAUDE.md (Baseline Brain section)
-2. Read: .claude/skills/[language]/SUMMARY.md
-3. Read: .claude/skills/gang-of-four/SUMMARY.md
-4. Read: .claude/skills/evans/SUMMARY.md (if domain modeling)
-```
+- **< 400 tokens** - Enforced limit
+- **Self-contained** - Usable without full skill
+- **Trigger-based** - Clear conditions for full load
 
-**Phase 2: Load Full When Triggered**
-```
-If applying Item 17 (immutability) in depth:
-  Read: .claude/skills/bloch/SKILL.md
-
-If implementing Strategy or State pattern:
-  Read: .claude/skills/gang-of-four/SKILL.md
-```
-
-## Token Cost Comparison
-
-| Approach | Tokens Loaded | When |
-|----------|---------------|------|
-| **Load Everything** | 10,000-15,000 | Every task |
-| **Tiered Loading** | 1,000-2,000 | Most tasks |
-| **Tiered + Full** | 3,000-5,000 | Complex tasks needing specific items |
-
-**Savings: 60-80% reduction in canon loading tokens**
+---
 
 ## Implemented SUMMARY.md Files
 
-| Canon Skill | SUMMARY.md Location | Full SKILL.md |
-|-------------|---------------------|---------------|
-| Gang of Four | `canon/gang-of-four/SUMMARY.md` | `canon/gang-of-four/SKILL.md` |
-| Bloch | `canon/bloch/SUMMARY.md` | `canon/bloch/SKILL.md` |
-| Linus | `canon/linus/SUMMARY.md` | `canon/linus/SKILL.md` |
-| Feathers | `canon/testing/feathers/SUMMARY.md` | `canon/testing/feathers/SKILL.md` |
-| Meszaros | `canon/testing/meszaros/SUMMARY.md` | `canon/testing/meszaros/SKILL.md` |
-| Fowler (Testing) | `canon/testing/fowler-test/SUMMARY.md` | `canon/testing/fowler-test/SKILL.md` |
-| Cherny (TypeScript) | `canon/javascript/cherny/SUMMARY.md` | `canon/javascript/cherny/SKILL.md` |
-| Dodds | `canon/javascript/dodds/SUMMARY.md` | `canon/javascript/dodds/SKILL.md` |
+| Canon | Location |
+|-------|----------|
+| Gang of Four | `canon/gang-of-four/SUMMARY.md` |
+| Bloch | `canon/bloch/SUMMARY.md` |
+| Linus | `canon/linus/SUMMARY.md` |
+| Feathers | `canon/testing/feathers/SUMMARY.md` |
+| Meszaros | `canon/testing/meszaros/SUMMARY.md` |
+| Fowler (Testing) | `canon/testing/fowler-test/SUMMARY.md` |
+| Cherny | `canon/javascript/cherny/SUMMARY.md` |
+| Dodds | `canon/javascript/dodds/SUMMARY.md` |
 
-## Summary File Requirements
+---
 
-Each SUMMARY.md must include:
+## API Reference
 
-1. **Philosophy** - One sentence capturing the expert's core insight
-2. **Essential Items** - 5-10 most commonly applied items with trigger conditions
-3. **Load Full When** - Specific situations requiring the complete skill
-4. **Quick Reference** - Decision tree, table, or checklist for fast lookup
+### loadSkillRules
 
-## Implementation in Workflow Skills
-
-Updated loading instructions:
-
-```markdown
-### Step 1.2: Load Canon (Tiered)
-
-**Load summaries first:**
-1. Read: .claude/skills/gang-of-four/SUMMARY.md
-2. Read: .claude/skills/[language]/SUMMARY.md
-
-**Load full skill only when:**
-- Applying a specific item not in summary
-- Deep dive into a particular pattern
-- User explicitly requests full canon
+```typescript
+function loadSkillRules(projectPath: string): readonly SkillRule[]
 ```
 
-## Creating New Summaries
+Loads detection rules from `canon/skill-rules.yaml`.
 
-When adding a new canon skill, create both files:
+### getWorkflowSkills
 
-1. **SKILL.md** - Complete expert knowledge (no size limit)
-2. **SUMMARY.md** - Condensed version following this template:
-
-```markdown
-# /[name] Summary
-
-> "[Core philosophy in one sentence]" — [Expert Name]
-
-## Essential Items
-
-| # | Item | Apply When |
-|---|------|------------|
-| | | |
-
-## Load Full Skill When
--
--
-
-## Quick Reference
-
-[Table or decision tree]
+```typescript
+function getWorkflowSkills(
+  projectPath: string,
+  workflow: WorkflowName,
+  taskText: string,
+  phase?: string
+): readonly string[]
 ```
 
-## Quality Gate
+Gets all skills for a workflow command (defaults + detected).
 
-Summaries must be:
-- **< 400 tokens** - Enforced limit
-- **Self-contained** - Usable without full skill for common cases
-- **Trigger-based** - Clear conditions for when to load full skill
+### getWorkflowConfig
 
-## Rationale
+```typescript
+function getWorkflowConfig(
+  projectPath: string,
+  workflow: WorkflowName
+): WorkflowConfig
+```
 
-This design balances two competing needs:
+Gets workflow defaults configuration.
 
-1. **Quality**: Canon expertise must be loaded and applied
-2. **Efficiency**: Token costs must be reasonable
+---
 
-Tiered loading ensures:
-- Canon is ALWAYS consulted (summaries loaded)
-- Deep expertise is available when needed (full skills on demand)
-- Token costs scale with task complexity, not fixed overhead
+## Detection Rule Fields
+
+| Field | Type | Description |
+|-------|------|-------------|
+| `patterns` | `string[]` | Keywords to match (case-insensitive) |
+| `skills` | `string[]` | Canon skills to add when matched |
+| `stages` | `string[]` | Ralph stages where rule applies |
+| `workflows` | `string[]` | Workflow commands where rule applies |
+
+### Valid Stages
+
+`plan`, `build`, `refactor`, `test`, `review`, `doc`
+
+### Valid Workflows
+
+`implement`, `plan`, `review-hard`, `structure-first`, `build-from-plan`, `refactor-clean`, `test`
+
+---
+
+## See Also
+
+- [Profile Reference](profiles.md) - How profiles define static skills
+- [Canon Configuration Docs](../../docs/canon-config/) - Full Diátaxis documentation

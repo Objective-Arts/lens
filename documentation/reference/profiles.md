@@ -7,10 +7,26 @@ Complete catalog of available profiles.
 ## Profile Basics
 
 Profiles bundle:
-- Canon skills (which masters to load)
-- Standards (rules for code quality)
-- Auto-invoke rules (when to activate skills)
-- Agent configuration
+- **Canon skills** - Which masters to load per Ralph stage
+- **Standards** - Rules for code quality
+- **Auto-invoke rules** - When to activate skills
+- **Agent configuration** - Which agents to use
+
+### How Profiles Work with Detection
+
+Profiles provide **static** skill assignments. Dynamic detection via `canon/skill-rules.yaml` **adds** context-specific skills based on task keywords.
+
+```
+Profile (static)              +    Detection (dynamic)
+────────────────────────           ────────────────────
+ralph.skills.build:                Task mentions "auth":
+  - cherny                         + schneier
+  - crockford                      + owasp
+
+                                   = Final skills for build stage
+```
+
+See [Canon Loading Strategy](canon-loading-strategy.md) for details.
 
 ## Listing Profiles
 
