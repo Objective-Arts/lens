@@ -1,12 +1,90 @@
 # Canon Skill Detection Rules
-# Edit this file to control which skills trigger for which keywords
-# Rules are processed in order; all matching rules accumulate skills
+#
+# This file configures skill detection for BOTH:
+# - Ralph stages (plan, build, refactor, test, review, doc)
+# - Workflow commands (/implement, /plan, /review-hard, etc.)
 #
 # Format:
-#   category:
-#     patterns: [keyword1, keyword2, ...]   # Case-insensitive word boundaries
-#     skills: [skill1, skill2, ...]          # Skills to activate
-#     stages: [plan, build, ...]             # Stages where rule applies
+#   rules:
+#     category:
+#       patterns: [keyword1, keyword2, ...]   # Case-insensitive, word boundaries
+#       skills: [skill1, skill2, ...]          # Canon experts to invoke
+#       stages: [plan, build, ...]             # Ralph stages where rule applies
+#       workflows: [implement, plan, ...]      # Workflow commands where rule applies
+#
+#   workflow-defaults:
+#     command-name:
+#       always: [skill1, skill2]               # Always invoke these
+#       phases:                                # Phase-specific canons
+#         phase-name: [skill1, skill2]
+
+# =============================================================================
+# WORKFLOW DEFAULTS - Core canons for each workflow command
+# =============================================================================
+
+workflow-defaults:
+  # /plan - Design before implementation
+  plan:
+    always:
+      - kernighan    # Clarity of requirements
+      - pike         # Minimal interfaces
+      - linus        # Data structures first
+    phases:
+      design: [cherny, dijkstra]  # Types and invariants
+
+  # /implement - Full canon workflow
+  implement:
+    always:
+      - kernighan    # Clarity throughout
+    phases:
+      plan: [pike, linus]
+      structure: [cherny, dijkstra]
+      build: [thompson, bill-joy]
+      test: [meszaros, fowler-test, dodds]
+      review: [schneier, owasp]
+
+  # /review-hard - Adversarial review
+  review-hard:
+    always:
+      - schneier     # Think like an attacker
+    phases:
+      self-review: [kernighan]
+      security: [owasp, tanya-janca]
+      quality: [bloch]
+
+  # /structure-first - Data structures before code
+  structure-first:
+    always:
+      - linus        # Data structures first
+      - cherny       # Type design
+      - dijkstra     # Invariants
+
+  # /build-from-plan - Execute approved plan
+  build-from-plan:
+    always:
+      - thompson     # Get it working first
+      - kernighan    # Keep it clear
+
+  # /refactor-clean - Systematic cleanup
+  refactor-clean:
+    always:
+      - thompson     # Simplify
+      - kernighan    # Clarity
+      - pike         # Minimal interfaces
+
+  # /test - Testing strategy
+  test:
+    always:
+      - meszaros     # Test patterns
+      - fowler-test  # Test pyramid
+    phases:
+      unit: [hevery]
+      integration: [feathers]
+      e2e: [dodds]
+
+# =============================================================================
+# DETECTION RULES - Keyword-based canon selection
+# =============================================================================
 
 rules:
   security:
@@ -36,10 +114,8 @@ rules:
       - tanya-janca
       - troy-hunt
       - security-mindset
-    stages:
-      - plan
-      - build
-      - review
+    stages: [plan, build, review]
+    workflows: [implement, review-hard, plan]
 
   database:
     patterns:
@@ -59,10 +135,8 @@ rules:
     skills:
       - bloch
       - schneier
-    stages:
-      - plan
-      - build
-      - review
+    stages: [plan, build, review]
+    workflows: [implement, plan, structure-first]
 
   ui:
     patterns:
@@ -88,9 +162,8 @@ rules:
       - ive
       - norman
       - rams
-    stages:
-      - plan
-      - build
+    stages: [plan, build]
+    workflows: [implement, plan]
 
   api:
     patterns:
@@ -107,9 +180,8 @@ rules:
       - webhook
     skills:
       - bloch
-    stages:
-      - plan
-      - build
+    stages: [plan, build]
+    workflows: [implement, plan, structure-first]
 
   testing:
     patterns:
@@ -129,8 +201,8 @@ rules:
       - fowler-test
       - hevery
       - dodds
-    stages:
-      - test
+    stages: [test]
+    workflows: [test, implement]
 
   performance:
     patterns:
@@ -145,9 +217,8 @@ rules:
       - profil
     skills:
       - carmack
-    stages:
-      - build
-      - review
+    stages: [build, review]
+    workflows: [implement, review-hard, refactor-clean]
 
   algorithms:
     patterns:
@@ -173,10 +244,8 @@ rules:
     skills:
       - knuth
       - dijkstra
-    stages:
-      - plan
-      - build
-      - review
+    stages: [plan, build, review]
+    workflows: [implement, plan, structure-first]
 
   cli:
     patterns:
@@ -198,9 +267,8 @@ rules:
       - pike
       - kernighan
       - thompson
-    stages:
-      - plan
-      - build
+    stages: [plan, build]
+    workflows: [implement, plan]
 
   prototyping:
     patterns:
@@ -216,10 +284,8 @@ rules:
       - minimum viable
     skills:
       - thompson
-    stages:
-      - plan
-      - build
-      - refactor
+    stages: [plan, build, refactor]
+    workflows: [implement, plan, refactor-clean]
 
   regex:
     patterns:
@@ -231,8 +297,8 @@ rules:
       - replace all
     skills:
       - thompson
-    stages:
-      - build
+    stages: [build]
+    workflows: [implement]
 
   error-handling:
     patterns:
@@ -247,9 +313,8 @@ rules:
     skills:
       - thompson
       - bill-joy
-    stages:
-      - build
-      - review
+    stages: [build, review]
+    workflows: [implement, review-hard]
 
   documentation:
     patterns:
@@ -264,8 +329,9 @@ rules:
     skills:
       - strunk-white
       - zinsser
-    stages:
-      - doc
+      - procida
+    stages: [doc]
+    workflows: [implement]
 
   visualization:
     patterns:
@@ -281,8 +347,8 @@ rules:
       - tufte
       - few
       - knaflic
-    stages:
-      - build
+    stages: [build]
+    workflows: [implement]
 
   react:
     patterns:
@@ -297,5 +363,30 @@ rules:
     skills:
       - abramov
       - dodds
-    stages:
-      - build
+    stages: [build]
+    workflows: [implement]
+
+  typescript:
+    patterns:
+      - typescript
+      - types
+      - interface
+      - generic
+      - inference
+      - utility type
+    skills:
+      - cherny
+    stages: [plan, build]
+    workflows: [implement, structure-first]
+
+  legacy:
+    patterns:
+      - legacy
+      - seam
+      - characterization
+      - refactor existing
+      - old code
+    skills:
+      - feathers
+    stages: [plan, build, refactor]
+    workflows: [implement, refactor-clean]

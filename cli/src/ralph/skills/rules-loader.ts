@@ -11,16 +11,34 @@ import * as path from 'path';
 import * as yaml from 'yaml';
 import type { StageName } from '../types.js';
 
+/** Workflow names */
+export type WorkflowName =
+  | 'implement'
+  | 'plan'
+  | 'review-hard'
+  | 'structure-first'
+  | 'build-from-plan'
+  | 'refactor-clean'
+  | 'test';
+
 /** A single rule from the YAML file */
 export interface YamlRule {
   readonly patterns: readonly string[];
   readonly skills: readonly string[];
   readonly stages: readonly string[];
+  readonly workflows?: readonly string[];
+}
+
+/** Workflow default configuration */
+export interface WorkflowDefault {
+  readonly always: readonly string[];
+  readonly phases?: Readonly<Record<string, readonly string[]>>;
 }
 
 /** The complete YAML rules file structure */
 export interface YamlRulesFile {
   readonly rules: Readonly<Record<string, YamlRule>>;
+  readonly 'workflow-defaults'?: Readonly<Record<string, WorkflowDefault>>;
 }
 
 /** Compiled rule ready for detection */
@@ -28,6 +46,13 @@ export interface SkillRule {
   readonly keywords: RegExp;
   readonly skills: readonly string[];
   readonly stages?: readonly StageName[];
+  readonly workflows?: readonly WorkflowName[];
+}
+
+/** Workflow configuration with defaults and phase-specific canons */
+export interface WorkflowConfig {
+  readonly always: readonly string[];
+  readonly phases: Readonly<Record<string, readonly string[]>>;
 }
 
 /** Result of loading rules - success or failure with reason */
@@ -74,6 +99,17 @@ function validateStages(stages: readonly string[]): readonly StageName[] {
 }
 
 /**
+ * Validate workflow names against known values.
+ */
+function validateWorkflows(workflows: readonly string[]): readonly WorkflowName[] {
+  const validWorkflows: WorkflowName[] = [
+    'implement', 'plan', 'review-hard', 'structure-first',
+    'build-from-plan', 'refactor-clean', 'test'
+  ];
+  return workflows.filter((w): w is WorkflowName => validWorkflows.includes(w as WorkflowName));
+}
+
+/**
  * Parse and validate the YAML rules file.
  * Returns compiled rules or error with fallback to defaults.
  */
@@ -106,10 +142,15 @@ function parseRulesFile(content: string): LoadResult {
         ? validateStages(rule.stages)
         : undefined;
 
+      const workflows = Array.isArray(rule.workflows)
+        ? validateWorkflows(rule.workflows)
+        : undefined;
+
       rules.push({
         keywords: buildRegexFromPatterns(rule.patterns),
         skills: [...rule.skills],
         stages: stages?.length ? stages : undefined,
+        workflows: workflows?.length ? workflows : undefined,
       });
     }
 
@@ -259,4 +300,172 @@ export function clearRulesCache(): void {
 export function hasCustomRules(projectPath: string): boolean {
   const rulesPath = path.join(projectPath, '.claude', 'skills', 'skill-rules.yaml');
   return fs.existsSync(rulesPath);
+}
+
+// =============================================================================
+// WORKFLOW CONFIGURATION
+// =============================================================================
+
+/** Cache for workflow defaults */
+let cachedWorkflowDefaults: Readonly<Record<string, WorkflowConfig>> | null = null;
+
+/**
+ * Default workflow configurations (fallback when YAML not present).
+ */
+function getDefaultWorkflowConfigs(): Readonly<Record<string, WorkflowConfig>> {
+  return {
+    plan: {
+      always: ['kernighan', 'pike', 'linus'],
+      phases: { design: ['cherny', 'dijkstra'] },
+    },
+    implement: {
+      always: ['kernighan'],
+      phases: {
+        plan: ['pike', 'linus'],
+        structure: ['cherny', 'dijkstra'],
+        build: ['thompson', 'bill-joy'],
+        test: ['meszaros', 'fowler-test', 'dodds'],
+        review: ['schneier', 'owasp'],
+      },
+    },
+    'review-hard': {
+      always: ['schneier'],
+      phases: {
+        'self-review': ['kernighan'],
+        security: ['owasp', 'tanya-janca'],
+        quality: ['bloch'],
+      },
+    },
+    'structure-first': {
+      always: ['linus', 'cherny', 'dijkstra'],
+      phases: {},
+    },
+    'build-from-plan': {
+      always: ['thompson', 'kernighan'],
+      phases: {},
+    },
+    'refactor-clean': {
+      always: ['thompson', 'kernighan', 'pike'],
+      phases: {},
+    },
+    test: {
+      always: ['meszaros', 'fowler-test'],
+      phases: {
+        unit: ['hevery'],
+        integration: ['feathers'],
+        e2e: ['dodds'],
+      },
+    },
+  };
+}
+
+/**
+ * Load workflow defaults from YAML file.
+ */
+export function loadWorkflowDefaults(projectPath: string): Readonly<Record<string, WorkflowConfig>> {
+  const rulesPath = path.join(projectPath, '.claude', 'skills', 'skill-rules.yaml');
+
+  // Return cached if available
+  if (cachedWorkflowDefaults && cachedPath === rulesPath) {
+    return cachedWorkflowDefaults;
+  }
+
+  if (!fs.existsSync(rulesPath)) {
+    cachedWorkflowDefaults = getDefaultWorkflowConfigs();
+    return cachedWorkflowDefaults;
+  }
+
+  try {
+    const content = fs.readFileSync(rulesPath, 'utf-8');
+    const parsed = yaml.parse(content) as YamlRulesFile;
+
+    if (!parsed?.['workflow-defaults']) {
+      cachedWorkflowDefaults = getDefaultWorkflowConfigs();
+      return cachedWorkflowDefaults;
+    }
+
+    const configs: Record<string, WorkflowConfig> = {};
+
+    for (const [workflow, config] of Object.entries(parsed['workflow-defaults'])) {
+      configs[workflow] = {
+        always: config.always ?? [],
+        phases: config.phases ?? {},
+      };
+    }
+
+    cachedWorkflowDefaults = configs;
+    return cachedWorkflowDefaults;
+  } catch {
+    cachedWorkflowDefaults = getDefaultWorkflowConfigs();
+    return cachedWorkflowDefaults;
+  }
+}
+
+/**
+ * Get workflow configuration for a specific command.
+ */
+export function getWorkflowConfig(
+  projectPath: string,
+  workflow: WorkflowName
+): WorkflowConfig {
+  const defaults = loadWorkflowDefaults(projectPath);
+  return defaults[workflow] ?? { always: [], phases: {} };
+}
+
+/**
+ * Detect skills for a workflow command based on task text.
+ * Combines workflow defaults with keyword-detected skills.
+ *
+ * @param projectPath - Project root
+ * @param workflow - Workflow command name
+ * @param taskText - Task description to analyze for keywords
+ * @param phase - Optional phase within workflow (e.g., 'build', 'review')
+ * @returns Array of unique skill names
+ */
+export function getWorkflowSkills(
+  projectPath: string,
+  workflow: WorkflowName,
+  taskText: string,
+  phase?: string
+): readonly string[] {
+  const skills = new Set<string>();
+
+  // 1. Add workflow defaults (always)
+  const config = getWorkflowConfig(projectPath, workflow);
+  for (const skill of config.always) {
+    skills.add(skill);
+  }
+
+  // 2. Add phase-specific skills if phase provided
+  if (phase && config.phases[phase]) {
+    for (const skill of config.phases[phase]) {
+      skills.add(skill);
+    }
+  }
+
+  // 3. Add keyword-detected skills for this workflow
+  const rules = loadSkillRules(projectPath);
+  for (const rule of rules) {
+    // Check if rule applies to this workflow
+    if (rule.workflows && !rule.workflows.includes(workflow)) {
+      continue;
+    }
+
+    // Check if keywords match
+    if (rule.keywords.test(taskText)) {
+      for (const skill of rule.skills) {
+        skills.add(skill);
+      }
+    }
+  }
+
+  return Array.from(skills);
+}
+
+/**
+ * Clear all caches (rules + workflow defaults).
+ */
+export function clearAllCaches(): void {
+  clearRulesCache();
+  cachedWorkflowDefaults = null;
 }
