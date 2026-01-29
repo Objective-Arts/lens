@@ -3,120 +3,25 @@
  *
  * Following kernighan: explicit rules, no magic.
  * Following hevery: pure function, easily testable.
+ * Following gang-of-four: Strategy pattern via rules loader.
  */
 
 import { StageName, SkillDetection } from '../types.js';
+import { loadSkillRules, getDefaultRules, type SkillRule } from './rules-loader.js';
 
-/** Keyword patterns mapped to skills */
-interface SkillRule {
-  keywords: RegExp;
-  skills: string[];
-  stages?: StageName[]; // If empty, applies to all stages
-}
+// Re-export for backwards compatibility
+export type { SkillRule } from './rules-loader.js';
 
 /**
- * Detection rules for dynamic skill loading.
- * Order matters - first match wins for each category.
+ * Get detection rules - from YAML file or defaults.
+ * Uses cached rules from loader for performance.
  */
-const DETECTION_RULES: SkillRule[] = [
-  // Security keywords
-  {
-    keywords: /\b(auth|password|login|token|jwt|oauth|credential|secret|encrypt|hash|session|permission|role|access.?control|csrf|xss|injection|sanitiz|valid)\b/i,
-    skills: ['schneier', 'owasp', 'tanya-janca', 'troy-hunt', 'security-mindset'],
-    stages: ['plan', 'build', 'review'],
-  },
-
-  // Database keywords
-  {
-    keywords: /\b(database|sql|query|orm|prisma|sequelize|mongoose|postgres|mysql|mongo|redis|migration|schema)\b/i,
-    skills: ['bloch', 'schneier'],
-    stages: ['plan', 'build', 'review'],
-  },
-
-  // UI/UX keywords
-  {
-    keywords: /\b(ui|ux|modal|dialog|form|button|input|component|layout|responsive|mobile|desktop|css|style|design|interface|user.?experience)\b/i,
-    skills: ['frost', 'ive', 'norman', 'rams'],
-    stages: ['plan', 'build'],
-  },
-
-  // API keywords
-  {
-    keywords: /\b(api|endpoint|rest|graphql|route|controller|middleware|request|response|http|webhook)\b/i,
-    skills: ['bloch'],
-    stages: ['plan', 'build'],
-  },
-
-  // Testing keywords
-  {
-    keywords: /\b(test|spec|mock|stub|fixture|assert|expect|coverage|unit|integration|e2e)\b/i,
-    skills: ['meszaros', 'fowler-test', 'hevery', 'dodds'],
-    stages: ['test'],
-  },
-
-  // Performance keywords
-  {
-    keywords: /\b(performance|optimize|cache|memory|cpu|latency|throughput|benchmark|profil)\b/i,
-    skills: ['carmack'],
-    stages: ['build', 'review'],
-  },
-
-  // Algorithm/data structure keywords (Knuth: literate programming, algorithmic rigor)
-  {
-    keywords: /\b(algorithm|sort|search|tree|graph|recursive|recursion|complexity|O\(|big.?o|binary.?search|hash|queue|stack|heap|linked.?list|traversal|invariant|edge.?cases?)\b/i,
-    skills: ['knuth', 'dijkstra'],
-    stages: ['plan', 'build', 'review'],
-  },
-
-  // CLI/Unix keywords (Thompson: text streams, small tools, pipes)
-  {
-    keywords: /\b(cli|command.?line|terminal|shell|argv|flag|option|prompt|pipe|stream|stdin|stdout|text.?processing)\b/i,
-    skills: ['mcilroy', 'pike', 'kernighan', 'thompson'],
-    stages: ['plan', 'build'],
-  },
-
-  // Prototyping/simplicity keywords (Thompson: brute force, get it working)
-  {
-    keywords: /\b(prototype|mvp|simplif|refactor|rewrit|delet|remov|brute.?force|working.?first|minimum.?viable)\b/i,
-    skills: ['thompson'],
-    stages: ['plan', 'build', 'refactor'],
-  },
-
-  // Regex/pattern matching (Thompson invented modern regex)
-  {
-    keywords: /\b(regex|regexp|regular.?expression|pattern.?match|match|replace.?all)\b/i,
-    skills: ['thompson'],
-    stages: ['build'],
-  },
-
-  // Error handling (Thompson: fail fast, fail loud)
-  {
-    keywords: /\b(error.?handl|fail.?fast|exception|throw|catch|try|panic|recover)\b/i,
-    skills: ['thompson', 'bill-joy'],
-    stages: ['build', 'review'],
-  },
-
-  // Documentation keywords
-  {
-    keywords: /\b(document|readme|changelog|jsdoc|comment|explain|usage|example)\b/i,
-    skills: ['strunk-white', 'zinsser'],
-    stages: ['doc'],
-  },
-
-  // Data visualization keywords
-  {
-    keywords: /\b(chart|graph|plot|visualization|d3|dashboard|metric|analytics)\b/i,
-    skills: ['tufte', 'few', 'knaflic'],
-    stages: ['build'],
-  },
-
-  // React/Frontend keywords
-  {
-    keywords: /\b(react|component|hook|state|props|redux|context|render)\b/i,
-    skills: ['abramov', 'dodds'],
-    stages: ['build'],
-  },
-];
+function getRules(projectPath?: string): readonly SkillRule[] {
+  if (projectPath) {
+    return loadSkillRules(projectPath);
+  }
+  return getDefaultRules();
+}
 
 /**
  * Detect skills that should be dynamically loaded based on item text.
@@ -124,13 +29,19 @@ const DETECTION_RULES: SkillRule[] = [
  *
  * @param itemText - The PRD item text to analyze
  * @param stage - Current stage name
+ * @param projectPath - Optional project path for custom rules (uses defaults if not provided)
  * @returns SkillDetection with skills and matched keywords
  */
-export function detectDynamicSkills(itemText: string, stage: StageName): SkillDetection {
+export function detectDynamicSkills(
+  itemText: string,
+  stage: StageName,
+  projectPath?: string
+): SkillDetection {
   const detected = new Set<string>();
   const keywords = new Set<string>();
+  const rules = getRules(projectPath);
 
-  for (const rule of DETECTION_RULES) {
+  for (const rule of rules) {
     // Check if rule applies to this stage
     if (rule.stages && rule.stages.length > 0 && !rule.stages.includes(stage)) {
       continue;
@@ -169,13 +80,19 @@ export function mergeSkills(profileSkills: string[], dynamicSkills: string[]): s
 /**
  * Get all skills for a stage, including dynamic detection.
  * Returns detection info with merged skills and matched keywords.
+ *
+ * @param profileSkills - Skills from profile configuration
+ * @param itemText - PRD item text to analyze
+ * @param stage - Current stage name
+ * @param projectPath - Optional project path for custom rules
  */
 export function getSkillsForStage(
   profileSkills: string[],
   itemText: string,
-  stage: StageName
+  stage: StageName,
+  projectPath?: string
 ): SkillDetection {
-  const dynamic = detectDynamicSkills(itemText, stage);
+  const dynamic = detectDynamicSkills(itemText, stage, projectPath);
   const merged = mergeSkills(profileSkills, dynamic.skills);
 
   return {

@@ -65,25 +65,37 @@ export async function run(options: RunnerOptions): Promise<void> {
 
   // Print header
   const remaining = countIncomplete(prd);
-  printHeader(prdPath, remaining, detectProjectType(projectPath));
-
-  // Check if already complete
-  if (isAllComplete(prd)) {
-    printAllComplete();
-    return;
-  }
+  const projectType = detectProjectType(projectPath);
+  printHeader(prdPath, remaining, projectType);
 
   // Create stages
   const stages = createStages();
 
-  // Initialize summary collector
-  const projectType = detectProjectType(projectPath);
+  // Initialize summary collector BEFORE early exit check
   const summaryCollector = new SummaryCollector(
     session.id,
     prdPath,
     projectType,
     prd.items.length
   );
+
+  // Check if already complete - generate summary and exit
+  if (isAllComplete(prd)) {
+    printAllComplete();
+
+    // Still generate summary showing all items as complete
+    for (let i = 0; i < prd.items.length; i++) {
+      const item = prd.items[i];
+      summaryCollector.startItem(i + 1, item.text);
+      summaryCollector.completeItem('success');
+    }
+
+    const summary = summaryCollector.build();
+    const summaryPath = generateSummaryHtml(summary, session.logsDir);
+    printSummaryLink(summaryPath);
+    await openSummary(summaryPath);
+    return;
+  }
 
   // Track attempted items to avoid infinite loop on failures
   const attemptedItems = new Set<number>();
@@ -129,7 +141,7 @@ export async function run(options: RunnerOptions): Promise<void> {
 
       // Get skills for this stage (now returns SkillDetection with keywords)
       const profileSkills = config.skills[stage.name as keyof typeof config.skills] ?? [];
-      const detection = getSkillsForStage(profileSkills, item.text, stage.name as any);
+      const detection = getSkillsForStage(profileSkills, item.text, stage.name as any, projectPath);
       const skills = loadSkills(projectPath, detection.skills);
 
       // Build context

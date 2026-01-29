@@ -1,0 +1,301 @@
+# Canon Skill Detection Rules
+# Edit this file to control which skills trigger for which keywords
+# Rules are processed in order; all matching rules accumulate skills
+#
+# Format:
+#   category:
+#     patterns: [keyword1, keyword2, ...]   # Case-insensitive word boundaries
+#     skills: [skill1, skill2, ...]          # Skills to activate
+#     stages: [plan, build, ...]             # Stages where rule applies
+
+rules:
+  security:
+    patterns:
+      - auth
+      - password
+      - login
+      - token
+      - jwt
+      - oauth
+      - credential
+      - secret
+      - encrypt
+      - hash
+      - session
+      - permission
+      - role
+      - access control
+      - csrf
+      - xss
+      - injection
+      - sanitiz
+      - valid
+    skills:
+      - schneier
+      - owasp
+      - tanya-janca
+      - troy-hunt
+      - security-mindset
+    stages:
+      - plan
+      - build
+      - review
+
+  database:
+    patterns:
+      - database
+      - sql
+      - query
+      - orm
+      - prisma
+      - sequelize
+      - mongoose
+      - postgres
+      - mysql
+      - mongo
+      - redis
+      - migration
+      - schema
+    skills:
+      - bloch
+      - schneier
+    stages:
+      - plan
+      - build
+      - review
+
+  ui:
+    patterns:
+      - ui
+      - ux
+      - modal
+      - dialog
+      - form
+      - button
+      - input
+      - component
+      - layout
+      - responsive
+      - mobile
+      - desktop
+      - css
+      - style
+      - design
+      - interface
+      - user experience
+    skills:
+      - frost
+      - ive
+      - norman
+      - rams
+    stages:
+      - plan
+      - build
+
+  api:
+    patterns:
+      - api
+      - endpoint
+      - rest
+      - graphql
+      - route
+      - controller
+      - middleware
+      - request
+      - response
+      - http
+      - webhook
+    skills:
+      - bloch
+    stages:
+      - plan
+      - build
+
+  testing:
+    patterns:
+      - test
+      - spec
+      - mock
+      - stub
+      - fixture
+      - assert
+      - expect
+      - coverage
+      - unit
+      - integration
+      - e2e
+    skills:
+      - meszaros
+      - fowler-test
+      - hevery
+      - dodds
+    stages:
+      - test
+
+  performance:
+    patterns:
+      - performance
+      - optimize
+      - cache
+      - memory
+      - cpu
+      - latency
+      - throughput
+      - benchmark
+      - profil
+    skills:
+      - carmack
+    stages:
+      - build
+      - review
+
+  algorithms:
+    patterns:
+      - algorithm
+      - sort
+      - search
+      - tree
+      - graph
+      - recursive
+      - recursion
+      - complexity
+      - O(
+      - big o
+      - binary search
+      - hash
+      - queue
+      - stack
+      - heap
+      - linked list
+      - traversal
+      - invariant
+      - edge cases
+    skills:
+      - knuth
+      - dijkstra
+    stages:
+      - plan
+      - build
+      - review
+
+  cli:
+    patterns:
+      - cli
+      - command line
+      - terminal
+      - shell
+      - argv
+      - flag
+      - option
+      - prompt
+      - pipe
+      - stream
+      - stdin
+      - stdout
+      - text processing
+    skills:
+      - mcilroy
+      - pike
+      - kernighan
+      - thompson
+    stages:
+      - plan
+      - build
+
+  prototyping:
+    patterns:
+      - prototype
+      - mvp
+      - simplif
+      - refactor
+      - rewrit
+      - delet
+      - remov
+      - brute force
+      - working first
+      - minimum viable
+    skills:
+      - thompson
+    stages:
+      - plan
+      - build
+      - refactor
+
+  regex:
+    patterns:
+      - regex
+      - regexp
+      - regular expression
+      - pattern match
+      - match
+      - replace all
+    skills:
+      - thompson
+    stages:
+      - build
+
+  error-handling:
+    patterns:
+      - error handl
+      - fail fast
+      - exception
+      - throw
+      - catch
+      - try
+      - panic
+      - recover
+    skills:
+      - thompson
+      - bill-joy
+    stages:
+      - build
+      - review
+
+  documentation:
+    patterns:
+      - document
+      - readme
+      - changelog
+      - jsdoc
+      - comment
+      - explain
+      - usage
+      - example
+    skills:
+      - strunk-white
+      - zinsser
+    stages:
+      - doc
+
+  visualization:
+    patterns:
+      - chart
+      - graph
+      - plot
+      - visualization
+      - d3
+      - dashboard
+      - metric
+      - analytics
+    skills:
+      - tufte
+      - few
+      - knaflic
+    stages:
+      - build
+
+  react:
+    patterns:
+      - react
+      - component
+      - hook
+      - state
+      - props
+      - redux
+      - context
+      - render
+    skills:
+      - abramov
+      - dodds
+    stages:
+      - build
