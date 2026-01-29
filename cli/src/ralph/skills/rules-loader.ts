@@ -252,7 +252,7 @@ export function getDefaultRules(): readonly SkillRule[] {
  * @returns Array of compiled skill rules
  */
 export function loadSkillRules(projectPath: string): readonly SkillRule[] {
-  const rulesPath = path.join(projectPath, '.claude', 'skills', 'skill-rules.yaml');
+  const rulesPath = path.join(projectPath, 'canon', 'skill-rules.yaml');
 
   // Return cached rules if path unchanged
   if (cachedRules && cachedPath === rulesPath) {
@@ -298,7 +298,7 @@ export function clearRulesCache(): void {
  * Useful for diagnostics.
  */
 export function hasCustomRules(projectPath: string): boolean {
-  const rulesPath = path.join(projectPath, '.claude', 'skills', 'skill-rules.yaml');
+  const rulesPath = path.join(projectPath, 'canon', 'skill-rules.yaml');
   return fs.existsSync(rulesPath);
 }
 
@@ -363,7 +363,7 @@ function getDefaultWorkflowConfigs(): Readonly<Record<string, WorkflowConfig>> {
  * Load workflow defaults from YAML file.
  */
 export function loadWorkflowDefaults(projectPath: string): Readonly<Record<string, WorkflowConfig>> {
-  const rulesPath = path.join(projectPath, '.claude', 'skills', 'skill-rules.yaml');
+  const rulesPath = path.join(projectPath, 'canon', 'skill-rules.yaml');
 
   // Return cached if available
   if (cachedWorkflowDefaults && cachedPath === rulesPath) {
