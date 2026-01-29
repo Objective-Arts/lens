@@ -15,6 +15,16 @@ import { loadSkills } from './skills/loader.js';
 import { getSkillsForStage } from './skills/detector.js';
 import { createStages, StageContext } from './stages/index.js';
 import {
+  SummaryCollector,
+  generateSummaryHtml,
+  openSummary,
+  parseGeminiIssues,
+  parseQodanaIssues,
+  parseTestResults,
+  parseRefactorResults,
+  StageSummary,
+} from './summary/index.js';
+import {
   printHeader,
   printItemHeader,
   printStageHeader,
@@ -26,6 +36,7 @@ import {
   printError,
   printWarning,
   printPipelineProgress,
+  printSummaryLink,
   Spinner,
 } from './display/terminal.js';
 
@@ -65,6 +76,15 @@ export async function run(options: RunnerOptions): Promise<void> {
   // Create stages
   const stages = createStages();
 
+  // Initialize summary collector
+  const projectType = detectProjectType(projectPath);
+  const summaryCollector = new SummaryCollector(
+    session.id,
+    prdPath,
+    projectType,
+    prd.items.length
+  );
+
   // Track attempted items to avoid infinite loop on failures
   const attemptedItems = new Set<number>();
 
@@ -83,6 +103,9 @@ export async function run(options: RunnerOptions): Promise<void> {
     attemptedItems.add(item.lineNumber);
     itemNum++;
     session.currentItem = itemNum;
+
+    // Start tracking this item in summary
+    summaryCollector.startItem(itemNum, item.text);
 
     // Initialize stage status tracking for pipeline progress display
     const stageStatus = new Map<string, StageStatus>();
@@ -140,8 +163,44 @@ export async function run(options: RunnerOptions): Promise<void> {
 
       try {
         const result = await stage.execute(context);
-        const duration = (Date.now() - startTime) / 1000;
+        const durationMs = Date.now() - startTime;
+        const duration = durationMs / 1000;
         spinner.stop();
+
+        // Build stage summary for D3 visualization
+        const stageSummary: StageSummary = {
+          name: stage.name,
+          status: result.status === 'success' ? 'done' : result.status === 'skipped' ? 'skipped' : 'failed',
+          durationMs,
+        };
+
+        // Parse stage-specific data from result (only on success with metrics)
+        if (result.status === 'success' && result.metrics) {
+          if (stage.name === 'review') {
+            // Read raw output for issue details
+            const rawPath = path.join(session.logsDir, `item${itemNum}-review.raw`);
+            const qodanaRawPath = path.join(session.logsDir, `item${itemNum}-review-qodana.raw`);
+            if (fs.existsSync(rawPath)) {
+              (stageSummary as any).gemini = parseGeminiIssues(fs.readFileSync(rawPath, 'utf-8'));
+            }
+            if (fs.existsSync(qodanaRawPath)) {
+              (stageSummary as any).qodana = parseQodanaIssues(fs.readFileSync(qodanaRawPath, 'utf-8'));
+            }
+          } else if (stage.name === 'test') {
+            (stageSummary as any).tests = {
+              passed: result.metrics.passed ?? 0,
+              failed: result.metrics.failed ?? 0,
+              written: result.metrics.written ?? 0,
+            };
+          } else if (stage.name === 'refactor') {
+            const rawPath = path.join(session.logsDir, `item${itemNum}-refactor.raw`);
+            if (fs.existsSync(rawPath)) {
+              (stageSummary as any).refactor = parseRefactorResults(fs.readFileSync(rawPath, 'utf-8'));
+            }
+          }
+        }
+
+        summaryCollector.addStage(stageSummary);
 
         if (result.status === 'success') {
           stageStatus.set(stage.name, 'done');
@@ -160,6 +219,14 @@ export async function run(options: RunnerOptions): Promise<void> {
         stageStatus.set(stage.name, 'failed');
         const error = err instanceof Error ? err.message : String(err);
         printStageFailed(stage.name, error);
+
+        // Still record failed stage in summary
+        summaryCollector.addStage({
+          name: stage.name,
+          status: 'failed',
+          durationMs: Date.now() - startTime,
+        });
+
         itemFailed = true;
         break;
       }
@@ -167,6 +234,8 @@ export async function run(options: RunnerOptions): Promise<void> {
 
     // Mark item complete if all stages passed
     if (!itemFailed) {
+      summaryCollector.completeItem('success');
+
       const updatedContent = markItemComplete(prd, item);
       fs.writeFileSync(prdPath, updatedContent);
       prd = parsePrd(prdPath, updatedContent);
@@ -175,6 +244,7 @@ export async function run(options: RunnerOptions): Promise<void> {
       printItemComplete(itemNum, newRemaining);
       session.completedItems++;
     } else {
+      summaryCollector.completeItem('failed');
       printWarning(`Item ${itemNum} failed, moving to next item`);
     }
 
@@ -188,6 +258,14 @@ export async function run(options: RunnerOptions): Promise<void> {
   if (isAllComplete(prd)) {
     printAllComplete();
   }
+
+  // Generate D3 summary visualization
+  const summary = summaryCollector.build();
+  const summaryPath = generateSummaryHtml(summary, session.logsDir);
+  printSummaryLink(summaryPath);
+
+  // Open summary in browser
+  await openSummary(summaryPath);
 }
 
 /**

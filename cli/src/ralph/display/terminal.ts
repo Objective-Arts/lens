@@ -228,3 +228,14 @@ export class Spinner {
     this.message = message;
   }
 }
+
+/**
+ * Print summary link at end of run.
+ * Following norman: feedback, show what user can do next.
+ */
+export function printSummaryLink(summaryPath: string): void {
+  console.log('');
+  console.log(chalk.dim('─'.repeat(84)));
+  console.log(`  ${chalk.cyan('📊')} Summary: ${chalk.underline(`file://${summaryPath}`)}`);
+  console.log(chalk.dim('─'.repeat(84)));
+}

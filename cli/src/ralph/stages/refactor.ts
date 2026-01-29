@@ -2,6 +2,7 @@
  * Refactor stage - structural improvements to changed files.
  */
 
+import chalk from 'chalk';
 import { BaseStage, StageContext } from './types.js';
 import { StageResult } from '../types.js';
 import { runClaude } from '../process/claude.js';
@@ -27,8 +28,16 @@ Rules:
 - Keep changes minimal and focused
 - Commit improvements separately from feature changes
 
-Output REFACTOR_COMPLETE with count of improvements.
-Output REFACTOR_SKIPPED if no improvements needed.`;
+When complete, output in this EXACT format:
+REFACTOR_COMPLETE
+IMPROVEMENTS:
+- <brief description of improvement 1>
+- <brief description of improvement 2>
+...
+IMPROVEMENT_COUNT: <number>
+
+If no improvements needed, output:
+REFACTOR_SKIPPED`;
 
 export class RefactorStage extends BaseStage {
   readonly name = 'refactor';
@@ -67,10 +76,43 @@ export class RefactorStage extends BaseStage {
       };
     }
 
+    // Parse improvements from output
+    const improvements = this.parseImprovements(output.result);
+
+    // Display improvements
+    if (improvements.length > 0) {
+      console.log(chalk.dim('      Improvements applied:'));
+      for (const improvement of improvements.slice(0, 5)) {
+        console.log(chalk.dim(`        • ${improvement}`));
+      }
+      if (improvements.length > 5) {
+        console.log(chalk.dim(`        ... and ${improvements.length - 5} more`));
+      }
+    }
+
     return {
       status: 'success',
-      message: 'Structural improvements applied',
+      message: `${improvements.length} improvements applied`,
+      metrics: { improvements: improvements.length },
     };
+  }
+
+  private parseImprovements(output: string): string[] {
+    const improvements: string[] = [];
+
+    // Look for lines starting with "- " after "IMPROVEMENTS:"
+    const improvementsMatch = output.match(/IMPROVEMENTS:\s*([\s\S]*?)(?:IMPROVEMENT_COUNT:|$)/);
+    if (improvementsMatch) {
+      const lines = improvementsMatch[1].split('\n');
+      for (const line of lines) {
+        const trimmed = line.trim();
+        if (trimmed.startsWith('- ')) {
+          improvements.push(trimmed.slice(2).trim());
+        }
+      }
+    }
+
+    return improvements;
   }
 
   private getChangedFiles(projectPath: string): string[] {
