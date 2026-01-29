@@ -276,6 +276,42 @@ describe('Skills Detector', () => {
       });
     });
 
+    describe('Thompson keywords', () => {
+      it('detects thompson for CLI/Unix items', () => {
+        const result = detectDynamicSkills('Add stdin pipe processing', 'build');
+
+        expect(result.skills).toContain('thompson');
+        expect(result.skills).toContain('mcilroy');
+      });
+
+      it('detects thompson for prototyping', () => {
+        const result = detectDynamicSkills('Build MVP prototype for user flow', 'plan');
+
+        expect(result.skills).toContain('thompson');
+        // 'mvp' matches first in the string
+        expect(result.keywords).toContain('mvp');
+      });
+
+      it('detects thompson for regex patterns', () => {
+        const result = detectDynamicSkills('Add regex pattern matching for email', 'build');
+
+        expect(result.skills).toContain('thompson');
+        expect(result.keywords).toContain('regex');
+      });
+
+      it('detects thompson for error handling', () => {
+        const result = detectDynamicSkills('Implement error handling with fail fast', 'build');
+
+        expect(result.skills).toContain('thompson');
+      });
+
+      it('detects thompson for refactoring', () => {
+        const result = detectDynamicSkills('Simplify and refactor auth module', 'refactor');
+
+        expect(result.skills).toContain('thompson');
+      });
+    });
+
     describe('edge cases', () => {
       it('returns empty arrays for unmatched text', () => {
         const result = detectDynamicSkills('Do something generic', 'build');

@@ -68,11 +68,32 @@ const DETECTION_RULES: SkillRule[] = [
     stages: ['plan', 'build', 'review'],
   },
 
-  // CLI keywords
+  // CLI/Unix keywords (Thompson: text streams, small tools, pipes)
   {
-    keywords: /\b(cli|command.?line|terminal|shell|argv|flag|option|prompt)\b/i,
-    skills: ['mcilroy', 'pike', 'kernighan'],
+    keywords: /\b(cli|command.?line|terminal|shell|argv|flag|option|prompt|pipe|stream|stdin|stdout|text.?processing)\b/i,
+    skills: ['mcilroy', 'pike', 'kernighan', 'thompson'],
     stages: ['plan', 'build'],
+  },
+
+  // Prototyping/simplicity keywords (Thompson: brute force, get it working)
+  {
+    keywords: /\b(prototype|mvp|simplif|refactor|rewrit|delet|remov|brute.?force|working.?first|minimum.?viable)\b/i,
+    skills: ['thompson'],
+    stages: ['plan', 'build', 'refactor'],
+  },
+
+  // Regex/pattern matching (Thompson invented modern regex)
+  {
+    keywords: /\b(regex|regexp|regular.?expression|pattern.?match|match|replace.?all)\b/i,
+    skills: ['thompson'],
+    stages: ['build'],
+  },
+
+  // Error handling (Thompson: fail fast, fail loud)
+  {
+    keywords: /\b(error.?handl|fail.?fast|exception|throw|catch|try|panic|recover)\b/i,
+    skills: ['thompson', 'bill-joy'],
+    stages: ['build', 'review'],
   },
 
   // Documentation keywords
