@@ -243,4 +243,4 @@ cc-config profile apply javascript+react+d3 -p .
 
 ## Creating Custom Profiles
 
-See [How to Create Custom Profile](../how-to/create-custom-profile.md)
+Create a new YAML file in `profiles/` following the existing profile structure. See existing profiles for examples.

@@ -204,6 +204,5 @@ Consider running external validation more frequently if:
 
 ## Further Reading
 
-- [Ralph Loop Design](ralph-loop-design.md) - Full loop architecture
 - [How to Set Up External Validation](../how-to/external-validation.md) - Setup guide
 - [How to Configure Ralph Loop](../how-to/configure-ralph-loop.md) - Configuration options

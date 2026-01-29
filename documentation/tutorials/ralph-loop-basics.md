@@ -190,4 +190,3 @@ You've successfully:
 
 - [Configure Ralph Loop](../how-to/configure-ralph-loop.md) - Customize iteration limits
 - [Set Up External Validation](../how-to/external-validation.md) - Add Gemini/Qodana
-- [Ralph Loop Design](../explanation/ralph-loop-design.md) - Understand the philosophy

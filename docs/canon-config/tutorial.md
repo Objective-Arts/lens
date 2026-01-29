@@ -150,6 +150,5 @@ Your custom rule triggers for the new item.
 
 ## Next Steps
 
-- [How-To: Combine Multiple Profiles](how-to.md#combine-multiple-profiles)
-- [How-To: Create a New Profile](how-to.md#create-a-new-profile)
-- [Reference: skill-rules.yaml Format](reference.md#skill-rulesyaml-format)
+- [How-To Guides](how-to.md) - See "Combine Multiple Profiles" and "Create a New Profile"
+- [Reference](reference.md) - Complete skill-rules.yaml format specification

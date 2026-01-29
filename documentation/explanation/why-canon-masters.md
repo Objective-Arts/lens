@@ -185,6 +185,4 @@ That's the value of canon masters: transforming Claude's vast knowledge into app
 
 ## Further Reading
 
-- [The Three-Layer Canon Stack](three-layer-stack.md) - Detailed layer explanation
-- [Quality Through Perspective](quality-through-perspective.md) - How lenses compound
 - [Canon Masters Reference](../reference/canon-catalog.md) - Complete catalog

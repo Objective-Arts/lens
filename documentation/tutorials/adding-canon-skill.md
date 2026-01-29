@@ -207,4 +207,3 @@ You've successfully:
 
 - [Canon Masters Reference](../reference/canon-catalog.md) - See existing masters
 - [Why Canon Masters?](../explanation/why-canon-masters.md) - Understand the philosophy
-- [How to Add Canon Masters](../how-to/add-canon-masters.md) - Detailed encoding guide
