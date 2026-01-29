@@ -57,8 +57,15 @@ const DETECTION_RULES: SkillRule[] = [
   // Performance keywords
   {
     keywords: /\b(performance|optimize|cache|memory|cpu|latency|throughput|benchmark|profil)\b/i,
-    skills: ['carmack', 'knuth'],
+    skills: ['carmack'],
     stages: ['build', 'review'],
+  },
+
+  // Algorithm/data structure keywords (Knuth: literate programming, algorithmic rigor)
+  {
+    keywords: /\b(algorithm|sort|search|tree|graph|recursive|recursion|complexity|O\(|big.?o|binary.?search|hash|queue|stack|heap|linked.?list|traversal|invariant|edge.?cases?)\b/i,
+    skills: ['knuth', 'dijkstra'],
+    stages: ['plan', 'build', 'review'],
   },
 
   // CLI keywords

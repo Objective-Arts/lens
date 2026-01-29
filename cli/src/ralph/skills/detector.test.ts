@@ -150,11 +150,10 @@ describe('Skills Detector', () => {
     });
 
     describe('performance keywords', () => {
-      it('detects performance skills for optimize keyword', () => {
+      it('detects carmack for optimize keyword', () => {
         const result = detectDynamicSkills('Optimize database queries', 'build');
 
         expect(result.skills).toContain('carmack');
-        expect(result.skills).toContain('knuth');
       });
 
       it('detects performance skills for cache keyword', () => {
@@ -162,6 +161,36 @@ describe('Skills Detector', () => {
         const result = detectDynamicSkills('Add cache layer for API responses', 'build');
 
         expect(result.skills).toContain('carmack');
+      });
+    });
+
+    describe('algorithm keywords', () => {
+      it('detects knuth for algorithm keyword', () => {
+        const result = detectDynamicSkills('Implement sorting algorithm', 'build');
+
+        expect(result.skills).toContain('knuth');
+        expect(result.skills).toContain('dijkstra');
+      });
+
+      it('detects knuth for complexity analysis', () => {
+        const result = detectDynamicSkills('Analyze O(n log n) complexity', 'review');
+
+        expect(result.skills).toContain('knuth');
+      });
+
+      it('detects knuth for data structure keywords', () => {
+        const result = detectDynamicSkills('Add binary search tree implementation', 'build');
+
+        expect(result.skills).toContain('knuth');
+        // 'binary search' matches as a unit from regex
+        expect(result.keywords).toContain('binary search');
+      });
+
+      it('detects knuth for edge case handling', () => {
+        const result = detectDynamicSkills('Handle edge cases in algorithm', 'plan');
+
+        expect(result.skills).toContain('knuth');
+        expect(result.keywords).toContain('edge cases');
       });
     });
 
