@@ -3,8 +3,17 @@ description: Extended testing canon for comprehensive test coverage
 projectType: software
 composable: true
 
-canon:
-  testing:
+ralph:
+  skills:
+    test:
+      - meszaros       # xUnit patterns
+      - fowler-test    # Test pyramid
+      - feathers       # Characterization tests
+      - dodds          # Testing Trophy
+      - hevery         # Testability
+
+skills:
+  canon:
     - dodds          # Testing Trophy, integration-first
     - feathers       # Legacy code testing, characterization tests
     - meszaros       # Test patterns, test doubles

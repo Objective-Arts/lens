@@ -3,16 +3,18 @@
  *
  * Following rams: less but better, minimal decoration.
  * Following ive: depth through position, not visual noise.
+ * Following kruzeniski: type as interface, hierarchy through text weight/color.
+ * Following norman: feedback and mental models, show system state clearly.
  */
 
 import chalk from 'chalk';
+import { SkillDetection, StageStatus } from '../types.js';
 
 /** Stage icons */
 const STAGE_ICONS: Record<string, string> = {
-  scaffold: '\u2699\ufe0f',  // ⚙️
   plan: '\ud83d\udcdd',      // 📝
   build: '\ud83d\udee0\ufe0f', // 🛠️
-  clean: '\u2728',           // ✨
+  refactor: '\u2728',        // ✨
   test: '\ud83e\uddea',      // 🧪
   review: '\ud83d\udc41\ufe0f', // 👁️
   doc: '\ud83d\udcda',       // 📚
@@ -31,33 +33,90 @@ export function printHeader(prdPath: string, remaining: number, projectType: str
   console.log(chalk.dim('Skills: from profile (.claude/ralph-config.yaml)'));
 }
 
+/** All pipeline stage names in execution order */
+const PIPELINE_STAGES = ['plan', 'build', 'refactor', 'test', 'review', 'doc'] as const;
+
+/**
+ * Print pipeline progress showing current position in stage sequence.
+ * Following duarte: motion is meaning, progress shows movement.
+ */
+export function printPipelineProgress(
+  stageStatus: Map<string, StageStatus>,
+  currentStage?: string
+): void {
+  const parts = PIPELINE_STAGES.map(name => {
+    const status = stageStatus.get(name);
+    if (status === 'done') return chalk.green(`✓ ${name}`);
+    if (status === 'failed') return chalk.red(`✗ ${name}`);
+    if (status === 'skipped') return chalk.dim(`- ${name}`);
+    if (name === currentStage || status === 'running') return chalk.cyan(`▸ ${name}`);
+    return chalk.dim(name);
+  });
+
+  console.log(`  ${parts.join(chalk.dim(' → '))}`);
+}
+
 /**
  * Print the item header (primary visual hierarchy).
+ * Following kruzeniski: type hierarchy through weight and color alone.
  */
-export function printItemHeader(itemNum: number, total: number, itemText: string): void {
+export function printItemHeader(
+  itemNum: number,
+  total: number,
+  itemText: string,
+  stageStatus?: Map<string, StageStatus>
+): void {
   console.log('');
   console.log(chalk.cyan('━'.repeat(84)));
   console.log(chalk.cyan.bold(`  Item ${itemNum} of ${total}: ${itemText}`));
+  if (stageStatus) {
+    printPipelineProgress(stageStatus);
+  }
   console.log(chalk.cyan('━'.repeat(84)));
 }
 
 /**
  * Print stage header (secondary visual hierarchy).
  * Minimal design following rams/ive principles.
+ * Shows stage position and skill detection reasoning.
  */
-export function printStageHeader(stage: string, skills: string[]): void {
+export function printStageHeader(
+  stage: string,
+  detection: SkillDetection,
+  stageIndex?: number,
+  totalStages?: number
+): void {
   const icon = STAGE_ICONS[stage] || '\u25cf'; // ●
+  const progress = (stageIndex !== undefined && totalStages !== undefined)
+    ? chalk.dim(` (${stageIndex + 1}/${totalStages})`)
+    : '';
 
   console.log('');
   console.log(chalk.dim('─'.repeat(84)));
-  console.log(`  ${icon}  ${chalk.cyan(capitalize(stage))}`);
+  // Add external tool indicator for review stage
+  const externalTools = stage === 'review' ? chalk.dim(' (Gemini + Qodana)') : '';
+  console.log(`  ${icon}  ${chalk.cyan(capitalize(stage))}${progress}${externalTools}`);
 
-  if (skills.length > 0) {
-    const skillList = skills.map(s => chalk.green(s)).join(' ');
+  if (detection.skills.length > 0) {
+    const skillList = detection.skills.map(s => chalk.green(s)).join(' ');
     console.log(`      Canon: ${skillList}`);
+
+    // Show detection keywords to explain WHY these skills were selected
+    if (detection.keywords.length > 0) {
+      const kwList = detection.keywords.slice(0, 5).join(', ');
+      console.log(chalk.dim(`             (detected: ${kwList})`));
+    }
   }
 
   console.log('');
+}
+
+/**
+ * Legacy overload for backward compatibility.
+ * @deprecated Use the SkillDetection overload instead
+ */
+export function printStageHeaderLegacy(stage: string, skills: string[]): void {
+  printStageHeader(stage, { skills, keywords: [] });
 }
 
 /**

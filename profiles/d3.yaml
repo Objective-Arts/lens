@@ -4,8 +4,27 @@ projectType: software
 composable: true
 extends: javascript
 
-canon:
-  domain:
+ralph:
+  skills:
+    plan:
+      - tufte          # Data-ink planning
+      - few            # Dashboard design
+    build:
+      - bostock        # D3 implementation
+      - tufte          # Graphical excellence
+      - few            # Chart best practices
+      - knaflic        # Storytelling with data
+    refactor:
+      - tufte          # Remove chartjunk
+      - few            # Simplify dashboards
+    review:
+      - few            # Visualization critique
+      - tufte          # Data integrity
+    doc:
+      - knaflic        # Data storytelling
+
+skills:
+  canon:
     - bostock        # Selections, data joins, scales
     - tufte          # Visual Display of Quantitative Information
     - few            # Dashboard design, information clarity

@@ -23,10 +23,9 @@ export interface Prd {
 
 /** Stage names */
 export type StageName =
-  | 'scaffold'
   | 'plan'
   | 'build'
-  | 'clean'
+  | 'refactor'
   | 'test'
   | 'review'
   | 'doc';
@@ -49,7 +48,7 @@ export interface RalphConfig {
   skills: {
     plan?: string[];
     build?: string[];
-    clean?: string[];
+    refactor?: string[];
     test?: string[];
     review?: string[];
     doc?: string[];
@@ -115,3 +114,14 @@ export interface DisplayOptions {
   quiet: boolean;
   noColor: boolean;
 }
+
+/** Skill detection result with matched keywords */
+export interface SkillDetection {
+  /** Skill names to load */
+  skills: string[];
+  /** Keywords that triggered dynamic detection */
+  keywords: string[];
+}
+
+/** Stage status for pipeline progress display */
+export type StageStatus = 'pending' | 'running' | 'done' | 'skipped' | 'failed';

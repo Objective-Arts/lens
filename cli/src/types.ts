@@ -124,9 +124,22 @@ export interface ComposableProfile {
 }
 
 /**
+ * Ralph stage-specific skills configuration
+ */
+export interface RalphSkillsConfig {
+  plan?: string[];
+  build?: string[];
+  refactor?: string[];
+  test?: string[];
+  review?: string[];
+  doc?: string[];
+}
+
+/**
  * Ralph Loop configuration for autonomous PRD implementation
  */
 export interface RalphConfig {
+  skills?: RalphSkillsConfig;
   max_iterations?: number;
   max_iterations_per_item?: number;
   exit_on_idle_commits?: number;

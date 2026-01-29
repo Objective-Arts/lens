@@ -4,6 +4,22 @@ projectType: software
 composable: true
 extends: software-base
 
+ralph:
+  skills:
+    plan:
+      - kyle-simpson   # JS runtime mental model
+    build:
+      - cherny         # TypeScript types
+      - crockford      # Good parts
+      - kyle-simpson   # Closures, scope, this
+      - osmani         # JS design patterns
+    refactor:
+      - osmani         # Pattern refactoring
+      - crockford      # Simplify to good parts
+    test:
+      - dodds          # Testing Trophy
+    # review and doc inherit from software-base
+
 skills:
   canon:
     # JavaScript experts

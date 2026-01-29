@@ -2,6 +2,33 @@ name: frontend
 description: UI/UX canon for frontend projects. 12 experts for beautiful interfaces without being a designer.
 composable: true
 
+ralph:
+  skills:
+    plan:
+      - cooper         # Interaction design
+      - norman         # Affordances
+      - tufte          # Information design
+    build:
+      - frost          # Atomic design
+      - ive            # Visual minimalism
+      - norman         # UX principles
+      - wroblewski     # Mobile-first, forms
+      - duarte         # Motion design
+      - buxton         # Input design
+      - curtis         # Design systems
+      - kruzeniski     # Typography
+      - rams           # 10 principles
+      - frontend-design  # Production UI
+      - mall           # Design-dev handoff
+    refactor:
+      - frost          # Component extraction
+      - rams           # Simplification
+    review:
+      - norman         # UX review
+      - cooper         # Interaction critique
+    doc:
+      - tufte          # Visual documentation
+
 skills:
   canon:
     # Philosophy & Psychology

@@ -42,7 +42,7 @@ export function loadConfig(projectPath: string): RalphConfig {
     skills: {
       plan: parsed.skills?.plan ?? [],
       build: parsed.skills?.build ?? [],
-      clean: parsed.skills?.clean ?? [],
+      refactor: parsed.skills?.refactor ?? [],
       test: parsed.skills?.test ?? [],
       review: parsed.skills?.review ?? [],
       doc: parsed.skills?.doc ?? [],

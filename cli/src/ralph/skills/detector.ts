@@ -5,7 +5,7 @@
  * Following hevery: pure function, easily testable.
  */
 
-import { StageName } from '../types.js';
+import { StageName, SkillDetection } from '../types.js';
 
 /** Keyword patterns mapped to skills */
 interface SkillRule {
@@ -92,13 +92,15 @@ const DETECTION_RULES: SkillRule[] = [
 
 /**
  * Detect skills that should be dynamically loaded based on item text.
+ * Returns both skill names and the keywords that triggered detection.
  *
  * @param itemText - The PRD item text to analyze
  * @param stage - Current stage name
- * @returns Array of skill names to load
+ * @returns SkillDetection with skills and matched keywords
  */
-export function detectDynamicSkills(itemText: string, stage: StageName): string[] {
+export function detectDynamicSkills(itemText: string, stage: StageName): SkillDetection {
   const detected = new Set<string>();
+  const keywords = new Set<string>();
 
   for (const rule of DETECTION_RULES) {
     // Check if rule applies to this stage
@@ -107,14 +109,22 @@ export function detectDynamicSkills(itemText: string, stage: StageName): string[
     }
 
     // Check if keywords match
-    if (rule.keywords.test(itemText)) {
+    const match = itemText.match(rule.keywords);
+    if (match) {
       for (const skill of rule.skills) {
         detected.add(skill);
+      }
+      // Extract matched keyword
+      if (match[0]) {
+        keywords.add(match[0].toLowerCase());
       }
     }
   }
 
-  return Array.from(detected);
+  return {
+    skills: Array.from(detected),
+    keywords: Array.from(keywords),
+  };
 }
 
 /**
@@ -130,12 +140,18 @@ export function mergeSkills(profileSkills: string[], dynamicSkills: string[]): s
 
 /**
  * Get all skills for a stage, including dynamic detection.
+ * Returns detection info with merged skills and matched keywords.
  */
 export function getSkillsForStage(
   profileSkills: string[],
   itemText: string,
   stage: StageName
-): string[] {
+): SkillDetection {
   const dynamic = detectDynamicSkills(itemText, stage);
-  return mergeSkills(profileSkills, dynamic);
+  const merged = mergeSkills(profileSkills, dynamic.skills);
+
+  return {
+    skills: merged,
+    keywords: dynamic.keywords,
+  };
 }

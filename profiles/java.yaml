@@ -4,6 +4,13 @@ projectType: software
 composable: true
 extends: software-base
 
+ralph:
+  skills:
+    plan:
+      - bloch          # API architecture
+    build:
+      - bloch          # Effective Java patterns
+
 skills:
   canon:
     - bloch          # Effective Java - API design, immutability, builders

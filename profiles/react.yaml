@@ -4,6 +4,23 @@ projectType: software
 composable: true
 extends: javascript
 
-canon:
-  domain:
+ralph:
+  skills:
+    plan:
+      - abramov        # State architecture
+      - frost          # Component hierarchy
+    build:
+      - abramov        # Composition patterns
+      - frost          # Atomic design
+      - harris         # Reactive patterns
+    refactor:
+      - abramov        # State refactoring
+      - frost          # Component extraction
+    test:
+      - dodds          # React Testing Library
+    review:
+      - norman         # UX review
+
+skills:
+  canon:
     - abramov        # Mental models, hooks, composition

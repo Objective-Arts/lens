@@ -1,5 +1,5 @@
 /**
- * Clean stage - structural improvements to changed files.
+ * Refactor stage - structural improvements to changed files.
  */
 
 import { BaseStage, StageContext } from './types.js';
@@ -7,7 +7,7 @@ import { StageResult } from '../types.js';
 import { runClaude } from '../process/claude.js';
 import { execSync } from 'child_process';
 
-const CLEAN_PROMPT = `Apply structural improvements to recently changed files.
+const REFACTOR_PROMPT = `Apply structural improvements to recently changed files.
 
 Changed files:
 {CHANGED_FILES}
@@ -27,11 +27,11 @@ Rules:
 - Keep changes minimal and focused
 - Commit improvements separately from feature changes
 
-Output CLEAN_COMPLETE with count of improvements.
-Output CLEAN_SKIPPED if no improvements needed.`;
+Output REFACTOR_COMPLETE with count of improvements.
+Output REFACTOR_SKIPPED if no improvements needed.`;
 
-export class CleanStage extends BaseStage {
-  readonly name = 'clean';
+export class RefactorStage extends BaseStage {
+  readonly name = 'refactor';
   readonly icon = '\u2728'; // ✨
 
   async execute(context: StageContext): Promise<StageResult> {
@@ -42,12 +42,12 @@ export class CleanStage extends BaseStage {
     if (changedFiles.length === 0) {
       return {
         status: 'skipped',
-        reason: 'No changed files to clean',
+        reason: 'No changed files to refactor',
       };
     }
 
     const skillGuidance = this.buildSkillGuidance(skills);
-    const prompt = CLEAN_PROMPT
+    const prompt = REFACTOR_PROMPT
       .replace('{CHANGED_FILES}', changedFiles.join('\n'))
       .replace('{SKILL_GUIDANCE}', skillGuidance);
 
@@ -60,7 +60,7 @@ export class CleanStage extends BaseStage {
       allowedTools: ['Read', 'Edit', 'Bash'],
     });
 
-    if (output.result.includes('CLEAN_SKIPPED')) {
+    if (output.result.includes('REFACTOR_SKIPPED')) {
       return {
         status: 'skipped',
         reason: 'No improvements needed',

@@ -5,12 +5,18 @@
  * Two-phase review: LLM (Gemini) then static analysis (Qodana).
  */
 
+import chalk from 'chalk';
 import { BaseStage, StageContext } from './types.js';
 import { StageResult } from '../types.js';
 import { runClaude } from '../process/claude.js';
 import { parseGeminiOutput, getGeminiSummary } from '../parsers/gemini.js';
 
-const GEMINI_REVIEW_PROMPT = `You are conducting an adversarial security review with Gemini.
+/** Print phase indicator for multi-phase stages */
+function printPhase(phase: string, description: string): void {
+  console.log(`\n      ${chalk.cyan('▸')} ${chalk.cyan(phase)}: ${chalk.dim(description)}`);
+}
+
+const GEMINI_REVIEW_PROMPT = `You are conducting an adversarial code review with Gemini.
 
 PRD ITEM IMPLEMENTED:
 {ITEM_TEXT}
@@ -18,7 +24,7 @@ PRD ITEM IMPLEMENTED:
 {SKILL_GUIDANCE}
 
 REVIEW PROCESS:
-1. Use the gemini_review MCP tool on each changed file with focus="security"
+1. Use the gemini_review MCP tool on each changed file with focus="adversarial"
 2. Count ALL issues reported - do NOT dismiss any as false positives
 3. For each Critical or High severity issue:
    - Attempt to fix it
@@ -73,6 +79,8 @@ export class ReviewStage extends BaseStage {
     const { item, skills, projectPath, logsDir } = context;
 
     // Phase 1: Gemini review
+    printPhase('Gemini', 'Adversarial code review');
+
     const skillGuidance = this.buildSkillGuidance(skills);
     const geminiPrompt = GEMINI_REVIEW_PROMPT
       .replace('{ITEM_TEXT}', item.text)
@@ -91,6 +99,7 @@ export class ReviewStage extends BaseStage {
     // Parse Gemini results
     const geminiResult = parseGeminiOutput(geminiOutput.result);
     const geminiSummary = getGeminiSummary(geminiResult);
+    console.log(chalk.dim(`      ${geminiSummary}`));
 
     if (geminiResult.criticalHigh > 0 && !geminiResult.verifiedClean) {
       return {
@@ -100,6 +109,8 @@ export class ReviewStage extends BaseStage {
     }
 
     // Phase 2: Qodana static analysis
+    printPhase('Qodana', 'Static code analysis');
+
     const qodanaPrompt = QODANA_REVIEW_PROMPT
       .replace('{ITEM_TEXT}', item.text);
 
@@ -122,6 +133,7 @@ export class ReviewStage extends BaseStage {
 
     // Parse Qodana results from output
     const qodanaResult = parseQodanaOutput(qodanaOutput.result);
+    console.log(chalk.dim(`      ${qodanaResult.totalIssues} issues, ${qodanaResult.fixed} fixed`));
 
     if (qodanaResult.criticalHigh > 0 && !qodanaResult.verifiedClean) {
       return {

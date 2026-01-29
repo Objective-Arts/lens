@@ -424,6 +424,34 @@ function resolveProfileExtends(
 }
 
 /**
+ * Merge ralph.skills configurations, combining skills per stage
+ */
+function mergeRalphSkills(
+  parent: ComposableProfile['ralph'],
+  child: ComposableProfile['ralph']
+): ComposableProfile['ralph'] {
+  const parentSkills = parent?.skills ?? {};
+  const childSkills = child?.skills ?? {};
+
+  // Deep merge skills per stage
+  const mergedSkills = {
+    plan: mergeArrays(parentSkills.plan ?? [], childSkills.plan ?? []),
+    build: mergeArrays(parentSkills.build ?? [], childSkills.build ?? []),
+    refactor: mergeArrays(parentSkills.refactor ?? [], childSkills.refactor ?? []),
+    test: mergeArrays(parentSkills.test ?? [], childSkills.test ?? []),
+    review: mergeArrays(parentSkills.review ?? [], childSkills.review ?? []),
+    doc: mergeArrays(parentSkills.doc ?? [], childSkills.doc ?? [])
+  };
+
+  // Merge other ralph config (child overrides parent)
+  return {
+    ...parent,
+    ...child,
+    skills: mergedSkills
+  };
+}
+
+/**
  * Merge two profiles, with child overriding/extending parent.
  */
 function mergeProfiles(parent: ComposableProfile, child: ComposableProfile): ComposableProfile {
@@ -450,7 +478,7 @@ function mergeProfiles(parent: ComposableProfile, child: ComposableProfile): Com
       enable: mergeArrays(parent.mcpServers?.enable ?? [], child.mcpServers?.enable ?? []),
       disable: mergeArrays(parent.mcpServers?.disable ?? [], child.mcpServers?.disable ?? [])
     },
-    ralph: { ...parent.ralph, ...child.ralph }
+    ralph: mergeRalphSkills(parent.ralph, child.ralph)
   };
 }
 
@@ -607,9 +635,9 @@ export function combineProfiles(profileNames: string[]): ComposableProfile | nul
       }
     }
 
-    // Merge ralph config (last one wins for nested objects)
+    // Merge ralph config with deep merge for skills
     if (ralph) {
-      combined.ralph = { ...combined.ralph, ...ralph };
+      combined.ralph = mergeRalphSkills(combined.ralph, ralph);
     }
   }
 
@@ -1259,6 +1287,79 @@ async function applyMcpToProject(
 }
 
 // ============================================================================
+// Ralph Configuration Generation
+// ============================================================================
+
+/**
+ * Generate .claude/ralph-config.yaml with merged skills and iteration config
+ */
+async function generateRalphConfig(
+  profile: ComposableProfile,
+  projectPath: string,
+  result: ApplyResult
+): Promise<void> {
+  // Only generate if ralph config exists
+  if (!profile.ralph) return;
+
+  const configPath = path.join(projectPath, CLAUDE_DIR_NAME, 'ralph-config.yaml');
+
+  // Build config object
+  const config: Record<string, unknown> = {
+    // Header comment
+    _generated: `Auto-generated from profile: ${profile.name}`,
+    _regenerate: 'cc-config profile apply',
+  };
+
+  // Add skills if defined
+  if (profile.ralph.skills) {
+    const skills = profile.ralph.skills;
+    config.skills = {
+      plan: skills.plan ?? [],
+      build: skills.build ?? [],
+      refactor: skills.refactor ?? [],
+      test: skills.test ?? [],
+      review: skills.review ?? [],
+      doc: skills.doc ?? []
+    };
+  }
+
+  // Add iteration config
+  if (profile.ralph.max_iterations) {
+    config.max_iterations = profile.ralph.max_iterations;
+  }
+  if (profile.ralph.max_iterations_per_item) {
+    config.max_iterations_per_item = profile.ralph.max_iterations_per_item;
+  }
+  if (profile.ralph.exit_on_idle_commits) {
+    config.exit_on_idle_commits = profile.ralph.exit_on_idle_commits;
+  }
+
+  // Add quality gates
+  if (profile.ralph.quality_gates) {
+    config.quality_gates = profile.ralph.quality_gates;
+  }
+
+  // Add post-loop validation
+  if (profile.ralph.post_loop_validation) {
+    config.post_loop_validation = profile.ralph.post_loop_validation;
+  }
+
+  // Add exit criteria
+  if (profile.ralph.exit_criteria) {
+    config.exit_criteria = profile.ralph.exit_criteria;
+  }
+
+  try {
+    const yamlContent = stringifyYaml(config);
+    await fsPromises.writeFile(configPath, yamlContent, 'utf-8');
+    result.created.push('.claude/ralph-config.yaml');
+  } catch (error) {
+    const message = error instanceof Error ? error.message : String(error);
+    result.errors.push(`Failed to generate ralph-config.yaml: ${message}`);
+  }
+}
+
+// ============================================================================
 // Main Profile Application
 // ============================================================================
 
@@ -1326,10 +1427,10 @@ export async function applyComposableProfile(
   // Apply commands (decomposed, parallel)
   await applyCommandsToProject(profile, projectPath, result);
 
-  // Apply agents (note them)
-  if (profile.agents?.length) {
-    result.created.push(`Agents enabled: ${profile.agents.join(', ')}`);
-  }
+  // Agents output suppressed - still considering how to integrate agents
+  // if (profile.agents?.length) {
+  //   result.created.push(`Agents enabled: ${profile.agents.join(', ')}`);
+  // }
 
   // Update CLAUDE.md
   if (profile.claudeMd?.autoInvoke) {
@@ -1337,6 +1438,9 @@ export async function applyComposableProfile(
     await updateClaudeMdWithProfileAsync(claudeMdPath, profile, projectPath);
     result.created.push('Updated CLAUDE.md with profile info and auto-invoke rules');
   }
+
+  // Generate ralph-config.yaml if ralph config exists
+  await generateRalphConfig(profile, projectPath, result);
 
   // Apply MCP configuration (decomposed)
   await applyMcpToProject(profile, projectPath, result);

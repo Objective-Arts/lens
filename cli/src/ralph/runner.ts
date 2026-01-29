@@ -7,7 +7,7 @@
 
 import * as fs from 'fs';
 import * as path from 'path';
-import { Prd, PrdItem, Session, RalphConfig, Skill } from './types.js';
+import { Prd, PrdItem, Session, RalphConfig, Skill, StageStatus, SkillDetection } from './types.js';
 import { parsePrd, countIncomplete, getNextIncomplete, getIncompleteItems, isAllComplete } from './prd/parser.js';
 import { markItemComplete } from './prd/updater.js';
 import { loadConfig } from './config/loader.js';
@@ -25,13 +25,13 @@ import {
   printAllComplete,
   printError,
   printWarning,
+  printPipelineProgress,
   Spinner,
 } from './display/terminal.js';
 
 export interface RunnerOptions {
   prdPath: string;
   projectPath: string;
-  skipScaffold?: boolean;
   skipReview?: boolean;
   verbose?: boolean;
 }
@@ -40,7 +40,7 @@ export interface RunnerOptions {
  * Run ralph on a PRD file.
  */
 export async function run(options: RunnerOptions): Promise<void> {
-  const { prdPath, projectPath, skipScaffold, skipReview, verbose } = options;
+  const { prdPath, projectPath, skipReview, verbose } = options;
 
   // Load configuration
   const config = loadConfig(projectPath);
@@ -84,21 +84,30 @@ export async function run(options: RunnerOptions): Promise<void> {
     itemNum++;
     session.currentItem = itemNum;
 
-    // Print item header
-    printItemHeader(itemNum, prd.items.length, item.text);
+    // Initialize stage status tracking for pipeline progress display
+    const stageStatus = new Map<string, StageStatus>();
+    for (const s of stages) {
+      stageStatus.set(s.name, 'pending');
+    }
+
+    // Print item header with pipeline progress
+    printItemHeader(itemNum, prd.items.length, item.text, stageStatus);
 
     // Run each stage for this item
     let itemFailed = false;
-    for (const stage of stages) {
-      // Skip scaffold if requested
-      if (stage.name === 'scaffold' && skipScaffold) continue;
-      // Skip review if requested
-      if (stage.name === 'review' && skipReview) continue;
+    for (let stageIndex = 0; stageIndex < stages.length; stageIndex++) {
+      const stage = stages[stageIndex];
 
-      // Get skills for this stage
+      // Skip review if requested
+      if (stage.name === 'review' && skipReview) {
+        stageStatus.set(stage.name, 'skipped');
+        continue;
+      }
+
+      // Get skills for this stage (now returns SkillDetection with keywords)
       const profileSkills = config.skills[stage.name as keyof typeof config.skills] ?? [];
-      const skillNames = getSkillsForStage(profileSkills, item.text, stage.name as any);
-      const skills = loadSkills(projectPath, skillNames);
+      const detection = getSkillsForStage(profileSkills, item.text, stage.name as any);
+      const skills = loadSkills(projectPath, detection.skills);
 
       // Build context
       const context: StageContext = {
@@ -111,14 +120,18 @@ export async function run(options: RunnerOptions): Promise<void> {
 
       // Check if stage should run
       if (!stage.shouldRun(context)) {
+        stageStatus.set(stage.name, 'skipped');
         if (verbose) {
           printStageSkipped(stage.name, 'Not needed');
         }
         continue;
       }
 
-      // Print stage header
-      printStageHeader(stage.name, skillNames);
+      // Mark stage as running
+      stageStatus.set(stage.name, 'running');
+
+      // Print stage header with detection info and position
+      printStageHeader(stage.name, detection, stageIndex, stages.length);
 
       // Run stage with spinner
       const spinner = new Spinner(`Running ${stage.name}...`);
@@ -131,16 +144,20 @@ export async function run(options: RunnerOptions): Promise<void> {
         spinner.stop();
 
         if (result.status === 'success') {
+          stageStatus.set(stage.name, 'done');
           printStageComplete(stage.name, duration, result.message);
         } else if (result.status === 'skipped') {
+          stageStatus.set(stage.name, 'skipped');
           printStageSkipped(stage.name, result.reason);
         } else {
+          stageStatus.set(stage.name, 'failed');
           printStageFailed(stage.name, result.error);
           itemFailed = true;
           break; // Stop processing this item
         }
       } catch (err) {
         spinner.stop();
+        stageStatus.set(stage.name, 'failed');
         const error = err instanceof Error ? err.message : String(err);
         printStageFailed(stage.name, error);
         itemFailed = true;

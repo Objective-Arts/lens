@@ -4,6 +4,22 @@ projectType: software
 composable: true
 extends: software-base
 
+ralph:
+  skills:
+    plan:
+      - hettinger      # Pythonic design
+    build:
+      - hettinger      # Pythonic code
+      - ramalho        # Fluent Python
+      - beazley        # Python cookbook
+      - slatkin        # Effective Python
+    refactor:
+      - hettinger      # Pythonic refactoring
+      - ramalho        # Idiomatic patterns
+    test:
+      - hettinger      # pytest patterns
+    # review and doc inherit from software-base
+
 skills:
   canon:
     - hettinger      # Pythonic idioms, generators, decorators

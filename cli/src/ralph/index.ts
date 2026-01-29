@@ -59,7 +59,6 @@ async function main(): Promise<void> {
     await run({
       prdPath,
       projectPath,
-      skipScaffold: options.skipScaffold,
       skipReview: options.skipReview,
       verbose: options.verbose,
     });
@@ -72,7 +71,6 @@ async function main(): Promise<void> {
 
 interface ParsedArgs {
   prdPath?: string;
-  skipScaffold?: boolean;
   skipReview?: boolean;
   verbose?: boolean;
   help?: boolean;
@@ -86,8 +84,6 @@ function parseArgs(args: string[]): ParsedArgs {
 
     if (arg === '--help' || arg === '-h') {
       result.help = true;
-    } else if (arg === '--skip-scaffold') {
-      result.skipScaffold = true;
     } else if (arg === '--skip-review' || arg === '--skip-scan') {
       result.skipReview = true;
     } else if (arg === '--verbose' || arg === '-v') {
@@ -109,8 +105,7 @@ Ralph - PRD-driven autonomous implementation
 Usage: ralph <PRD.md> [options]
 
 Options:
-  --skip-scaffold   Skip test infrastructure setup
-  --skip-review     Skip Gemini adversarial review
+  --skip-review     Skip Gemini + Qodana review
   --verbose, -v     Show detailed output
   --help, -h        Show this help
 
@@ -119,12 +114,12 @@ Example:
   ralph PRD.md --skip-review
 
 Ralph processes each unchecked item in the PRD through:
-  1. Plan    - Create implementation plan
-  2. Build   - Implement the plan
-  3. Clean   - Structural improvements
-  4. Test    - Run and fix tests
-  5. Review  - Gemini adversarial review
-  6. Doc     - Add documentation
+  1. Plan     - Create implementation plan
+  2. Build    - Implement the plan
+  3. Refactor - Structural improvements
+  4. Test     - Write and run tests
+  5. Review   - Gemini adversarial + Qodana static analysis
+  6. Doc      - Add documentation
 
 Prerequisites:
   - Claude CLI installed

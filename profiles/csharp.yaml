@@ -4,6 +4,18 @@ projectType: software
 composable: true
 extends: software-base
 
+ralph:
+  skills:
+    plan:
+      - hejlsberg      # Type system design
+    build:
+      - skeet          # C# in depth
+      - cleary         # Async patterns
+      - hejlsberg      # Language features
+    refactor:
+      - skeet          # Modern C# idioms
+      - cleary         # Async refactoring
+
 skills:
   canon:
     - skeet          # C# in Depth - language mechanics, generics, edge cases

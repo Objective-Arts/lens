@@ -52,6 +52,36 @@ export function loadSkills(projectPath: string, skillNames: string[]): Skill[] {
 }
 
 /**
+ * Load skills with source tracking (profile vs dynamic).
+ *
+ * @param projectPath - Project root path
+ * @param profileSkills - Skills from profile configuration
+ * @param dynamicSkills - Skills detected from PRD content
+ * @returns Array of loaded skills with correct source attribution
+ */
+export function loadSkillsWithSources(
+  projectPath: string,
+  profileSkills: string[],
+  dynamicSkills: string[]
+): Skill[] {
+  const skills: Skill[] = [];
+  const profileSet = new Set(profileSkills);
+
+  // Merge unique skill names
+  const allSkills = new Set([...profileSkills, ...dynamicSkills]);
+
+  for (const name of allSkills) {
+    const skill = loadSkill(projectPath, name);
+    if (skill) {
+      skill.source = profileSet.has(name) ? 'profile' : 'dynamic';
+      skills.push(skill);
+    }
+  }
+
+  return skills;
+}
+
+/**
  * List all available skills in project.
  */
 export function listSkills(projectPath: string): string[] {

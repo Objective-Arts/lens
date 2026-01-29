@@ -54,10 +54,9 @@ describe('Stage Integration Tests', () => {
       const stages = createStages();
 
       expect(stages.map(s => s.name)).toEqual([
-        'scaffold',
         'plan',
         'build',
-        'clean',
+        'refactor',
         'test',
         'review',
         'doc',
@@ -290,30 +289,13 @@ describe('Stage Integration Tests', () => {
   });
 
   describe('Stage shouldRun', () => {
-    it('most stages return true by default', () => {
+    it('all stages return true by default', () => {
       const stages = createStages();
       const context = createStageContext(tempDir, 'Test item');
 
-      // ScaffoldStage has custom logic - check test infrastructure
-      // Other stages should return true
       for (const stage of stages) {
-        if (stage.name === 'scaffold') {
-          // ScaffoldStage may return true or false depending on test infra
-          expect(typeof stage.shouldRun(context)).toBe('boolean');
-        } else {
-          expect(stage.shouldRun(context)).toBe(true);
-        }
+        expect(stage.shouldRun(context)).toBe(true);
       }
-    });
-
-    it('scaffold stage checks for test infrastructure', () => {
-      const stages = createStages();
-      const scaffold = stages.find(s => s.name === 'scaffold');
-      const context = createStageContext(tempDir, 'Test item');
-
-      // Result depends on whether npm test works in temp dir
-      expect(scaffold).toBeDefined();
-      expect(typeof scaffold!.shouldRun(context)).toBe('boolean');
     });
   });
 

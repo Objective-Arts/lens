@@ -4,6 +4,22 @@ projectType: software
 composable: true
 extends: javascript
 
+ralph:
+  skills:
+    plan:
+      - hevery         # DI architecture
+      - minko-gechev   # Angular patterns
+    build:
+      - hevery         # Angular core
+      - ben-lesh       # RxJS
+      - minko-gechev   # Performance
+      - kurata         # Angular best practices
+    refactor:
+      - minko-gechev   # Angular optimization
+      - ben-lesh       # RxJS refactoring
+    test:
+      - hevery         # Angular testing
+
 skills:
   canon:
     - hevery         # Angular creator - DI, testability, component design

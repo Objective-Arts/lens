@@ -1,0 +1,86 @@
+name: security-hardened
+description: Security-focused profile for security-critical projects. Compose with any tech profile.
+projectType: software
+composable: true
+
+ralph:
+  skills:
+    plan:
+      - threat-model     # STRIDE, attack trees
+      - schneier         # Security architecture
+      - security-mindset # Adversarial thinking
+    build:
+      - tanya-janca      # Secure SDLC, DevSecOps
+      - owasp            # OWASP guidelines
+      - schneier         # Cryptography principles
+    refactor:
+      - owasp            # Security debt cleanup
+    test:
+      - owasp            # Security testing
+      - troy-hunt        # Breach pattern testing
+    review:
+      - schneier         # Attacker mindset
+      - owasp            # Vulnerability patterns
+      - security-mindset # Adversarial review
+      - tanya-janca      # DevSecOps review
+      - troy-hunt        # Breach patterns
+      - leveson          # Safety analysis
+      - taleb            # Antifragility
+    doc:
+      - owasp            # Security documentation
+
+skills:
+  canon:
+    - schneier           # Think like an attacker, crypto principles
+    - owasp              # OWASP Top 10, secure coding
+    - tanya-janca        # DevSecOps, security champions
+    - troy-hunt          # Breach patterns, password security
+    - security-mindset   # Adversarial thinking
+    - threat-model       # STRIDE, attack trees
+    - leveson            # System safety, accident causation
+    - taleb              # Antifragility, black swans
+    - petroski           # Learning from failures
+
+agents:
+  - security-auditor
+
+claudeMd:
+  standards:
+    - "Assume all input is malicious until validated"
+    - "Defense in depth - multiple layers of security"
+    - "Principle of least privilege"
+    - "Fail securely - deny by default"
+    - "Security is not obscurity"
+    - "Audit everything security-relevant"
+    - "Never roll your own crypto"
+    - "Hash passwords with bcrypt/argon2, never MD5/SHA1"
+    - "Use parameterized queries, never string concatenation"
+    - "Validate on server, never trust client"
+
+  antiPatterns:
+    - "Rolling your own crypto"
+    - "Storing secrets in code or logs"
+    - "SQL string concatenation"
+    - "Trusting client-side validation"
+    - "Exposing stack traces to users"
+    - "Using weak hashing (MD5, SHA1 for passwords)"
+    - "Hardcoded credentials"
+    - "Overly permissive CORS"
+    - "Missing rate limiting"
+    - "Logging sensitive data"
+
+  autoInvoke:
+    - context: Authentication, authorization, sessions
+      action: INVOKE `/schneier` then `/troy-hunt` then `/owasp`
+    - context: Input validation, output encoding
+      action: INVOKE `/owasp` then `/tanya-janca`
+    - context: Cryptography, hashing, encryption
+      action: INVOKE `/schneier`
+    - context: Security review, threat modeling
+      action: INVOKE `/security-mindset` then `/threat-model`
+    - context: API security, endpoints
+      action: INVOKE `/owasp` then `/tanya-janca`
+    - context: Password handling, credential storage
+      action: INVOKE `/troy-hunt` then `/schneier`
+    - context: Failure analysis, risk assessment
+      action: INVOKE `/petroski` then `/taleb` then `/leveson`

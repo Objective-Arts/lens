@@ -101,10 +101,9 @@ export abstract class BaseStage implements Stage {
  * Stage execution order.
  */
 export const STAGE_ORDER = [
-  'scaffold',
   'plan',
   'build',
-  'clean',
+  'refactor',
   'test',
   'review',
   'doc',

@@ -36,6 +36,44 @@ skills:
     - meszaros       # xUnit patterns, test doubles
     - fowler-test    # Test pyramid
 
+ralph:
+  skills:
+    plan:
+      - kernighan      # Clarity in design
+      - pike           # Small interfaces
+      - dijkstra       # Formal correctness
+      - mcilroy        # Unix philosophy
+      - linus          # Data structures first
+      - bill-joy       # Failure handling, distributed systems
+    build:
+      - kernighan      # Readable code
+      - pike           # Composition
+      - bloch          # Effective APIs
+      - liskov         # Substitution principle
+      - gang-of-four   # Design patterns
+      - thompson       # Get it working
+      - carmack        # Performance awareness
+    refactor:
+      - kernighan      # Simplify
+      - feathers       # Legacy code seams
+      - gang-of-four   # Pattern refactoring
+      - bill-joy       # Failure handling
+    test:
+      - meszaros       # xUnit patterns
+      - fowler-test    # Test pyramid
+      - feathers       # Characterization tests
+    review:
+      - schneier       # Attacker mindset (covers security thinking)
+      - owasp          # Vulnerability patterns
+      - petroski       # Failure analysis
+      - leveson        # Safety analysis
+      - taleb          # Antifragility
+    doc:
+      - procida        # Diataxis framework
+      - strunk-white   # Omit needless words
+      - zinsser        # Clarity
+      - king           # Kill darlings
+
 agents:
   - security-auditor
   - code-reviewer
