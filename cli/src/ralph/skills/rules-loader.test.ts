@@ -16,8 +16,8 @@ import {
 } from './rules-loader.js';
 
 const TEST_DIR = '/tmp/rules-loader-test';
-const CLAUDE_DIR = path.join(TEST_DIR, '.claude');
-const RULES_FILE = path.join(CLAUDE_DIR, 'skill-rules.yaml');
+const SKILLS_DIR = path.join(TEST_DIR, '.claude', 'skills');
+const RULES_FILE = path.join(SKILLS_DIR, 'skill-rules.yaml');
 
 describe('Rules Loader', () => {
   beforeEach(() => {
@@ -26,7 +26,7 @@ describe('Rules Loader', () => {
     if (fs.existsSync(TEST_DIR)) {
       fs.rmSync(TEST_DIR, { recursive: true });
     }
-    fs.mkdirSync(CLAUDE_DIR, { recursive: true });
+    fs.mkdirSync(SKILLS_DIR, { recursive: true });
   });
 
   afterEach(() => {
