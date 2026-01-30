@@ -98,9 +98,12 @@ function unescapeJson(str: string): string {
 export function isSuccessfulRun(content: string): boolean {
   const successMarkers = [
     'PLAN_COMPLETE',
+    'STRUCTURE_COMPLETE',
     'BUILD_COMPLETE',
+    'IMPLEMENT_COMPLETE',
     'TEST_COMPLETE',
     'CLEAN_COMPLETE',
+    'REFACTOR_COMPLETE',
     'REVIEW_COMPLETE',
     'DOC_COMPLETE',
     'SCAFFOLD_COMPLETE',
