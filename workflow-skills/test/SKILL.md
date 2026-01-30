@@ -98,6 +98,34 @@ If code is untested legacy:
 
 ---
 
+## Test Quality Review (Dodds + Hevery)
+
+After writing tests, verify quality against expert patterns:
+
+### Dodds Checklist
+- [ ] **Query priority**: Using `getByRole`/`getByLabelText` over `getByTestId`
+- [ ] **User events**: Using `userEvent` over `fireEvent`
+- [ ] **Behavior focus**: Testing what users see, not implementation details
+- [ ] **No implementation coupling**: Not testing `state`, `props`, or internal methods
+- [ ] **Assertions per behavior**: Multiple assertions OK if testing one behavior
+
+### Hevery Checklist
+- [ ] **Testable in isolation**: Can construct test subject without full app setup
+- [ ] **Explicit dependencies**: All dependencies visible (injected or parameterized)
+- [ ] **Single source of truth**: Test data/constants not duplicated from implementation
+- [ ] **Pure functions tested purely**: No mocking needed for pure logic
+- [ ] **Test-implementation consistency**: Tests reference actual values from implementation
+
+### If Issues Found
+
+Fix before completing:
+- Stale test references → Update to match current implementation
+- Duplicate constants → Extract to shared location or import from source
+- Implementation coupling → Rewrite to test behavior
+- Wrong query type → Use more accessible query
+
+---
+
 ## 🛑 MANDATORY STOP
 
 **After outputting the test results above, you MUST STOP.**
