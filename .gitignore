@@ -20,3 +20,7 @@ node_modules/
 
 # Local config
 .mcp.json
+
+# Generated/installed skills (source is in canon/ and workflow-skills/)
+cli/.claude/skills/
+cli/.claude/ralph-logs/
