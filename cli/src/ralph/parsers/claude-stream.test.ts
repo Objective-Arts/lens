@@ -35,12 +35,12 @@ describe('Claude Stream Parser', () => {
       expect(extractResultFromContent(content)).toBe('Line 1\nLine 2\nLine 3');
     });
 
-    it('finds BUILD_COMPLETE marker in text blocks', () => {
+    it('finds IMPLEMENT_COMPLETE marker in text blocks', () => {
       const content = `{"type":"assistant","text":"Working on the task..."}
-{"type":"assistant","text":"BUILD_COMPLETE: All files created"}`;
+{"type":"assistant","text":"IMPLEMENT_COMPLETE: All files created"}`;
 
       const result = extractResultFromContent(content);
-      expect(result).toContain('BUILD_COMPLETE');
+      expect(result).toContain('IMPLEMENT_COMPLETE');
     });
 
     it('finds PLAN_COMPLETE marker', () => {
@@ -50,18 +50,18 @@ describe('Claude Stream Parser', () => {
       expect(result).toContain('PLAN_COMPLETE');
     });
 
-    it('finds TEST_COMPLETE marker', () => {
-      const content = '{"type":"assistant","text":"TEST_COMPLETE - All tests passing"}';
+    it('finds TEST_COUNT marker', () => {
+      const content = '{"type":"assistant","text":"TEST_COUNT: 5"}';
 
       const result = extractResultFromContent(content);
-      expect(result).toContain('TEST_COMPLETE');
+      expect(result).toContain('TEST_COUNT:');
     });
 
-    it('finds REVIEW_COMPLETE marker', () => {
-      const content = '{"type":"assistant","text":"REVIEW_COMPLETE - Code reviewed"}';
+    it('finds REVIEW_ISSUES marker', () => {
+      const content = '{"type":"assistant","text":"REVIEW_ISSUES: 0"}';
 
       const result = extractResultFromContent(content);
-      expect(result).toContain('REVIEW_COMPLETE');
+      expect(result).toContain('REVIEW_ISSUES:');
     });
 
     it('finds GEMINI_ISSUES marker', () => {
@@ -195,7 +195,7 @@ describe('Claude Stream Parser', () => {
     });
 
     it('returns false for success markers', () => {
-      expect(isFailedRun('BUILD_COMPLETE')).toBe(false);
+      expect(isFailedRun('IMPLEMENT_COMPLETE')).toBe(false);
     });
 
     it('returns false for empty content', () => {
