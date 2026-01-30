@@ -5,9 +5,34 @@
  * This parses that stream format and extracts results.
  *
  * Following kernighan: handle the messy reality of streamed output.
+ * Following hevery: single source of truth for markers.
  */
 
 import * as fs from 'fs';
+
+/** Success markers - single source of truth */
+const SUCCESS_MARKERS = [
+  'PLAN_COMPLETE',
+  'STRUCTURE_COMPLETE',
+  'IMPLEMENT_COMPLETE',
+  'TEST_COUNT:',
+  'REFACTOR_COMPLETE',
+  'REVIEW_ISSUES:',
+  'ANALYSIS_ISSUES:',
+  'DOC_COMPLETE',
+] as const;
+
+/** Failure markers - single source of truth */
+const FAILURE_MARKERS = [
+  'PLAN_FAILED',
+  'STRUCTURE_FAILED',
+  'IMPLEMENT_FAILED',
+  'TEST_FAILED',
+  'REFACTOR_FAILED',
+  'REVIEW_FAILED',
+  'ANALYSIS_FAILED',
+  'DOC_FAILED',
+] as const;
 
 /** Claude stream message types */
 type MessageType = 'system' | 'user' | 'assistant' | 'result';
@@ -49,17 +74,7 @@ export function extractResultFromContent(content: string): string {
   }
 
   // Fall back to searching text blocks for markers
-  const markers = [
-    'REVIEW_COMPLETE',
-    'GEMINI_ISSUES',
-    'BUILD_COMPLETE',
-    'PLAN_COMPLETE',
-    'TEST_COMPLETE',
-    'CLEAN_COMPLETE',
-    'DOC_COMPLETE',
-  ];
-
-  for (const marker of markers) {
+  for (const marker of SUCCESS_MARKERS) {
     const pattern = new RegExp(`"text"\\s*:\\s*"([^"]*${marker}[^"]*)"`, 'i');
     const match = content.match(pattern);
     if (match && match[1]) {
@@ -96,36 +111,14 @@ function unescapeJson(str: string): string {
  * Check if the stream indicates success.
  */
 export function isSuccessfulRun(content: string): boolean {
-  const successMarkers = [
-    'PLAN_COMPLETE',
-    'STRUCTURE_COMPLETE',
-    'IMPLEMENT_COMPLETE',
-    'TEST_COUNT:',
-    'REFACTOR_COMPLETE',
-    'REVIEW_ISSUES:',
-    'ANALYSIS_ISSUES:',
-    'DOC_COMPLETE',
-  ];
-
-  return successMarkers.some(marker => content.includes(marker));
+  return SUCCESS_MARKERS.some(marker => content.includes(marker));
 }
 
 /**
  * Check if the stream indicates failure.
  */
 export function isFailedRun(content: string): boolean {
-  const failureMarkers = [
-    'PLAN_FAILED',
-    'STRUCTURE_FAILED',
-    'IMPLEMENT_FAILED',
-    'TEST_FAILED',
-    'REFACTOR_FAILED',
-    'REVIEW_FAILED',
-    'ANALYSIS_FAILED',
-    'DOC_FAILED',
-  ];
-
-  return failureMarkers.some(marker => content.includes(marker));
+  return FAILURE_MARKERS.some(marker => content.includes(marker));
 }
 
 /**
