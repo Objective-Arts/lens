@@ -99,14 +99,12 @@ export function isSuccessfulRun(content: string): boolean {
   const successMarkers = [
     'PLAN_COMPLETE',
     'STRUCTURE_COMPLETE',
-    'BUILD_COMPLETE',
     'IMPLEMENT_COMPLETE',
-    'TEST_COMPLETE',
-    'CLEAN_COMPLETE',
+    'TEST_COUNT:',
     'REFACTOR_COMPLETE',
-    'REVIEW_COMPLETE',
+    'REVIEW_ISSUES:',
+    'ANALYSIS_ISSUES:',
     'DOC_COMPLETE',
-    'SCAFFOLD_COMPLETE',
   ];
 
   return successMarkers.some(marker => content.includes(marker));
@@ -118,12 +116,13 @@ export function isSuccessfulRun(content: string): boolean {
 export function isFailedRun(content: string): boolean {
   const failureMarkers = [
     'PLAN_FAILED',
-    'BUILD_FAILED',
+    'STRUCTURE_FAILED',
+    'IMPLEMENT_FAILED',
     'TEST_FAILED',
-    'CLEAN_FAILED',
+    'REFACTOR_FAILED',
     'REVIEW_FAILED',
+    'ANALYSIS_FAILED',
     'DOC_FAILED',
-    'SCAFFOLD_FAILED',
   ];
 
   return failureMarkers.some(marker => content.includes(marker));

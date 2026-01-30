@@ -115,28 +115,32 @@ describe('Claude Stream Parser', () => {
       expect(isSuccessfulRun('Task finished. PLAN_COMPLETE')).toBe(true);
     });
 
-    it('detects BUILD_COMPLETE', () => {
-      expect(isSuccessfulRun('BUILD_COMPLETE: Implementation done')).toBe(true);
+    it('detects STRUCTURE_COMPLETE', () => {
+      expect(isSuccessfulRun('STRUCTURE_COMPLETE: Types defined')).toBe(true);
     });
 
-    it('detects TEST_COMPLETE', () => {
-      expect(isSuccessfulRun('All tests pass. TEST_COMPLETE')).toBe(true);
+    it('detects IMPLEMENT_COMPLETE', () => {
+      expect(isSuccessfulRun('IMPLEMENT_COMPLETE: Implementation done')).toBe(true);
     });
 
-    it('detects CLEAN_COMPLETE', () => {
-      expect(isSuccessfulRun('Refactoring done. CLEAN_COMPLETE')).toBe(true);
+    it('detects TEST_COUNT', () => {
+      expect(isSuccessfulRun('TEST_COUNT: 5')).toBe(true);
     });
 
-    it('detects REVIEW_COMPLETE', () => {
-      expect(isSuccessfulRun('REVIEW_COMPLETE with 0 issues')).toBe(true);
+    it('detects REFACTOR_COMPLETE', () => {
+      expect(isSuccessfulRun('Refactoring done. REFACTOR_COMPLETE')).toBe(true);
+    });
+
+    it('detects REVIEW_ISSUES', () => {
+      expect(isSuccessfulRun('REVIEW_ISSUES: 0')).toBe(true);
+    });
+
+    it('detects ANALYSIS_ISSUES', () => {
+      expect(isSuccessfulRun('ANALYSIS_ISSUES: 2')).toBe(true);
     });
 
     it('detects DOC_COMPLETE', () => {
       expect(isSuccessfulRun('Documentation added. DOC_COMPLETE')).toBe(true);
-    });
-
-    it('detects SCAFFOLD_COMPLETE', () => {
-      expect(isSuccessfulRun('SCAFFOLD_COMPLETE - directories created')).toBe(true);
     });
 
     it('returns false for no markers', () => {
@@ -148,8 +152,8 @@ describe('Claude Stream Parser', () => {
     });
 
     it('is case sensitive', () => {
-      expect(isSuccessfulRun('build_complete')).toBe(false);
-      expect(isSuccessfulRun('Build_Complete')).toBe(false);
+      expect(isSuccessfulRun('implement_complete')).toBe(false);
+      expect(isSuccessfulRun('Implement_Complete')).toBe(false);
     });
   });
 
@@ -158,28 +162,32 @@ describe('Claude Stream Parser', () => {
       expect(isFailedRun('Could not complete. PLAN_FAILED')).toBe(true);
     });
 
-    it('detects BUILD_FAILED', () => {
-      expect(isFailedRun('BUILD_FAILED: Compilation error')).toBe(true);
+    it('detects STRUCTURE_FAILED', () => {
+      expect(isFailedRun('STRUCTURE_FAILED: Could not define types')).toBe(true);
+    });
+
+    it('detects IMPLEMENT_FAILED', () => {
+      expect(isFailedRun('IMPLEMENT_FAILED: Compilation error')).toBe(true);
     });
 
     it('detects TEST_FAILED', () => {
       expect(isFailedRun('Tests failed. TEST_FAILED')).toBe(true);
     });
 
-    it('detects CLEAN_FAILED', () => {
-      expect(isFailedRun('CLEAN_FAILED - linting errors')).toBe(true);
+    it('detects REFACTOR_FAILED', () => {
+      expect(isFailedRun('REFACTOR_FAILED - linting errors')).toBe(true);
     });
 
     it('detects REVIEW_FAILED', () => {
       expect(isFailedRun('REVIEW_FAILED: Critical issues found')).toBe(true);
     });
 
-    it('detects DOC_FAILED', () => {
-      expect(isFailedRun('DOC_FAILED: Could not generate docs')).toBe(true);
+    it('detects ANALYSIS_FAILED', () => {
+      expect(isFailedRun('ANALYSIS_FAILED: Qodana error')).toBe(true);
     });
 
-    it('detects SCAFFOLD_FAILED', () => {
-      expect(isFailedRun('SCAFFOLD_FAILED - permission denied')).toBe(true);
+    it('detects DOC_FAILED', () => {
+      expect(isFailedRun('DOC_FAILED: Could not generate docs')).toBe(true);
     });
 
     it('returns false for no failure markers', () => {
