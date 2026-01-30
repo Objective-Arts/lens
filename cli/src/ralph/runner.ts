@@ -83,11 +83,12 @@ function buildPhaseContext(
   item: PrdItem,
   config: RalphConfig,
   phase: Phase,
-  projectPath: string
+  projectPath: string,
+  verbose: boolean = false
 ): PhaseContext {
   const profileExperts = getProfileExpertsForPhase(config, phase.name);
   const detection = detectExperts(projectPath, phase.name, item.text, profileExperts);
-  const skills = loadSkills(projectPath, detection.experts as string[]);
+  const skills = loadSkills(projectPath, detection.experts as string[], verbose);
 
   return {
     session,
@@ -244,7 +245,7 @@ async function runItemPhases(
       continue;
     }
 
-    const context = buildPhaseContext(session, item, config, phase, projectPath);
+    const context = buildPhaseContext(session, item, config, phase, projectPath, true);
 
     if (!phase.shouldRun(context)) {
       phaseStatus.set(phase.name, 'skipped');

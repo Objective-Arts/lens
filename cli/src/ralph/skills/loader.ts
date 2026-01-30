@@ -36,15 +36,21 @@ export function loadSkill(projectPath: string, skillName: string): Skill | null 
  *
  * @param projectPath - Project root path
  * @param skillNames - Array of skill names
+ * @param verbose - Print confirmation of loaded skills
  * @returns Array of loaded skills (excludes not found)
  */
-export function loadSkills(projectPath: string, skillNames: string[]): Skill[] {
+export function loadSkills(projectPath: string, skillNames: string[], verbose: boolean = false): Skill[] {
   const skills: Skill[] = [];
 
   for (const name of skillNames) {
     const skill = loadSkill(projectPath, name);
     if (skill) {
       skills.push(skill);
+      if (verbose) {
+        const lines = skill.content.split('\n').length;
+        const preview = skill.content.slice(0, 60).replace(/\n/g, ' ').trim();
+        console.log(`      ✓ ${name}: ${lines} lines loaded "${preview}..."`);
+      }
     }
   }
 

@@ -76,7 +76,7 @@ phases:
   static-analysis:
     description: Run analyzers, fix issues found
     experts:
-      W- kernighan      # Simplify, clarify
+      - kernighan      # Simplify, clarify
       - bloch          # API correctness
       - liskov         # Type contract violations
       - owasp          # Security findings
