@@ -144,7 +144,7 @@ Autonomous iteration loop for PRD implementation with quality gates.
 /ralph-loop --resume         # Continue from last session
 ```
 
-See [Ralph Integration docs](../docs/ralph-integration.md) for full details.
+See [Ralph Loop Tutorial](../documentation/tutorials/ralph-loop-basics.md) for full details.
 
 ## Installation
 

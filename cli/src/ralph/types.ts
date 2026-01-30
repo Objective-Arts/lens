@@ -21,7 +21,7 @@ export interface Prd {
   raw: string;
 }
 
-/** Stage names */
+/** Stage names (legacy - use PhaseName for new code) */
 export type StageName =
   | 'plan'
   | 'build'
@@ -29,6 +29,33 @@ export type StageName =
   | 'test'
   | 'review'
   | 'doc';
+
+/**
+ * Phase names for the 8-phase workflow.
+ * Following linus: data structures first.
+ * Following dijkstra: explicit, ordered sequence.
+ */
+export type PhaseName =
+  | 'plan'
+  | 'structure-first'
+  | 'implement'
+  | 'build-tests'
+  | 'refactor-check'
+  | 'adversarial-review'
+  | 'static-analysis'
+  | 'doc-code';
+
+/** Phase execution order - same for commands and Ralph loop */
+export const PHASE_ORDER: readonly PhaseName[] = [
+  'plan',
+  'structure-first',
+  'implement',
+  'build-tests',
+  'refactor-check',
+  'adversarial-review',
+  'static-analysis',
+  'doc-code',
+] as const;
 
 /** Stage execution result */
 export type StageResult =
@@ -125,3 +152,69 @@ export interface SkillDetection {
 
 /** Stage status for pipeline progress display */
 export type StageStatus = 'pending' | 'running' | 'done' | 'skipped' | 'failed';
+
+// =============================================================================
+// PHASE CONFIGURATION TYPES (from workflow-phases.yaml)
+// =============================================================================
+
+/**
+ * Configuration for a single phase from workflow-phases.yaml.
+ * Following cherny: readonly for immutability.
+ */
+export interface PhaseConfig {
+  readonly description: string;
+  readonly experts: readonly string[];
+}
+
+/**
+ * Complete workflow phases configuration.
+ * Loaded from config/workflow-phases.yaml.
+ */
+export interface WorkflowPhasesConfig {
+  readonly phases: Readonly<Record<PhaseName, PhaseConfig>>;
+  readonly 'ralph-sequence': readonly PhaseName[];
+}
+
+// =============================================================================
+// KEYWORD DETECTION TYPES (from keyword-detection.yaml)
+// =============================================================================
+
+/**
+ * A single keyword detection rule.
+ * Patterns trigger expert loading.
+ */
+export interface KeywordRule {
+  readonly patterns: readonly string[];
+  readonly experts: readonly string[];
+}
+
+/**
+ * Complete keyword detection configuration.
+ * Loaded from config/keyword-detection.yaml.
+ */
+export interface KeywordDetectionConfig {
+  readonly rules: Readonly<Record<string, KeywordRule>>;
+}
+
+/**
+ * Compiled keyword rule with regex for matching.
+ * Following gang-of-four: Strategy pattern for detection.
+ */
+export interface CompiledKeywordRule {
+  readonly category: string;
+  readonly pattern: RegExp;
+  readonly experts: readonly string[];
+}
+
+/**
+ * Expert detection result with source tracking.
+ * Following bloch: clear return types.
+ */
+export interface ExpertDetection {
+  /** Expert names to load */
+  readonly experts: readonly string[];
+  /** Keywords that triggered detection (for display) */
+  readonly matchedKeywords: readonly string[];
+  /** Source of each expert (phase vs keyword) */
+  readonly sources: Readonly<Record<string, 'phase' | 'keyword' | 'profile'>>;
+}

@@ -153,12 +153,6 @@
       "sourceFile": "javascript/osmani",
       "hash": "498961011cfadfcf6627335060958e79fe3d769de91c0d7a390ab0f0b20e2d0c",
       "modified": false
-    },
-    "frontend-design": {
-      "installedAt": "2026-01-28T04:14:40.559Z",
-      "sourceFile": "ui-ux/frontend-design",
-      "hash": "f559146509164acbfc96be853c9ced0ce2b4e759142a47ccb4a9cd77b5be9833",
-      "modified": false
     }
   }
 }

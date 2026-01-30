@@ -2,7 +2,7 @@
 
 *A Pattern Language in the Style of the Gang of Four*
 
-> **This is a theoretical reference.** For practical usage, see the [Workflow Guide](../../docs/WORKFLOW-GUIDE.md).
+> **This is a theoretical reference.** For practical usage, see the [How-To Guides](../how-to/).
 
 ---
 

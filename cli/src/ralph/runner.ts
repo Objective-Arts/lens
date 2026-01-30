@@ -7,13 +7,12 @@
 
 import * as fs from 'fs';
 import * as path from 'path';
-import { Prd, PrdItem, Session, RalphConfig, Skill, StageStatus, SkillDetection } from './types.js';
+import { Prd, PrdItem, Session, RalphConfig, Skill, PhaseName, ExpertDetection } from './types.js';
 import { parsePrd, countIncomplete, getNextIncomplete, getIncompleteItems, isAllComplete } from './prd/parser.js';
 import { markItemComplete } from './prd/updater.js';
 import { loadConfig } from './config/loader.js';
 import { loadSkills } from './skills/loader.js';
-import { getSkillsForStage } from './skills/detector.js';
-import { createStages, StageContext } from './stages/index.js';
+import { createPhases, PhaseContext, PhaseStatus, detectExperts } from './phases/index.js';
 import {
   SummaryCollector,
   generateSummaryHtml,
@@ -68,8 +67,8 @@ export async function run(options: RunnerOptions): Promise<void> {
   const projectType = detectProjectType(projectPath);
   printHeader(prdPath, remaining, projectType);
 
-  // Create stages
-  const stages = createStages();
+  // Create phases (8-phase workflow)
+  const phases = createPhases();
 
   // Initialize summary collector BEFORE early exit check
   const summaryCollector = new SummaryCollector(
@@ -119,122 +118,128 @@ export async function run(options: RunnerOptions): Promise<void> {
     // Start tracking this item in summary
     summaryCollector.startItem(itemNum, item.text);
 
-    // Initialize stage status tracking for pipeline progress display
-    const stageStatus = new Map<string, StageStatus>();
-    for (const s of stages) {
-      stageStatus.set(s.name, 'pending');
+    // Initialize phase status tracking for pipeline progress display
+    const phaseStatus = new Map<string, PhaseStatus>();
+    for (const p of phases) {
+      phaseStatus.set(p.name, 'pending');
     }
 
     // Print item header with pipeline progress
-    printItemHeader(itemNum, prd.items.length, item.text, stageStatus);
+    printItemHeader(itemNum, prd.items.length, item.text, phaseStatus);
 
-    // Run each stage for this item
+    // Run each phase for this item
     let itemFailed = false;
-    for (let stageIndex = 0; stageIndex < stages.length; stageIndex++) {
-      const stage = stages[stageIndex];
+    for (let phaseIndex = 0; phaseIndex < phases.length; phaseIndex++) {
+      const phase = phases[phaseIndex];
 
-      // Skip review if requested
-      if (stage.name === 'review' && skipReview) {
-        stageStatus.set(stage.name, 'skipped');
+      // Skip adversarial-review if requested (replaces old 'review' skip)
+      if (phase.name === 'adversarial-review' && skipReview) {
+        phaseStatus.set(phase.name, 'skipped');
         continue;
       }
 
-      // Get skills for this stage (now returns SkillDetection with keywords)
-      const profileSkills = config.skills[stage.name as keyof typeof config.skills] ?? [];
-      const detection = getSkillsForStage(profileSkills, item.text, stage.name as any, projectPath);
-      const skills = loadSkills(projectPath, detection.skills);
+      // Get experts for this phase using new 4-layer detection
+      const profileExperts = getProfileExpertsForPhase(config, phase.name);
+      const detection = detectExperts(projectPath, phase.name, item.text, profileExperts);
+
+      // Convert expert names to Skill objects
+      const skills = loadSkills(projectPath, detection.experts as string[]);
 
       // Build context
-      const context: StageContext = {
+      const context: PhaseContext = {
         session,
         item,
-        skills,
+        experts: skills,
         projectPath,
         logsDir: session.logsDir,
       };
 
-      // Check if stage should run
-      if (!stage.shouldRun(context)) {
-        stageStatus.set(stage.name, 'skipped');
+      // Check if phase should run
+      if (!phase.shouldRun(context)) {
+        phaseStatus.set(phase.name, 'skipped');
         if (verbose) {
-          printStageSkipped(stage.name, 'Not needed');
+          printStageSkipped(phase.name, 'Not needed');
         }
         continue;
       }
 
-      // Mark stage as running
-      stageStatus.set(stage.name, 'running');
+      // Mark phase as running
+      phaseStatus.set(phase.name, 'running');
 
-      // Print stage header with detection info and position
-      printStageHeader(stage.name, detection, stageIndex, stages.length);
+      // Print phase header with detection info and position
+      const detectionInfo = {
+        skills: detection.experts as string[],
+        keywords: detection.matchedKeywords as string[],
+      };
+      printStageHeader(phase.name, detectionInfo, phaseIndex, phases.length);
 
-      // Run stage with spinner
-      const spinner = new Spinner(`Running ${stage.name}...`);
+      // Run phase with spinner
+      const spinner = new Spinner(`Running ${phase.name}...`);
       spinner.start();
       const startTime = Date.now();
 
       try {
-        const result = await stage.execute(context);
+        const result = await phase.execute(context);
         const durationMs = Date.now() - startTime;
         const duration = durationMs / 1000;
         spinner.stop();
 
-        // Build stage summary for D3 visualization
-        const stageSummary: StageSummary = {
-          name: stage.name,
+        // Build phase summary for D3 visualization
+        const phaseSummary: StageSummary = {
+          name: phase.name,
           status: result.status === 'success' ? 'done' : result.status === 'skipped' ? 'skipped' : 'failed',
           durationMs,
         };
 
-        // Parse stage-specific data from result (only on success with metrics)
+        // Parse phase-specific data from result (only on success with metrics)
         if (result.status === 'success' && result.metrics) {
-          if (stage.name === 'review') {
+          if (phase.name === 'adversarial-review') {
             // Read raw output for issue details
-            const rawPath = path.join(session.logsDir, `item${itemNum}-review.raw`);
-            const qodanaRawPath = path.join(session.logsDir, `item${itemNum}-review-qodana.raw`);
+            const rawPath = path.join(session.logsDir, `item${itemNum}-adversarial-review.raw`);
+            const qodanaRawPath = path.join(session.logsDir, `item${itemNum}-static-analysis-qodana.raw`);
             if (fs.existsSync(rawPath)) {
-              (stageSummary as any).gemini = parseGeminiIssues(fs.readFileSync(rawPath, 'utf-8'));
+              (phaseSummary as any).gemini = parseGeminiIssues(fs.readFileSync(rawPath, 'utf-8'));
             }
             if (fs.existsSync(qodanaRawPath)) {
-              (stageSummary as any).qodana = parseQodanaIssues(fs.readFileSync(qodanaRawPath, 'utf-8'));
+              (phaseSummary as any).qodana = parseQodanaIssues(fs.readFileSync(qodanaRawPath, 'utf-8'));
             }
-          } else if (stage.name === 'test') {
-            (stageSummary as any).tests = {
+          } else if (phase.name === 'build-tests') {
+            (phaseSummary as any).tests = {
               passed: result.metrics.passed ?? 0,
               failed: result.metrics.failed ?? 0,
               written: result.metrics.written ?? 0,
             };
-          } else if (stage.name === 'refactor') {
-            const rawPath = path.join(session.logsDir, `item${itemNum}-refactor.raw`);
+          } else if (phase.name === 'refactor-check') {
+            const rawPath = path.join(session.logsDir, `item${itemNum}-refactor-check.raw`);
             if (fs.existsSync(rawPath)) {
-              (stageSummary as any).refactor = parseRefactorResults(fs.readFileSync(rawPath, 'utf-8'));
+              (phaseSummary as any).refactor = parseRefactorResults(fs.readFileSync(rawPath, 'utf-8'));
             }
           }
         }
 
-        summaryCollector.addStage(stageSummary);
+        summaryCollector.addStage(phaseSummary);
 
         if (result.status === 'success') {
-          stageStatus.set(stage.name, 'done');
-          printStageComplete(stage.name, duration, result.message);
+          phaseStatus.set(phase.name, 'done');
+          printStageComplete(phase.name, duration, result.message);
         } else if (result.status === 'skipped') {
-          stageStatus.set(stage.name, 'skipped');
-          printStageSkipped(stage.name, result.reason);
+          phaseStatus.set(phase.name, 'skipped');
+          printStageSkipped(phase.name, result.reason);
         } else {
-          stageStatus.set(stage.name, 'failed');
-          printStageFailed(stage.name, result.error);
+          phaseStatus.set(phase.name, 'failed');
+          printStageFailed(phase.name, result.error);
           itemFailed = true;
           break; // Stop processing this item
         }
       } catch (err) {
         spinner.stop();
-        stageStatus.set(stage.name, 'failed');
+        phaseStatus.set(phase.name, 'failed');
         const error = err instanceof Error ? err.message : String(err);
-        printStageFailed(stage.name, error);
+        printStageFailed(phase.name, error);
 
-        // Still record failed stage in summary
+        // Still record failed phase in summary
         summaryCollector.addStage({
-          name: stage.name,
+          name: phase.name,
           status: 'failed',
           durationMs: Date.now() - startTime,
         });
@@ -244,7 +249,7 @@ export async function run(options: RunnerOptions): Promise<void> {
       }
     }
 
-    // Mark item complete if all stages passed
+    // Mark item complete if all phases passed
     if (!itemFailed) {
       summaryCollector.completeItem('success');
 
@@ -278,6 +283,26 @@ export async function run(options: RunnerOptions): Promise<void> {
 
   // Open summary in browser
   await openSummary(summaryPath);
+}
+
+/**
+ * Get profile experts for a phase (maps old stage names to new phase names).
+ */
+function getProfileExpertsForPhase(config: RalphConfig, phaseName: PhaseName): string[] {
+  // Map new phase names to config keys (which may still use old names)
+  const mapping: Record<PhaseName, keyof RalphConfig['skills']> = {
+    'plan': 'plan',
+    'structure-first': 'plan', // Uses plan experts from config
+    'implement': 'build',
+    'build-tests': 'test',
+    'refactor-check': 'refactor',
+    'adversarial-review': 'review',
+    'static-analysis': 'review',
+    'doc-code': 'doc',
+  };
+
+  const configKey = mapping[phaseName];
+  return config.skills[configKey] ?? [];
 }
 
 /**

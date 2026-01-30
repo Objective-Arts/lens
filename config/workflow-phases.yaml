@@ -1,0 +1,103 @@
+# Workflow Phases
+#
+# These phases are used BOTH:
+# - As standalone commands: /plan, /structure-first, /implement, etc.
+# - As Ralph loop steps: cycles through all phases in order
+#
+# Each phase has experts suited to that activity.
+
+phases:
+  plan:
+    description: Understand requirements, design approach
+    experts:
+      - kernighan      # Clarity of requirements
+      - pike           # Minimal interfaces
+      - linus          # Data structures first thinking
+      - dijkstra       # Correctness, invariants
+      - liskov         # Type contracts
+      - porter         # Strategic thinking (if business context)
+      - rumelt         # Good strategy structure
+      - taleb          # Antifragility, black swans
+      - petroski       # Learn from failures
+      - leveson        # Safety as system property
+
+  structure-first:
+    description: Design data structures and types before code
+    experts:
+      - linus          # Data structures first
+      - cherny         # TypeScript type design
+      - dijkstra       # Invariants, formal correctness
+      - liskov         # Substitution principle
+      - hejlsberg      # Type system design
+      - bloch          # API/data structure design
+      - gang-of-four   # Structural patterns
+
+  implement:
+    description: Write the code
+    experts:
+      - thompson       # Get it working first
+      - kernighan      # Keep it readable
+      - pike           # Composition over complexity
+      - mcilroy        # Unix philosophy, pipelines
+      - bill-joy       # Failure handling
+      - carmack        # Performance awareness
+      # Language-specific loaded from profile
+
+  build-tests:
+    description: Write tests for implemented code (tests follow code, not TDD)
+    experts:
+      - meszaros       # xUnit patterns, test doubles
+      - fowler-test    # Test pyramid, test strategy
+      - dodds          # Testing Trophy, integration focus
+      - hevery         # Testable code design
+      - feathers       # Characterization tests for existing code
+
+  refactor-check:
+    description: Simplify and clean up, verify still works
+    experts:
+      - kernighan      # Simplify, clarify
+      - thompson       # Remove cruft
+      - feathers       # Safe refactoring with seams
+      - gang-of-four   # Pattern-based refactoring
+      - pike           # Reduce interfaces
+
+  adversarial-review:
+    description: Attack your own code, fix issues found
+    experts:
+      - schneier       # Think like an attacker
+      - owasp          # Vulnerability patterns
+      - tanya-janca    # AppSec, secure SDLC
+      - troy-hunt      # Breach patterns, real attacks
+      - security-mindset  # Systematic threat thinking
+      - petroski       # Failure analysis
+      - leveson        # Safety analysis
+      - taleb          # Black swans, antifragility
+
+  static-analysis:
+    description: Run analyzers, fix issues found
+    experts:
+      - bloch          # API correctness
+      - liskov         # Type contract violations
+      - owasp          # Security findings
+      - crockford      # JS pitfalls (if JS/TS)
+      # Note: Qodana/Gemini run here, experts help interpret and fix
+
+  doc-code:
+    description: Document the completed work
+    experts:
+      - procida        # Diátaxis framework
+      - strunk-white   # Omit needless words
+      - zinsser        # Clarity, simplicity
+      - king           # Kill your darlings
+      - kernighan      # Clear explanation
+
+# Ralph loops through phases in this order:
+ralph-sequence:
+  - plan
+  - structure-first
+  - implement
+  - build-tests
+  - refactor-check
+  - adversarial-review
+  - static-analysis
+  - doc-code

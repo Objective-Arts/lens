@@ -119,7 +119,6 @@
 | Design system, tokens, theming | INVOKE `/curtis` |
 | Typography, text styling, fonts | INVOKE `/kruzeniski` |
 | CSS, styling, layouts | INVOKE `/rams` |
-| Building web UI, creating distinctive interfaces, frontend aesthetics | INVOKE `/frontend-design` for production-grade, visually striking interfaces |
 | Design-dev handoff, collaboration, prototyping workflow | INVOKE `/mall` for hot potato collaboration |
 | Starting a new PRD item implementation | Read git log, identify related previous work |
 | Feature implementation complete | INVOKE `/test` then `/review-hard` |

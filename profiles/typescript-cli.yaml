@@ -1,56 +1,82 @@
 name: typescript-cli
-description: TypeScript CLI/backend projects without frontend. Combines software-base with TypeScript canon.
+description: TypeScript CLI/backend projects. Node.js, no frontend.
 projectType: software
 composable: true
 
-# NOTE: Use with software-base for complete coverage:
+# Combine with software-base for complete coverage:
 #   cc-config profile apply software-base+typescript-cli .
-#
-# Or use standalone for minimal TypeScript setup:
-#   cc-config profile apply typescript-cli .
 
 skills:
   canon:
-    # TypeScript expertise
+    # TypeScript mastery
     - cherny          # Programming TypeScript - inference, generics, type guards
-    - crockford       # JavaScript: The Good Parts - safe subset, avoiding pitfalls
+    - hejlsberg       # TypeScript compiler, type system design
 
-    # Node.js backend
-    - osmani          # Performance patterns, memory management, event loop
+    # JavaScript foundations
+    - crockford       # JavaScript: The Good Parts - safe subset
+    - kyle-simpson    # You Don't Know JS - closures, this, scope, prototypes
+    - osmani          # JavaScript design patterns, module patterns
+    - ashkenas        # Functional JS, lodash patterns
+    - cleary          # Async patterns, promises, event loop
 
-    # If standalone (without software-base), include core canon:
-    # The baseline brain and testing canon are in software-base
-    # Only add these if using typescript-cli alone
-
-agents:
-  - code-reviewer
-  - test-engineer
+    # Node.js
+    - mcilroy         # Unix philosophy for CLI design
+    - pike            # Small tools, composition
 
 claudeMd:
   standards:
-    - "Let TypeScript infer types - annotate minimally (Cherny)"
+    # TypeScript
+    - "Let TypeScript infer types - annotate sparingly (Cherny)"
     - "Use discriminated unions for state machines (Cherny)"
     - "Prefer unknown over any, narrow with type guards (Cherny)"
     - "Use const assertions for literal types (Cherny)"
+    - "Understand the type system, don't fight it (Hejlsberg)"
+
+    # JavaScript
     - "Avoid the bad parts - with, eval, implied globals (Crockford)"
-    - "Profile before optimizing Node.js (Osmani)"
+    - "Understand closures, this binding, scope chain (Kyle Simpson)"
+    - "Use strict mode always (Crockford)"
+    - "Prefer composition over inheritance (Osmani)"
+
+    # Async
+    - "Use async/await over raw promises (Cleary)"
+    - "Understand the event loop - never block it (Cleary)"
+    - "Handle promise rejections explicitly (Cleary)"
+
+    # CLI/Node
+    - "Do one thing well, compose with pipes (McIlroy)"
+    - "Exit codes matter - 0 for success, non-zero for failure (McIlroy)"
+    - "Stderr for errors and diagnostics, stdout for output (Pike)"
 
   antiPatterns:
-    - "Over-annotating types that TypeScript can infer"
+    - "Over-annotating types TypeScript can infer"
     - "Using any instead of unknown"
     - "Ignoring strict mode warnings"
     - "Type assertions (as) instead of type guards"
     - "Blocking the event loop with sync operations"
     - "Memory leaks from unclosed handles or listeners"
+    - "var declarations (use const/let)"
+    - "Implicit type coercion (use === and !==)"
+    - "Callback hell (use async/await)"
+    - "Ignoring promise rejections"
+    - "Mixing stdout and stderr incorrectly"
 
   autoInvoke:
     - context: TypeScript types, generics, inference, utility types
-      action: INVOKE `/cherny`
+      action: INVOKE /cherny
     - context: Type guards, discriminated unions, exhaustive checks
-      action: INVOKE `/cherny`
+      action: INVOKE /cherny
+    - context: TypeScript compiler behavior, type system edge cases
+      action: INVOKE /hejlsberg
+    - context: JavaScript closures, this, scope, prototypes
+      action: INVOKE /kyle-simpson
     - context: JavaScript pitfalls, safe patterns
-      action: INVOKE `/crockford`
-    - context: Node.js performance, memory leaks, event loop
-      action: INVOKE `/osmani`
+      action: INVOKE /crockford
+    - context: Async/await, promises, event loop
+      action: INVOKE /cleary
+    - context: Functional patterns, lodash-style operations
+      action: INVOKE /ashkenas
+    - context: Module patterns, design patterns in JS
+      action: INVOKE /osmani
     - context: CLI argument parsing, stdin/stdout handling
-      action: Apply Unix philosophy (McIlroy) - compose small tools
+      action: INVOKE /mcilroy and /pike

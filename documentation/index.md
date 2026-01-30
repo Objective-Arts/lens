@@ -14,7 +14,7 @@ Choose your path based on whether code exists:
 
 Both flows converge at shared review gates: `/test` → `/review-hard`
 
-**[Interactive Diagram](../flow-guide.html)**
+**[Interactive Diagram](flow-guide.html)**
 
 ---
 
@@ -107,7 +107,7 @@ See [Installation Reference](reference/installation.md) for complete setup guide
 
 | File | Location | Purpose |
 |------|----------|---------|
-| skill-rules.yaml | `canon/skill-rules.yaml` | Skill detection for Ralph + workflows |
+| skill-rules.yaml | `config/skill-rules.yaml` | Skill detection for Ralph + workflows |
 | Profiles | `profiles/*.yaml` | Project type configurations |
 | Canon Skills | `canon/*/SKILL.md` | Expert guidance content |
 

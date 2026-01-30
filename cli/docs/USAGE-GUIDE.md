@@ -33,7 +33,7 @@ Claude-Optimal supports two workflows that share planning and review but diverge
 | Modernizing legacy code | Legacy Code | `/refactor-clean` |
 | Cleaning up tech debt | Legacy Code | `/refactor-clean` |
 
-See [WORKFLOW-GUIDE.md](../../docs/WORKFLOW-GUIDE.md) for detailed documentation.
+See [documentation](../../documentation/index.md) for detailed documentation.
 
 ---
 

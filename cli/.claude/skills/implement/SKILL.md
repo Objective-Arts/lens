@@ -293,8 +293,8 @@ After final validation, generate the D3 report:
 - Reviews: 3 (self, Gemini, Qodana)
 - Issues found: 5 (all resolved)
 
-### Report Generated
-Open `framework/report.html` and load `.claude/session-log.json` to view the full implementation audit.
+### Session Log
+Review `.claude/session-log.json` for the full implementation audit.
 ```
 
 ## Enforcement Mechanism
@@ -312,11 +312,11 @@ The skill writes to session-log.json at each checkpoint. The D3 report visualize
 - Test counts won't match actual test files
 - Git commits won't corroborate claimed work
 
-## D3 Report Sections
+## Session Log Contents
 
-The `framework/report.html` visualizes:
+The `.claude/session-log.json` tracks:
 
-1. **Pipeline Flow** - Sankey diagram showing steps completed
+1. **Pipeline Flow** - Steps completed with timestamps
 2. **Canon Experts** - Who was consulted, what they contributed
 3. **Test Pyramid** - Levels executed, counts, pass/fail
 4. **Issues Found** - By reviewer (self/Gemini/Qodana), by severity, by flag
@@ -407,8 +407,8 @@ Initializing session log...
 - Reviews: 3 (self, Gemini, Qodana)
 - Issues found: 5 (all resolved)
 
-### Report
-Open framework/report.html and load .claude/session-log.json
+### Session Log
+Review .claude/session-log.json for audit trail
 ```
 
 ## MCP Requirements

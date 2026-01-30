@@ -17,7 +17,7 @@ cc-config profile apply javascript+ralph-integration -p .
 
 ### 2. Configure skill detection (optional)
 
-Edit `canon/skill-rules.yaml` to customize which canon experts are invoked:
+Edit `config/skill-rules.yaml` to customize which canon experts are invoked:
 
 ```yaml
 # Workflow defaults - always invoked for /ralph-loop stages
@@ -114,7 +114,7 @@ Change `review_threshold` from "clean" to "no_critical".
 
 ### Wrong skills being loaded
 
-Check `canon/skill-rules.yaml`:
+Check `config/skill-rules.yaml`:
 - Are patterns matching your task text?
 - Are stages correct for when you want the skill?
 

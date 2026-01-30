@@ -18,8 +18,8 @@ ralph:
       - curtis         # Design systems
       - kruzeniski     # Typography
       - rams           # 10 principles
-      - frontend-design  # Production UI
       - mall           # Design-dev handoff
+      - tufte          # Information design
     refactor:
       - frost          # Component extraction
       - rams           # Simplification

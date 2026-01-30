@@ -11,7 +11,7 @@ Canon skills are loaded through two mechanisms:
 
 ## Configuration File
 
-**Location**: `canon/skill-rules.yaml`
+**Location**: `config/skill-rules.yaml`
 
 This single file configures skill detection for both:
 - **Ralph stages** (plan, build, refactor, test, review, doc)
@@ -156,7 +156,7 @@ canon/bloch/
 function loadSkillRules(projectPath: string): readonly SkillRule[]
 ```
 
-Loads detection rules from `canon/skill-rules.yaml`.
+Loads detection rules from `config/skill-rules.yaml`.
 
 ### getWorkflowSkills
 
@@ -206,4 +206,4 @@ Gets workflow defaults configuration.
 ## See Also
 
 - [Profile Reference](profiles.md) - How profiles define static skills
-- [Canon Configuration Docs](../../docs/canon-config/) - Full Diátaxis documentation
+- [How Skills Get Loaded](../explanation/how-skills-load.md) - Full explanation of loading layers

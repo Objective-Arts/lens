@@ -101,7 +101,7 @@ No vibes. No interpretations. If you can't cite it, don't include it.
 
 ## The Thesis
 
-See [COMPREHENSIVE-GUIDE.md](../docs/COMPREHENSIVE-GUIDE.md) for how canon integrates with Claude-Optimal methodology.
+See [documentation](../documentation/index.md) for how canon integrates with Claude-Optimal methodology.
 
 ---
 

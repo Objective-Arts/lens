@@ -14,7 +14,7 @@ Profiles bundle:
 
 ### How Profiles Work with Detection
 
-Profiles provide **static** skill assignments. Dynamic detection via `canon/skill-rules.yaml` **adds** context-specific skills based on task keywords.
+Profiles provide **static** skill assignments. Dynamic detection via `config/skill-rules.yaml` **adds** context-specific skills based on task keywords.
 
 ```
 Profile (static)              +    Detection (dynamic)
