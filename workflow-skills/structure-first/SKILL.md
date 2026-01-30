@@ -202,7 +202,7 @@ Write to `.claude/structures/[name].md`:
 
 **Structure written to**: `.claude/structures/[name].md`
 
-Ready to proceed to `/build-from-plan` or `/refactor-clean`?
+Ready to proceed to `/build-from-plan` or `/refactor-check`?
 ```
 
 ### Step 3.2: Wait for Approval
@@ -218,14 +218,14 @@ If user requests changes, return to Phase 2 and revise.
 **After outputting the structure summary above, you MUST STOP.**
 
 - DO NOT proceed to `/build-from-plan`
-- DO NOT proceed to `/refactor-clean`
+- DO NOT proceed to `/refactor-check`
 - DO NOT start writing any implementation code
 - DO NOT create any source files (.js, .ts, .java, .py, etc.)
 - DO NOT continue with "let me also..." or "I'll go ahead and..."
 
 **Your turn ends here.** Output the structure summary and STOP. Wait for the user to explicitly type the next command.
 
-The user will type `/build-from-plan` or `/refactor-clean` when ready. Until then, do nothing.
+The user will type `/build-from-plan` or `/refactor-check` when ready. Until then, do nothing.
 
 ---
 

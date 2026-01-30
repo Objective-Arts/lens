@@ -113,13 +113,15 @@ Example:
   ralph PRD.md
   ralph PRD.md --skip-review
 
-Ralph processes each unchecked item in the PRD through:
-  1. Plan     - Create implementation plan
-  2. Build    - Implement the plan
-  3. Refactor - Structural improvements
-  4. Test     - Write and run tests
-  5. Review   - Gemini adversarial + Qodana static analysis
-  6. Doc      - Add documentation
+Ralph processes each unchecked item in the PRD through 8 phases:
+  1. Plan              - Understand requirements, design approach
+  2. Structure-First   - Design data structures and types
+  3. Implement         - Write the code
+  4. Build-Tests       - Write tests for implemented code
+  5. Refactor-Check    - Simplify and clean up
+  6. Adversarial-Review - Gemini security review
+  7. Static-Analysis   - Qodana code analysis
+  8. Doc-Code          - Document the completed work
 
 Prerequisites:
   - Claude CLI installed

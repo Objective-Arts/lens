@@ -309,7 +309,7 @@ describe('workflow commands', () => {
     expect(result.exitCode).toBe(0);
     expect(result.stdout).toContain('Available Workflow Skills');
     expect(result.stdout).toContain('review-hard');
-    expect(result.stdout).toContain('refactor-clean');
+    expect(result.stdout).toContain('refactor-check');
     expect(result.stdout).toContain('structure-first');
     expect(result.stdout).toContain('test');
     expect(result.stdout).toContain('plan');
@@ -346,7 +346,7 @@ describe('workflow commands', () => {
     const skillsDir = path.join(testDir, '.claude', 'skills');
     expect(fs.existsSync(path.join(skillsDir, 'plan', 'SKILL.md'))).toBe(true);
     expect(fs.existsSync(path.join(skillsDir, 'review-hard', 'SKILL.md'))).toBe(true);
-    expect(fs.existsSync(path.join(skillsDir, 'refactor-clean', 'SKILL.md'))).toBe(true);
+    expect(fs.existsSync(path.join(skillsDir, 'refactor-check', 'SKILL.md'))).toBe(true);
     expect(fs.existsSync(path.join(skillsDir, 'structure-first', 'SKILL.md'))).toBe(true);
     expect(fs.existsSync(path.join(skillsDir, 'test', 'SKILL.md'))).toBe(true);
   });
@@ -438,7 +438,7 @@ describe('profile apply with workflow skills', () => {
     const skillsDir = path.join(testDir, '.claude', 'skills');
     expect(fs.existsSync(path.join(skillsDir, 'plan', 'SKILL.md'))).toBe(true);
     expect(fs.existsSync(path.join(skillsDir, 'review-hard', 'SKILL.md'))).toBe(true);
-    expect(fs.existsSync(path.join(skillsDir, 'refactor-clean', 'SKILL.md'))).toBe(true);
+    expect(fs.existsSync(path.join(skillsDir, 'refactor-check', 'SKILL.md'))).toBe(true);
     expect(fs.existsSync(path.join(skillsDir, 'structure-first', 'SKILL.md'))).toBe(true);
     expect(fs.existsSync(path.join(skillsDir, 'test', 'SKILL.md'))).toBe(true);
   });

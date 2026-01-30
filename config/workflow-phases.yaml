@@ -12,10 +12,11 @@ phases:
     experts:
       - kernighan      # Clarity of requirements
       - pike           # Minimal interfaces
+      - bill-joy
+      - thompson
       - linus          # Data structures first thinking
       - dijkstra       # Correctness, invariants
       - liskov         # Type contracts
-      - porter         # Strategic thinking (if business context)
       - rumelt         # Good strategy structure
       - taleb          # Antifragility, black swans
       - petroski       # Learn from failures
@@ -25,12 +26,11 @@ phases:
     description: Design data structures and types before code
     experts:
       - linus          # Data structures first
-      - cherny         # TypeScript type design
       - dijkstra       # Invariants, formal correctness
       - liskov         # Substitution principle
-      - hejlsberg      # Type system design
       - bloch          # API/data structure design
       - gang-of-four   # Structural patterns
+      - thompson
 
   implement:
     description: Write the code
@@ -76,10 +76,10 @@ phases:
   static-analysis:
     description: Run analyzers, fix issues found
     experts:
+      W- kernighan      # Simplify, clarify
       - bloch          # API correctness
       - liskov         # Type contract violations
       - owasp          # Security findings
-      - crockford      # JS pitfalls (if JS/TS)
       # Note: Qodana/Gemini run here, experts help interpret and fix
 
   doc-code:

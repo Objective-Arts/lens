@@ -937,7 +937,7 @@ function getWorkflowCommandsDocs(projectPath: string): string {
     { name: 'test', cmd: '/test [--coverage] [--watch]', desc: 'Run tests with Testing Trophy strategy' },
     { name: 'plan', cmd: '/plan [task]', desc: 'Create implementation plan before coding' },
     { name: 'structure-first', cmd: '/structure-first [feature]', desc: 'Design data structures before implementation' },
-    { name: 'refactor-clean', cmd: '/refactor-clean [target]', desc: 'Systematic code cleanup' },
+    { name: 'refactor-check', cmd: '/refactor-check [target]', desc: 'Systematic code cleanup' },
     { name: 'build-from-plan', cmd: '/build-from-plan [plan-file]', desc: 'Execute approved plan' }
   ] as const;
 
@@ -1287,6 +1287,59 @@ async function applyMcpToProject(
 }
 
 // ============================================================================
+// Phase Configuration Files
+// ============================================================================
+
+/** Source directory for phase config files */
+const PHASE_CONFIG_SOURCE_DIR = process.env.CC_PHASE_CONFIG_DIR ??
+  path.join(homedir(), 'local-tech-projects', 'claude-optimal', 'config');
+
+/**
+ * Copy phase configuration files to project's config/ directory.
+ * These files define the 8-phase workflow and keyword detection rules.
+ */
+async function copyPhaseConfigFiles(
+  projectPath: string,
+  result: ApplyResult
+): Promise<void> {
+  const targetConfigDir = path.join(projectPath, 'config');
+  const files = ['workflow-phases.yaml', 'keyword-detection.yaml'];
+
+  // Check if source directory exists
+  if (!fs.existsSync(PHASE_CONFIG_SOURCE_DIR)) {
+    result.warnings.push(`Phase config source not found: ${PHASE_CONFIG_SOURCE_DIR}`);
+    return;
+  }
+
+  // Create target config directory
+  await fsPromises.mkdir(targetConfigDir, { recursive: true });
+
+  for (const file of files) {
+    const sourcePath = path.join(PHASE_CONFIG_SOURCE_DIR, file);
+    const targetPath = path.join(targetConfigDir, file);
+
+    if (!fs.existsSync(sourcePath)) {
+      result.warnings.push(`Phase config file not found: ${file}`);
+      continue;
+    }
+
+    // Don't overwrite existing config (user may have customized)
+    if (fs.existsSync(targetPath)) {
+      result.skipped.push(`config/${file} (already exists)`);
+      continue;
+    }
+
+    try {
+      await fsPromises.copyFile(sourcePath, targetPath);
+      result.created.push(`config/${file}`);
+    } catch (error) {
+      const message = error instanceof Error ? error.message : String(error);
+      result.errors.push(`Failed to copy ${file}: ${message}`);
+    }
+  }
+}
+
+// ============================================================================
 // Ralph Configuration Generation
 // ============================================================================
 
@@ -1441,6 +1494,13 @@ export async function applyComposableProfile(
 
   // Generate ralph-config.yaml if ralph config exists
   await generateRalphConfig(profile, projectPath, result);
+
+  // Copy phase configuration files (workflow-phases.yaml, keyword-detection.yaml)
+  // Only copy if using ralph (indicated by ralph config or ralph-integration profile)
+  const needsPhaseConfig = profile.ralph || profile.name?.includes('ralph-integration');
+  if (needsPhaseConfig) {
+    await copyPhaseConfigFiles(projectPath, result);
+  }
 
   // Apply MCP configuration (decomposed)
   await applyMcpToProject(profile, projectPath, result);

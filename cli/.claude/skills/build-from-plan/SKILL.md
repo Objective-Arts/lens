@@ -79,7 +79,7 @@ After implementation, report:
 ## Workflow Position
 
 ```
-/plan → /structure-first → /build-from-plan → /refactor-clean → /test → /review-hard
+/plan → /structure-first → /build-from-plan → /refactor-check → /test → /review-hard
 ```
 
 `/build-from-plan` is the implementation phase - after planning and structure design, before testing and review.

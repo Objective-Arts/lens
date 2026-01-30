@@ -264,7 +264,7 @@ Before presenting any code as complete, verify:
 
 - `--structure-first` enforces planning per these standards
 - `--review-hard` checks against these standards
-- `--refactor-clean` applies these standards to existing code
+- `--refactor-check` applies these standards to existing code
 
 ### With CLAUDE.md
 

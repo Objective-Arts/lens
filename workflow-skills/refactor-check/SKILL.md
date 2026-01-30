@@ -1,9 +1,9 @@
 ---
-name: refactor-clean
+name: refactor-check
 description: Modernize and refactor EXISTING CODE. Use after /plan and /structure-first in the Legacy Code Flow.
 ---
 
-# /refactor-clean [target]
+# /refactor-check [target]
 
 **LEGACY CODE FLOW ONLY** - Systematically refactor and modernize existing code.
 
@@ -258,7 +258,7 @@ Maintain a running log:
 
 **Working with legacy code is different from greenfield:**
 
-| Greenfield (build-from-plan) | Legacy (refactor-clean) |
+| Greenfield (build-from-plan) | Legacy (refactor-check) |
 |------------------------------|-------------------------|
 | Design then code | Understand then change |
 | Write tests first | Write characterization tests first |
@@ -286,12 +286,12 @@ Maintain a running log:
 
 ```
 LEGACY CODE FLOW:
-Existing Code → /plan → /structure-first → /refactor-clean → /test → /review-hard
+Existing Code → /plan → /structure-first → /refactor-check → /test → /review-hard
                                                  ↑
                                              YOU ARE HERE
 ```
 
-`/refactor-clean` is safe transformation with enforced Feathers/Fowler discipline.
+`/refactor-check` is safe transformation with enforced Feathers/Fowler discipline.
 
 ---
 

@@ -9,7 +9,7 @@ Choose your path based on whether code exists:
 | New Code Flow | Legacy Code Flow |
 |---------------|------------------|
 | PRD / Feature Request | Existing Codebase |
-| `/plan` → `/structure-first` → `/build-from-plan` | `/plan` → `/structure-first` → `/refactor-clean` |
+| `/plan` → `/structure-first` → `/build-from-plan` | `/plan` → `/structure-first` → `/refactor-check` |
 | Canon: Bloch, Pike, Schneier, Evans | Canon: Feathers, Fowler, Taleb, Liskov |
 
 Both flows converge at shared review gates: `/test` → `/review-hard`
@@ -107,7 +107,8 @@ See [Installation Reference](reference/installation.md) for complete setup guide
 
 | File | Location | Purpose |
 |------|----------|---------|
-| skill-rules.yaml | `config/skill-rules.yaml` | Skill detection for Ralph + workflows |
+| workflow-phases.yaml | `config/workflow-phases.yaml` | 8-phase workflow with experts |
+| keyword-detection.yaml | `config/keyword-detection.yaml` | Dynamic keyword-based expert detection |
 | Profiles | `profiles/*.yaml` | Project type configurations |
 | Canon Skills | `canon/*/SKILL.md` | Expert guidance content |
 

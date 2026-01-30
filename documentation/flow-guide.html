@@ -544,7 +544,7 @@
                 <div class="flow-title legacy-code">Legacy Code Flow</div>
                 <div class="flow-desc">Refactoring, cleaning up, or modernizing existing code.</div>
                 <div class="flow-path legacy-code">
-                    Existing → /plan → /structure-first → /refactor-clean → [reviews]
+                    Existing → /plan → /structure-first → /refactor-check → [reviews]
                 </div>
                 <div class="step-card legacy">
                     <div class="step-name legacy-code">/plan</div>
@@ -564,7 +564,7 @@
                     </div>
                 </div>
                 <div class="step-card legacy">
-                    <div class="step-name legacy-code">/refactor-clean</div>
+                    <div class="step-name legacy-code">/refactor-check</div>
                     <div class="step-purpose">Safe refactoring with seams</div>
                     <div class="canon-row">
                         <span class="canon-pill testing">/feathers</span>
@@ -617,7 +617,7 @@
                 </div>
             </div>
             <div class="feedback-loop">
-                <span class="feedback-text">Issues found? → Return to <code class="new-code">/build-from-plan</code> or <code class="legacy-code">/refactor-clean</code> → fix → re-review until all gates pass</span>
+                <span class="feedback-text">Issues found? → Return to <code class="new-code">/build-from-plan</code> or <code class="legacy-code">/refactor-check</code> → fix → re-review until all gates pass</span>
             </div>
         </div>
     </div>
@@ -643,7 +643,7 @@
 
             <div class="decision-a legacy">
                 <strong class="legacy-code">YES, but messy →</strong> Legacy Code Flow (refactor)<br>
-                <code style="color:#888;font-size:0.85rem;">/plan → /structure-first → /refactor-clean</code>
+                <code style="color:#888;font-size:0.85rem;">/plan → /structure-first → /refactor-check</code>
             </div>
 
             <div class="decision-a fix">
@@ -910,9 +910,9 @@
                 <div class="cmd-desc">Plan refactoring</div>
                 <div class="cmd-item legacy-code">/structure-first</div>
                 <div class="cmd-desc">Document existing structure</div>
-                <div class="cmd-item legacy-code">/refactor-clean [file]</div>
+                <div class="cmd-item legacy-code">/refactor-check [file]</div>
                 <div class="cmd-desc">Refactor target file</div>
-                <div class="cmd-item legacy-code">/refactor-clean</div>
+                <div class="cmd-item legacy-code">/refactor-check</div>
                 <div class="cmd-desc">Refactor recent code</div>
             </div>
 

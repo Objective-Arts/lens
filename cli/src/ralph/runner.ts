@@ -12,7 +12,7 @@ import { parsePrd, countIncomplete, getNextIncomplete, getIncompleteItems, isAll
 import { markItemComplete } from './prd/updater.js';
 import { loadConfig } from './config/loader.js';
 import { loadSkills } from './skills/loader.js';
-import { createPhases, PhaseContext, PhaseStatus, detectExperts } from './phases/index.js';
+import { createPhases, PhaseContext, PhaseStatus, detectExperts, Phase } from './phases/index.js';
 import {
   SummaryCollector,
   generateSummaryHtml,
@@ -34,10 +34,12 @@ import {
   printAllComplete,
   printError,
   printWarning,
+  printInfo,
   printPipelineProgress,
   printSummaryLink,
   Spinner,
 } from './display/terminal.js';
+import { getGitCommitHash, hasNewCommitsSince } from './process/claude.js';
 
 export interface RunnerOptions {
   prdPath: string;
@@ -46,253 +48,293 @@ export interface RunnerOptions {
   verbose?: boolean;
 }
 
-/**
- * Run ralph on a PRD file.
- */
-export async function run(options: RunnerOptions): Promise<void> {
-  const { prdPath, projectPath, skipReview, verbose } = options;
+/** Check if timeout can be recovered via commit detection. */
+async function canRecoverFromTimeout(
+  error: string,
+  projectPath: string,
+  commitHashBefore: string | null
+): Promise<boolean> {
+  if (!error.includes('timed out') || !commitHashBefore) {
+    return false;
+  }
+  return hasNewCommitsSince(projectPath, commitHashBefore);
+}
 
-  // Load configuration
-  const config = loadConfig(projectPath);
+/** Handle early exit when PRD is already complete. */
+async function handleAlreadyComplete(
+  prd: Prd,
+  summaryCollector: SummaryCollector,
+  logsDir: string
+): Promise<void> {
+  printAllComplete();
+  for (let i = 0; i < prd.items.length; i++) {
+    summaryCollector.startItem(i + 1, prd.items[i].text);
+    summaryCollector.completeItem('success');
+  }
+  const summary = summaryCollector.build();
+  const summaryPath = generateSummaryHtml(summary, logsDir);
+  printSummaryLink(summaryPath);
+  await openSummary(summaryPath);
+}
 
-  // Parse PRD
-  const prdContent = fs.readFileSync(prdPath, 'utf-8');
-  let prd = parsePrd(prdPath, prdContent);
+/** Build phase execution context. */
+function buildPhaseContext(
+  session: Session,
+  item: PrdItem,
+  config: RalphConfig,
+  phase: Phase,
+  projectPath: string
+): PhaseContext {
+  const profileExperts = getProfileExpertsForPhase(config, phase.name);
+  const detection = detectExperts(projectPath, phase.name, item.text, profileExperts);
+  const skills = loadSkills(projectPath, detection.experts as string[]);
 
-  // Initialize session
-  const session = createSession(prdPath, projectPath, prd);
+  return {
+    session,
+    item,
+    experts: skills,
+    projectPath,
+    logsDir: session.logsDir,
+  };
+}
 
-  // Print header
-  const remaining = countIncomplete(prd);
-  const projectType = detectProjectType(projectPath);
-  printHeader(prdPath, remaining, projectType);
+/** Parse phase-specific metrics into summary. */
+function parsePhaseMetrics(
+  phaseSummary: StageSummary,
+  phaseName: PhaseName,
+  logsDir: string,
+  itemNum: number,
+  metrics: Record<string, unknown>
+): void {
+  if (phaseName === 'adversarial-review') {
+    const rawPath = path.join(logsDir, `item${itemNum}-adversarial-review.raw`);
+    const qodanaPath = path.join(logsDir, `item${itemNum}-static-analysis-qodana.raw`);
+    if (fs.existsSync(rawPath)) {
+      (phaseSummary as any).gemini = parseGeminiIssues(fs.readFileSync(rawPath, 'utf-8'));
+    }
+    if (fs.existsSync(qodanaPath)) {
+      (phaseSummary as any).qodana = parseQodanaIssues(fs.readFileSync(qodanaPath, 'utf-8'));
+    }
+  } else if (phaseName === 'build-tests') {
+    (phaseSummary as any).tests = {
+      passed: metrics.passed ?? 0,
+      failed: metrics.failed ?? 0,
+      written: metrics.written ?? 0,
+    };
+  } else if (phaseName === 'refactor-check') {
+    const rawPath = path.join(logsDir, `item${itemNum}-refactor-check.raw`);
+    if (fs.existsSync(rawPath)) {
+      (phaseSummary as any).refactor = parseRefactorResults(fs.readFileSync(rawPath, 'utf-8'));
+    }
+  }
+}
 
-  // Create phases (8-phase workflow)
-  const phases = createPhases();
-
-  // Initialize summary collector BEFORE early exit check
-  const summaryCollector = new SummaryCollector(
-    session.id,
-    prdPath,
-    projectType,
-    prd.items.length
-  );
-
-  // Check if already complete - generate summary and exit
+/** Finalize run with summary generation. */
+async function finalizeRun(
+  prd: Prd,
+  summaryCollector: SummaryCollector,
+  logsDir: string
+): Promise<void> {
   if (isAllComplete(prd)) {
     printAllComplete();
+  }
+  const summary = summaryCollector.build();
+  const summaryPath = generateSummaryHtml(summary, logsDir);
+  printSummaryLink(summaryPath);
+  await openSummary(summaryPath);
+}
 
-    // Still generate summary showing all items as complete
-    for (let i = 0; i < prd.items.length; i++) {
-      const item = prd.items[i];
-      summaryCollector.startItem(i + 1, item.text);
-      summaryCollector.completeItem('success');
-    }
+/** Get detection info for phase header. */
+function getDetectionInfo(
+  config: RalphConfig,
+  phase: Phase,
+  item: PrdItem,
+  projectPath: string
+): { skills: string[]; keywords: string[] } {
+  const profileExperts = getProfileExpertsForPhase(config, phase.name);
+  const detection = detectExperts(projectPath, phase.name, item.text, profileExperts);
+  return {
+    skills: detection.experts as string[],
+    keywords: detection.matchedKeywords as string[],
+  };
+}
 
-    const summary = summaryCollector.build();
-    const summaryPath = generateSummaryHtml(summary, session.logsDir);
-    printSummaryLink(summaryPath);
-    await openSummary(summaryPath);
+/** Run ralph on a PRD file. */
+export async function run(options: RunnerOptions): Promise<void> {
+  const { prdPath, projectPath, skipReview, verbose } = options;
+  const config = loadConfig(projectPath);
+  const prdContent = fs.readFileSync(prdPath, 'utf-8');
+  let prd = parsePrd(prdPath, prdContent);
+  const session = createSession(prdPath, projectPath, prd);
+
+  const projectType = detectProjectType(projectPath);
+  printHeader(prdPath, countIncomplete(prd), projectType);
+
+  const phases = createPhases();
+  const summaryCollector = new SummaryCollector(
+    session.id, prdPath, projectType, prd.items.length
+  );
+
+  if (isAllComplete(prd)) {
+    await handleAlreadyComplete(prd, summaryCollector, session.logsDir);
     return;
   }
 
-  // Track attempted items to avoid infinite loop on failures
   const attemptedItems = new Set<number>();
-
-  // Main loop - process each incomplete item
   let itemNum = 0;
-  while (!isAllComplete(prd)) {
-    // Get all incomplete items and find one we haven't attempted
-    const incompleteItems = getIncompleteItems(prd);
-    const item = incompleteItems.find(i => !attemptedItems.has(i.lineNumber));
 
-    if (!item) {
-      // All incomplete items have been attempted
-      break;
-    }
+  while (!isAllComplete(prd)) {
+    const item = getIncompleteItems(prd).find(i => !attemptedItems.has(i.lineNumber));
+    if (!item) break;
 
     attemptedItems.add(item.lineNumber);
     itemNum++;
     session.currentItem = itemNum;
-
-    // Start tracking this item in summary
     summaryCollector.startItem(itemNum, item.text);
 
-    // Initialize phase status tracking for pipeline progress display
     const phaseStatus = new Map<string, PhaseStatus>();
-    for (const p of phases) {
-      phaseStatus.set(p.name, 'pending');
-    }
-
-    // Print item header with pipeline progress
+    phases.forEach(p => phaseStatus.set(p.name, 'pending'));
     printItemHeader(itemNum, prd.items.length, item.text, phaseStatus);
 
-    // Run each phase for this item
-    let itemFailed = false;
-    for (let phaseIndex = 0; phaseIndex < phases.length; phaseIndex++) {
-      const phase = phases[phaseIndex];
+    const itemFailed = await runItemPhases(
+      phases, item, session, config, projectPath, skipReview, verbose,
+      phaseStatus, summaryCollector, itemNum
+    );
 
-      // Skip adversarial-review if requested (replaces old 'review' skip)
-      if (phase.name === 'adversarial-review' && skipReview) {
-        phaseStatus.set(phase.name, 'skipped');
-        continue;
-      }
-
-      // Get experts for this phase using new 4-layer detection
-      const profileExperts = getProfileExpertsForPhase(config, phase.name);
-      const detection = detectExperts(projectPath, phase.name, item.text, profileExperts);
-
-      // Convert expert names to Skill objects
-      const skills = loadSkills(projectPath, detection.experts as string[]);
-
-      // Build context
-      const context: PhaseContext = {
-        session,
-        item,
-        experts: skills,
-        projectPath,
-        logsDir: session.logsDir,
-      };
-
-      // Check if phase should run
-      if (!phase.shouldRun(context)) {
-        phaseStatus.set(phase.name, 'skipped');
-        if (verbose) {
-          printStageSkipped(phase.name, 'Not needed');
-        }
-        continue;
-      }
-
-      // Mark phase as running
-      phaseStatus.set(phase.name, 'running');
-
-      // Print phase header with detection info and position
-      const detectionInfo = {
-        skills: detection.experts as string[],
-        keywords: detection.matchedKeywords as string[],
-      };
-      printStageHeader(phase.name, detectionInfo, phaseIndex, phases.length);
-
-      // Run phase with spinner
-      const spinner = new Spinner(`Running ${phase.name}...`);
-      spinner.start();
-      const startTime = Date.now();
-
-      try {
-        const result = await phase.execute(context);
-        const durationMs = Date.now() - startTime;
-        const duration = durationMs / 1000;
-        spinner.stop();
-
-        // Build phase summary for D3 visualization
-        const phaseSummary: StageSummary = {
-          name: phase.name,
-          status: result.status === 'success' ? 'done' : result.status === 'skipped' ? 'skipped' : 'failed',
-          durationMs,
-        };
-
-        // Parse phase-specific data from result (only on success with metrics)
-        if (result.status === 'success' && result.metrics) {
-          if (phase.name === 'adversarial-review') {
-            // Read raw output for issue details
-            const rawPath = path.join(session.logsDir, `item${itemNum}-adversarial-review.raw`);
-            const qodanaRawPath = path.join(session.logsDir, `item${itemNum}-static-analysis-qodana.raw`);
-            if (fs.existsSync(rawPath)) {
-              (phaseSummary as any).gemini = parseGeminiIssues(fs.readFileSync(rawPath, 'utf-8'));
-            }
-            if (fs.existsSync(qodanaRawPath)) {
-              (phaseSummary as any).qodana = parseQodanaIssues(fs.readFileSync(qodanaRawPath, 'utf-8'));
-            }
-          } else if (phase.name === 'build-tests') {
-            (phaseSummary as any).tests = {
-              passed: result.metrics.passed ?? 0,
-              failed: result.metrics.failed ?? 0,
-              written: result.metrics.written ?? 0,
-            };
-          } else if (phase.name === 'refactor-check') {
-            const rawPath = path.join(session.logsDir, `item${itemNum}-refactor-check.raw`);
-            if (fs.existsSync(rawPath)) {
-              (phaseSummary as any).refactor = parseRefactorResults(fs.readFileSync(rawPath, 'utf-8'));
-            }
-          }
-        }
-
-        summaryCollector.addStage(phaseSummary);
-
-        if (result.status === 'success') {
-          phaseStatus.set(phase.name, 'done');
-          printStageComplete(phase.name, duration, result.message);
-        } else if (result.status === 'skipped') {
-          phaseStatus.set(phase.name, 'skipped');
-          printStageSkipped(phase.name, result.reason);
-        } else {
-          phaseStatus.set(phase.name, 'failed');
-          printStageFailed(phase.name, result.error);
-          itemFailed = true;
-          break; // Stop processing this item
-        }
-      } catch (err) {
-        spinner.stop();
-        phaseStatus.set(phase.name, 'failed');
-        const error = err instanceof Error ? err.message : String(err);
-        printStageFailed(phase.name, error);
-
-        // Still record failed phase in summary
-        summaryCollector.addStage({
-          name: phase.name,
-          status: 'failed',
-          durationMs: Date.now() - startTime,
-        });
-
-        itemFailed = true;
-        break;
-      }
-    }
-
-    // Mark item complete if all phases passed
     if (!itemFailed) {
       summaryCollector.completeItem('success');
-
       const updatedContent = markItemComplete(prd, item);
       fs.writeFileSync(prdPath, updatedContent);
       prd = parsePrd(prdPath, updatedContent);
-
-      const newRemaining = countIncomplete(prd);
-      printItemComplete(itemNum, newRemaining);
+      printItemComplete(itemNum, countIncomplete(prd));
       session.completedItems++;
     } else {
       summaryCollector.completeItem('failed');
       printWarning(`Item ${itemNum} failed, moving to next item`);
     }
 
-    // Check iteration limits
     if (itemNum >= (config.settings?.maxIterations ?? 50)) {
       printWarning('Max iterations reached');
       break;
     }
   }
 
-  if (isAllComplete(prd)) {
-    printAllComplete();
-  }
-
-  // Generate D3 summary visualization
-  const summary = summaryCollector.build();
-  const summaryPath = generateSummaryHtml(summary, session.logsDir);
-  printSummaryLink(summaryPath);
-
-  // Open summary in browser
-  await openSummary(summaryPath);
+  await finalizeRun(prd, summaryCollector, session.logsDir);
 }
 
-/**
- * Get profile experts for a phase (maps old stage names to new phase names).
- */
+/** Run all phases for a single item. Returns true if item failed. */
+async function runItemPhases(
+  phases: Phase[],
+  item: PrdItem,
+  session: Session,
+  config: RalphConfig,
+  projectPath: string,
+  skipReview: boolean | undefined,
+  verbose: boolean | undefined,
+  phaseStatus: Map<string, PhaseStatus>,
+  summaryCollector: SummaryCollector,
+  itemNum: number
+): Promise<boolean> {
+  for (let i = 0; i < phases.length; i++) {
+    const phase = phases[i];
+    const commitHash = await getGitCommitHash(projectPath);
+
+    if (phase.name === 'adversarial-review' && skipReview) {
+      phaseStatus.set(phase.name, 'skipped');
+      continue;
+    }
+
+    const context = buildPhaseContext(session, item, config, phase, projectPath);
+
+    if (!phase.shouldRun(context)) {
+      phaseStatus.set(phase.name, 'skipped');
+      if (verbose) printStageSkipped(phase.name, 'Not needed');
+      continue;
+    }
+
+    phaseStatus.set(phase.name, 'running');
+    const detectionInfo = getDetectionInfo(config, phase, item, projectPath);
+    printStageHeader(phase.name, detectionInfo, i, phases.length);
+
+    const failed = await executePhase(
+      phase, context, projectPath, commitHash,
+      phaseStatus, summaryCollector, itemNum
+    );
+
+    if (failed) return true;
+  }
+  return false;
+}
+
+/** Execute a single phase with error handling. Returns true if failed. */
+async function executePhase(
+  phase: Phase,
+  context: PhaseContext,
+  projectPath: string,
+  commitHash: string | null,
+  phaseStatus: Map<string, PhaseStatus>,
+  summaryCollector: SummaryCollector,
+  itemNum: number
+): Promise<boolean> {
+  const spinner = new Spinner(`Running ${phase.name}...`);
+  spinner.start();
+  const startTime = Date.now();
+
+  try {
+    const result = await phase.execute(context);
+    const durationMs = Date.now() - startTime;
+    spinner.stop();
+
+    const phaseSummary: StageSummary = {
+      name: phase.name,
+      status: result.status === 'success' ? 'done' : result.status === 'skipped' ? 'skipped' : 'failed',
+      durationMs,
+    };
+
+    if (result.status === 'success' && result.metrics) {
+      parsePhaseMetrics(phaseSummary, phase.name, context.logsDir, itemNum, result.metrics);
+    }
+
+    summaryCollector.addStage(phaseSummary);
+
+    if (result.status === 'success') {
+      phaseStatus.set(phase.name, 'done');
+      printStageComplete(phase.name, durationMs / 1000, result.message);
+      return false;
+    } else if (result.status === 'skipped') {
+      phaseStatus.set(phase.name, 'skipped');
+      printStageSkipped(phase.name, result.reason);
+      return false;
+    } else {
+      phaseStatus.set(phase.name, 'failed');
+      printStageFailed(phase.name, result.error);
+      return true;
+    }
+  } catch (err) {
+    spinner.stop();
+    const error = err instanceof Error ? err.message : String(err);
+    const durationMs = Date.now() - startTime;
+
+    if (await canRecoverFromTimeout(error, projectPath, commitHash)) {
+      printInfo(`Timeout but commits detected - treating as success`);
+      phaseStatus.set(phase.name, 'done');
+      printStageComplete(phase.name, durationMs / 1000, 'Completed (timeout with commits)');
+      summaryCollector.addStage({ name: phase.name, status: 'done', durationMs });
+      return false;
+    }
+
+    phaseStatus.set(phase.name, 'failed');
+    printStageFailed(phase.name, error);
+    summaryCollector.addStage({ name: phase.name, status: 'failed', durationMs });
+    return true;
+  }
+}
+
+/** Get profile experts for a phase. */
 function getProfileExpertsForPhase(config: RalphConfig, phaseName: PhaseName): string[] {
-  // Map new phase names to config keys (which may still use old names)
   const mapping: Record<PhaseName, keyof RalphConfig['skills']> = {
     'plan': 'plan',
-    'structure-first': 'plan', // Uses plan experts from config
+    'structure-first': 'plan',
     'implement': 'build',
     'build-tests': 'test',
     'refactor-check': 'refactor',
@@ -300,22 +342,16 @@ function getProfileExpertsForPhase(config: RalphConfig, phaseName: PhaseName): s
     'static-analysis': 'review',
     'doc-code': 'doc',
   };
-
-  const configKey = mapping[phaseName];
-  return config.skills[configKey] ?? [];
+  return config.skills[mapping[phaseName]] ?? [];
 }
 
-/**
- * Create a new session.
- */
+/** Create a new session. */
 function createSession(prdPath: string, projectPath: string, prd: Prd): Session {
   const id = generateSessionId();
   const logsDir = path.join(projectPath, '.claude', 'ralph-logs');
-
   if (!fs.existsSync(logsDir)) {
     fs.mkdirSync(logsDir, { recursive: true });
   }
-
   return {
     id,
     startTime: new Date(),
@@ -324,13 +360,11 @@ function createSession(prdPath: string, projectPath: string, prd: Prd): Session 
     logsDir,
     currentItem: 0,
     totalItems: prd.items.length,
-    completedItems: countIncomplete(prd) === 0 ? prd.items.length : prd.items.length - countIncomplete(prd),
+    completedItems: prd.items.length - countIncomplete(prd),
   };
 }
 
-/**
- * Generate a unique session ID.
- */
+/** Generate a unique session ID. */
 function generateSessionId(): string {
   const now = new Date();
   const date = now.toISOString().slice(0, 10).replace(/-/g, '');
@@ -339,9 +373,7 @@ function generateSessionId(): string {
   return `${date}-${time}-${rand}`;
 }
 
-/**
- * Detect project type from files.
- */
+/** Detect project type from files. */
 function detectProjectType(projectPath: string): string {
   if (fs.existsSync(path.join(projectPath, 'package.json'))) {
     const pkg = JSON.parse(fs.readFileSync(path.join(projectPath, 'package.json'), 'utf-8'));

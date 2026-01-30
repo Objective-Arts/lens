@@ -182,7 +182,7 @@ Load these experts when context matches:
 
 **New Code**: `/plan` → `/structure-first` → `/build-from-plan` → `/test` → `/review-hard`
 
-**Legacy Code**: `/plan` → `/structure-first` → `/refactor-clean` → `/test` → `/review-hard`
+**Legacy Code**: `/plan` → `/structure-first` → `/refactor-check` → `/test` → `/review-hard`
 
 ## Anti-Patterns (NEVER DO)
 

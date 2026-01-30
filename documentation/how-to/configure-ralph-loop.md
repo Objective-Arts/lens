@@ -15,29 +15,45 @@ Stack with your base profile:
 cc-config profile apply javascript+ralph-integration -p .
 ```
 
-### 2. Configure skill detection (optional)
+### 2. Configure phase experts (optional)
 
-Edit `config/skill-rules.yaml` to customize which canon experts are invoked:
+Edit `config/workflow-phases.yaml` to customize which canon experts are invoked per phase:
 
 ```yaml
-# Workflow defaults - always invoked for /ralph-loop stages
-workflow-defaults:
+phases:
   plan:
-    always: [kernighan, pike, linus]
-  build:
-    always: [thompson]
-  review:
-    always: [schneier]
+    description: Understand requirements, design approach
+    experts: [kernighan, pike, linus, dijkstra, taleb, petroski, leveson]
+  implement:
+    description: Write the code
+    experts: [thompson, kernighan, pike, mcilroy, bill-joy]
+  adversarial-review:
+    description: Attack your own code
+    experts: [schneier, owasp, petroski, leveson]
 
-# Detection rules - add skills based on task keywords
-rules:
-  security:
-    patterns: [auth, password, jwt]
-    skills: [schneier, owasp, security-mindset]
-    stages: [plan, build, review]
+ralph-sequence:
+  - plan
+  - structure-first
+  - implement
+  - build-tests
+  - refactor-check
+  - adversarial-review
+  - static-analysis
+  - doc-code
 ```
 
-### 3. Configure iteration limits
+### 3. Configure keyword detection (optional)
+
+Edit `config/keyword-detection.yaml` to add experts based on task keywords:
+
+```yaml
+rules:
+  security:
+    patterns: [auth, password, jwt, token]
+    experts: [schneier, owasp, security-mindset]
+```
+
+### 4. Configure iteration limits
 
 The ralph-integration profile sets defaults. Override in your profile or settings:
 
@@ -47,7 +63,7 @@ The ralph-integration profile sets defaults. Override in your profile or setting
 | `max_iterations_per_item` | 5 | Max attempts per PRD item |
 | `exit_on_idle_commits` | 3 | Stop if no changes for N iterations |
 
-### 4. Configure quality gates
+### 5. Configure quality gates
 
 | Setting | Options | Description |
 |---------|---------|-------------|
@@ -55,7 +71,7 @@ The ralph-integration profile sets defaults. Override in your profile or setting
 | `review_mode` | "self", "full" | Review type during iteration |
 | `review_threshold` | "no_critical", "no_high", "clean" | When to pass |
 
-### 5. Configure post-loop validation
+### 6. Configure post-loop validation
 
 External validation runs AFTER the loop completes (not during):
 
@@ -66,7 +82,7 @@ External validation runs AFTER the loop completes (not during):
 | `qodana` | true/false | Use Qodana static analysis |
 | `action` | "report", "fix" | What to do with findings |
 
-### 6. Run the loop
+### 7. Run the loop
 
 Basic:
 ```bash
@@ -87,16 +103,17 @@ With options:
 
 ## Understanding the Pipeline
 
-Ralph runs this pipeline for each PRD item:
+Ralph runs this 8-phase pipeline for each PRD item:
 
 ```
-plan → build → refactor → test → review → doc
+plan → structure-first → implement → build-tests → refactor-check → adversarial-review → static-analysis → doc-code
 ```
 
-At each stage:
-1. Profile skills are loaded (static)
-2. Detection rules add skills based on PRD item text (dynamic)
-3. Stage executes with combined skills
+At each phase:
+1. Profile experts are loaded (static)
+2. Phase experts from `workflow-phases.yaml` are added
+3. Keyword detection adds experts based on PRD item text (dynamic)
+4. Phase executes with combined experts
 
 ## Troubleshooting
 
@@ -112,11 +129,11 @@ Increase `exit_on_idle_commits`.
 
 Change `review_threshold` from "clean" to "no_critical".
 
-### Wrong skills being loaded
+### Wrong experts being loaded
 
-Check `config/skill-rules.yaml`:
-- Are patterns matching your task text?
-- Are stages correct for when you want the skill?
+Check your configuration:
+- `config/workflow-phases.yaml` - Are experts correct for each phase?
+- `config/keyword-detection.yaml` - Are patterns matching your task text?
 
 ### Gemini/Qodana not running
 

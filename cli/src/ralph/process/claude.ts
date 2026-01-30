@@ -36,7 +36,7 @@ export async function runClaude(options: ClaudeOptions): Promise<ClaudeOutput> {
     logPrefix,
     allowedTools = [],
     maxTurns = 50,
-    timeout = 600000, // 10 minutes default
+    timeout = 1800000, // 30 minutes default
   } = options;
 
   // Ensure log directory exists
@@ -143,6 +143,68 @@ export async function isClaudeAvailable(): Promise<boolean> {
     });
     child.on('error', () => {
       resolve(false);
+    });
+  });
+}
+
+/**
+ * Get the current git commit hash.
+ */
+export async function getGitCommitHash(projectPath: string): Promise<string | null> {
+  return new Promise((resolve) => {
+    const child = spawn('git', ['rev-parse', 'HEAD'], { cwd: projectPath });
+    let output = '';
+
+    child.stdout?.on('data', (data: Buffer) => {
+      output += data.toString();
+    });
+
+    child.on('close', (code) => {
+      if (code === 0) {
+        resolve(output.trim());
+      } else {
+        resolve(null);
+      }
+    });
+
+    child.on('error', () => {
+      resolve(null);
+    });
+  });
+}
+
+/**
+ * Check if there are new commits since a given hash.
+ * Returns true if new commits exist.
+ */
+export async function hasNewCommitsSince(projectPath: string, sinceHash: string): Promise<boolean> {
+  const currentHash = await getGitCommitHash(projectPath);
+  return currentHash !== null && currentHash !== sinceHash;
+}
+
+/**
+ * Get commit count since a given hash.
+ */
+export async function getCommitCountSince(projectPath: string, sinceHash: string): Promise<number> {
+  return new Promise((resolve) => {
+    const child = spawn('git', ['rev-list', '--count', `${sinceHash}..HEAD`], { cwd: projectPath });
+    let output = '';
+
+    child.stdout?.on('data', (data: Buffer) => {
+      output += data.toString();
+    });
+
+    child.on('close', (code) => {
+      if (code === 0) {
+        const count = parseInt(output.trim(), 10);
+        resolve(isNaN(count) ? 0 : count);
+      } else {
+        resolve(0);
+      }
+    });
+
+    child.on('error', () => {
+      resolve(0);
     });
   });
 }

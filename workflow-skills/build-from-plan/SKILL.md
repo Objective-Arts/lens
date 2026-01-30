@@ -7,7 +7,7 @@ description: Implement NEW CODE from an approved plan. Use after /plan and /stru
 
 **NEW CODE FLOW ONLY** - Implement new features from an approved plan file.
 
-For legacy code modernization, use `/refactor-clean` instead.
+For legacy code modernization, use `/refactor-check` instead.
 
 ---
 

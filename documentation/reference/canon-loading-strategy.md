@@ -2,74 +2,114 @@
 
 ## Overview
 
-Canon skills are loaded through two mechanisms:
+Canon skills are loaded through a 4-layer system:
 
-1. **Profile Configuration** - Static skills assigned per Ralph stage
-2. **Dynamic Detection** - Skills added based on task keywords via `skill-rules.yaml`
+1. **Base Experts** - Core experts always loaded (kernighan, pike, etc.)
+2. **Profile Experts** - Language/framework specific experts from profile
+3. **Phase Experts** - Experts suited to current phase from `workflow-phases.yaml`
+4. **Keyword Experts** - Dynamically detected from task text via `keyword-detection.yaml`
 
 ---
 
-## Configuration File
+## Configuration Files
 
-**Location**: `config/skill-rules.yaml`
+### workflow-phases.yaml
 
-This single file configures skill detection for both:
-- **Ralph stages** (plan, build, refactor, test, review, doc)
-- **Workflow commands** (/implement, /plan, /review-hard, etc.)
+**Location**: `config/workflow-phases.yaml`
 
-### Structure
+Defines the 8-phase Ralph workflow and experts for each phase.
 
 ```yaml
-# Core canons for each workflow command
-workflow-defaults:
+phases:
   plan:
-    always: [kernighan, pike, linus]
-    phases:
-      design: [cherny, dijkstra]
+    description: Understand requirements, design approach
+    experts:
+      - kernighan
+      - pike
+      - linus
+      - dijkstra
+      - taleb
+      - petroski
+      - leveson
 
   implement:
-    always: [kernighan]
-    phases:
-      plan: [pike, linus]
-      build: [thompson, bill-joy]
-      review: [schneier, owasp]
+    description: Write the code
+    experts:
+      - thompson
+      - kernighan
+      - pike
+      - mcilroy
+      - bill-joy
 
-# Keyword-based skill detection
+ralph-sequence:
+  - plan
+  - structure-first
+  - implement
+  - build-tests
+  - refactor-check
+  - adversarial-review
+  - static-analysis
+  - doc-code
+```
+
+### keyword-detection.yaml
+
+**Location**: `config/keyword-detection.yaml`
+
+Adds experts dynamically based on keywords in task text.
+
+```yaml
 rules:
   security:
-    patterns: [auth, password, jwt, token]
-    skills: [schneier, owasp, security-mindset]
-    stages: [plan, build, review]      # Ralph stages
-    workflows: [implement, review-hard] # Workflow commands
+    patterns:
+      - auth
+      - password
+      - token
+      - jwt
+    experts:
+      - schneier
+      - owasp
+      - security-mindset
+
+  database:
+    patterns:
+      - sql
+      - query
+      - migration
+    experts:
+      - bloch
+      - schneier
 ```
 
 ---
 
-## How Skills Are Selected
-
-### For Ralph Stages
+## How Experts Are Selected
 
 ```
-Profile Skills (static)     +     Detected Skills (dynamic)
-─────────────────────────         ──────────────────────────
-ralph.skills.build:               Task: "Add JWT auth"
-  - cherny                        Matches: security rule
-  - crockford                     Adds: schneier, owasp
+Profile Experts    +    Phase Experts    +    Keyword Experts
+───────────────         ──────────────        ────────────────
+From profile.yaml       From phase config     From task text
+  - cherny                - kernighan         Task: "Add JWT auth"
+  - crockford             - pike              Matches: security
+                          - thompson          Adds: schneier, owasp
 
-                                  = Final: cherny, crockford, schneier, owasp
+                    = Final: cherny, crockford, kernighan, pike, thompson, schneier, owasp
 ```
 
-### For Workflow Commands
+---
 
-```
-Workflow Defaults           +     Detected Skills (dynamic)
-─────────────────────────         ──────────────────────────
-workflow-defaults.plan:           Task: "Design auth API"
-  always: [kernighan, pike]       Matches: security, api rules
-                                  Adds: schneier, bloch
+## The 8-Phase Workflow
 
-                                  = Final: kernighan, pike, schneier, bloch
-```
+| Phase | Description | Key Experts |
+|-------|-------------|-------------|
+| plan | Understand requirements | kernighan, pike, dijkstra, taleb, leveson |
+| structure-first | Design types and data structures | linus, cherny, bloch, gang-of-four |
+| implement | Write the code | thompson, kernighan, pike, mcilroy |
+| build-tests | Write tests | meszaros, fowler-test, dodds, hevery |
+| refactor-check | Simplify and clean | kernighan, thompson, feathers |
+| adversarial-review | Attack your code | schneier, owasp, petroski, leveson |
+| static-analysis | Run analyzers | bloch, liskov, owasp |
+| doc-code | Document the work | procida, strunk-white, zinsser |
 
 ---
 
@@ -106,100 +146,36 @@ canon/bloch/
 
 ---
 
-## SUMMARY.md Format
-
-```markdown
-# /[canon] Summary
-
-> [One-line philosophy]
-
-## Essential Items (Always Apply)
-| # | Item | When |
-|---|------|------|
-| 1 | [Name] | [Trigger condition] |
-
-## Load Full Skill When
-- [Specific situation]
-
-## Quick Reference
-[Decision tree or table]
-```
-
-### Requirements
-
-- **< 400 tokens** - Enforced limit
-- **Self-contained** - Usable without full skill
-- **Trigger-based** - Clear conditions for full load
-
----
-
-## Implemented SUMMARY.md Files
-
-| Canon | Location |
-|-------|----------|
-| Gang of Four | `canon/gang-of-four/SUMMARY.md` |
-| Bloch | `canon/bloch/SUMMARY.md` |
-| Linus | `canon/linus/SUMMARY.md` |
-| Feathers | `canon/testing/feathers/SUMMARY.md` |
-| Meszaros | `canon/testing/meszaros/SUMMARY.md` |
-| Fowler (Testing) | `canon/testing/fowler-test/SUMMARY.md` |
-| Cherny | `canon/javascript/cherny/SUMMARY.md` |
-| Dodds | `canon/javascript/dodds/SUMMARY.md` |
-
----
-
 ## API Reference
 
-### loadSkillRules
+### detectExperts
 
 ```typescript
-function loadSkillRules(projectPath: string): readonly SkillRule[]
-```
-
-Loads detection rules from `config/skill-rules.yaml`.
-
-### getWorkflowSkills
-
-```typescript
-function getWorkflowSkills(
+function detectExperts(
   projectPath: string,
-  workflow: WorkflowName,
+  phase: PhaseName,
   taskText: string,
-  phase?: string
-): readonly string[]
+  profileExperts: readonly string[]
+): ExpertDetection
 ```
 
-Gets all skills for a workflow command (defaults + detected).
+Main function for expert detection. Combines all 4 layers.
 
-### getWorkflowConfig
+### loadPhaseConfig
 
 ```typescript
-function getWorkflowConfig(
-  projectPath: string,
-  workflow: WorkflowName
-): WorkflowConfig
+function loadPhaseConfig(projectPath: string): WorkflowPhasesConfig
 ```
 
-Gets workflow defaults configuration.
+Loads phase configuration from `workflow-phases.yaml`.
 
----
+### loadKeywordRules
 
-## Detection Rule Fields
+```typescript
+function loadKeywordRules(projectPath: string): readonly CompiledKeywordRule[]
+```
 
-| Field | Type | Description |
-|-------|------|-------------|
-| `patterns` | `string[]` | Keywords to match (case-insensitive) |
-| `skills` | `string[]` | Canon skills to add when matched |
-| `stages` | `string[]` | Ralph stages where rule applies |
-| `workflows` | `string[]` | Workflow commands where rule applies |
-
-### Valid Stages
-
-`plan`, `build`, `refactor`, `test`, `review`, `doc`
-
-### Valid Workflows
-
-`implement`, `plan`, `review-hard`, `structure-first`, `build-from-plan`, `refactor-clean`, `test`
+Loads keyword detection rules from `keyword-detection.yaml`.
 
 ---
 

@@ -166,7 +166,7 @@ PRD/Feature Request
 LEGACY CODE FLOW:
 Existing Code
        ↓
-    /plan ──────► /structure-first ──────► /refactor-clean ──────► [review gates]
+    /plan ──────► /structure-first ──────► /refactor-check ──────► [review gates]
 ```
 
 ### Canon Focus by Flow
@@ -181,6 +181,6 @@ Existing Code
 Ask yourself: **Am I building something new or improving something existing?**
 
 - **New** → Plan will feed into `/build-from-plan`
-- **Existing** → Plan will feed into `/refactor-clean`
+- **Existing** → Plan will feed into `/refactor-check`
 
 Planning comes FIRST in both flows, before structure design and implementation.

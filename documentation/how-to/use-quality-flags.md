@@ -14,7 +14,7 @@
 | `--test [level]` | Write tests after implementation |
 | `--review-hard` | Adversarial self-review |
 | `--doc-code` | Generate documentation |
-| `--refactor-clean` | Systematic decomposition |
+| `--refactor-check` | Systematic decomposition |
 
 ## Using Flags
 
@@ -57,7 +57,7 @@ Build payment processing --plan --test all --review-hard
 ### Refactoring
 
 ```
-Clean up UserService.js --refactor-clean --test unit
+Clean up UserService.js --refactor-check --test unit
 ```
 
 ### Before PR

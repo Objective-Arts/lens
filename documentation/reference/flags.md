@@ -13,7 +13,7 @@ Complete specification of all quality flags.
 | `--build-from-plan` | `/build-from-plan` | Implement from existing plan |
 | `--test [level]` | `/test [level]` | Write tests at specified level |
 | `--review-hard` | `/review-hard` | Adversarial self-review |
-| `--refactor-clean` | `/refactor-clean` | Systematic decomposition |
+| `--refactor-check` | `/refactor-check` | Systematic decomposition |
 | `--doc-code` | `/doc-code` | Generate documentation |
 
 ---
@@ -171,13 +171,13 @@ Build login form --test unit
 
 ---
 
-## --refactor-clean
+## --refactor-check
 
 **Purpose**: Systematic decomposition of messy code.
 
-**Syntax**: `--refactor-clean <target>`
+**Syntax**: `--refactor-check <target>`
 
-**Also**: `/refactor-clean <target>`
+**Also**: `/refactor-check <target>`
 
 **Behavior**:
 1. Read entire target file/module
@@ -258,5 +258,5 @@ Build feature --structure-first --test all --doc-code --review-hard
 |-------------|----------|
 | `--structure-first --test all` | Normal feature |
 | `--plan --test all --review-hard` | Complex feature |
-| `--refactor-clean --test unit` | Tech debt cleanup |
+| `--refactor-check --test unit` | Tech debt cleanup |
 | `--doc-code --review-hard` | Documentation pass |

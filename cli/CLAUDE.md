@@ -12,7 +12,7 @@
 | `/test [--coverage] [--watch]` | Run tests with Testing Trophy strategy |
 | `/plan [task]` | Create implementation plan before coding |
 | `/structure-first [feature]` | Design data structures before implementation |
-| `/refactor-clean [target]` | Systematic code cleanup |
+| `/refactor-check [target]` | Systematic code cleanup |
 | `/build-from-plan [plan-file]` | Execute approved plan |
 
 **Flags for /ralph-loop:**

@@ -35,9 +35,9 @@
       "modified": false,
       "installedCommit": "c431726"
     },
-    "refactor-clean": {
+    "refactor-check": {
       "installedAt": "2026-01-25T15:17:19.140Z",
-      "sourceFile": "refactor-clean/SKILL.md",
+      "sourceFile": "refactor-check/SKILL.md",
       "hash": "48eda7c76ef72bc0",
       "modified": false,
       "installedCommit": "c431726"

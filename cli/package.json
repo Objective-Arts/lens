@@ -6,8 +6,7 @@
   "main": "dist/index.js",
   "bin": {
     "cc-config": "./dist/cli/index.js",
-    "ralph": "./bin/ralph",
-    "ralph-ts": "./dist/ralph/index.js"
+    "ralph": "./dist/ralph/index.js"
   },
   "scripts": {
     "build": "tsc && npm run copy-assets",

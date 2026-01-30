@@ -1519,15 +1519,15 @@ function printAuditReport(result: ScanResult) {
 
   const hasStructureFirst = claudeMdContent.includes('--structure-first');
   const hasReviewHard = claudeMdContent.includes('--review-hard');
-  const hasRefactorClean = claudeMdContent.includes('--refactor-clean');
+  const hasRefactorClean = claudeMdContent.includes('--refactor-check');
 
   const flagCount = [hasStructureFirst, hasReviewHard, hasRefactorClean].filter(Boolean).length;
   if (flagCount === 3) {
-    console.log(chalk.green('  ✓ Quality flags documented (--structure-first, --review-hard, --refactor-clean)'));
+    console.log(chalk.green('  ✓ Quality flags documented (--structure-first, --review-hard, --refactor-check)'));
   } else if (flagCount > 0) {
     console.log(chalk.yellow(`  ○ Quality flags partial (${flagCount}/3) - consider documenting all flags`));
   } else {
-    console.log(chalk.yellow('  ○ Quality flags not documented - add --structure-first, --review-hard, --refactor-clean'));
+    console.log(chalk.yellow('  ○ Quality flags not documented - add --structure-first, --review-hard, --refactor-check'));
   }
 
   // Check for tech workflow skills

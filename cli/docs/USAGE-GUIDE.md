@@ -15,7 +15,7 @@ Claude-Optimal supports two workflows that share planning and review but diverge
 │  PRD/Requirements → /plan → /structure-first → /build-from-plan → [reviews]│
 │                                                                             │
 │  LEGACY CODE FLOW (modernizing existing code):                              │
-│  Existing Code → /plan → /structure-first → /refactor-clean → [reviews]    │
+│  Existing Code → /plan → /structure-first → /refactor-check → [reviews]    │
 │                                                                             │
 │  Review Gates: /hard-review → /gemini-review → /qodana-review              │
 │                                                                             │
@@ -29,9 +29,9 @@ Claude-Optimal supports two workflows that share planning and review but diverge
 | Building new feature from PRD | New Code | `/build-from-plan` |
 | Adding new module/component | New Code | `/build-from-plan` |
 | Greenfield development | New Code | `/build-from-plan` |
-| Refactoring existing code | Legacy Code | `/refactor-clean` |
-| Modernizing legacy code | Legacy Code | `/refactor-clean` |
-| Cleaning up tech debt | Legacy Code | `/refactor-clean` |
+| Refactoring existing code | Legacy Code | `/refactor-check` |
+| Modernizing legacy code | Legacy Code | `/refactor-check` |
+| Cleaning up tech debt | Legacy Code | `/refactor-check` |
 
 See [documentation](../../documentation/index.md) for detailed documentation.
 
@@ -386,7 +386,7 @@ cc-config workflow install --all -p .
 /structure-first
 
 # 4. Refactor
-/refactor-clean ClientController.java
+/refactor-check ClientController.java
 
 # 5. Review gates
 /hard-review

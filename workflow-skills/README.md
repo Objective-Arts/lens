@@ -23,7 +23,7 @@ Choose your path based on whether code exists:
 | New Code Flow | Legacy Code Flow |
 |---------------|------------------|
 | PRD / Feature Request | Existing Codebase |
-| `/plan` → `/structure-first` → `/build-from-plan` | `/plan` → `/structure-first` → `/refactor-clean` |
+| `/plan` → `/structure-first` → `/build-from-plan` | `/plan` → `/structure-first` → `/refactor-check` |
 | Canon: Bloch, Pike, Schneier, Evans, Gang of Four | Canon: Feathers, Fowler, Taleb, Evans, Liskov |
 
 Both flows converge at shared review gates:
@@ -42,7 +42,7 @@ PRD → /plan → /structure-first → /build-from-plan → /test → /review-ha
 
 ### Legacy Code Flow
 ```
-Existing → /plan → /structure-first → /refactor-clean → /test → /review-hard
+Existing → /plan → /structure-first → /refactor-check → /test → /review-hard
 ```
 - Start with existing code
 - Find seams for safe changes
@@ -98,14 +98,14 @@ Generate documentation using Procida's Diátaxis framework.
 /doc-code --type=how-to             # Force specific doc type
 ```
 
-### /refactor-clean
+### /refactor-check
 Systematically clean up messy code with clear before/after structure.
 
 **Use when**: After implementation, before testing. Tech debt cleanup, code smells.
 
 ```
-/refactor-clean              # Refactor most recent code
-/refactor-clean src/legacy   # Refactor specific path
+/refactor-check              # Refactor most recent code
+/refactor-check src/legacy   # Refactor specific path
 ```
 
 ### /test

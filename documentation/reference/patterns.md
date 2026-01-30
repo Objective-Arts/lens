@@ -950,7 +950,7 @@ The Canon-Driven Development model uses two parallel pipelines that converge at 
 │    Schneier, Evans)       Taleb, Liskov)                │               │
 │         │                      │                        │               │
 │         ▼                      ▼                        │               │
-│   /build-from-plan       /refactor-clean                │               │
+│   /build-from-plan       /refactor-check                │               │
 │         │                      │                        │               │
 │         └──────────┬───────────┘                        │               │
 │                    │                                    │               │
@@ -996,7 +996,7 @@ The Canon-Driven Development model uses two parallel pipelines that converge at 
        Bloch, Pike, Evans              Feathers, Fowler, Liskov
               │                               │
               ▼                               ▼
-       /build-from-plan                /refactor-clean
+       /build-from-plan                /refactor-check
               │                               │
               └───────────────┬───────────────┘
                               │
