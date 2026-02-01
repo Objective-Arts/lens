@@ -160,6 +160,7 @@
         .canon-pill.testing { border-color: #2ecc71; color: #2ecc71; }
         .canon-pill.engineering { border-color: #f39c12; color: #f39c12; }
         .canon-pill.language { border-color: #3498db; color: #3498db; }
+        .canon-pill.docs { border-color: #1abc9c; color: #1abc9c; }
 
         /* Shared section */
         .shared-section {
@@ -578,13 +579,21 @@
             </div>
         </div>
 
-        <div class="test-centered">
+        <div class="test-centered" style="gap: 20px;">
             <div class="test-card">
                 <div class="step-name testing">/test [level]</div>
                 <div class="step-purpose">Write tests at unit, integration, or e2e level</div>
                 <div class="canon-row" style="justify-content: center;">
                     <span class="canon-pill testing">/dodds</span>
                     <span class="canon-pill testing">/meszaros</span>
+                </div>
+            </div>
+            <div class="test-card" style="background: rgba(26,188,156,0.15); border: 1px solid rgba(26,188,156,0.3);">
+                <div class="step-name" style="color: #1abc9c;">/doc-code [path]</div>
+                <div class="step-purpose">Generate documentation using Diátaxis</div>
+                <div class="canon-row" style="justify-content: center;">
+                    <span class="canon-pill docs">/procida</span>
+                    <span class="canon-pill docs">/zinsser</span>
                 </div>
             </div>
         </div>
@@ -920,13 +929,15 @@
             </div>
 
             <div class="cmd-group">
-                <h3 class="review">Review Commands</h3>
+                <h3 class="review">Review & Quality Commands</h3>
                 <div class="cmd-item testing">/test [level]</div>
                 <div class="cmd-desc">Write tests (unit/integration/e2e)</div>
                 <div class="cmd-item review">/adversarial-review</div>
                 <div class="cmd-desc">Hard-ass review via Gemini</div>
                 <div class="cmd-item review">/static-analysis</div>
                 <div class="cmd-desc">Qodana + linting</div>
+                <div class="cmd-item" style="color: #1abc9c;">/doc-code [path]</div>
+                <div class="cmd-desc">Generate Diátaxis documentation</div>
             </div>
         </div>
 
