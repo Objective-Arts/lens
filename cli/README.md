@@ -1,6 +1,6 @@
 # cc-config CLI
 
-Claude Code configuration manager - scan, audit, and apply configuration profiles.
+**cc-config** sets up Claude Code projects with expert skills and configuration profiles, while **ralph** autonomously implements features by running code through a 10-phase workflow (plan → structure → implement → refactor → review → analyze → test → document → security → production-readiness). This reflects Deming's principle of building quality in rather than inspecting it at the end—expert guidance shapes the code from the first line, and quality gates at each phase catch issues when they're cheap to fix, not after the feature is "done." The result is code that is much more reviewable and much closer to production ready.
 
 ## Quick Start
 
@@ -29,11 +29,15 @@ cc-config audit -p /path/to/project
 
 ## Documentation
 
-| Document | Purpose |
-|----------|---------|
-| [Architecture](docs/architecture.md) | System design and module structure |
-| [API Reference](docs/api-reference.md) | Exported functions by module |
-| [Development Guide](docs/development.md) | Contributing and testing |
+Full documentation at [documentation/index.md](documentation/index.md).
+
+| Section | Contents |
+|---------|----------|
+| [Tutorials](documentation/tutorials/) | Getting started, first ralph run |
+| [How-To Guides](documentation/how-to/) | Apply profiles, manage skills, run ralph |
+| [Reference](documentation/reference/) | Commands, profiles, configuration, types |
+| [Explanation](documentation/explanation/) | Architecture, quality philosophy, phases |
+| [Developer Guide](documentation/DEVELOPER-GUIDE.md) | Learning to code in this codebase |
 
 ## Commands
 
