@@ -3,8 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>CLI Code Architecture</title>
-  <script src="https://d3js.org/d3.v7.min.js"></script>
+  <title>CLI Architecture - Complete Reference</title>
   <style>
     * { margin: 0; padding: 0; box-sizing: border-box; }
     body {
@@ -12,391 +11,787 @@
       background: #0d1117;
       color: #c9d1d9;
       padding: 30px;
-      min-height: 100vh;
+      line-height: 1.6;
     }
-    h1 { color: #58a6ff; margin-bottom: 8px; font-size: 1.8rem; }
-    .subtitle { color: #8b949e; margin-bottom: 30px; }
-    .diagram-container { display: flex; gap: 30px; flex-wrap: wrap; }
+    h1 { color: #58a6ff; margin-bottom: 8px; font-size: 2rem; }
+    h2 { color: #8b949e; font-size: 1.4rem; margin: 40px 0 20px; border-bottom: 1px solid #30363d; padding-bottom: 10px; }
+    h3 { color: #c9d1d9; font-size: 1.1rem; margin: 25px 0 15px; }
+    .subtitle { color: #8b949e; margin-bottom: 30px; font-size: 1.1rem; }
 
-    .layer {
-      background: #161b22;
-      border-radius: 12px;
-      padding: 20px;
-      border: 1px solid #30363d;
-      min-width: 280px;
-      flex: 1;
-    }
-    .layer h2 {
-      font-size: 1rem;
-      margin-bottom: 15px;
-      padding-bottom: 10px;
-      border-bottom: 1px solid #30363d;
-    }
-    .layer.entry h2 { color: #f0883e; border-color: #f0883e; }
-    .layer.core h2 { color: #a371f7; border-color: #a371f7; }
-    .layer.phases h2 { color: #3fb950; border-color: #3fb950; }
-    .layer.support h2 { color: #58a6ff; border-color: #58a6ff; }
-
-    .module {
-      background: rgba(0,0,0,0.3);
-      border-radius: 6px;
-      padding: 12px;
-      margin-bottom: 10px;
-      border-left: 3px solid;
-    }
-    .module.entry { border-color: #f0883e; }
-    .module.core { border-color: #a371f7; }
-    .module.phase { border-color: #3fb950; }
-    .module.support { border-color: #58a6ff; }
-    .module.mcp { border-color: #fbbf24; }
-
-    .module-name {
-      font-family: 'Monaco', 'Menlo', monospace;
-      font-size: 0.85rem;
-      font-weight: 600;
-      margin-bottom: 4px;
-    }
-    .module.entry .module-name { color: #f0883e; }
-    .module.core .module-name { color: #a371f7; }
-    .module.phase .module-name { color: #3fb950; }
-    .module.support .module-name { color: #58a6ff; }
-    .module.mcp .module-name { color: #fbbf24; }
-
-    .module-desc {
-      font-size: 0.75rem;
-      color: #8b949e;
-      line-height: 1.4;
-    }
-    .module-files {
-      font-size: 0.7rem;
-      color: #6e7681;
-      font-family: monospace;
-      margin-top: 6px;
+    /* Two-system layout */
+    .systems-container {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 30px;
+      margin-bottom: 40px;
     }
 
-    .flow-section {
-      margin-top: 40px;
+    .system-box {
       background: #161b22;
       border-radius: 12px;
       padding: 25px;
-      border: 1px solid #30363d;
+      border: 2px solid;
     }
-    .flow-section h2 {
-      color: #f0883e;
-      font-size: 1.1rem;
+    .system-box.config { border-color: #58a6ff; }
+    .system-box.ralph { border-color: #a371f7; }
+
+    .system-title {
+      font-size: 1.3rem;
+      font-weight: 700;
+      margin-bottom: 8px;
+    }
+    .system-box.config .system-title { color: #58a6ff; }
+    .system-box.ralph .system-title { color: #a371f7; }
+
+    .system-desc {
+      color: #8b949e;
+      font-size: 0.9rem;
       margin-bottom: 20px;
     }
 
-    .flow-diagram {
-      display: flex;
-      align-items: center;
-      flex-wrap: wrap;
-      gap: 8px;
-    }
-    .flow-box {
+    .system-entry {
       background: rgba(0,0,0,0.3);
       border-radius: 6px;
       padding: 10px 15px;
-      font-size: 0.8rem;
+      margin-bottom: 10px;
       font-family: monospace;
+      font-size: 0.85rem;
+    }
+    .system-box.config .system-entry { color: #58a6ff; }
+    .system-box.ralph .system-entry { color: #a371f7; }
+
+    /* Class diagram boxes */
+    .class-diagram {
+      background: #161b22;
+      border-radius: 12px;
+      padding: 25px;
+      margin-bottom: 30px;
       border: 1px solid #30363d;
     }
-    .flow-box.start { border-color: #f0883e; color: #f0883e; }
-    .flow-box.runner { border-color: #a371f7; color: #a371f7; }
-    .flow-box.phase { border-color: #3fb950; color: #3fb950; }
-    .flow-box.claude { border-color: #58a6ff; color: #58a6ff; }
-    .flow-box.mcp { border-color: #fbbf24; color: #fbbf24; }
-    .flow-arrow { color: #6e7681; font-size: 1.2rem; }
 
-    .phase-grid {
+    .class-grid {
       display: grid;
-      grid-template-columns: repeat(4, 1fr);
-      gap: 10px;
-      margin-top: 20px;
+      grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+      gap: 20px;
     }
-    .phase-card {
-      background: rgba(63, 185, 80, 0.1);
-      border: 1px solid rgba(63, 185, 80, 0.3);
-      border-radius: 6px;
-      padding: 12px;
-      text-align: center;
+
+    .class-box {
+      background: #0d1117;
+      border: 1px solid #30363d;
+      border-radius: 8px;
+      overflow: hidden;
     }
-    .phase-card .num {
+
+    .class-header {
+      padding: 12px 15px;
+      font-weight: 700;
+      font-family: monospace;
+      border-bottom: 1px solid #30363d;
+    }
+    .class-header.interface { background: rgba(251, 191, 36, 0.15); color: #fbbf24; }
+    .class-header.interface::before { content: "<<interface>> "; font-weight: 400; font-size: 0.75rem; }
+    .class-header.abstract { background: rgba(163, 113, 247, 0.15); color: #a371f7; }
+    .class-header.abstract::before { content: "<<abstract>> "; font-weight: 400; font-size: 0.75rem; }
+    .class-header.class { background: rgba(88, 166, 255, 0.15); color: #58a6ff; }
+    .class-header.module { background: rgba(63, 185, 80, 0.15); color: #3fb950; }
+    .class-header.type { background: rgba(139, 148, 158, 0.15); color: #8b949e; }
+    .class-header.type::before { content: "type "; font-weight: 400; }
+
+    .class-section {
+      padding: 10px 15px;
+      border-bottom: 1px solid #21262d;
+    }
+    .class-section:last-child { border-bottom: none; }
+    .class-section-title {
       font-size: 0.7rem;
       color: #6e7681;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      margin-bottom: 6px;
     }
-    .phase-card .name {
+
+    .class-member {
       font-family: monospace;
       font-size: 0.8rem;
-      color: #3fb950;
-      font-weight: 600;
-    }
-    .phase-card .tool {
-      font-size: 0.7rem;
       color: #8b949e;
-      margin-top: 4px;
+      padding: 3px 0;
     }
-    .phase-card.mcp {
-      background: rgba(251, 191, 36, 0.1);
-      border-color: rgba(251, 191, 36, 0.3);
-    }
-    .phase-card.mcp .name { color: #fbbf24; }
+    .class-member .name { color: #c9d1d9; }
+    .class-member .type { color: #79c0ff; }
+    .class-member .method { color: #d2a8ff; }
 
-    .type-section {
-      margin-top: 30px;
+    /* Relationship lines */
+    .relationship {
+      background: rgba(0,0,0,0.3);
+      border-radius: 6px;
+      padding: 15px 20px;
+      margin: 20px 0;
+      font-size: 0.85rem;
+    }
+    .rel-arrow { color: #58a6ff; margin: 0 8px; }
+
+    /* Module tree */
+    .module-tree {
       background: #161b22;
       border-radius: 12px;
       padding: 25px;
       border: 1px solid #30363d;
+      margin-bottom: 30px;
     }
-    .type-section h2 {
-      color: #a371f7;
-      font-size: 1.1rem;
-      margin-bottom: 15px;
+
+    .tree-section {
+      margin-bottom: 25px;
     }
-    .type-grid {
+    .tree-section:last-child { margin-bottom: 0; }
+
+    .tree-header {
+      font-weight: 700;
+      font-size: 1rem;
+      margin-bottom: 12px;
+      padding-bottom: 8px;
+      border-bottom: 1px solid #30363d;
+    }
+    .tree-header.config { color: #58a6ff; }
+    .tree-header.ralph { color: #a371f7; }
+    .tree-header.shared { color: #3fb950; }
+
+    .tree-item {
       display: grid;
-      grid-template-columns: repeat(3, 1fr);
+      grid-template-columns: 200px 1fr 80px;
       gap: 15px;
+      padding: 8px 0;
+      border-bottom: 1px solid #21262d;
+      font-size: 0.85rem;
     }
-    .type-card {
+    .tree-item:last-child { border-bottom: none; }
+
+    .tree-file {
+      font-family: monospace;
+      color: #c9d1d9;
+    }
+    .tree-desc { color: #8b949e; }
+    .tree-lines { color: #6e7681; text-align: right; }
+
+    /* Flow diagram */
+    .flow-section {
+      background: #161b22;
+      border-radius: 12px;
+      padding: 25px;
+      border: 1px solid #30363d;
+      margin-bottom: 30px;
+    }
+
+    .flow-row {
+      display: flex;
+      align-items: center;
+      flex-wrap: wrap;
+      gap: 10px;
+      margin: 15px 0;
+    }
+
+    .flow-box {
       background: rgba(0,0,0,0.3);
       border-radius: 6px;
-      padding: 12px;
-      border-left: 3px solid #a371f7;
-    }
-    .type-card .name {
-      font-family: monospace;
+      padding: 10px 16px;
       font-size: 0.85rem;
-      color: #a371f7;
-      font-weight: 600;
+      font-family: monospace;
+      border: 1px solid #30363d;
     }
-    .type-card .fields {
-      font-size: 0.7rem;
-      color: #8b949e;
-      margin-top: 6px;
-      line-height: 1.5;
+    .flow-box.config { border-color: #58a6ff; color: #58a6ff; }
+    .flow-box.ralph { border-color: #a371f7; color: #a371f7; }
+    .flow-box.phase { border-color: #3fb950; color: #3fb950; }
+    .flow-box.mcp { border-color: #fbbf24; color: #fbbf24; }
+    .flow-box.external { border-color: #f85149; color: #f85149; }
+
+    .flow-arrow { color: #6e7681; font-size: 1.3rem; }
+
+    /* Phase pipeline */
+    .phase-pipeline {
+      display: grid;
+      grid-template-columns: repeat(8, 1fr);
+      gap: 8px;
+      margin: 20px 0;
     }
+
+    .phase-box {
+      background: rgba(63, 185, 80, 0.1);
+      border: 1px solid rgba(63, 185, 80, 0.3);
+      border-radius: 6px;
+      padding: 12px 8px;
+      text-align: center;
+    }
+    .phase-box.mcp {
+      background: rgba(251, 191, 36, 0.1);
+      border-color: rgba(251, 191, 36, 0.3);
+    }
+    .phase-num { font-size: 0.7rem; color: #6e7681; }
+    .phase-name { font-family: monospace; font-size: 0.75rem; margin: 4px 0; }
+    .phase-box .phase-name { color: #3fb950; }
+    .phase-box.mcp .phase-name { color: #fbbf24; }
+    .phase-tool { font-size: 0.65rem; color: #8b949e; }
+
+    /* Legend */
+    .legend {
+      display: flex;
+      gap: 25px;
+      flex-wrap: wrap;
+      padding: 15px 20px;
+      background: rgba(0,0,0,0.2);
+      border-radius: 8px;
+      margin-bottom: 30px;
+    }
+    .legend-item {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      font-size: 0.8rem;
+    }
+    .legend-color {
+      width: 16px;
+      height: 16px;
+      border-radius: 4px;
+    }
+    .legend-color.config { background: #58a6ff; }
+    .legend-color.ralph { background: #a371f7; }
+    .legend-color.phase { background: #3fb950; }
+    .legend-color.mcp { background: #fbbf24; }
+    .legend-color.external { background: #f85149; }
   </style>
 </head>
 <body>
-  <h1>CLI Code Architecture</h1>
-  <p class="subtitle">cc-config and Ralph implementation structure</p>
 
-  <div class="diagram-container">
-    <!-- Entry Layer -->
-    <div class="layer entry">
-      <h2>Entry Points</h2>
-      <div class="module entry">
-        <div class="module-name">src/cli/index.ts</div>
-        <div class="module-desc">Main CLI entry. Registers all command groups with Commander.js.</div>
-        <div class="module-files">cc-config &lt;command&gt;</div>
+<h1>CLI Architecture</h1>
+<p class="subtitle">cc-config and Ralph: Two distinct systems in one codebase</p>
+
+<div class="legend">
+  <div class="legend-item"><div class="legend-color config"></div> cc-config (Configuration)</div>
+  <div class="legend-item"><div class="legend-color ralph"></div> Ralph (Autonomous Loop)</div>
+  <div class="legend-item"><div class="legend-color phase"></div> Phase (Claude-based)</div>
+  <div class="legend-item"><div class="legend-color mcp"></div> MCP Tool (External AI)</div>
+  <div class="legend-item"><div class="legend-color external"></div> External Process</div>
+</div>
+
+<!-- Two Systems Overview -->
+<div class="systems-container">
+  <div class="system-box config">
+    <div class="system-title">cc-config CLI</div>
+    <div class="system-desc">Configuration management for Claude Code projects. Sets up profiles, installs skills, manages MCP servers.</div>
+    <div class="system-entry">$ cc-config profile apply javascript+react .</div>
+    <div class="system-entry">$ cc-config canon install kernighan</div>
+    <div class="system-entry">$ cc-config workflow status</div>
+    <div class="system-entry">$ cc-config mcp enable qodana</div>
+  </div>
+  <div class="system-box ralph">
+    <div class="system-title">Ralph Autonomous Loop</div>
+    <div class="system-desc">PRD-driven implementation. Reads a checklist, processes each item through 8 phases until all complete.</div>
+    <div class="system-entry">$ ralph prd.md</div>
+    <div class="system-entry">$ ralph --resume prd.md</div>
+    <div class="system-entry">$ ralph --skip-review prd.md</div>
+  </div>
+</div>
+
+<!-- cc-config Module Tree -->
+<h2>cc-config Modules</h2>
+<div class="module-tree">
+  <div class="tree-section">
+    <div class="tree-header config">Entry & Commands (src/cli/)</div>
+    <div class="tree-item">
+      <div class="tree-file">index.ts</div>
+      <div class="tree-desc">CLI entry point. Commander.js setup, registers all commands.</div>
+      <div class="tree-lines">52 lines</div>
+    </div>
+    <div class="tree-item">
+      <div class="tree-file">commands/profile.ts</div>
+      <div class="tree-desc">profile apply, list, show commands</div>
+      <div class="tree-lines">166 lines</div>
+    </div>
+    <div class="tree-item">
+      <div class="tree-file">commands/canon.ts</div>
+      <div class="tree-desc">canon list, install, upgrade, status commands</div>
+      <div class="tree-lines">186 lines</div>
+    </div>
+    <div class="tree-item">
+      <div class="tree-file">commands/workflow.ts</div>
+      <div class="tree-desc">workflow install, status + ralph command</div>
+      <div class="tree-lines">~150 lines</div>
+    </div>
+    <div class="tree-item">
+      <div class="tree-file">commands/mcp.ts</div>
+      <div class="tree-desc">mcp list, enable, disable, status commands</div>
+      <div class="tree-lines">271 lines</div>
+    </div>
+  </div>
+
+  <div class="tree-section">
+    <div class="tree-header config">Core Services</div>
+    <div class="tree-item">
+      <div class="tree-file">profiles/index.ts</div>
+      <div class="tree-desc">Profile loading, composition, application. Largest module.</div>
+      <div class="tree-lines">1691 lines</div>
+    </div>
+    <div class="tree-item">
+      <div class="tree-file">canon/index.ts</div>
+      <div class="tree-desc">Canon skill management. Copy-with-manifest pattern.</div>
+      <div class="tree-lines">670 lines</div>
+    </div>
+    <div class="tree-item">
+      <div class="tree-file">workflow/index.ts</div>
+      <div class="tree-desc">Workflow skills (universal, not project-specific).</div>
+      <div class="tree-lines">463 lines</div>
+    </div>
+    <div class="tree-item">
+      <div class="tree-file">mcp/operations.ts</div>
+      <div class="tree-desc">MCP server install, enable, disable, config.</div>
+      <div class="tree-lines">432 lines</div>
+    </div>
+    <div class="tree-item">
+      <div class="tree-file">scanner/index.ts</div>
+      <div class="tree-desc">Scan project for skills, CLAUDE.md, settings.</div>
+      <div class="tree-lines">438 lines</div>
+    </div>
+    <div class="tree-item">
+      <div class="tree-file">hooks/index.ts</div>
+      <div class="tree-desc">Pre/PostToolUse hook management.</div>
+      <div class="tree-lines">312 lines</div>
+    </div>
+  </div>
+</div>
+
+<!-- Ralph Module Tree -->
+<h2>Ralph Modules</h2>
+<div class="module-tree">
+  <div class="tree-section">
+    <div class="tree-header ralph">Core (src/ralph/)</div>
+    <div class="tree-item">
+      <div class="tree-file">runner.ts</div>
+      <div class="tree-desc">Main orchestrator. PRD loop, phase execution, retry logic.</div>
+      <div class="tree-lines">524 lines</div>
+    </div>
+    <div class="tree-item">
+      <div class="tree-file">types.ts</div>
+      <div class="tree-desc">Core types: PrdItem, Session, PhaseName, PhaseResult.</div>
+      <div class="tree-lines">221 lines</div>
+    </div>
+    <div class="tree-item">
+      <div class="tree-file">process/claude.ts</div>
+      <div class="tree-desc">Spawn Claude CLI, stream JSON, capture output.</div>
+      <div class="tree-lines">197 lines</div>
+    </div>
+  </div>
+
+  <div class="tree-section">
+    <div class="tree-header ralph">Phases (src/ralph/phases/)</div>
+    <div class="tree-item">
+      <div class="tree-file">types.ts</div>
+      <div class="tree-desc">Phase interface, BasePhase abstract class, PhaseContext.</div>
+      <div class="tree-lines">146 lines</div>
+    </div>
+    <div class="tree-item">
+      <div class="tree-file">loader.ts</div>
+      <div class="tree-desc">Load phase configs from YAML, detect experts.</div>
+      <div class="tree-lines">341 lines</div>
+    </div>
+    <div class="tree-item">
+      <div class="tree-file">plan.ts</div>
+      <div class="tree-desc">Plan phase: create implementation plan.</div>
+      <div class="tree-lines">~150 lines</div>
+    </div>
+    <div class="tree-item">
+      <div class="tree-file">implement.ts</div>
+      <div class="tree-desc">Implement phase: write code from plan.</div>
+      <div class="tree-lines">~180 lines</div>
+    </div>
+    <div class="tree-item">
+      <div class="tree-file">adversarial-review.ts</div>
+      <div class="tree-desc">MCP phase: Gemini review, two-step identify/fix.</div>
+      <div class="tree-lines">433 lines</div>
+    </div>
+    <div class="tree-item">
+      <div class="tree-file">static-analysis.ts</div>
+      <div class="tree-desc">MCP phase: Qodana scan, detect + scan + problems.</div>
+      <div class="tree-lines">210 lines</div>
+    </div>
+  </div>
+
+  <div class="tree-section">
+    <div class="tree-header ralph">Support Modules</div>
+    <div class="tree-item">
+      <div class="tree-file">prd/parser.ts</div>
+      <div class="tree-desc">Parse PRD markdown into PrdItem[].</div>
+      <div class="tree-lines">~100 lines</div>
+    </div>
+    <div class="tree-item">
+      <div class="tree-file">display/terminal.ts</div>
+      <div class="tree-desc">Spinner, printHeader, printStageComplete, etc.</div>
+      <div class="tree-lines">293 lines</div>
+    </div>
+    <div class="tree-item">
+      <div class="tree-file">summary/collector.ts</div>
+      <div class="tree-desc">SummaryCollector: accumulate stage results.</div>
+      <div class="tree-lines">176 lines</div>
+    </div>
+    <div class="tree-item">
+      <div class="tree-file">parsers/claude-stream.ts</div>
+      <div class="tree-desc">Extract result from Claude JSON output.</div>
+      <div class="tree-lines">~120 lines</div>
+    </div>
+  </div>
+</div>
+
+<!-- Class Diagrams -->
+<h2>Class Diagrams</h2>
+
+<h3>Phase System (Strategy Pattern)</h3>
+<div class="class-diagram">
+  <div class="class-grid">
+    <div class="class-box">
+      <div class="class-header interface">Phase</div>
+      <div class="class-section">
+        <div class="class-section-title">Properties</div>
+        <div class="class-member"><span class="name">name</span>: <span class="type">PhaseName</span></div>
+        <div class="class-member"><span class="name">icon</span>: <span class="type">string</span></div>
+        <div class="class-member"><span class="name">description</span>: <span class="type">string</span></div>
       </div>
-      <div class="module entry">
-        <div class="module-name">src/cli/commands/</div>
-        <div class="module-desc">Command implementations: profile, canon, workflow, mcp, scan, tools, hooks, trace</div>
-      </div>
-      <div class="module entry">
-        <div class="module-name">src/ralph/index.ts</div>
-        <div class="module-desc">Ralph entry. Exports run() for PRD processing.</div>
-        <div class="module-files">ralph &lt;prd-file&gt;</div>
+      <div class="class-section">
+        <div class="class-section-title">Methods</div>
+        <div class="class-member"><span class="method">execute</span>(ctx): <span class="type">Promise&lt;PhaseResult&gt;</span></div>
+        <div class="class-member"><span class="method">shouldRun</span>(ctx): <span class="type">boolean</span></div>
       </div>
     </div>
 
-    <!-- Core Layer -->
-    <div class="layer core">
-      <h2>Core Orchestration</h2>
-      <div class="module core">
-        <div class="module-name">runner.ts</div>
-        <div class="module-desc">Main loop: parse PRD, iterate items, run phases, handle retries, generate summary.</div>
-        <div class="module-files">run() processItem() executePhase()</div>
-      </div>
-      <div class="module core">
-        <div class="module-name">types.ts</div>
-        <div class="module-desc">Core types: PrdItem, Session, PhaseName, PhaseResult, RalphConfig</div>
-      </div>
-      <div class="module core">
-        <div class="module-name">process/claude.ts</div>
-        <div class="module-desc">Spawn Claude CLI, stream JSON output, parse tool events.</div>
-        <div class="module-files">runClaude() StreamCallbacks</div>
+    <div class="class-box">
+      <div class="class-header abstract">BasePhase</div>
+      <div class="class-section">
+        <div class="class-section-title">Protected Methods</div>
+        <div class="class-member"><span class="method">getLogPrefix</span>(ctx): <span class="type">string</span></div>
+        <div class="class-member"><span class="method">buildExpertGuidance</span>(experts): <span class="type">string</span></div>
+        <div class="class-member"><span class="method">success</span>(msg, metrics?): <span class="type">PhaseResult</span></div>
+        <div class="class-member"><span class="method">failed</span>(error): <span class="type">PhaseResult</span></div>
+        <div class="class-member"><span class="method">skipped</span>(reason): <span class="type">PhaseResult</span></div>
       </div>
     </div>
 
-    <!-- Phases Layer -->
-    <div class="layer phases">
-      <h2>Phase Implementations</h2>
-      <div class="module phase">
-        <div class="module-name">phases/types.ts</div>
-        <div class="module-desc">Phase interface, BasePhase class, PhaseContext, PhaseResult</div>
-      </div>
-      <div class="module phase">
-        <div class="module-name">phases/*.ts</div>
-        <div class="module-desc">8 phases: plan, structure-first, implement, refactor-check, test, doc-code</div>
-      </div>
-      <div class="module mcp">
-        <div class="module-name">adversarial-review.ts</div>
-        <div class="module-desc">MCP phase: calls Gemini via mcp__gemini-reviewer</div>
-      </div>
-      <div class="module mcp">
-        <div class="module-name">static-analysis.ts</div>
-        <div class="module-desc">MCP phase: calls Qodana via mcp__qodana</div>
+    <div class="class-box">
+      <div class="class-header class">PlanPhase</div>
+      <div class="class-section">
+        <div class="class-member">extends <span class="type">BasePhase</span></div>
+        <div class="class-member"><span class="name">name</span> = <span class="type">'plan'</span></div>
       </div>
     </div>
 
-    <!-- Support Layer -->
-    <div class="layer support">
-      <h2>Support Modules</h2>
-      <div class="module support">
-        <div class="module-name">prd/</div>
-        <div class="module-desc">PRD parsing and updating: parser.ts, updater.ts</div>
+    <div class="class-box">
+      <div class="class-header class">ImplementPhase</div>
+      <div class="class-section">
+        <div class="class-member">extends <span class="type">BasePhase</span></div>
+        <div class="class-member"><span class="name">name</span> = <span class="type">'implement'</span></div>
       </div>
-      <div class="module support">
-        <div class="module-name">display/</div>
-        <div class="module-desc">Terminal output: terminal.ts (Spinner), phase-output.ts</div>
+    </div>
+
+    <div class="class-box">
+      <div class="class-header class">AdversarialReviewPhase</div>
+      <div class="class-section">
+        <div class="class-member">extends <span class="type">BasePhase</span></div>
+        <div class="class-member"><span class="name">name</span> = <span class="type">'adversarial-review'</span></div>
+        <div class="class-member">Uses <span class="type">mcp__gemini-reviewer</span></div>
       </div>
-      <div class="module support">
-        <div class="module-name">summary/</div>
-        <div class="module-desc">HTML summary generation: collector.ts, generator.ts</div>
+      <div class="class-section">
+        <div class="class-section-title">Private Methods</div>
+        <div class="class-member"><span class="method">runIdentifyStep</span>()</div>
+        <div class="class-member"><span class="method">runFixStep</span>()</div>
+        <div class="class-member"><span class="method">parseIssuesFromOutput</span>()</div>
       </div>
-      <div class="module support">
-        <div class="module-name">parsers/</div>
-        <div class="module-desc">Output parsing: claude-stream.ts, gemini.ts, qodana.ts</div>
-      </div>
-      <div class="module support">
-        <div class="module-name">skills/</div>
-        <div class="module-desc">Skill loading from .claude/skills/</div>
-      </div>
-      <div class="module support">
-        <div class="module-name">config/</div>
-        <div class="module-desc">Load ralph-config.yaml</div>
+    </div>
+
+    <div class="class-box">
+      <div class="class-header class">StaticAnalysisPhase</div>
+      <div class="class-section">
+        <div class="class-member">extends <span class="type">BasePhase</span></div>
+        <div class="class-member"><span class="name">name</span> = <span class="type">'static-analysis'</span></div>
+        <div class="class-member">Uses <span class="type">mcp__qodana</span></div>
       </div>
     </div>
   </div>
 
-  <!-- Execution Flow -->
-  <div class="flow-section">
-    <h2>Execution Flow</h2>
-    <div class="flow-diagram">
-      <div class="flow-box start">ralph prd.md</div>
-      <span class="flow-arrow">→</span>
-      <div class="flow-box runner">runner.run()</div>
-      <span class="flow-arrow">→</span>
-      <div class="flow-box runner">parsePrd()</div>
-      <span class="flow-arrow">→</span>
-      <div class="flow-box runner">for each item</div>
-      <span class="flow-arrow">→</span>
-      <div class="flow-box phase">phase.execute()</div>
-      <span class="flow-arrow">→</span>
-      <div class="flow-box claude">runClaude()</div>
-      <span class="flow-arrow">→</span>
-      <div class="flow-box mcp">MCP tools</div>
-      <span class="flow-arrow">→</span>
-      <div class="flow-box runner">markComplete()</div>
+  <div class="relationship">
+    <strong>Inheritance:</strong>
+    Phase <span class="rel-arrow">◁──</span> BasePhase <span class="rel-arrow">◁──</span> [PlanPhase, ImplementPhase, TestPhase, ...]
+  </div>
+</div>
+
+<h3>Core Types</h3>
+<div class="class-diagram">
+  <div class="class-grid">
+    <div class="class-box">
+      <div class="class-header type">PhaseResult</div>
+      <div class="class-section">
+        <div class="class-section-title">Discriminated Union</div>
+        <div class="class-member">| { status: <span class="type">'success'</span>, message, metrics?, rawOutput? }</div>
+        <div class="class-member">| { status: <span class="type">'failed'</span>, error }</div>
+        <div class="class-member">| { status: <span class="type">'skipped'</span>, reason }</div>
+      </div>
     </div>
 
-    <h3 style="color: #3fb950; margin-top: 25px; margin-bottom: 15px; font-size: 0.95rem;">8-Phase Pipeline (PHASE_ORDER)</h3>
-    <div class="phase-grid">
-      <div class="phase-card">
-        <div class="num">1</div>
-        <div class="name">plan</div>
-        <div class="tool">Claude + experts</div>
+    <div class="class-box">
+      <div class="class-header interface">PhaseContext</div>
+      <div class="class-section">
+        <div class="class-member"><span class="name">session</span>: <span class="type">Session</span></div>
+        <div class="class-member"><span class="name">item</span>: <span class="type">PrdItem</span></div>
+        <div class="class-member"><span class="name">experts</span>: <span class="type">Skill[]</span></div>
+        <div class="class-member"><span class="name">projectPath</span>: <span class="type">string</span></div>
+        <div class="class-member"><span class="name">logsDir</span>: <span class="type">string</span></div>
+        <div class="class-member"><span class="name">correctivePrompt?</span>: <span class="type">string</span></div>
       </div>
-      <div class="phase-card">
-        <div class="num">2</div>
-        <div class="name">structure-first</div>
-        <div class="tool">Claude + experts</div>
+    </div>
+
+    <div class="class-box">
+      <div class="class-header interface">PrdItem</div>
+      <div class="class-section">
+        <div class="class-member"><span class="name">lineNumber</span>: <span class="type">number</span></div>
+        <div class="class-member"><span class="name">text</span>: <span class="type">string</span></div>
+        <div class="class-member"><span class="name">status</span>: <span class="type">'pending' | 'complete'</span></div>
       </div>
-      <div class="phase-card">
-        <div class="num">3</div>
-        <div class="name">implement</div>
-        <div class="tool">Claude + experts</div>
+    </div>
+
+    <div class="class-box">
+      <div class="class-header interface">Session</div>
+      <div class="class-section">
+        <div class="class-member"><span class="name">id</span>: <span class="type">string</span></div>
+        <div class="class-member"><span class="name">startTime</span>: <span class="type">Date</span></div>
+        <div class="class-member"><span class="name">prdPath</span>: <span class="type">string</span></div>
+        <div class="class-member"><span class="name">projectPath</span>: <span class="type">string</span></div>
+        <div class="class-member"><span class="name">logsDir</span>: <span class="type">string</span></div>
+        <div class="class-member"><span class="name">currentItem</span>: <span class="type">number</span></div>
+        <div class="class-member"><span class="name">totalItems</span>: <span class="type">number</span></div>
       </div>
-      <div class="phase-card">
-        <div class="num">4</div>
-        <div class="name">refactor-check</div>
-        <div class="tool">Claude + experts</div>
+    </div>
+
+    <div class="class-box">
+      <div class="class-header interface">ClaudeOutput</div>
+      <div class="class-section">
+        <div class="class-member"><span class="name">success</span>: <span class="type">boolean</span></div>
+        <div class="class-member"><span class="name">jsonPath</span>: <span class="type">string</span></div>
+        <div class="class-member"><span class="name">rawPath</span>: <span class="type">string</span></div>
+        <div class="class-member"><span class="name">result</span>: <span class="type">string</span></div>
+        <div class="class-member"><span class="name">durationMs</span>: <span class="type">number</span></div>
       </div>
-      <div class="phase-card mcp">
-        <div class="num">5</div>
-        <div class="name">adversarial-review</div>
-        <div class="tool">Gemini MCP</div>
-      </div>
-      <div class="phase-card mcp">
-        <div class="num">6</div>
-        <div class="name">static-analysis</div>
-        <div class="tool">Qodana MCP</div>
-      </div>
-      <div class="phase-card">
-        <div class="num">7</div>
-        <div class="name">test</div>
-        <div class="tool">Claude + experts</div>
-      </div>
-      <div class="phase-card">
-        <div class="num">8</div>
-        <div class="name">doc-code</div>
-        <div class="tool">Claude + experts</div>
+    </div>
+
+    <div class="class-box">
+      <div class="class-header type">PhaseName</div>
+      <div class="class-section">
+        <div class="class-member">'plan' | 'structure-first' | 'implement'</div>
+        <div class="class-member">| 'refactor-check' | 'test' | 'doc-code'</div>
+        <div class="class-member">| 'adversarial-review' | 'static-analysis'</div>
       </div>
     </div>
   </div>
+</div>
 
-  <!-- Key Types -->
-  <div class="type-section">
-    <h2>Key Types (src/ralph/types.ts)</h2>
-    <div class="type-grid">
-      <div class="type-card">
-        <div class="name">PrdItem</div>
-        <div class="fields">lineNumber: number<br>text: string<br>status: 'pending' | 'complete'</div>
+<h3>cc-config Services</h3>
+<div class="class-diagram">
+  <div class="class-grid">
+    <div class="class-box">
+      <div class="class-header module">profiles/index.ts</div>
+      <div class="class-section">
+        <div class="class-section-title">Exports</div>
+        <div class="class-member"><span class="method">applyProfile</span>(name, projectPath)</div>
+        <div class="class-member"><span class="method">listProfiles</span>()</div>
+        <div class="class-member"><span class="method">loadProfile</span>(name)</div>
+        <div class="class-member"><span class="method">composeProfiles</span>(names[])</div>
       </div>
-      <div class="type-card">
-        <div class="name">Session</div>
-        <div class="fields">id, startTime, prdPath<br>projectPath, logsDir<br>currentItem, totalItems</div>
+    </div>
+
+    <div class="class-box">
+      <div class="class-header module">canon/index.ts</div>
+      <div class="class-section">
+        <div class="class-section-title">Exports</div>
+        <div class="class-member"><span class="method">listCanonSkills</span>()</div>
+        <div class="class-member"><span class="method">installSkill</span>(name, projectPath)</div>
+        <div class="class-member"><span class="method">upgradeSkills</span>(projectPath)</div>
+        <div class="class-member"><span class="method">getSkillStatus</span>(name, projectPath)</div>
       </div>
-      <div class="type-card">
-        <div class="name">PhaseResult</div>
-        <div class="fields">status: 'success' | 'failed' | 'skipped'<br>message/error/reason<br>metrics?, rawOutput?</div>
+    </div>
+
+    <div class="class-box">
+      <div class="class-header module">workflow/index.ts</div>
+      <div class="class-section">
+        <div class="class-section-title">Exports</div>
+        <div class="class-member"><span class="method">installAllWorkflowSkills</span>(projectPath)</div>
+        <div class="class-member"><span class="method">getWorkflowStatus</span>(projectPath)</div>
+        <div class="class-member"><span class="method">listWorkflowSkills</span>()</div>
       </div>
-      <div class="type-card">
-        <div class="name">PhaseContext</div>
-        <div class="fields">session, item, experts[]<br>projectPath, logsDir<br>correctivePrompt?</div>
+    </div>
+
+    <div class="class-box">
+      <div class="class-header module">mcp/operations.ts</div>
+      <div class="class-section">
+        <div class="class-section-title">Exports</div>
+        <div class="class-member"><span class="method">listServers</span>()</div>
+        <div class="class-member"><span class="method">installAndEnableServer</span>(name)</div>
+        <div class="class-member"><span class="method">enableServer</span>(name)</div>
+        <div class="class-member"><span class="method">disableServer</span>(name)</div>
       </div>
-      <div class="type-card">
-        <div class="name">ClaudeOutput</div>
-        <div class="fields">success: boolean<br>jsonPath, rawPath, result<br>durationMs</div>
+    </div>
+
+    <div class="class-box">
+      <div class="class-header module">scanner/index.ts</div>
+      <div class="class-section">
+        <div class="class-section-title">Exports</div>
+        <div class="class-member"><span class="method">scanProject</span>(projectPath)</div>
+        <div class="class-member"><span class="method">auditProject</span>(projectPath)</div>
+        <div class="class-member"><span class="method">findConfigItems</span>(projectPath)</div>
       </div>
-      <div class="type-card">
-        <div class="name">RalphConfig</div>
-        <div class="fields">skills: { plan, build, test... }<br>settings: { maxIterations }</div>
+    </div>
+
+    <div class="class-box">
+      <div class="class-header interface">ComposableProfile</div>
+      <div class="class-section">
+        <div class="class-member"><span class="name">name</span>: <span class="type">string</span></div>
+        <div class="class-member"><span class="name">extends?</span>: <span class="type">string</span></div>
+        <div class="class-member"><span class="name">skills?</span>: <span class="type">{ security, tech, canon, global }</span></div>
+        <div class="class-member"><span class="name">mcpServers?</span>: <span class="type">ProfileMCPServerConfig</span></div>
+        <div class="class-member"><span class="name">claudeMd?</span>: <span class="type">{ standards, antiPatterns }</span></div>
+        <div class="class-member"><span class="name">hooks?</span>: <span class="type">ProfileHooksConfig</span></div>
       </div>
     </div>
   </div>
+</div>
 
-  <!-- Retry Loop -->
-  <div class="flow-section" style="border-color: #f85149;">
-    <h2 style="color: #f85149;">Self-Correction Retry Loop</h2>
-    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px; margin-top: 15px;">
-      <div>
-        <h4 style="color: #c9d1d9; font-size: 0.85rem; margin-bottom: 10px;">Correctable Failures (up to 3 retries)</h4>
-        <ul style="font-size: 0.8rem; color: #8b949e; padding-left: 20px; line-height: 1.8;">
-          <li>issues not fixed</li>
-          <li>function is N lines (max 30)</li>
-          <li>vague names / vague language</li>
-          <li>missing sections</li>
-          <li>tests failed / not run</li>
-          <li>ISSUES_REMAINING > 0</li>
-        </ul>
-      </div>
-      <div>
-        <h4 style="color: #c9d1d9; font-size: 0.85rem; margin-bottom: 10px;">Retry Flow</h4>
-        <div style="font-size: 0.8rem; color: #8b949e; line-height: 1.8;">
-          1. Phase fails validation<br>
-          2. isCorrectableFailure() → true<br>
-          3. buildCorrectivePrompt(error)<br>
-          4. Re-run phase with correction<br>
-          5. Repeat up to MAX_RETRIES (3)
-        </div>
-      </div>
+<!-- Execution Flows -->
+<h2>Execution Flows</h2>
+
+<h3>Ralph: PRD Processing Loop</h3>
+<div class="flow-section">
+  <div class="flow-row">
+    <div class="flow-box ralph">$ ralph prd.md</div>
+    <span class="flow-arrow">→</span>
+    <div class="flow-box ralph">run(options)</div>
+    <span class="flow-arrow">→</span>
+    <div class="flow-box ralph">parsePrd()</div>
+    <span class="flow-arrow">→</span>
+    <div class="flow-box ralph">createSession()</div>
+  </div>
+
+  <div class="flow-row">
+    <span style="color: #6e7681; margin-right: 15px;">for each incomplete item:</span>
+    <div class="flow-box ralph">processItem()</div>
+    <span class="flow-arrow">→</span>
+    <div class="flow-box ralph">runItemPhases()</div>
+    <span class="flow-arrow">→</span>
+    <div class="flow-box phase">phase.execute()</div>
+    <span class="flow-arrow">→</span>
+    <div class="flow-box external">runClaude()</div>
+  </div>
+
+  <div class="flow-row">
+    <span style="color: #6e7681; margin-right: 15px;">on success:</span>
+    <div class="flow-box ralph">markItemComplete()</div>
+    <span class="flow-arrow">→</span>
+    <div class="flow-box ralph">updatePrdFile()</div>
+    <span class="flow-arrow">→</span>
+    <div class="flow-box ralph">next item...</div>
+  </div>
+
+  <h4 style="color: #8b949e; margin: 25px 0 15px; font-size: 0.95rem;">8-Phase Pipeline (PHASE_ORDER)</h4>
+  <div class="phase-pipeline">
+    <div class="phase-box">
+      <div class="phase-num">1</div>
+      <div class="phase-name">plan</div>
+      <div class="phase-tool">Claude</div>
+    </div>
+    <div class="phase-box">
+      <div class="phase-num">2</div>
+      <div class="phase-name">structure-first</div>
+      <div class="phase-tool">Claude</div>
+    </div>
+    <div class="phase-box">
+      <div class="phase-num">3</div>
+      <div class="phase-name">implement</div>
+      <div class="phase-tool">Claude</div>
+    </div>
+    <div class="phase-box">
+      <div class="phase-num">4</div>
+      <div class="phase-name">refactor-check</div>
+      <div class="phase-tool">Claude</div>
+    </div>
+    <div class="phase-box mcp">
+      <div class="phase-num">5</div>
+      <div class="phase-name">adversarial</div>
+      <div class="phase-tool">Gemini MCP</div>
+    </div>
+    <div class="phase-box mcp">
+      <div class="phase-num">6</div>
+      <div class="phase-name">static</div>
+      <div class="phase-tool">Qodana MCP</div>
+    </div>
+    <div class="phase-box">
+      <div class="phase-num">7</div>
+      <div class="phase-name">test</div>
+      <div class="phase-tool">Claude</div>
+    </div>
+    <div class="phase-box">
+      <div class="phase-num">8</div>
+      <div class="phase-name">doc-code</div>
+      <div class="phase-tool">Claude</div>
     </div>
   </div>
+</div>
+
+<h3>cc-config: Profile Application</h3>
+<div class="flow-section">
+  <div class="flow-row">
+    <div class="flow-box config">$ cc-config profile apply js+react .</div>
+    <span class="flow-arrow">→</span>
+    <div class="flow-box config">loadProfile('javascript')</div>
+    <span class="flow-arrow">→</span>
+    <div class="flow-box config">loadProfile('react')</div>
+  </div>
+
+  <div class="flow-row">
+    <span class="flow-arrow">→</span>
+    <div class="flow-box config">composeProfiles()</div>
+    <span class="flow-arrow">→</span>
+    <div class="flow-box config">installSkills()</div>
+    <span class="flow-arrow">→</span>
+    <div class="flow-box config">generateClaudeMd()</div>
+  </div>
+
+  <div class="flow-row">
+    <span class="flow-arrow">→</span>
+    <div class="flow-box config">installWorkflowSkills()</div>
+    <span class="flow-arrow">→</span>
+    <div class="flow-box config">configureMcpServers()</div>
+    <span class="flow-arrow">→</span>
+    <div class="flow-box config">Done!</div>
+  </div>
+</div>
+
+<h3>Self-Correction Retry Loop</h3>
+<div class="flow-section" style="border-color: #f85149;">
+  <div class="flow-row">
+    <div class="flow-box phase">phase.execute()</div>
+    <span class="flow-arrow">→</span>
+    <div class="flow-box external" style="border-color: #f85149; color: #f85149;">FAILED: "3 issues not fixed"</div>
+    <span class="flow-arrow">→</span>
+    <div class="flow-box ralph">isCorrectableFailure()?</div>
+  </div>
+
+  <div class="flow-row">
+    <span style="color: #3fb950; margin-right: 10px;">YES:</span>
+    <div class="flow-box ralph">buildCorrectivePrompt()</div>
+    <span class="flow-arrow">→</span>
+    <div class="flow-box ralph">context.correctivePrompt = "..."</div>
+    <span class="flow-arrow">→</span>
+    <div class="flow-box phase">phase.execute() (retry)</div>
+  </div>
+
+  <div class="flow-row">
+    <span style="color: #8b949e; margin-right: 10px;">Max 3 retries. Correctable patterns:</span>
+    <span style="font-family: monospace; font-size: 0.8rem; color: #6e7681;">
+      /issues not fixed/ | /function.*lines.*max/ | /tests.*failed/ | /UNFIXED.*[1-9]/
+    </span>
+  </div>
+</div>
 
 </body>
 </html>
