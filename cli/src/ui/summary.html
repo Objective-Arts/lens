@@ -369,12 +369,21 @@
 
     async function loadData() {
       const dataElement = document.getElementById(DATA_ELEMENT_ID);
-      if (dataElement) {
-        return JSON.parse(dataElement.textContent);
+      if (dataElement && dataElement.textContent.trim()) {
+        try {
+          return JSON.parse(dataElement.textContent);
+        } catch (e) {
+          console.error('Failed to parse embedded data:', e);
+        }
       }
-      // Fallback: try to fetch from same directory
-      const response = await fetch('./summary.json');
-      return response.json();
+      // Fallback: try to find JSON file matching this HTML file
+      const htmlName = location.pathname.split('/').pop() || '';
+      const jsonName = htmlName.replace('.html', '.json');
+      if (jsonName && jsonName !== htmlName) {
+        const response = await fetch('./' + jsonName);
+        if (response.ok) return response.json();
+      }
+      throw new Error('No data source available');
     }
 
     // Duarte: Meaningful transitions
@@ -779,6 +788,9 @@
           <div class="empty-state">
             <h2>No data available</h2>
             <p>Summary data could not be loaded.</p>
+            <p style="font-size: 12px; margin-top: 16px; color: #9ca3af;">
+              Try: Hard refresh (Cmd+Shift+R) or check the JSON file in the same directory.
+            </p>
           </div>
         `);
       }

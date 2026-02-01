@@ -1,75 +1,114 @@
 /**
  * Adversarial-review phase - hard-ass code review via Gemini.
  *
- * Uses Gemini MCP tool for comprehensive review. No Claude experts needed.
+ * Split into two steps:
+ * 1. IDENTIFY - Call Gemini, parse issues
+ * 2. FIX - Fix issues one at a time
+ *
+ * This separation prevents cognitive overload and allows targeted retries.
  */
 
 import { BasePhase, PhaseContext, PhaseResult } from './types.js';
-import { runClaude } from '../process/claude.js';
+import { runClaude, StreamCallbacks } from '../process/claude.js';
 import { extractError } from '../parsers/claude-stream.js';
 import {
   hasNoCode, NO_CODE_INDICATORS, parseMcpPhaseOutput, buildPhaseMetrics,
   formatSuccessMessage, GEMINI_EVIDENCE,
 } from './mcp-helpers.js';
+import chalk from 'chalk';
+import * as fs from 'fs';
+import * as path from 'path';
 
-const ADVERSARIAL_PROMPT = `## CRITICAL: THIS PHASE REQUIRES GEMINI MCP TOOL
+/** Issue structure for passing between steps */
+interface GeminiIssue {
+  severity: string;
+  description: string;
+  file?: string;
+  line?: number;
+}
 
-You MUST call mcp__gemini-reviewer__gemini_review. The phase FAILS without it.
+const IDENTIFY_PROMPT = `## STEP 1: IDENTIFY ISSUES (DO NOT FIX YET)
+
+You MUST call mcp__gemini-reviewer__gemini_review to find issues. DO NOT fix anything in this step.
 
 PRD ITEM: {ITEM_TEXT}
 
-## STEP 1: Find code to review
-Find recently modified files using git diff or git log.
-Look in: src/, lib/, app/, migrations/, db/, and project root.
-If NO code exists, output "no code to review" and stop.
+## FIND CODE TO REVIEW (MANDATORY)
 
-## STEP 2: CALL GEMINI IMMEDIATELY
-THIS IS MANDATORY. Call the tool NOW:
+You MUST find and review code. Try these methods IN ORDER until you find files:
+
+1. \`git diff HEAD~5 --name-only\` - files changed in last 5 commits
+2. \`git diff --staged --name-only\` - staged files
+3. \`git log --oneline -10 --name-only\` - recently touched files
+4. Look for files matching the PRD item keywords in src/, lib/, app/
+
+If method 1-3 return nothing, use Glob to find relevant source files based on the PRD item text.
+
+IMPORTANT: You MUST find at least one file to review. Only output "no code to review" if the project is genuinely empty.
+
+## READ THE FILES
+
+For each file found:
+1. Use Read tool to get the full source code
+2. Collect all code into a single string for Gemini
+
+## CALL GEMINI WITH THE CODE
+
+This is MANDATORY. You must paste actual source code, not placeholders.
+
 \`\`\`
 mcp__gemini-reviewer__gemini_review
-  code: <paste the source code>
+  code: <THE ACTUAL SOURCE CODE YOU READ - not a placeholder>
   focus: "adversarial"
-  context: "Adversarial code review. Think like an attacker. Find: security vulnerabilities, race conditions, edge cases that crash, input validation bypasses, resource exhaustion, privilege escalation. Be hostile and thorough."
+  context: "Adversarial code review for: {ITEM_TEXT}. Think like an attacker. Find: security vulnerabilities, race conditions, edge cases that crash, input validation bypasses, resource exhaustion, privilege escalation, error handling gaps, injection vectors. Be hostile and thorough."
 \`\`\`
-If tool unavailable, output: GEMINI_ERROR: tool not available
 
-## STEP 3: FIX ALL ISSUES (MANDATORY - NO EXCEPTIONS)
-
-You MUST fix EVERY issue Gemini identifies. ALL of them. No exceptions.
-
-DO NOT:
-- Mark issues as "application-level concern"
-- Say "requires application code"
-- Punt issues to "future work"
-- Skip issues because they're "operational" or "architectural"
-- Make judgment calls about what's worth fixing
-- Leave ANY issue unfixed
-
-If Gemini found it, YOU FIX IT. Period.
-
-For EACH issue:
-1. Use Edit tool to fix the code NOW
-2. Verify the fix compiles/runs
-3. Record in ISSUES_FIXED
-
-If you truly cannot fix an issue (tool limitation, etc), the phase FAILS.
-Do not proceed with unfixed issues.
-
-## REQUIRED OUTPUT FORMAT
+## OUTPUT FORMAT
 
 GEMINI_RESULT: called - [N] issues
-(or: GEMINI_RESULT: error - <reason>)
+
+FILES_REVIEWED:
+- path/to/file1.ts
+- path/to/file2.ts
 
 ISSUES_FOUND:
 [SEVERITY] description (file:line)
 
+INFO_NOTED:
+[INFO] description (file:line)
+
+REVIEW_ISSUES: N
+IDENTIFICATION_COMPLETE: yes`;
+
+const FIX_PROMPT = `## STEP 2: FIX ISSUES
+
+Fix the following issues found by Gemini. Fix them ONE AT A TIME.
+
+{ISSUES_LIST}
+
+## For EACH issue:
+1. Read the file
+2. Understand the issue
+3. Use Edit tool to fix
+4. Verify fix compiles: run \`npm run build\` or \`npx tsc --noEmit\`
+5. Mark as FIXED
+
+## INFO items
+INFO-level items are observations - acknowledge but don't fix unless trivial.
+
+## If you cannot fix an issue:
+Document in CANNOT_FIX with specific reason (e.g., "requires architectural change", "in third-party code")
+
+## OUTPUT FORMAT
+
 ISSUES_FIXED:
 [SEVERITY] description - FIXED
 
-UNFIXED: 0 (must be zero or phase fails)
+CANNOT_FIX:
+[SEVERITY] description - REASON: <specific reason>
 
-REVIEW_ISSUES: N
-VERIFIED_CLEAN: yes/no`;
+UNFIXED: N
+FIX_COMPLETE: yes`;
 
 export class AdversarialReviewPhase extends BasePhase {
   readonly name = 'adversarial-review' as const;
@@ -79,47 +118,288 @@ export class AdversarialReviewPhase extends BasePhase {
   async execute(context: PhaseContext): Promise<PhaseResult> {
     const { item, projectPath, logsDir } = context;
 
-    let prompt = ADVERSARIAL_PROMPT.replace('{ITEM_TEXT}', item.text);
+    // Step 1: Identify issues
+    process.stdout.write(`      ${chalk.magenta('○')} ${chalk.dim('Step 1: Identifying issues...')}\n`);
+    const identifyResult = await this.runIdentifyStep(context);
 
-    // Append corrective prompt for retry attempts
-    if (context.correctivePrompt) {
-      prompt = `${prompt}\n\n${context.correctivePrompt}`;
+    if (identifyResult.skip) {
+      return this.skipped(identifyResult.reason || 'No code to review');
+    }
+    if (identifyResult.error) {
+      return this.failed(identifyResult.error);
     }
 
+    const issues = identifyResult.issues || [];
+    const actionableIssues = issues.filter(i => i.severity !== 'INFO');
+    const infoCount = issues.length - actionableIssues.length;
+
+    // Show breakdown if there are INFO items
+    if (infoCount > 0) {
+      process.stdout.write(`      ${chalk.dim(`(${infoCount} INFO items noted, ${actionableIssues.length} actionable)`)}\n`);
+    }
+
+    // If no actionable issues, we're done
+    if (actionableIssues.length === 0) {
+      process.stdout.write(`      ${chalk.green('✓')} ${chalk.dim('No issues to fix')}\n`);
+      return this.success(
+        `Gemini review clean - ${issues.length} INFO items noted`,
+        { toolCalled: 1, issuesFound: issues.length, issuesFixed: 0 },
+        identifyResult.rawOutput
+      );
+    }
+
+    // Step 2: Fix issues
+    process.stdout.write(`      ${chalk.magenta('○')} ${chalk.dim(`Step 2: Fixing ${actionableIssues.length} issues...`)}\n`);
+    const fixResult = await this.runFixStep(context, actionableIssues);
+
+    if (fixResult.error) {
+      return this.failed(fixResult.error);
+    }
+
+    // Validate results
+    const unfixedCriticalHigh = fixResult.unfixed.filter(
+      i => i.severity === 'CRITICAL' || i.severity === 'HIGH'
+    );
+
+    if (unfixedCriticalHigh.length > 0) {
+      const list = unfixedCriticalHigh.slice(0, 3).map(i => `[${i.severity}] ${i.description}`).join(', ');
+      return this.failed(`${unfixedCriticalHigh.length} CRITICAL/HIGH issues unfixed: ${list}`);
+    }
+
+    const unfixedModerateLow = fixResult.unfixed.filter(
+      i => i.severity === 'MODERATE' || i.severity === 'LOW'
+    );
+    if (unfixedModerateLow.length > 2) {
+      const list = unfixedModerateLow.slice(0, 3).map(i => `[${i.severity}] ${i.description}`).join(', ');
+      return this.failed(`${unfixedModerateLow.length} MODERATE/LOW unfixed (max 2): ${list}`);
+    }
+
+    const suffix = unfixedModerateLow.length > 0 ? ` (${unfixedModerateLow.length} noted)` : '';
+    return this.success(
+      `Fixed ${fixResult.fixed.length}/${actionableIssues.length} issues${suffix}`,
+      {
+        toolCalled: 1,
+        issuesFound: issues.length,
+        issuesFixed: fixResult.fixed.length,
+        cannotFix: fixResult.cannotFix.length,
+      },
+      fixResult.rawOutput
+    );
+  }
+
+  /** Step 1: Call Gemini and identify issues */
+  private async runIdentifyStep(context: PhaseContext): Promise<{
+    issues?: GeminiIssue[];
+    skip?: boolean;
+    reason?: string;
+    error?: string;
+    rawOutput?: string;
+  }> {
+    const { item, projectPath, logsDir } = context;
+    const prompt = IDENTIFY_PROMPT.replace('{ITEM_TEXT}', item.text);
+
+    const stream: StreamCallbacks = {
+      onToolCall: (name) => {
+        if (name.includes('gemini')) {
+          process.stdout.write(`\r      ${chalk.magenta('◆')} ${chalk.dim('Calling Gemini...')}\n`);
+        }
+      },
+    };
+
     const output = await runClaude({
-      prompt, projectPath, logDir: logsDir, logPrefix: this.getLogPrefix(context),
-      allowedTools: ['Bash', 'Read', 'Write', 'Edit', 'Glob', 'Grep', 'mcp__gemini-reviewer__gemini_review'],
+      prompt,
+      projectPath,
+      logDir: logsDir,
+      logPrefix: `${this.getLogPrefix(context)}-identify`,
+      allowedTools: ['Bash', 'Read', 'Glob', 'Grep', 'mcp__gemini-reviewer__gemini_review'],
+      stream,
     });
 
     if (hasNoCode(output.result, NO_CODE_INDICATORS)) {
-      return this.skipped('No code to review');
-    }
-    if (!output.success) {
-      return this.failed(`Review failed: ${extractError(output.result) || 'Review did not complete'} (see ${output.rawPath})`);
+      return { skip: true, reason: 'No code to review' };
     }
 
+    if (!output.success) {
+      return { error: `Identify step failed: ${extractError(output.result)}` };
+    }
+
+    // Check Gemini was called
     const parsed = parseMcpPhaseOutput(output.result, 'GEMINI_RESULT', 'REVIEW_ISSUES', GEMINI_EVIDENCE);
     if (parsed.toolStatus !== 'called' && !parsed.wasInvoked) {
-      return this.failed('Gemini review was not called - phase requires mcp__gemini-reviewer__gemini_review');
+      return { error: 'Gemini was not called' };
     }
 
-    // Check for unfixed issues - phase MUST fix ALL issues
-    const unfixedMatch = output.result.match(/UNFIXED:\s*(\d+)/i);
-    const unfixedCount = unfixedMatch ? parseInt(unfixedMatch[1], 10) : parsed.phaseOutput.remaining;
-
-    // Also check for "NOT FIXED" or "Application-Level" sections which indicate skipped fixes
-    const hasSkippedFixes = /NOT\s*FIXED|Application-Level|application\s*concern/i.test(output.result);
-
-    if (unfixedCount > 0 || hasSkippedFixes) {
-      const issueCount = unfixedCount || 'some';
-      return this.failed(`${issueCount} issues not fixed. ALL Gemini issues must be fixed. No exceptions.`);
+    // Debug: show files reviewed
+    const filesMatch = output.result.match(/FILES_REVIEWED:\s*([\s\S]*?)(?=\n\n|\nISSUES|\nGEMINI|\n[A-Z_]+:)/i);
+    if (filesMatch) {
+      const files = filesMatch[1].split('\n').filter(l => l.trim().startsWith('-')).map(l => l.trim());
+      if (files.length > 0) {
+        process.stdout.write(`      ${chalk.magenta('◆')} ${chalk.dim(`Reviewed: ${files.slice(0, 3).join(', ')}${files.length > 3 ? ` +${files.length - 3} more` : ''}`)}\n`);
+      }
     }
 
-    const metrics = buildPhaseMetrics(parsed.phaseOutput, parsed.toolStatus === 'called');
-    return this.success(
-      formatSuccessMessage(parsed.summary, 'Gemini', parsed.toolStatus),
-      { ...metrics, geminiCalled: metrics.toolCalled },
-      output.result
-    );
+    // Parse issues from output
+    const issues = this.parseIssuesFromOutput(output.result);
+
+    // Debug: show if Gemini returned content but parsing found nothing
+    const hasGeminiContent = output.result.includes('gemini') || output.result.includes('Gemini');
+    const rawIssueLines = output.result.split('\n').filter(l =>
+      /\b(CRITICAL|HIGH|MEDIUM|MODERATE|LOW|WARNING|ERROR)\b/i.test(l)
+    ).length;
+
+    if (issues.length === 0 && rawIssueLines > 0) {
+      process.stdout.write(`      ${chalk.yellow('⚠')} ${chalk.dim(`Parsing mismatch: ${rawIssueLines} severity lines but ${issues.length} parsed`)}\n`);
+    }
+
+    process.stdout.write(`      ${chalk.magenta('◆')} ${chalk.dim(`Found ${issues.length} issues`)}\n`);
+
+    return { issues, rawOutput: output.result };
+  }
+
+  /** Step 2: Fix the identified issues */
+  private async runFixStep(context: PhaseContext, issues: GeminiIssue[]): Promise<{
+    fixed: GeminiIssue[];
+    unfixed: GeminiIssue[];
+    cannotFix: GeminiIssue[];
+    error?: string;
+    rawOutput?: string;
+  }> {
+    const { projectPath, logsDir } = context;
+
+    // Format issues for the prompt with explicit numbering
+    const issuesList = issues.map((issue, i) =>
+      `${i + 1}. [${issue.severity}] ${issue.description}${issue.file ? ` (${issue.file}${issue.line ? `:${issue.line}` : ''})` : ''}`
+    ).join('\n');
+
+    // Ask Claude to reference issues by number when reporting fixes
+    const prompt = FIX_PROMPT.replace('{ISSUES_LIST}', issuesList) +
+      '\n\nIMPORTANT: When reporting fixed issues, include the issue number: "#N [SEVERITY] description - FIXED"';
+
+    const output = await runClaude({
+      prompt,
+      projectPath,
+      logDir: logsDir,
+      logPrefix: `${this.getLogPrefix(context)}-fix`,
+      allowedTools: ['Bash', 'Read', 'Write', 'Edit', 'Glob', 'Grep'],
+    });
+
+    if (!output.success) {
+      return {
+        fixed: [],
+        unfixed: issues,
+        cannotFix: [],
+        error: `Fix step failed: ${extractError(output.result)}`,
+      };
+    }
+
+    // Track which issues were addressed by index
+    const fixedIndices = new Set<number>();
+    const cannotFixIndices = new Set<number>();
+
+    // Parse by issue number first (most reliable)
+    const numberPattern = /#(\d+)\s*\[.*?\].*?-\s*(FIXED|REASON:)/gmi;
+    let match;
+    while ((match = numberPattern.exec(output.result)) !== null) {
+      const idx = parseInt(match[1], 10) - 1; // Convert to 0-indexed
+      if (idx >= 0 && idx < issues.length) {
+        if (match[2].toUpperCase() === 'FIXED') {
+          fixedIndices.add(idx);
+        } else {
+          cannotFixIndices.add(idx);
+        }
+      }
+    }
+
+    // Fallback: fuzzy match if no numbers found
+    if (fixedIndices.size === 0 && cannotFixIndices.size === 0) {
+      const fixedParsed = this.parseFixedFromOutput(output.result, issues);
+      const cannotFixParsed = this.parseCannotFixFromOutput(output.result, issues);
+      for (const f of fixedParsed) {
+        const idx = issues.findIndex(i => i === f);
+        if (idx >= 0) fixedIndices.add(idx);
+      }
+      for (const c of cannotFixParsed) {
+        const idx = issues.findIndex(i => i === c);
+        if (idx >= 0) cannotFixIndices.add(idx);
+      }
+    }
+
+    const fixed = issues.filter((_, i) => fixedIndices.has(i));
+    const cannotFix = issues.filter((_, i) => cannotFixIndices.has(i));
+    const unfixed = issues.filter((_, i) => !fixedIndices.has(i) && !cannotFixIndices.has(i));
+
+    process.stdout.write(`      ${chalk.green('◆')} ${chalk.dim(`Fixed ${fixed.length}, cannot fix ${cannotFix.length}, unfixed ${unfixed.length}`)}\n`);
+
+    // Print the fixed issues for visibility
+    if (fixed.length > 0) {
+      process.stdout.write(`      ${chalk.dim(`Issues Fixed (${fixed.length}):`)}\n`);
+      for (const issue of fixed) {
+        process.stdout.write(`        ${chalk.green('✓')} ${issue.description}\n`);
+      }
+    }
+
+    return { fixed, unfixed, cannotFix, rawOutput: output.result };
+  }
+
+  /** Parse issues from identify step output */
+  private parseIssuesFromOutput(output: string): GeminiIssue[] {
+    const issues: GeminiIssue[] = [];
+    const pattern = /\[(CRITICAL|HIGH|MEDIUM|MODERATE|LOW|INFO)\]\s+(.+?)(?:\s+\(([^:)]+)(?::(\d+))?\))?$/gm;
+
+    let match;
+    while ((match = pattern.exec(output)) !== null) {
+      issues.push({
+        severity: match[1] === 'MEDIUM' ? 'MODERATE' : match[1],
+        description: match[2].trim(),
+        file: match[3],
+        line: match[4] ? parseInt(match[4], 10) : undefined,
+      });
+    }
+
+    return issues;
+  }
+
+  /** Parse fixed issues from fix step output */
+  private parseFixedFromOutput(output: string, original: GeminiIssue[]): GeminiIssue[] {
+    const fixed: GeminiIssue[] = [];
+    const pattern = /\[(CRITICAL|HIGH|MEDIUM|MODERATE|LOW)\]\s+(.+?)\s*-\s*FIXED/gmi;
+
+    let match;
+    while ((match = pattern.exec(output)) !== null) {
+      const desc = match[2].trim().toLowerCase();
+      const orig = original.find(i => i.description.toLowerCase().includes(desc) || desc.includes(i.description.toLowerCase()));
+      if (orig) {
+        fixed.push(orig);
+      } else {
+        fixed.push({
+          severity: match[1] === 'MEDIUM' ? 'MODERATE' : match[1],
+          description: match[2].trim(),
+        });
+      }
+    }
+
+    return fixed;
+  }
+
+  /** Parse cannot-fix issues from fix step output */
+  private parseCannotFixFromOutput(output: string, original: GeminiIssue[]): GeminiIssue[] {
+    const cannotFix: GeminiIssue[] = [];
+    const pattern = /\[(CRITICAL|HIGH|MEDIUM|MODERATE|LOW)\]\s+(.+?)\s*-\s*REASON:/gmi;
+
+    let match;
+    while ((match = pattern.exec(output)) !== null) {
+      const desc = match[2].trim().toLowerCase();
+      const orig = original.find(i => i.description.toLowerCase().includes(desc) || desc.includes(i.description.toLowerCase()));
+      if (orig) {
+        cannotFix.push(orig);
+      } else {
+        cannotFix.push({
+          severity: match[1] === 'MEDIUM' ? 'MODERATE' : match[1],
+          description: match[2].trim(),
+        });
+      }
+    }
+
+    return cannotFix;
   }
 }

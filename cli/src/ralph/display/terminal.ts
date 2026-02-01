@@ -9,6 +9,10 @@
 
 import chalk from 'chalk';
 import { SkillDetection, StageStatus } from '../types.js';
+import { parseAppliedSection } from './applied-parser.js';
+
+// Re-export for backward compatibility
+export { parseAppliedSection };
 
 /** Stage icons - matches PHASE_ORDER in phases/index.ts */
 const STAGE_ICONS: Record<string, string> = {
@@ -89,72 +93,41 @@ export function printItemHeader(
   console.log(chalk.cyan('━'.repeat(84)));
 }
 
-/**
- * Print stage header with three-part structure:
- * 1. Canon - principles listed horizontally
- * 2. Skills - loaded skills
- * 3. (Usage printed at stage end via printStageUsage)
- */
+/** External tool indicators for stages */
+const EXTERNAL_TOOLS: Record<string, string> = {
+  'adversarial-review': ' (+ Gemini)',
+  'static-analysis': ' (+ Qodana)',
+};
+
+/** Format progress indicator */
+function formatProgress(stageIndex?: number, totalStages?: number): string {
+  return (stageIndex !== undefined && totalStages !== undefined)
+    ? chalk.dim(` (${stageIndex + 1}/${totalStages})`)
+    : '';
+}
+
+/** Print stage header with skills info */
 export function printStageHeader(
   stage: string,
   detection: SkillDetection,
   stageIndex?: number,
   totalStages?: number
 ): void {
-  const icon = STAGE_ICONS[stage] || '\u25cf'; // ●
-  const progress = (stageIndex !== undefined && totalStages !== undefined)
-    ? chalk.dim(` (${stageIndex + 1}/${totalStages})`)
-    : '';
+  const icon = STAGE_ICONS[stage] || '\u25cf';
+  const progress = formatProgress(stageIndex, totalStages);
+  const externalTools = EXTERNAL_TOOLS[stage] ? chalk.dim(EXTERNAL_TOOLS[stage]) : '';
 
   console.log('');
   console.log(chalk.dim('─'.repeat(84)));
-  // Add external tool indicator for review/analysis stages
-  let externalTools = '';
-  if (stage === 'adversarial-review') externalTools = chalk.dim(' (+ Gemini)');
-  if (stage === 'static-analysis') externalTools = chalk.dim(' (+ Qodana)');
   console.log(`  ${icon}  ${chalk.cyan(capitalize(stage))}${progress}${externalTools}`);
 
   if (detection.skills.length > 0) {
-    // 1. Skills listed horizontally
-    const skillList = detection.skills.join(' ');
-    console.log(`      ${chalk.dim('Skills:')} ${skillList}`);
-
-    // 2. Loaded confirmation
+    console.log(`      ${chalk.dim('Skills:')} ${detection.skills.join(' ')}`);
     console.log(`      ${chalk.green('✓')} ${detection.skills.length} skills loaded`);
   }
-
   console.log('');
 }
 
-/**
- * Parse APPLIED section from Claude's output.
- * Handles multiple formats:
- * - APPLIED: followed by bullets
- * - **APPLIED:** markdown format
- * - Lines starting with - or • or *
- */
-export function parseAppliedSection(rawOutput: string): string[] {
-  const lines: string[] = [];
-
-  // Find APPLIED section - match various markdown formats
-  // Stop at double newline, uppercase markers, or end
-  const appliedMatch = rawOutput.match(/\*?\*?APPLIED:?\*?\*?\s*([\s\S]*?)(?=\n\n|\n[A-Z_]{3,}|\n#{1,3}\s|$)/i);
-  if (!appliedMatch) return lines;
-
-  const appliedBlock = appliedMatch[1].trim();
-
-  for (const line of appliedBlock.split('\n')) {
-    const trimmed = line.trim();
-    // Match various bullet formats: -, •, *, or numbered
-    if (/^[-•*]\s/.test(trimmed) || /^\d+\.\s/.test(trimmed)) {
-      // Remove bullet/number and ** markers
-      const content = trimmed.replace(/^[-•*]\s*/, '').replace(/^\d+\.\s*/, '').replace(/\*\*/g, '').trim();
-      if (content && content.includes(':')) lines.push(content);
-    }
-  }
-
-  return lines;
-}
 
 /**
  * Print how skills were actually applied (substantive usage).
@@ -165,7 +138,7 @@ export function printAppliedSkills(rawOutput: string | undefined): void {
   const applied = parseAppliedSection(rawOutput);
   if (applied.length === 0) return;
 
-  console.log(`      ${chalk.dim('Applied:')}`);
+  console.log(`      ${chalk.dim('Principles Applied:')}`);
   for (const line of applied) {
     console.log(`        ${chalk.yellow('•')} ${line}`);
   }
@@ -256,21 +229,36 @@ function capitalize(str: string): string {
 }
 
 /**
- * Spinner for long-running operations.
+ * Spinner for long-running operations with elapsed time display.
  */
 export class Spinner {
   private frames = ['\u280b', '\u2819', '\u2839', '\u2838', '\u283c', '\u2834', '\u2826', '\u2827', '\u2807', '\u280f'];
   private current = 0;
   private interval: ReturnType<typeof setInterval> | null = null;
   private message: string;
+  private startTime: number = 0;
+  private lastLineLength: number = 0;
 
   constructor(message: string = 'Working...') {
     this.message = message;
   }
 
+  /** Format elapsed time as m:ss */
+  private formatElapsed(): string {
+    const elapsed = Math.floor((Date.now() - this.startTime) / 1000);
+    const mins = Math.floor(elapsed / 60);
+    const secs = elapsed % 60;
+    return `${mins}:${secs.toString().padStart(2, '0')}`;
+  }
+
   start(): void {
+    this.startTime = Date.now();
     this.interval = setInterval(() => {
-      process.stdout.write(`\r  ${chalk.dim(this.frames[this.current])} ${chalk.dim(this.message)}`);
+      const line = `\r  ${chalk.dim(this.frames[this.current])} ${chalk.dim(this.message)} ${chalk.dim(`(${this.formatElapsed()})`)}`;
+      // Clear previous line if it was longer
+      const clearPad = this.lastLineLength > line.length ? ' '.repeat(this.lastLineLength - line.length) : '';
+      process.stdout.write(line + clearPad);
+      this.lastLineLength = line.length;
       this.current = (this.current + 1) % this.frames.length;
     }, 80);
   }
@@ -279,12 +267,17 @@ export class Spinner {
     if (this.interval) {
       clearInterval(this.interval);
       this.interval = null;
-      process.stdout.write('\r' + ' '.repeat(this.message.length + 10) + '\r');
+      process.stdout.write('\r' + ' '.repeat(this.lastLineLength + 10) + '\r');
     }
   }
 
   update(message: string): void {
     this.message = message;
+  }
+
+  /** Get elapsed time in seconds */
+  getElapsedSeconds(): number {
+    return (Date.now() - this.startTime) / 1000;
   }
 }
 

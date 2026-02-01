@@ -261,6 +261,52 @@ Review your previous output and correct the specific problem mentioned above.
 Then re-output the complete result with the fix applied.`;
 }
 
+/** Single retry attempt result. */
+interface RetryAttemptResult { done: boolean; failed: boolean; error?: string; }
+
+/** Create spinner for retry attempt. */
+function createRetrySpinner(phaseName: string, attempt: number): Spinner {
+  const msg = attempt > 0
+    ? `Retrying ${phaseName} (attempt ${attempt + 1}/${MAX_RETRIES})...`
+    : `Running ${phaseName}...`;
+  return new Spinner(msg);
+}
+
+/** Extract error from result if retryable. */
+function getRetryableError(result: { status: string; error?: string }, attempt: number): string | null {
+  if (result.status === 'failed' && 'error' in result && result.error && isCorrectableFailure(result.error) && attempt < MAX_RETRIES - 1) {
+    return result.error;
+  }
+  return null;
+}
+
+/** Phases that handle their own progress output (no spinner needed). */
+const SELF_REPORTING_PHASES: readonly string[] = ['adversarial-review', 'static-analysis'];
+
+/** Execute single retry attempt. */
+async function executeRetryAttempt(
+  phase: Phase, context: PhaseContext, attempt: number, lastError: string,
+  phaseStatus: Map<string, PhaseStatus>, collector: SummaryCollector, itemNum: number
+): Promise<RetryAttemptResult> {
+  const useSpinner = !SELF_REPORTING_PHASES.includes(phase.name);
+  const spinner = useSpinner ? createRetrySpinner(phase.name, attempt) : null;
+  spinner?.start();
+  const startTime = Date.now();
+
+  const executeContext = attempt > 0 ? { ...context, correctivePrompt: buildCorrectivePrompt(lastError, attempt) } : context;
+  const result = await phase.execute(executeContext);
+  spinner?.stop();
+
+  const retryError = getRetryableError(result, attempt);
+  if (retryError) {
+    printWarning(`${phase.name} failed validation: ${retryError}`);
+    printInfo(`Attempting self-correction (${attempt + 2}/${MAX_RETRIES})...`);
+    return { done: false, failed: false, error: retryError };
+  }
+
+  return { done: true, failed: processPhaseResult(result, phase, Date.now() - startTime, context, phaseStatus, collector, itemNum) };
+}
+
 /** Execute phase with retry loop for self-correction. */
 async function executePhaseWithRetry(
   phase: Phase, context: PhaseContext, projectPath: string, commitHash: string | null,
@@ -269,50 +315,21 @@ async function executePhaseWithRetry(
   let lastError = '';
 
   for (let attempt = 0; attempt < MAX_RETRIES; attempt++) {
-    const isRetry = attempt > 0;
-    const spinner = new Spinner(isRetry
-      ? `Retrying ${phase.name} (attempt ${attempt + 1}/${MAX_RETRIES})...`
-      : `Running ${phase.name}...`);
-    spinner.start();
-    const startTime = Date.now();
-
     try {
-      // For retries, inject corrective context
-      const executeContext = isRetry
-        ? { ...context, correctivePrompt: buildCorrectivePrompt(lastError, attempt) }
-        : context;
-
-      const result = await phase.execute(executeContext);
-      spinner.stop();
-
-      // Check if result indicates a correctable failure
-      if (result.status === 'failed' && result.error && isCorrectableFailure(result.error)) {
-        lastError = result.error;
-        if (attempt < MAX_RETRIES - 1) {
-          printWarning(`${phase.name} failed validation: ${result.error}`);
-          printInfo(`Attempting self-correction (${attempt + 2}/${MAX_RETRIES})...`);
-          continue; // Retry
-        }
-      }
-
-      return processPhaseResult(result, phase, Date.now() - startTime, context, phaseStatus, collector, itemNum);
+      const result = await executeRetryAttempt(phase, context, attempt, lastError, phaseStatus, collector, itemNum);
+      if (result.done) return result.failed;
+      lastError = result.error || '';
     } catch (err) {
-      spinner.stop();
       const errorMsg = err instanceof Error ? err.message : String(err);
-
-      // Check if this is a correctable error
       if (isCorrectableFailure(errorMsg) && attempt < MAX_RETRIES - 1) {
         lastError = errorMsg;
         printWarning(`${phase.name} failed: ${errorMsg}`);
         printInfo(`Attempting self-correction (${attempt + 2}/${MAX_RETRIES})...`);
-        continue; // Retry
+        continue;
       }
-
-      return handlePhaseError(errorMsg, phase, Date.now() - startTime, projectPath, commitHash, phaseStatus, collector);
+      return handlePhaseError(errorMsg, phase, 0, projectPath, commitHash, phaseStatus, collector);
     }
   }
-
-  // All retries exhausted
   return handlePhaseError(`Failed after ${MAX_RETRIES} attempts: ${lastError}`, phase, 0, projectPath, commitHash, phaseStatus, collector);
 }
 
@@ -324,45 +341,51 @@ async function executePhase(
   return executePhaseWithRetry(phase, context, projectPath, commitHash, phaseStatus, collector, itemNum);
 }
 
+/** Check if phase should be skipped. Returns skip reason or null to proceed. */
+function shouldSkipPhase(phase: Phase, context: PhaseContext, skipReview?: boolean): string | null {
+  if (phase.name === 'adversarial-review' && skipReview) return 'skipped';
+  if (!phase.shouldRun(context)) return 'Not needed';
+  return null;
+}
+
+/** Execute single phase in item loop. Returns true if failed. */
+async function runSinglePhase(
+  phase: Phase, index: number, phases: Phase[], context: PhaseContext, config: RalphConfig,
+  item: PrdItem, projectPath: string, phaseStatus: Map<string, PhaseStatus>,
+  collector: SummaryCollector, itemNum: number, trace?: boolean
+): Promise<boolean> {
+  if (trace) console.log(formatTrace(traceSkillConfig(projectPath, phase.name, item.text)));
+  phaseStatus.set(phase.name, 'running');
+  printStageHeader(phase.name, getDetectionInfo(config, phase, item, projectPath), index, phases.length);
+  const commitHash = await getGitCommitHash(projectPath);
+  return executePhase(phase, context, projectPath, commitHash, phaseStatus, collector, itemNum);
+}
+
 /** Run all phases for a single item. Returns true if failed. */
 async function runItemPhases(
   phases: Phase[], item: PrdItem, session: Session, config: RalphConfig, projectPath: string,
   skipReview: boolean | undefined, verbose: boolean | undefined, phaseStatus: Map<string, PhaseStatus>,
   collector: SummaryCollector, itemNum: number, trace?: boolean
 ): Promise<boolean> {
-  // Create workflow marker to allow Edit/Write through hooks
   createWorkflowMarker(projectPath);
 
   for (let i = 0; i < phases.length; i++) {
     const phase = phases[i];
-    const commitHash = await getGitCommitHash(projectPath);
-
-    if (phase.name === 'adversarial-review' && skipReview) {
-      phaseStatus.set(phase.name, 'skipped');
-      continue;
-    }
-
     const context = buildPhaseContext(session, item, config, phase, projectPath);
-    if (!phase.shouldRun(context)) {
-      phaseStatus.set(phase.name, 'skipped');
-      if (verbose) printStageSkipped(phase.name, 'Not needed');
-      continue;
-    }
-
-    // Print YAML trace if enabled
-    if (trace) {
-      const traceResult = traceSkillConfig(projectPath, phase.name, item.text);
-      console.log(formatTrace(traceResult));
-    }
-
-    phaseStatus.set(phase.name, 'running');
-    printStageHeader(phase.name, getDetectionInfo(config, phase, item, projectPath), i, phases.length);
-
-    if (await executePhase(phase, context, projectPath, commitHash, phaseStatus, collector, itemNum)) {
-      return true;
-    }
+    const skipReason = shouldSkipPhase(phase, context, skipReview);
+    if (skipReason) { phaseStatus.set(phase.name, 'skipped'); if (verbose) printStageSkipped(phase.name, skipReason); continue; }
+    if (await runSinglePhase(phase, i, phases, context, config, item, projectPath, phaseStatus, collector, itemNum, trace)) return true;
   }
   return false;
+}
+
+/** Atomically update PRD file with completed item. */
+function updatePrdFile(prd: Prd, item: PrdItem, prdPath: string): Prd {
+  const updatedContent = markItemComplete(prd, item);
+  const tempPath = prdPath + '.tmp';
+  fs.writeFileSync(tempPath, updatedContent);
+  fs.renameSync(tempPath, prdPath);
+  return parsePrd(prdPath, updatedContent);
 }
 
 /** Process a single PRD item. */
@@ -380,20 +403,14 @@ async function processItem(
 
   const failed = await runItemPhases(phases, item, session, config, projectPath, skipReview, verbose, phaseStatus, collector, itemNum, trace);
 
-  if (!failed) {
-    // Update collector BEFORE writing to file for consistency on crash
-    collector.completeItem('success');
-    const updatedContent = markItemComplete(prd, item);
-    // Atomic write: write to temp file then rename to prevent corruption
-    const tempPrdPath = prdPath + '.tmp';
-    fs.writeFileSync(tempPrdPath, updatedContent);
-    fs.renameSync(tempPrdPath, prdPath);
-    prd = parsePrd(prdPath, updatedContent);
-    printItemComplete(itemNum, countIncomplete(prd));
-    session.completedItems++;
-  } else {
+  if (failed) {
     collector.completeItem('failed');
     printWarning(`Item ${itemNum} failed, moving to next item`);
+  } else {
+    collector.completeItem('success');
+    prd = updatePrdFile(prd, item, prdPath);
+    printItemComplete(itemNum, countIncomplete(prd));
+    session.completedItems++;
   }
   return { prd, failed };
 }
@@ -425,9 +442,10 @@ async function processAllItems(ctx: RunContext): Promise<void> {
 /** Validate and resolve project path to prevent path traversal. */
 function validateProjectPath(projectPath: string): string {
   const resolved = path.resolve(projectPath);
-  // Ensure path doesn't escape via .. traversal
-  if (!resolved.startsWith(path.resolve('.'))) {
-    // Allow absolute paths but log for awareness
+  const cwd = path.resolve('.');
+  // Ensure path doesn't escape via .. traversal - must be within or equal to cwd
+  if (!resolved.startsWith(cwd + path.sep) && resolved !== cwd) {
+    throw new Error(`Invalid project path: ${projectPath} (must be within current working directory)`);
   }
   // Ensure it's a directory that exists
   if (!fs.existsSync(resolved) || !fs.statSync(resolved).isDirectory()) {
@@ -450,8 +468,12 @@ export async function run(options: RunnerOptions): Promise<void> {
   if (isAllComplete(prd)) { await handleAlreadyComplete(prd, collector, session.logsDir); return; }
 
   const ctx: RunContext = { prd, prdPath, projectPath, session, config, phases: createPhases(), collector, skipReview, verbose, trace };
-  await processAllItems(ctx);
-  await finalizeSummary(collector, session.logsDir);
+  try {
+    await processAllItems(ctx);
+  } finally {
+    // Always generate summary, even if run fails or is interrupted
+    await finalizeSummary(collector, session.logsDir);
+  }
 }
 
 /** Get profile experts for a phase. */
@@ -480,19 +502,20 @@ function createSession(prdPath: string, projectPath: string, prd: Prd): Session 
 
 /** Generate a unique session ID using crypto for unpredictability. */
 function generateSessionId(): string {
-  const now = new Date();
-  const date = now.toISOString().slice(0, 10).replace(/-/g, '');
-  const time = now.toISOString().slice(11, 19).replace(/:/g, '');
-  // Use crypto.randomUUID for cryptographically secure randomness
-  const randomPart = crypto.randomUUID().slice(0, 8);
-  return `${date}-${time}-${randomPart}`;
+  // Use full UUID for maximum entropy - no timestamp exposure
+  return crypto.randomUUID();
 }
 
 /** Detect project type from files. */
 function detectProjectType(projectPath: string): string {
-  if (fs.existsSync(path.join(projectPath, 'package.json'))) {
-    const pkg = JSON.parse(fs.readFileSync(path.join(projectPath, 'package.json'), 'utf-8'));
-    return (pkg.dependencies?.typescript || pkg.devDependencies?.typescript) ? 'TypeScript' : 'JavaScript';
+  const pkgPath = path.join(projectPath, 'package.json');
+  if (fs.existsSync(pkgPath)) {
+    try {
+      const pkg = JSON.parse(fs.readFileSync(pkgPath, 'utf-8'));
+      return (pkg.dependencies?.typescript || pkg.devDependencies?.typescript) ? 'TypeScript' : 'JavaScript';
+    } catch {
+      return 'JavaScript'; // Invalid package.json, assume JS
+    }
   }
   if (fs.existsSync(path.join(projectPath, 'pyproject.toml'))) return 'Python';
   if (fs.existsSync(path.join(projectPath, 'go.mod'))) return 'Go';
