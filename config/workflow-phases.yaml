@@ -17,7 +17,6 @@ phases:
       - linus          # Data structures first thinking
       - dijkstra       # Correctness, invariants
       - liskov         # Type contracts
-      - rumelt         # Good strategy structure
       - taleb          # Antifragility, black swans
       - petroski       # Learn from failures
       - leveson        # Safety as system property
@@ -62,25 +61,15 @@ phases:
       - pike           # Reduce interfaces
 
   adversarial-review:
-    description: Attack your own code, fix issues found
-    experts:
-      - schneier       # Think like an attacker
-      - owasp          # Vulnerability patterns
-      - tanya-janca    # AppSec, secure SDLC
-      - troy-hunt      # Breach patterns, real attacks
-      - security-mindset  # Systematic threat thinking
-      - petroski       # Failure analysis
-      - leveson        # Safety analysis
-      - taleb          # Black swans, antifragility
+    description: Hard-ass code review via Gemini
+    # No Claude experts - Gemini handles the review with context covering:
+    # security, performance, bugs, readability, adversarial edge cases
+    experts: []
 
   static-analysis:
-    description: Run analyzers, fix issues found
-    experts:
-      - kernighan      # Simplify, clarify
-      - bloch          # API correctness
-      - liskov         # Type contract violations
-      - owasp          # Security findings
-      # Note: Qodana/Gemini run here, experts help interpret and fix
+    description: Run Qodana analyzer, fix issues found
+    # No Claude experts - Qodana handles static analysis
+    experts: []
 
   doc-code:
     description: Document the completed work
@@ -92,12 +81,13 @@ phases:
       - kernighan      # Clear explanation
 
 # Ralph loops through phases in this order:
+# (matches PHASE_ORDER in cli/src/ralph/types.ts)
 ralph-sequence:
   - plan
   - structure-first
   - implement
-  - build-tests
   - refactor-check
   - adversarial-review
   - static-analysis
+  - build-tests
   - doc-code

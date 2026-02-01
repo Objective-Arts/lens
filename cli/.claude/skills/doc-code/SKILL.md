@@ -7,6 +7,19 @@ description: "Generate documentation using Procida's Diátaxis framework"
 
 Generate documentation for code using Procida's Diátaxis framework.
 
+## Step 0: Load Expert Context (MANDATORY)
+
+Before writing documentation, read these expert skills:
+
+```
+Read: .claude/skills/procida/SKILL.md     (Diátaxis framework)
+Read: .claude/skills/strunk-white/SKILL.md (omit needless words)
+Read: .claude/skills/zinsser/SKILL.md     (clarity)
+Read: .claude/skills/king/SKILL.md        (kill your darlings)
+```
+
+Apply these principles throughout documentation. Skip if files don't exist.
+
 ## Usage
 
 ```bash

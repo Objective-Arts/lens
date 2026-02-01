@@ -6,21 +6,13 @@
 
 import { BasePhase, PhaseContext, PhaseResult } from './types.js';
 import { runClaude } from '../process/claude.js';
+import { parsePhaseOutput, getPhaseResultSummary } from '../display/phase-output.js';
 
 const ADVERSARIAL_PROMPT = `Perform adversarial review of the implemented code.
 
 PRD ITEM: {ITEM_TEXT}
 
-Apply expert guidance from: {EXPERT_NAMES}
-
-Security mindset:
-- Think like an attacker, not a defender (schneier)
-- Check OWASP Top 10 vulnerabilities (owasp)
-- Security in the SDLC, shift left (tanya-janca)
-- Learn from real breaches (troy-hunt)
-- Analyze potential failure modes (petroski)
-- System safety, hazard analysis (leveson)
-- Consider black swan events, fragility (taleb)
+{EXPERT_GUIDANCE}
 
 Review checklist:
 1. Input validation - can malicious input cause harm?
@@ -36,7 +28,34 @@ For each issue found:
 2. Explain the attack/failure scenario
 3. Fix it immediately
 
-Output REVIEW_ISSUES: N when done, where N is issues found and fixed.`;
+## OUTPUT FORMAT (Required)
+
+Output your findings in this exact structured format:
+
+ISSUES_FOUND:
+[CRITICAL] description here (file/path.ts:line)
+[HIGH] description here (file/path.ts:line)
+[MODERATE] description here (file/path.ts:line)
+[LOW] description here (file/path.ts:line)
+
+ISSUES_FIXED:
+[CRITICAL] description here (file/path.ts:line) - FIXED
+[HIGH] description here (file/path.ts:line) - FIXED
+
+SUMMARY:
+REVIEW_ISSUES: N
+ISSUES_FIXED: M
+REMAINING: R
+VERIFIED_CLEAN: yes/no
+
+APPLIED:
+- [expert-name]: [how you applied their guidance]
+
+Severity levels:
+- CRITICAL: Security vulnerabilities, data exposure, auth bypass
+- HIGH: Input validation, error handling that leaks info
+- MODERATE: Edge cases, missing defensive checks
+- LOW: Code style issues, minor improvements`;
 
 export class AdversarialReviewPhase extends BasePhase {
   readonly name = 'adversarial-review' as const;
@@ -46,11 +65,11 @@ export class AdversarialReviewPhase extends BasePhase {
   async execute(context: PhaseContext): Promise<PhaseResult> {
     const { item, experts, projectPath, logsDir } = context;
 
-    const expertNames = experts.map(s => s.name).join(', ');
+    const expertGuidance = this.buildExpertGuidance(experts);
 
     const prompt = ADVERSARIAL_PROMPT
       .replace('{ITEM_TEXT}', item.text)
-      .replace('{EXPERT_NAMES}', expertNames || 'none');
+      .replace('{EXPERT_GUIDANCE}', expertGuidance || 'No expert guidance available.');
 
     const logPrefix = this.getLogPrefix(context);
     const output = await runClaude({
@@ -65,10 +84,18 @@ export class AdversarialReviewPhase extends BasePhase {
       return this.failed('Adversarial-review phase did not complete successfully');
     }
 
-    // Parse issue count from output
-    const issueMatch = output.result.match(/REVIEW_ISSUES:\s*(\d+)/);
-    const issueCount = issueMatch ? parseInt(issueMatch[1], 10) : 0;
+    // Parse structured output
+    const phaseOutput = parsePhaseOutput(output.result);
 
-    return this.success(`${issueCount} issues found and fixed`, { issues: issueCount });
+    // Legacy count extraction for backwards compatibility
+    const issueMatch = output.result.match(/REVIEW_ISSUES:\s*(\d+)/);
+    const issueCount = issueMatch ? parseInt(issueMatch[1], 10) : phaseOutput.issues.length + phaseOutput.fixed.length;
+
+    return this.success(getPhaseResultSummary(phaseOutput), {
+      issues: issueCount,
+      fixed: phaseOutput.fixed.length,
+      remaining: phaseOutput.remaining,
+      verifiedClean: phaseOutput.verifiedClean ? 1 : 0,
+    }, output.result);
   }
 }

@@ -10,14 +10,16 @@
 import chalk from 'chalk';
 import { SkillDetection, StageStatus } from '../types.js';
 
-/** Stage icons */
+/** Stage icons - matches PHASE_ORDER in phases/index.ts */
 const STAGE_ICONS: Record<string, string> = {
-  plan: '\ud83d\udcdd',      // 📝
-  build: '\ud83d\udee0\ufe0f', // 🛠️
-  refactor: '\u2728',        // ✨
-  test: '\ud83e\uddea',      // 🧪
-  review: '\ud83d\udc41\ufe0f', // 👁️
-  doc: '\ud83d\udcda',       // 📚
+  'plan': '📝',
+  'structure-first': '🏗️',
+  'implement': '🛠️',
+  'build-tests': '🧪',
+  'refactor-check': '🧹',
+  'adversarial-review': '🔒',
+  'static-analysis': '📊',
+  'doc-code': '📚',
 };
 
 /** ANSI escape for dim text */
@@ -33,8 +35,23 @@ export function printHeader(prdPath: string, remaining: number, projectType: str
   console.log(chalk.dim('Skills: from profile (.claude/ralph-config.yaml)'));
 }
 
-/** All pipeline stage names in execution order */
-const PIPELINE_STAGES = ['plan', 'build', 'refactor', 'test', 'review', 'doc'] as const;
+/** All pipeline stage names in execution order - matches PHASE_ORDER */
+const PIPELINE_STAGES = [
+  'plan', 'structure-first', 'implement', 'build-tests',
+  'refactor-check', 'adversarial-review', 'static-analysis', 'doc-code'
+] as const;
+
+/** Short display names for pipeline progress */
+const STAGE_SHORT_NAMES: Record<string, string> = {
+  'plan': 'plan',
+  'structure-first': 'structure',
+  'implement': 'build',
+  'build-tests': 'test',
+  'refactor-check': 'refactor',
+  'adversarial-review': 'review',
+  'static-analysis': 'scan',
+  'doc-code': 'doc',
+};
 
 /**
  * Print pipeline progress showing current position in stage sequence.
@@ -46,11 +63,12 @@ export function printPipelineProgress(
 ): void {
   const parts = PIPELINE_STAGES.map(name => {
     const status = stageStatus.get(name);
-    if (status === 'done') return chalk.green(`✓ ${name}`);
-    if (status === 'failed') return chalk.red(`✗ ${name}`);
-    if (status === 'skipped') return chalk.dim(`- ${name}`);
-    if (name === currentStage || status === 'running') return chalk.cyan(`▸ ${name}`);
-    return chalk.dim(name);
+    const shortName = STAGE_SHORT_NAMES[name] || name;
+    if (status === 'done') return chalk.green(`✓${shortName}`);
+    if (status === 'failed') return chalk.red(`✗${shortName}`);
+    if (status === 'skipped') return chalk.dim(`-${shortName}`);
+    if (name === currentStage || status === 'running') return chalk.cyan(`▸${shortName}`);
+    return chalk.dim(shortName);
   });
 
   console.log(`  ${parts.join(chalk.dim(' → '))}`);
@@ -76,9 +94,10 @@ export function printItemHeader(
 }
 
 /**
- * Print stage header (secondary visual hierarchy).
- * Minimal design following rams/ive principles.
- * Shows stage position and skill detection reasoning.
+ * Print stage header with three-part structure:
+ * 1. Canon - principles listed horizontally
+ * 2. Skills - loaded skills
+ * 3. (Usage printed at stage end via printStageUsage)
  */
 export function printStageHeader(
   stage: string,
@@ -93,22 +112,115 @@ export function printStageHeader(
 
   console.log('');
   console.log(chalk.dim('─'.repeat(84)));
-  // Add external tool indicator for review stage
-  const externalTools = stage === 'review' ? chalk.dim(' (Gemini + Qodana)') : '';
+  // Add external tool indicator for review stages
+  const externalTools = (stage === 'adversarial-review' || stage === 'static-analysis')
+    ? chalk.dim(' (self-review)')
+    : '';
   console.log(`  ${icon}  ${chalk.cyan(capitalize(stage))}${progress}${externalTools}`);
 
   if (detection.skills.length > 0) {
-    const skillList = detection.skills.map(s => chalk.green(s)).join(' ');
-    console.log(`      Canon: ${skillList}`);
+    // 1. Skills listed horizontally
+    const skillList = detection.skills.join(' ');
+    console.log(`      ${chalk.dim('Skills:')} ${skillList}`);
 
-    // Show detection keywords to explain WHY these skills were selected
-    if (detection.keywords.length > 0) {
-      const kwList = detection.keywords.slice(0, 5).join(', ');
-      console.log(chalk.dim(`             (detected: ${kwList})`));
-    }
+    // 2. Loaded confirmation
+    console.log(`      ${chalk.green('✓')} ${detection.skills.length} skills loaded`);
   }
 
   console.log('');
+}
+
+/**
+ * Parse APPLIED section from Claude's output.
+ * Handles:
+ * - Standard format: "- expert: description"
+ * - Bold format: "- **expert**: description"
+ * - Multi-line descriptions (continued lines don't start with - or •)
+ */
+export function parseAppliedSection(rawOutput: string): string[] {
+  const lines: string[] = [];
+
+  // Find APPLIED section - stop at next section marker or double newline
+  const appliedMatch = rawOutput.match(/APPLIED:\s*([\s\S]*?)(?=\n\n[A-Z]|\n[A-Z_]+:|\n```|$)/);
+  if (!appliedMatch) return lines;
+
+  const appliedBlock = appliedMatch[1].trim();
+  let currentLine = '';
+
+  for (const line of appliedBlock.split('\n')) {
+    const trimmed = line.trim();
+
+    // Skip empty lines and section markers
+    if (!trimmed || /^[A-Z_]+:/.test(trimmed) || trimmed.startsWith('```')) {
+      if (currentLine) {
+        lines.push(currentLine);
+        currentLine = '';
+      }
+      continue;
+    }
+
+    // New bullet point
+    if (trimmed.startsWith('-') || trimmed.startsWith('•')) {
+      if (currentLine) {
+        lines.push(currentLine);
+      }
+      // Remove bullet, normalize **bold** markers
+      currentLine = trimmed.slice(1).trim().replace(/\*\*/g, '');
+    } else if (currentLine) {
+      // Continuation of previous line - append with space
+      currentLine += ' ' + trimmed;
+    }
+  }
+
+  // Don't forget the last line
+  if (currentLine) {
+    lines.push(currentLine);
+  }
+
+  return lines;
+}
+
+/**
+ * Print how skills were actually applied (substantive usage).
+ * Wraps long lines to fit terminal width.
+ */
+export function printAppliedSkills(rawOutput: string | undefined): void {
+  if (!rawOutput) return;
+
+  const applied = parseAppliedSection(rawOutput);
+  if (applied.length === 0) return;
+
+  const maxWidth = Math.min(process.stdout.columns || 80, 100) - 12; // 12 = indent
+
+  console.log(`      ${chalk.dim('Applied:')}`);
+  for (const line of applied) {
+    // Wrap long lines
+    if (line.length <= maxWidth) {
+      console.log(`        ${chalk.yellow('•')} ${line}`);
+    } else {
+      // First line with bullet
+      const words = line.split(' ');
+      let currentLine = '';
+      let isFirst = true;
+
+      for (const word of words) {
+        if (currentLine.length + word.length + 1 <= maxWidth) {
+          currentLine += (currentLine ? ' ' : '') + word;
+        } else {
+          // Print current line and start new one
+          const prefix = isFirst ? `        ${chalk.yellow('•')} ` : '          ';
+          console.log(prefix + currentLine);
+          currentLine = word;
+          isFirst = false;
+        }
+      }
+      // Print remaining
+      if (currentLine) {
+        const prefix = isFirst ? `        ${chalk.yellow('•')} ` : '          ';
+        console.log(prefix + currentLine);
+      }
+    }
+  }
 }
 
 /**

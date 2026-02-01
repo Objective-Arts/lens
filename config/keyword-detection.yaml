@@ -38,8 +38,6 @@ rules:
       - owasp
       - tanya-janca
       - troy-hunt
-      - security-mindset
-      - threat-model
 
   # === DATABASE ===
   database:
@@ -379,8 +377,7 @@ rules:
       - log
       - trace
     experts:
-      - escalate
-      - understand-first
+      - feathers        # Working with unfamiliar code
 
   # === DEPLOYMENT ===
   deployment:
@@ -396,7 +393,7 @@ rules:
       - ci cd
       - pipeline
     experts:
-      - ceremony
+      - leveson         # Safety for critical operations
 
   # === RISK/SAFETY ===
   risk:

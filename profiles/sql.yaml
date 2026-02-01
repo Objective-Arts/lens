@@ -1,0 +1,44 @@
+name: sql
+description: SQL and database development profile
+projectType: software
+composable: true
+
+skills:
+  canon:
+    - celko            # SQL patterns, set-based thinking
+    - winand           # SQL performance, indexing
+    - bloch            # API design (for stored procs/functions)
+    - schneier         # SQL injection prevention
+
+claudeMd:
+  standards:
+    - "Think in sets, not loops (Celko)"
+    - "Index columns in WHERE clause (Winand)"
+    - "Leftmost prefix rule for composite indexes"
+    - "Equality columns before range columns in indexes"
+    - "Use explicit JOIN syntax, never comma-separated tables"
+    - "Parameterized queries only, never string concatenation"
+    - "NULL is not a value - use IS NULL, not = NULL"
+    - "Avoid SELECT * - list columns explicitly"
+    - "Use EXPLAIN ANALYZE to verify query plans"
+    - "Prefer keyset pagination over OFFSET for large datasets"
+
+  antiPatterns:
+    - "Cursors and row-by-row processing"
+    - "SELECT * in production code"
+    - "Implicit joins (comma-separated tables)"
+    - "LIKE with leading wildcard (%term)"
+    - "Functions on indexed columns in WHERE"
+    - "String concatenation for SQL (injection risk)"
+    - "DISTINCT as a fix for duplicate rows"
+    - "ORDER BY ordinal position"
+    - "Entity-Attribute-Value tables (EAV)"
+    - "Too many single-column indexes"
+
+  autoInvoke:
+    - context: Writing SQL queries, database operations
+      action: INVOKE `/celko` for set-based thinking
+    - context: Query performance, slow queries, indexes
+      action: INVOKE `/winand` for optimization
+    - context: User input in queries, dynamic SQL
+      action: INVOKE `/schneier` then `/owasp` for injection prevention

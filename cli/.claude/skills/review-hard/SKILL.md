@@ -1,196 +1,180 @@
 ---
 name: review-hard
-description: Adversarial self-review with optional external Gemini and Qodana validation. Use before completion, commit, or PR.
+description: Adversarial self-review with mandatory verification. Review findings must be documented with evidence.
 ---
 
 # /review-hard
 
-Perform adversarial self-review on target code. Optionally run external reviewers (Gemini, Qodana) for comprehensive validation.
+Perform adversarial self-review on target code. Document all findings with file:line references.
 
 ## CRITICAL: Auto-Continue Behavior (NO ASKING)
 
 **When invoked from /ralph-loop or any autonomous workflow:**
 
-### NEVER ASK - JUST DO:
-- ❌ DO NOT ask "Should I run Qodana?"
-- ❌ DO NOT ask "Ready to scan with Qodana?"
-- ❌ DO NOT ask for confirmation BEFORE any tool call
-- ❌ DO NOT ask for confirmation AFTER any tool returns
-- ❌ DO NOT ask "what would you like to do with these findings?"
-- ❌ DO NOT stop and wait for user input at ANY point
+- DO NOT ask "Should I run Qodana?"
+- DO NOT ask for confirmation before/after any tool call
+- DO NOT stop and wait for user input at ANY point
+- Execute the full review pipeline without interruption
 
-### CORRECT FLOW (no pauses, no questions):
-```
-1. Self-review → [just do it]
-2. Call Gemini → [just call it, don't ask first]
-3. Gemini returns → [parse, don't ask]
-4. Call Qodana → [just call it, don't ask first]
-5. Qodana returns → [parse, don't ask]
-6. Return all results to caller → [done]
-```
+## First: Activate Workflow
 
-### WRONG (causes ralph to stop):
-```
-"I'll now run Qodana. Should I proceed?" ← WRONG
-"Gemini found 3 issues. What would you like to do?" ← WRONG
-"Ready to run the static analysis?" ← WRONG
-```
+**Before any other action**, activate this workflow session:
 
-### RIGHT (keeps ralph flowing):
+```bash
+mkdir -p .claude && echo '{"skill":"review-hard","started":"'$(date -Iseconds)'"}' > .claude/active-workflow.json
 ```
-"Running Qodana scan..." → [calls tool]
-"Gemini found 3 issues. Proceeding to Qodana..." → [calls tool]
-"Review complete. Results: [summary]" → [returns to caller]
-```
-
-**AUTONOMOUS MEANS AUTONOMOUS** - execute the full review pipeline without interruption.
 
 ## Target
 
 If a path argument is provided, review that file/directory.
 If no argument, review the code most recently written or modified in this session.
 
-## Modes
-
-### Standard Mode (default)
-Self-review against standards checklist.
-
-### Full Mode (`--full` or when MCP servers available)
-Self-review + Gemini review + Qodana static analysis.
-
-## Process
-
-### 1. Self-Review (Always)
-
-**Check** against project CLAUDE.md standards (if present)
+## Review Checklist
 
 **Look for**:
 - Mixed concerns (data processing in render logic)
 - Long functions (>30 lines)
 - Inconsistent patterns (mixing approaches)
-- Re-attached event handlers
-- Implicit responsibilities
 - Missing error handling
 - Security vulnerabilities (injection, XSS, auth issues)
+- Unclear naming
+- Dead code
+
+## Process
+
+### 1. Self-Review (Always)
+
+Check against standards, document findings with file:line references.
 
 ### 2. Gemini Review (if available)
-
-Run when `gemini-reviewer` MCP server is enabled:
 
 ```
 gemini_review({
   code: "<code to review>",
   context: "What this code does",
-  focus: "general"  // or: security, performance, readability, bugs
+  focus: "general"
 })
 ```
 
-Address all Gemini findings before proceeding.
-
 ### 3. Qodana Scan (if available)
-
-Run when `qodana` MCP server is enabled:
 
 ```
 qodana_scan({ projectDir: "." })
 qodana_problems({ projectDir: ".", severity: "HIGH" })
 ```
 
-**Quality gate**: No CRITICAL or HIGH issues.
+### 4. Fix & Document
 
-### 4. Fix & Verify
+Fix all issues found, document what was fixed.
 
-Fix all issues found, then list what was fixed.
+---
+
+## VERIFICATION (MANDATORY - DO NOT SKIP)
+
+**You MUST execute these steps and show output before claiming completion.**
+
+### Step 1: Document Files Reviewed
+
+```bash
+# List all files that were reviewed
+ls -la <reviewed-files>
+```
+
+### Step 2: Show Review Findings (Self)
+
+**You MUST list at least 3 things you checked, even if no issues found:**
+
+```markdown
+### Self-Review Findings
+
+| Check | File:Line | Result |
+|-------|-----------|--------|
+| Functions <30 lines | all files | ✓ Pass / ✗ [issue] |
+| Single responsibility | all files | ✓ Pass / ✗ [issue] |
+| Error handling | all files | ✓ Pass / ✗ [issue] |
+| Security (XSS/injection) | all files | ✓ Pass / ✗ [issue] |
+| Consistent patterns | all files | ✓ Pass / ✗ [issue] |
+```
+
+### Step 3: Show External Review Results (if run)
+
+```markdown
+### Gemini Review
+[paste actual Gemini output or "Not run - MCP not available"]
+
+### Qodana Results
+[paste actual Qodana output or "Not run - MCP not available"]
+```
+
+### Step 4: Document Fixes Applied
+
+```markdown
+### Fixes Applied
+
+| Issue | File:Line | Fix |
+|-------|-----------|-----|
+| [issue description] | src/file.ts:42 | [what was changed] |
+```
+
+### Completion Criteria (ALL must be TRUE)
+
+| Criterion | Evidence Required | Pass? |
+|-----------|-------------------|-------|
+| Files listed | `ls -la` shows reviewed files | [ ] |
+| Self-review checklist shown | Table with ≥5 checks | [ ] |
+| Each check has file:line reference | Not just "all files pass" | [ ] |
+| External reviews documented | Gemini/Qodana output or "not available" | [ ] |
+| Fixes documented with file:line | Table shows what was fixed | [ ] |
+
+**If ANY criterion fails: complete the review. Do not report complete.**
+
+---
 
 ## Output Format
 
-### Standard Mode
-
 ```markdown
-## Review Findings
+## Review: [target]
 
-### Fixed:
-- [specific fix 1]
-- [specific fix 2]
-
-### Verified:
-- [x] No function exceeds 30 lines
-- [x] Data prep separate from rendering
-- [x] Consistent patterns throughout
-- [x] Event handlers attached once
-- [x] No security vulnerabilities
-- [x] Error handling appropriate
-
-Code is now review-ready.
-```
-
-### Full Mode
-
-```markdown
-## --review-hard Results (Full)
-
-### Self-Review
-- [x] Functions under 30 lines
-- [x] Single responsibility
-- [ ] Error handling needs improvement (line 45)
-
-### Gemini Review
-**Focus: general**
-
-[Summary of Gemini's analysis]
-
-Key findings:
-1. ...
-
-### Qodana Analysis
-
-| Severity | Count |
-|----------|-------|
-| Critical | 0     |
-| High     | 2     |
-
-**High-severity issues:**
-1. `src/api.ts:42` - [description]
-
-### Actions Taken
-1. Fixed [issue 1]
-2. Fixed [issue 2]
-
-### Quality Gate
-- [x] No CRITICAL Qodana issues
-- [x] No HIGH Qodana issues
-- [x] Gemini findings addressed
-- [x] Self-review passed
-
-Code is review-ready.
-```
-
-## If No Issues Found
-
-```markdown
-## Review Findings
-
-### Verified:
-- [x] All checks pass
-
-Code is review-ready.
-```
-
-## Enable External Reviewers
-
+### Files Reviewed
 ```bash
-# Enable Gemini review
-export GEMINI_API_KEY=your_key
-cc-config mcp enable gemini-reviewer -p .
-
-# Enable Qodana scan
-cc-config mcp enable qodana -p .
+$ ls -la src/feature/*.ts
+-rw-r--r--  1 user  staff  2341 Jan 15 10:30 src/feature/index.ts
+-rw-r--r--  1 user  staff  1892 Jan 15 10:30 src/feature/utils.ts
 ```
 
-## Mindset
+### Self-Review Checklist
 
-Be hostile. Assume external reviewers will scrutinize everything. Find issues before they do.
+| Check | Result | Details |
+|-------|--------|---------|
+| Functions <30 lines | ✓ | Largest: 24 lines (processData) |
+| Single responsibility | ✓ | Each function does one thing |
+| Error handling | ✗ Fixed | Added try/catch at index.ts:45 |
+| Security (injection) | ✓ | Inputs sanitized at utils.ts:12 |
+| Consistent patterns | ✓ | All use async/await |
 
-**Ask**: "What would Gemini flag? What would Qodana catch?"
+### External Reviews
 
-Then run them to verify.
+**Gemini**: Not run - MCP not available
+**Qodana**: Not run - MCP not available
+
+### Fixes Applied
+
+| Issue | Location | Fix |
+|-------|----------|-----|
+| Missing error handling | index.ts:45 | Added try/catch block |
+
+REVIEW_VERIFIED
+```
+
+**The marker `REVIEW_VERIFIED` may ONLY appear if all criteria pass.**
+
+---
+
+## Anti-Patterns (Immediate Failure)
+
+- Claiming "all checks pass" without listing what was checked
+- No file:line references for findings
+- Skipping self-review checklist table
+- Not documenting external review results (even if "not available")
+- Empty fixes section when issues were found
+- Vague statements like "code looks good" without specifics

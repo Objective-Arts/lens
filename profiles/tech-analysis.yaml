@@ -1,9 +1,0 @@
-name: tech-analysis
-description: Domain canon for tech industry analysis
-projectType: business
-composable: true
-extends: business-base
-
-canon:
-  domain:
-    - thompson-stratechery   # Aggregation theory, platform analysis

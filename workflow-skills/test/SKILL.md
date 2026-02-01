@@ -1,18 +1,37 @@
 ---
 name: test
-description: Write tests at specified level(s) using testing canon patterns. Levels: unit, integration, e2e, all. Works for any language.
+description: Write and run tests at specified level(s). Levels: unit, integration, e2e, all.
 ---
 
 # /test [level]
 
-Write tests at specified level(s) using testing canon patterns.
+Write and run tests using testing canon patterns.
+
+## First: Activate Workflow
+
+```bash
+mkdir -p .claude && echo '{"skill":"test","started":"'$(date -Iseconds)'"}' > .claude/active-workflow.json
+```
+
+## Step 0: Load Expert Context (MANDATORY)
+
+Before writing tests, read these expert skills:
+
+```
+Read: .claude/skills/dodds/SKILL.md       (Testing Trophy, integration-first)
+Read: .claude/skills/meszaros/SKILL.md    (xUnit patterns, test doubles)
+Read: .claude/skills/fowler-test/SKILL.md (test pyramid)
+Read: .claude/skills/feathers/SKILL.md    (characterization tests)
+```
+
+Apply these principles throughout testing. Skip if files don't exist.
 
 ## Levels
 
 - `/test unit` - Unit tests only (pure logic, mocked dependencies)
 - `/test integration` - Integration tests only (component interactions, APIs)
 - `/test e2e` - E2E tests only (user journeys, full stack)
-- `/test all` - Analyze and write at all appropriate levels (default)
+- `/test all` - All appropriate levels (default)
 - `/test` - Same as `/test all`
 
 ## Target
@@ -57,37 +76,26 @@ Is it pure logic (no I/O)?
 
 1. **Detect** language/framework from file extensions and project structure
 2. **Analyze** code to determine appropriate test levels
-3. **Apply** canon patterns (Dodds, Fowler, Meszaros, Feathers)
-4. **Write** tests at specified level(s) using idiomatic tools
-5. **Run** tests to verify they pass
-6. **Report** coverage and results
+3. **Write** tests at specified level(s) using idiomatic tools
+4. **Run** tests to verify they pass
+5. **Report** results
 
 ## Output Format
 
 ```markdown
-## Test Analysis
-
-### Code Changed:
-- `[file1]` - [description] ([language])
-- `[file2]` - [description] ([language])
-
-### Test Plan by Level:
-
-**Unit Tests**:
-- [test file]: [what it tests]
-
-**Integration Tests**:
-- [test file]: [what it tests]
-
-**E2E Tests** (if applicable):
-- [test file]: [what it tests]
+## Test Results
 
 ### Tests Written:
-- [x] N unit tests
-- [x] N integration tests
-- [x] N E2E tests
+| Level | File | Count |
+|-------|------|-------|
+| Unit | [test file] | N |
+| Integration | [test file] | N |
 
-All tests passing.
+### Run Results:
+TESTS_WRITTEN: N
+TESTS_PASSED: N
+TESTS_FAILED: N
+TEST_COMPLETE
 ```
 
 ## Legacy Code (Feathers patterns)
@@ -95,18 +103,3 @@ All tests passing.
 If code is untested legacy:
 1. Write **characterization tests** first (capture current behavior)
 2. Then add focused tests for new/changed behavior
-
----
-
-## 🛑 MANDATORY STOP
-
-**After outputting the test results above, you MUST STOP.**
-
-- DO NOT proceed to `/refactor-check`
-- DO NOT proceed to `/review-hard`
-- DO NOT make any code changes
-- DO NOT continue with "let me also..." or "I'll go ahead and..."
-
-**Your turn ends here.** Output the test summary and STOP. Wait for the user to explicitly type the next command.
-
-The user will type `/refactor-check` or `/review-hard` when ready. Until then, do nothing.
