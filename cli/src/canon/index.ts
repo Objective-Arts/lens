@@ -36,7 +36,194 @@ const SECURITY_SKILL_PATH = path.join(homedir(), '.claude', 'skill-library', 'se
 const TECH_SKILL_PATH = path.join(homedir(), '.claude', 'skill-library', 'tech');
 
 // Subdirectories to search in canon-skills
-const CANON_SUBDIRS = ['', 'javascript', 'go', 'java', 'python', 'angular', 'testing', 'visualization', 'business', 'ui-ux', 'csharp', 'react', 'security', 'engineering', 'writing', 'patterns'];
+const CANON_SUBDIRS = ['', 'javascript', 'go', 'java', 'python', 'angular', 'testing', 'visualization', 'business', 'ui-ux', 'csharp', 'react', 'security', 'engineering', 'writing', 'patterns', 'database'];
+
+// ============================================================================
+// Helper Functions (Kernighan: single responsibility)
+// ============================================================================
+
+/** Check if a directory contains a valid skill (has SKILL.md) */
+function isValidSkillDir(dirPath: string): boolean {
+  return fs.existsSync(path.join(dirPath, 'SKILL.md'));
+}
+
+/** Scan a directory for skills, adding to map (first wins) */
+function scanDirForSkills(
+  searchPath: string,
+  category: string,
+  skillsByName: Map<string, CanonListItem>
+): void {
+  if (!fs.existsSync(searchPath)) return;
+
+  const entries = fs.readdirSync(searchPath, { withFileTypes: true });
+  for (const entry of entries) {
+    if (!entry.isDirectory() || entry.name.startsWith('.')) continue;
+    if (CANON_SUBDIRS.includes(entry.name) && category === '') continue;
+
+    const skillPath = path.join(searchPath, entry.name);
+    if (isValidSkillDir(skillPath) && !skillsByName.has(entry.name)) {
+      skillsByName.set(entry.name, {
+        name: entry.name,
+        path: skillPath,
+        category: category || 'root'
+      });
+    }
+  }
+}
+
+/** Deduplicate skills, preferring canon source over skill-library */
+function deduplicateSkills(
+  allSkills: CanonListItem[],
+  canonSourcePath: string
+): CanonListItem[] {
+  const skillsByName = new Map<string, CanonListItem>();
+  for (const skill of allSkills) {
+    const existing = skillsByName.get(skill.name);
+    if (!existing) {
+      skillsByName.set(skill.name, skill);
+    } else if (skill.path.startsWith(canonSourcePath) && !existing.path.startsWith(canonSourcePath)) {
+      skillsByName.set(skill.name, skill);
+    }
+  }
+  return Array.from(skillsByName.values());
+}
+
+/** Determine skill status based on hashes */
+function determineSkillStatus(
+  installedPath: string,
+  sourcePath: string | null,
+  manifestHash: string | undefined
+): { status: SkillStatus; sourceHash?: string } {
+  if (!sourcePath) {
+    return { status: 'missing' };
+  }
+
+  const sourceHash = hashSkillDirectory(sourcePath);
+  const currentHash = hashSkillDirectory(installedPath);
+
+  if (manifestHash) {
+    if (currentHash !== manifestHash) return { status: 'modified', sourceHash };
+    if (sourceHash !== manifestHash) return { status: 'outdated', sourceHash };
+    return { status: 'current', sourceHash };
+  }
+
+  return { status: currentHash === sourceHash ? 'current' : 'outdated', sourceHash };
+}
+
+/** Validate that skill can be copied */
+function validateSkillCopy(
+  skillName: string,
+  targetPath: string,
+  force: boolean
+): { valid: true; sourcePath: string } | { valid: false; message: string } {
+  const sourcePath = findSkillSourcePath(skillName);
+  if (!sourcePath) {
+    return { valid: false, message: `Skill not found in source: ${skillName}` };
+  }
+  if (fs.existsSync(targetPath) && !force) {
+    return { valid: false, message: `Skill already exists: ${skillName}. Use --force to overwrite.` };
+  }
+  return { valid: true, sourcePath };
+}
+
+/** Prepare target directory and copy skill files */
+function performSkillCopy(sourcePath: string, targetPath: string): void {
+  const skillsDir = path.dirname(targetPath);
+  if (!fs.existsSync(skillsDir)) {
+    fs.mkdirSync(skillsDir, { recursive: true });
+  }
+  if (fs.existsSync(targetPath)) {
+    fs.rmSync(targetPath, { recursive: true });
+  }
+  copyDirectoryRecursive(sourcePath, targetPath);
+}
+
+/** Update manifest after copying a skill */
+function updateManifestAfterCopy(
+  projectPath: string,
+  skillName: string,
+  targetPath: string,
+  sourcePath: string
+): void {
+  const canonPath = getCanonSourcePath();
+  let manifest = readManifest(projectPath);
+
+  if (!manifest) {
+    manifest = createManifest({
+      type: 'local',
+      path: canonPath,
+      gitRemote: getGitRemote(canonPath)
+    });
+  }
+
+  updateSkillInManifest(manifest, skillName, {
+    installedCommit: getGitCommit(canonPath),
+    installedAt: new Date().toISOString(),
+    sourceFile: path.relative(canonPath, sourcePath) || skillName,
+    hash: hashSkillDirectory(targetPath),
+    modified: false
+  });
+
+  writeManifest(projectPath, manifest);
+}
+
+/** Categorize a skill for upgrade decision */
+function categorizeSkillForUpgrade(
+  skillName: string,
+  statuses: SkillStatusInfo[],
+  force: boolean
+): 'upgrade' | { skip: string } | { error: string } {
+  const status = statuses.find(s => s.name === skillName);
+
+  if (!status) return { error: `${skillName}: not installed` };
+  if (status.status === 'current') return { skip: `${skillName}: already current` };
+  if (status.status === 'modified' && !force) {
+    return { skip: `${skillName}: locally modified (use --force to overwrite)` };
+  }
+  if (status.status === 'missing') return { error: `${skillName}: source not found` };
+  return 'upgrade';
+}
+
+/** Validate paths for diff operation */
+function validateDiffPaths(
+  skillName: string,
+  installedPath: string
+): { valid: true; sourcePath: string } | { valid: false; message: string } {
+  if (!fs.existsSync(installedPath)) {
+    return { valid: false, message: `Skill not installed: ${skillName}` };
+  }
+  const sourcePath = findSkillSourcePath(skillName);
+  if (!sourcePath) {
+    return { valid: false, message: `Source not found for: ${skillName}` };
+  }
+  return { valid: true, sourcePath };
+}
+
+/** Generate line-by-line diff between two strings */
+function generateLineDiff(installedContent: string, sourceContent: string): string[] {
+  const installedLines = installedContent.split('\n');
+  const sourceLines = sourceContent.split('\n');
+  const diff: string[] = [];
+  const maxLines = Math.max(installedLines.length, sourceLines.length);
+
+  for (let i = 0; i < maxLines; i++) {
+    const installed = installedLines[i] ?? '';
+    const source = sourceLines[i] ?? '';
+
+    if (installed !== source) {
+      if (installed && !source) {
+        diff.push(`- ${i + 1}: ${installed.slice(0, 80)}`);
+      } else if (!installed && source) {
+        diff.push(`+ ${i + 1}: ${source.slice(0, 80)}`);
+      } else {
+        diff.push(`- ${i + 1}: ${installed.slice(0, 80)}`);
+        diff.push(`+ ${i + 1}: ${source.slice(0, 80)}`);
+      }
+    }
+  }
+
+  return diff;
+}
 
 /**
  * Get the configured canon source path.
@@ -76,61 +263,16 @@ export function listCanonSkills(): CanonListItem[] {
   const canonPath = getCanonSourcePath();
   const skillsByName = new Map<string, CanonListItem>();
 
-  if (!fs.existsSync(canonPath)) {
-    return [];
-  }
+  if (!fs.existsSync(canonPath)) return [];
 
-  // Search in all subdirectories of canon source (preferred)
+  // Search canon subdirectories (preferred source)
   for (const subdir of CANON_SUBDIRS) {
     const searchPath = subdir ? path.join(canonPath, subdir) : canonPath;
-
-    if (!fs.existsSync(searchPath)) continue;
-
-    const entries = fs.readdirSync(searchPath, { withFileTypes: true });
-
-    for (const entry of entries) {
-      if (!entry.isDirectory()) continue;
-      if (entry.name.startsWith('.')) continue;
-      if (CANON_SUBDIRS.includes(entry.name) && subdir === '') continue; // Skip subdirs at root level
-
-      const skillPath = path.join(searchPath, entry.name);
-      const skillMdPath = path.join(skillPath, 'SKILL.md');
-
-      // Only include if it has a SKILL.md file
-      if (fs.existsSync(skillMdPath)) {
-        // Canon source always wins - don't overwrite
-        if (!skillsByName.has(entry.name)) {
-          skillsByName.set(entry.name, {
-            name: entry.name,
-            path: skillPath,
-            category: subdir || 'root'
-          });
-        }
-      }
-    }
+    scanDirForSkills(searchPath, subdir, skillsByName);
   }
 
-  // Also add security skills from skill-library (fallback for skills not in canon)
-  if (fs.existsSync(SECURITY_SKILL_PATH)) {
-    const entries = fs.readdirSync(SECURITY_SKILL_PATH, { withFileTypes: true });
-    for (const entry of entries) {
-      if (!entry.isDirectory() || entry.name.startsWith('.')) continue;
-
-      const skillPath = path.join(SECURITY_SKILL_PATH, entry.name);
-      const skillMdPath = path.join(skillPath, 'SKILL.md');
-
-      if (fs.existsSync(skillMdPath)) {
-        // Only add if not already in canon
-        if (!skillsByName.has(entry.name)) {
-          skillsByName.set(entry.name, {
-            name: entry.name,
-            path: skillPath,
-            category: 'security'
-          });
-        }
-      }
-    }
-  }
+  // Fallback: security skills from skill-library
+  scanDirForSkills(SECURITY_SKILL_PATH, 'security', skillsByName);
 
   return Array.from(skillsByName.values()).sort((a, b) => a.name.localeCompare(b.name));
 }
@@ -205,43 +347,13 @@ export function checkSkillStatus(projectPath: string): SkillStatusInfo[] {
   const canonPath = getCanonSourcePath();
   const sourceCommit = getGitCommit(canonPath);
 
-  const statuses: SkillStatusInfo[] = [];
-
-  for (const skillName of installedSkills) {
+  return installedSkills.map(skillName => {
     const installedPath = path.join(skillsDir, skillName);
     const manifestInfo = manifest?.skills[skillName];
     const sourcePath = findSkillSourcePath(skillName);
+    const { status, sourceHash } = determineSkillStatus(installedPath, sourcePath, manifestInfo?.hash);
 
-    let status: SkillStatus = 'unknown';
-    let sourceHash: string | undefined;
-
-    if (sourcePath) {
-      sourceHash = hashSkillDirectory(sourcePath);
-
-      if (manifestInfo) {
-        // Check if locally modified
-        const currentHash = hashSkillDirectory(installedPath);
-        if (currentHash !== manifestInfo.hash) {
-          status = 'modified';
-        } else if (sourceHash !== manifestInfo.hash) {
-          status = 'outdated';
-        } else {
-          status = 'current';
-        }
-      } else {
-        // No manifest entry - check against source
-        const currentHash = hashSkillDirectory(installedPath);
-        if (currentHash === sourceHash) {
-          status = 'current';
-        } else {
-          status = 'outdated';
-        }
-      }
-    } else {
-      status = 'missing'; // Source not found
-    }
-
-    statuses.push({
+    return {
       name: skillName,
       status,
       installedHash: manifestInfo?.hash,
@@ -250,10 +362,8 @@ export function checkSkillStatus(projectPath: string): SkillStatusInfo[] {
       sourceCommit,
       installedAt: manifestInfo?.installedAt,
       sourcePath: sourcePath ?? undefined
-    });
-  }
-
-  return statuses.sort((a, b) => a.name.localeCompare(b.name));
+    };
+  }).sort((a, b) => a.name.localeCompare(b.name));
 }
 
 /**
@@ -284,57 +394,15 @@ export function copySkill(
   projectPath: string,
   options: { force?: boolean } = {}
 ): { success: boolean; message: string } {
-  const sourcePath = findSkillSourcePath(skillName);
-
-  if (!sourcePath) {
-    return { success: false, message: `Skill not found in source: ${skillName}` };
-  }
-
   const targetPath = path.join(projectPath, '.claude', 'skills', skillName);
+  const validation = validateSkillCopy(skillName, targetPath, options.force ?? false);
 
-  // Check if already exists
-  if (fs.existsSync(targetPath) && !options.force) {
-    return { success: false, message: `Skill already exists: ${skillName}. Use --force to overwrite.` };
+  if (!validation.valid) {
+    return { success: false, message: validation.message };
   }
 
-  // Ensure skills directory exists
-  const skillsDir = path.dirname(targetPath);
-  if (!fs.existsSync(skillsDir)) {
-    fs.mkdirSync(skillsDir, { recursive: true });
-  }
-
-  // Remove existing if force
-  if (fs.existsSync(targetPath)) {
-    fs.rmSync(targetPath, { recursive: true });
-  }
-
-  // Copy the skill directory
-  copyDirectoryRecursive(sourcePath, targetPath);
-
-  // Update manifest
-  const canonPath = getCanonSourcePath();
-  let manifest = readManifest(projectPath);
-
-  if (!manifest) {
-    manifest = createManifest({
-      type: 'local',
-      path: canonPath,
-      gitRemote: getGitRemote(canonPath)
-    });
-  }
-
-  const hash = hashSkillDirectory(targetPath);
-  const sourceCommit = getGitCommit(canonPath);
-
-  updateSkillInManifest(manifest, skillName, {
-    installedCommit: sourceCommit,
-    installedAt: new Date().toISOString(),
-    sourceFile: path.relative(canonPath, sourcePath) || skillName,
-    hash,
-    modified: false
-  });
-
-  writeManifest(projectPath, manifest);
+  performSkillCopy(validation.sourcePath, targetPath);
+  updateManifestAfterCopy(projectPath, skillName, targetPath, validation.sourcePath);
 
   return { success: true, message: `Copied skill: ${skillName}` };
 }
@@ -368,44 +436,22 @@ export function upgradeSkills(
   projectPath: string,
   options: { force?: boolean; skills?: string[] } = {}
 ): CanonUpgradeResult {
-  const result: CanonUpgradeResult = {
-    upgraded: [],
-    skipped: [],
-    errors: []
-  };
-
+  const result: CanonUpgradeResult = { upgraded: [], skipped: [], errors: [] };
   const statuses = checkSkillStatus(projectPath);
   const skillsToUpgrade = options.skills || statuses.map(s => s.name);
 
   for (const skillName of skillsToUpgrade) {
-    const status = statuses.find(s => s.name === skillName);
+    const category = categorizeSkillForUpgrade(skillName, statuses, options.force ?? false);
 
-    if (!status) {
-      result.errors.push(`${skillName}: not installed`);
-      continue;
-    }
-
-    if (status.status === 'current') {
-      result.skipped.push(`${skillName}: already current`);
-      continue;
-    }
-
-    if (status.status === 'modified' && !options.force) {
-      result.skipped.push(`${skillName}: locally modified (use --force to overwrite)`);
-      continue;
-    }
-
-    if (status.status === 'missing') {
-      result.errors.push(`${skillName}: source not found`);
-      continue;
-    }
-
-    // Perform the upgrade
-    const copyResult = copySkill(skillName, projectPath, { force: true });
-    if (copyResult.success) {
-      result.upgraded.push(skillName);
+    if (category === 'upgrade') {
+      const copyResult = copySkill(skillName, projectPath, { force: true });
+      copyResult.success
+        ? result.upgraded.push(skillName)
+        : result.errors.push(`${skillName}: ${copyResult.message}`);
+    } else if ('skip' in category) {
+      result.skipped.push(category.skip);
     } else {
-      result.errors.push(`${skillName}: ${copyResult.message}`);
+      result.errors.push(category.error);
     }
   }
 
@@ -417,19 +463,12 @@ export function upgradeSkills(
  */
 export function diffSkill(skillName: string, projectPath: string): string | null {
   const installedPath = path.join(projectPath, '.claude', 'skills', skillName);
-  const sourcePath = findSkillSourcePath(skillName);
+  const validation = validateDiffPaths(skillName, installedPath);
 
-  if (!fs.existsSync(installedPath)) {
-    return `Skill not installed: ${skillName}`;
-  }
+  if (!validation.valid) return validation.message;
 
-  if (!sourcePath) {
-    return `Source not found for: ${skillName}`;
-  }
-
-  // Simple diff - compare SKILL.md content
   const installedMd = path.join(installedPath, 'SKILL.md');
-  const sourceMd = path.join(sourcePath, 'SKILL.md');
+  const sourceMd = path.join(validation.sourcePath, 'SKILL.md');
 
   if (!fs.existsSync(installedMd) || !fs.existsSync(sourceMd)) {
     return 'Cannot compare: SKILL.md missing';
@@ -438,33 +477,9 @@ export function diffSkill(skillName: string, projectPath: string): string | null
   const installedContent = fs.readFileSync(installedMd, 'utf-8');
   const sourceContent = fs.readFileSync(sourceMd, 'utf-8');
 
-  if (installedContent === sourceContent) {
-    return 'No differences in SKILL.md';
-  }
+  if (installedContent === sourceContent) return 'No differences in SKILL.md';
 
-  // Return a simple line diff
-  const installedLines = installedContent.split('\n');
-  const sourceLines = sourceContent.split('\n');
-
-  const diff: string[] = [];
-  const maxLines = Math.max(installedLines.length, sourceLines.length);
-
-  for (let i = 0; i < maxLines; i++) {
-    const installed = installedLines[i] ?? '';
-    const source = sourceLines[i] ?? '';
-
-    if (installed !== source) {
-      if (installed && !source) {
-        diff.push(`- ${i + 1}: ${installed.slice(0, 80)}`);
-      } else if (!installed && source) {
-        diff.push(`+ ${i + 1}: ${source.slice(0, 80)}`);
-      } else {
-        diff.push(`- ${i + 1}: ${installed.slice(0, 80)}`);
-        diff.push(`+ ${i + 1}: ${source.slice(0, 80)}`);
-      }
-    }
-  }
-
+  const diff = generateLineDiff(installedContent, sourceContent);
   return diff.slice(0, 50).join('\n') + (diff.length > 50 ? '\n... (truncated)' : '');
 }
 
@@ -517,61 +532,48 @@ export function getCanonSourceInfo(): { path: string; commit?: string; remote?: 
  * console.log(`Deployed ${result.deployed} skills`);
  * ```
  */
+/** Deploy a single skill, returns success/skip/error */
+function deploySkill(
+  skill: CanonListItem,
+  skillsDir: string,
+  force: boolean
+): 'deployed' | 'skipped' | string {
+  const sourceFile = path.join(skill.path, 'SKILL.md');
+  const targetDir = path.join(skillsDir, skill.name);
+
+  if (!fs.existsSync(sourceFile)) return `${skill.name}: SKILL.md not found`;
+  if (fs.existsSync(targetDir) && !force) return 'skipped';
+
+  try {
+    if (fs.existsSync(targetDir)) fs.rmSync(targetDir, { recursive: true });
+    copyDirectoryRecursive(skill.path, targetDir);
+    return 'deployed';
+  } catch (err) {
+    return `${skill.name}: ${err instanceof Error ? err.message : 'copy failed'}`;
+  }
+}
+
 export function deployAllSkills(
   projectPath: string,
   options: { force?: boolean } = {}
 ): { deployed: number; skipped: number; errors: string[]; deployedNames: string[] } {
   const result = { deployed: 0, skipped: 0, errors: [] as string[], deployedNames: [] as string[] };
-
-  // Deduplicate skills, preferring canon source over skill-library
-  const allSkills = listCanonSkills();
-  const canonSourcePath = getCanonSourcePath();
-  const skillsByName = new Map<string, typeof allSkills[0]>();
-
-  for (const skill of allSkills) {
-    const existing = skillsByName.get(skill.name);
-    if (!existing) {
-      skillsByName.set(skill.name, skill);
-    } else if (skill.path.startsWith(canonSourcePath) && !existing.path.startsWith(canonSourcePath)) {
-      // Prefer canon source over skill-library
-      skillsByName.set(skill.name, skill);
-    }
-  }
-
-  const skills = Array.from(skillsByName.values());
+  const skills = deduplicateSkills(listCanonSkills(), getCanonSourcePath());
   const skillsDir = path.join(projectPath, '.claude', 'skills');
 
-  // Ensure skills directory exists
   if (!fs.existsSync(skillsDir)) {
     fs.mkdirSync(skillsDir, { recursive: true });
   }
 
   for (const skill of skills) {
-    const sourceFile = path.join(skill.path, 'SKILL.md');
-    const targetDir = path.join(skillsDir, skill.name);
-
-    if (!fs.existsSync(sourceFile)) {
-      result.errors.push(`${skill.name}: SKILL.md not found`);
-      continue;
-    }
-
-    // Check if directory already exists (skip to avoid duplicates)
-    if (fs.existsSync(targetDir) && !options.force) {
-      result.skipped++;
-      continue;
-    }
-
-    try {
-      // Remove existing directory if force
-      if (fs.existsSync(targetDir)) {
-        fs.rmSync(targetDir, { recursive: true });
-      }
-      // Copy entire directory (preserves SKILL.md, SUMMARY.md, etc.)
-      copyDirectoryRecursive(skill.path, targetDir);
+    const status = deploySkill(skill, skillsDir, options.force ?? false);
+    if (status === 'deployed') {
       result.deployed++;
       result.deployedNames.push(skill.name);
-    } catch (err) {
-      result.errors.push(`${skill.name}: ${err instanceof Error ? err.message : 'copy failed'}`);
+    } else if (status === 'skipped') {
+      result.skipped++;
+    } else {
+      result.errors.push(status);
     }
   }
 
@@ -597,6 +599,31 @@ export function deployAllSkills(
  * }
  * ```
  */
+/** Compare a single skill against source, returns match status */
+function compareSkillToSource(
+  skill: CanonListItem,
+  skillsDir: string
+): 'match' | 'missing' | 'differs' {
+  const sourceFile = path.join(skill.path, 'SKILL.md');
+  const targetFile = path.join(skillsDir, skill.name, 'SKILL.md');
+
+  if (!fs.existsSync(sourceFile)) return 'match'; // Skip if no source
+  if (!fs.existsSync(targetFile)) return 'missing';
+
+  const sourceContent = fs.readFileSync(sourceFile, 'utf-8');
+  const targetContent = fs.readFileSync(targetFile, 'utf-8');
+  return sourceContent === targetContent ? 'match' : 'differs';
+}
+
+/** Get installed skill directories */
+function getInstalledSkillDirs(skillsDir: string): string[] {
+  if (!fs.existsSync(skillsDir)) return [];
+  return fs.readdirSync(skillsDir).filter(f => {
+    const fullPath = path.join(skillsDir, f);
+    return fs.statSync(fullPath).isDirectory() && !f.startsWith('.');
+  });
+}
+
 export function verifySkillsMatch(projectPath: string): {
   matches: string[];
   differs: { name: string; reason: string }[];
@@ -604,6 +631,7 @@ export function verifySkillsMatch(projectPath: string): {
   extraInProject: string[];
   allMatch: boolean;
 } {
+  const skillsDir = path.join(projectPath, '.claude', 'skills');
   const result = {
     matches: [] as string[],
     differs: [] as { name: string; reason: string }[],
@@ -612,73 +640,31 @@ export function verifySkillsMatch(projectPath: string): {
     allMatch: true
   };
 
-  const skillsDir = path.join(projectPath, '.claude', 'skills');
   if (!fs.existsSync(skillsDir)) {
     result.allMatch = false;
     return result;
   }
 
-  // Get all canon skills from source, deduplicated by name
-  // Prefer canon source path over skill-library
-  const allSkills = listCanonSkills();
-  const canonSourcePath = getCanonSourcePath();
-  const skillsByName = new Map<string, typeof allSkills[0]>();
-
-  for (const skill of allSkills) {
-    const existing = skillsByName.get(skill.name);
-    if (!existing) {
-      skillsByName.set(skill.name, skill);
-    } else if (skill.path.startsWith(canonSourcePath) && !existing.path.startsWith(canonSourcePath)) {
-      // Prefer canon source over skill-library
-      skillsByName.set(skill.name, skill);
-    }
-  }
-
-  const canonSkills = Array.from(skillsByName.values());
+  const canonSkills = deduplicateSkills(listCanonSkills(), getCanonSourcePath());
   const canonSkillNames = new Set(canonSkills.map(s => s.name));
+  const installedDirs = getInstalledSkillDirs(skillsDir);
 
-  // Get installed skill directories (not flat .md files)
-  const installedFiles = fs.readdirSync(skillsDir)
-    .filter(f => {
-      const fullPath = path.join(skillsDir, f);
-      return fs.statSync(fullPath).isDirectory() && !f.startsWith('.');
-    });
-
-  // Compare each canon skill (deduplicated)
+  // Compare each canon skill
   for (const skill of canonSkills) {
-    const sourceFile = path.join(skill.path, 'SKILL.md');
-    const targetDir = path.join(skillsDir, skill.name);
-    const targetFile = path.join(targetDir, 'SKILL.md');
-
-    if (!fs.existsSync(sourceFile)) {
-      continue; // Skip if source doesn't have SKILL.md
-    }
-
-    if (!fs.existsSync(targetDir) || !fs.existsSync(targetFile)) {
+    const status = compareSkillToSource(skill, skillsDir);
+    if (status === 'match') {
+      result.matches.push(skill.name);
+    } else if (status === 'missing') {
       result.missingInProject.push(skill.name);
       result.allMatch = false;
-      continue;
-    }
-
-    // Compare content
-    const sourceContent = fs.readFileSync(sourceFile, 'utf-8');
-    const targetContent = fs.readFileSync(targetFile, 'utf-8');
-
-    if (sourceContent === targetContent) {
-      result.matches.push(skill.name);
     } else {
       result.differs.push({ name: skill.name, reason: 'content differs' });
       result.allMatch = false;
     }
   }
 
-  // Find extra files in project not in canon
-  for (const installed of installedFiles) {
-    if (!canonSkillNames.has(installed)) {
-      // Check if it's a workflow skill or other non-canon skill
-      result.extraInProject.push(installed);
-    }
-  }
+  // Find extra skills not in canon
+  result.extraInProject = installedDirs.filter(name => !canonSkillNames.has(name));
 
   return result;
 }

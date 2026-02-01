@@ -6,7 +6,8 @@
   "main": "dist/index.js",
   "bin": {
     "cc-config": "./dist/cli/index.js",
-    "ralph": "./dist/ralph/index.js"
+    "ralph": "./dist/ralph/index.js",
+    "cc-reset": "./scripts/reset.sh"
   },
   "scripts": {
     "build": "tsc && npm run copy-assets",

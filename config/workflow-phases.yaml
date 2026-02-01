@@ -42,7 +42,7 @@ phases:
       - carmack        # Performance awareness
       # Language-specific loaded from profile
 
-  build-tests:
+  test:
     description: Write tests for implemented code (tests follow code, not TDD)
     experts:
       - meszaros       # xUnit patterns, test doubles
@@ -59,6 +59,7 @@ phases:
       - feathers       # Safe refactoring with seams
       - gang-of-four   # Pattern-based refactoring
       - pike           # Reduce interfaces
+      - fowler-refactor # wrote the book 
 
   adversarial-review:
     description: Hard-ass code review via Gemini
@@ -68,8 +69,8 @@ phases:
 
   static-analysis:
     description: Run Qodana analyzer, fix issues found
-    # No Claude experts - Qodana handles static analysis
-    experts: []
+    experts:
+      - google-style   # Universal style and clarity principles
 
   doc-code:
     description: Document the completed work
@@ -89,5 +90,5 @@ ralph-sequence:
   - refactor-check
   - adversarial-review
   - static-analysis
-  - build-tests
+  - test
   - doc-code

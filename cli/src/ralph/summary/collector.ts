@@ -82,73 +82,51 @@ export class SummaryCollector {
   }
 }
 
-/** Parse Gemini issues from Claude output */
-export function parseGeminiIssues(output: string): GeminiSummary {
+/** Extract issues matching a pattern from output. */
+function extractIssues(output: string, pattern: RegExp, hasLineInMatch4: boolean): Issue[] {
   const issues: Issue[] = [];
-
-  // Match issue lines: [SEVERITY] message (file:line)
-  const issuePattern = /\[(\w+)\]\s+(.+?)(?:\s+\(([^:]+):?(\d+)?\))?(?:\s*-\s*(FIXED|fixed))?$/gm;
   let match;
-
-  while ((match = issuePattern.exec(output)) !== null) {
-    const severity = normalizeSeverity(match[1]);
+  while ((match = pattern.exec(output)) !== null) {
     issues.push({
-      severity,
+      severity: normalizeSeverity(match[1]),
       message: match[2].trim(),
       file: match[3],
-      line: match[4] ? parseInt(match[4], 10) : undefined,
+      line: hasLineInMatch4 && match[4] ? parseInt(match[4], 10) : undefined,
       fixed: match[5] !== undefined,
     });
   }
+  return issues;
+}
 
-  // Parse summary counts
-  const totalMatch = output.match(/GEMINI_ISSUES:\s*(\d+)/i);
-  const criticalHighMatch = output.match(/CRITICAL_HIGH:\s*(\d+)/i);
-  const fixedMatch = output.match(/ISSUES_FIXED:\s*(\d+)/i);
-  const verifiedMatch = output.match(/VERIFIED_CLEAN:\s*(yes|no)/i);
+/** Build summary from issues and parsed output markers. */
+function buildIssueSummary(output: string, issues: Issue[], prefix: string): GeminiSummary | QodanaSummary {
+  const totalMatch = output.match(new RegExp(`${prefix}_?ISSUES:\\s*(\\d+)`, 'i'));
+  const criticalMatch = output.match(new RegExp(`${prefix}_?CRITICAL_HIGH:\\s*(\\d+)`, 'i'));
+  const fixedMatch = output.match(new RegExp(`${prefix}_?FIXED:\\s*(\\d+)`, 'i'));
+  const verifiedMatch = output.match(new RegExp(`${prefix}_?VERIFIED_CLEAN:\\s*(yes|no)`, 'i'));
 
+  const criticalHigh = issues.filter(i => i.severity === 'CRITICAL' || i.severity === 'HIGH').length;
   return {
     issues,
     totalFound: totalMatch ? parseInt(totalMatch[1], 10) : issues.length,
-    criticalHigh: criticalHighMatch ? parseInt(criticalHighMatch[1], 10) :
-      issues.filter(i => i.severity === 'CRITICAL' || i.severity === 'HIGH').length,
+    criticalHigh: criticalMatch ? parseInt(criticalMatch[1], 10) : criticalHigh,
     fixed: fixedMatch ? parseInt(fixedMatch[1], 10) : issues.filter(i => i.fixed).length,
     verifiedClean: verifiedMatch ? verifiedMatch[1].toLowerCase() === 'yes' : false,
   };
 }
 
+/** Parse Gemini issues from Claude output */
+export function parseGeminiIssues(output: string): GeminiSummary {
+  const pattern = /\[(\w+)\]\s+(.+?)(?:\s+\(([^:]+):?(\d+)?\))?(?:\s*-\s*(FIXED|fixed))?$/gm;
+  const issues = extractIssues(output, pattern, true);
+  return buildIssueSummary(output, issues, 'GEMINI') as GeminiSummary;
+}
+
 /** Parse Qodana issues from Claude output */
 export function parseQodanaIssues(output: string): QodanaSummary {
-  const issues: Issue[] = [];
-
-  // Match Qodana-style issues
-  const issuePattern = /(\w+):\s+(.+?)\s+at\s+([^:]+):(\d+)(?:\s*-\s*(FIXED|fixed))?/gm;
-  let match;
-
-  while ((match = issuePattern.exec(output)) !== null) {
-    issues.push({
-      severity: normalizeSeverity(match[1]),
-      message: match[2].trim(),
-      file: match[3],
-      line: parseInt(match[4], 10),
-      fixed: match[5] !== undefined,
-    });
-  }
-
-  // Parse summary counts
-  const totalMatch = output.match(/QODANA_ISSUES:\s*(\d+)/i);
-  const criticalHighMatch = output.match(/QODANA_CRITICAL_HIGH:\s*(\d+)/i);
-  const fixedMatch = output.match(/QODANA_FIXED:\s*(\d+)/i);
-  const verifiedMatch = output.match(/QODANA_VERIFIED_CLEAN:\s*(yes|no)/i);
-
-  return {
-    issues,
-    totalFound: totalMatch ? parseInt(totalMatch[1], 10) : issues.length,
-    criticalHigh: criticalHighMatch ? parseInt(criticalHighMatch[1], 10) :
-      issues.filter(i => i.severity === 'CRITICAL' || i.severity === 'HIGH').length,
-    fixed: fixedMatch ? parseInt(fixedMatch[1], 10) : issues.filter(i => i.fixed).length,
-    verifiedClean: verifiedMatch ? verifiedMatch[1].toLowerCase() === 'yes' : false,
-  };
+  const pattern = /(\w+):\s+(.+?)\s+at\s+([^:]+):(\d+)(?:\s*-\s*(FIXED|fixed))?/gm;
+  const issues = extractIssues(output, pattern, true);
+  return buildIssueSummary(output, issues, 'QODANA') as QodanaSummary;
 }
 
 /** Parse test results from output */
@@ -168,12 +146,16 @@ export function parseTestResults(output: string): TestSummary {
 export function parseRefactorResults(output: string): RefactorSummary {
   const improvements: string[] = [];
 
+  // Check for REFACTORED: (current format) or IMPROVEMENTS: (legacy format)
+  const refactoredMatch = output.match(/REFACTORED:\s*([\s\S]*?)(?=\n\n|\nREFACTOR_COUNT|\nAPPLIED|$)/i);
   const improvementsMatch = output.match(/IMPROVEMENTS:\s*([\s\S]*?)(?:IMPROVEMENT_COUNT:|$)/);
-  if (improvementsMatch) {
-    const lines = improvementsMatch[1].split('\n');
+
+  const match = refactoredMatch || improvementsMatch;
+  if (match) {
+    const lines = match[1].split('\n');
     for (const line of lines) {
       const trimmed = line.trim();
-      if (trimmed.startsWith('- ')) {
+      if (trimmed.startsWith('- ') && !trimmed.toLowerCase().includes('none needed')) {
         improvements.push(trimmed.slice(2).trim());
       }
     }

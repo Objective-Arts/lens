@@ -10,7 +10,7 @@ import * as fsPromises from 'fs/promises';
 import * as path from 'path';
 import { parse as parseYaml, stringify as stringifyYaml } from 'yaml';
 import { homedir } from 'os';
-import type { Profile, ComposableProfile, SkillLibraryPaths, SkillCategory, MCPServerCategory } from '../types.js';
+import type { Profile, ComposableProfile, SkillLibraryPaths, SkillCategory, MCPServerCategory, ProfileHooksConfig } from '../types.js';
 import {
   getServer,
   isServerInstalled,
@@ -46,7 +46,7 @@ const SKILL_CATEGORIES = ['security', 'tech', 'canon', 'global'] as const;
 const CANON_SUBDIRS = [
   'javascript', 'typescript', 'go', 'java', 'python', 'angular',
   'testing', 'visualization', 'business', 'ui-ux', 'csharp',
-  'react', 'security', 'engineering'
+  'react', 'security', 'engineering', 'database'
 ] as const;
 
 /** Debug mode for development logging (Crockford: fail fast, visible errors) */
@@ -123,86 +123,101 @@ interface ValidationResult {
 // Profile Schema Validation
 // ============================================================================
 
+/** Validate skills object (Kernighan: single responsibility) */
+function validateSkills(skills: unknown, filename: string): string[] {
+  if (skills === undefined) return [];
+  if (!isRecord(skills)) return [`${filename}: 'skills' must be an object`];
+
+  const errors: string[] = [];
+  for (const category of SKILL_CATEGORIES) {
+    const val = skills[category];
+    if (val !== undefined && !isStringArray(val)) {
+      errors.push(`${filename}: 'skills.${category}' must be an array of strings`);
+    }
+  }
+  return errors;
+}
+
+/** Validate claudeMd object (Kernighan: single responsibility) */
+function validateClaudeMd(claudeMd: unknown, filename: string): string[] {
+  if (claudeMd === undefined) return [];
+  if (!isRecord(claudeMd)) return [`${filename}: 'claudeMd' must be an object`];
+
+  const errors: string[] = [];
+  if (claudeMd.standards !== undefined && !isStringArray(claudeMd.standards)) {
+    errors.push(`${filename}: 'claudeMd.standards' must be an array of strings`);
+  }
+  if (claudeMd.antiPatterns !== undefined && !isStringArray(claudeMd.antiPatterns)) {
+    errors.push(`${filename}: 'claudeMd.antiPatterns' must be an array of strings`);
+  }
+  if (claudeMd.autoInvoke !== undefined) {
+    if (!Array.isArray(claudeMd.autoInvoke)) {
+      errors.push(`${filename}: 'claudeMd.autoInvoke' must be an array`);
+    } else {
+      claudeMd.autoInvoke.forEach((item, i) => {
+        if (!isAutoInvokeItem(item)) {
+          errors.push(`${filename}: 'claudeMd.autoInvoke[${i}]' must have 'context' and 'action' strings`);
+        }
+      });
+    }
+  }
+  return errors;
+}
+
+/** Validate hooks object (Kernighan: single responsibility) */
+function validateHooks(hooks: unknown, filename: string): string[] {
+  if (hooks === undefined) return [];
+  if (!isRecord(hooks)) return [`${filename}: 'hooks' must be an object`];
+
+  const errors: string[] = [];
+  const validEventTypes = ['PreToolUse', 'PostToolUse', 'UserPromptSubmit', 'Notification'];
+  for (const eventType of Object.keys(hooks)) {
+    if (!validEventTypes.includes(eventType)) {
+      errors.push(`${filename}: 'hooks.${eventType}' is not a valid hook event type`);
+    }
+    if (!Array.isArray(hooks[eventType])) {
+      errors.push(`${filename}: 'hooks.${eventType}' must be an array`);
+    }
+  }
+  return errors;
+}
+
 /**
  * Validate a parsed YAML object against the ComposableProfile schema
  * Uses type guards instead of unsafe casts (Cherny)
  */
 function validateProfileSchema(data: unknown, filename: string): ValidationResult {
-  const errors: string[] = [];
-
   if (!isRecord(data)) {
     return { valid: false, errors: [`${filename}: Profile must be an object`] };
   }
 
-  // Required: name must be a non-empty string
+  const errors: string[] = [];
+
+  // Required fields
   if (typeof data.name !== 'string' || data.name.trim() === '') {
     errors.push(`${filename}: 'name' is required and must be a non-empty string`);
   }
 
-  // Optional: description must be a string if present
+  // Optional string fields
   if (data.description !== undefined && typeof data.description !== 'string') {
     errors.push(`${filename}: 'description' must be a string`);
   }
-
-  // Optional: projectType must be 'software' or 'business' if present
-  if (data.projectType !== undefined &&
-      data.projectType !== 'software' &&
-      data.projectType !== 'business') {
+  if (data.projectType !== undefined && data.projectType !== 'software' && data.projectType !== 'business') {
     errors.push(`${filename}: 'projectType' must be 'software' or 'business'`);
   }
 
-  // Optional: skills must be an object with valid categories
-  if (data.skills !== undefined) {
-    if (!isRecord(data.skills)) {
-      errors.push(`${filename}: 'skills' must be an object`);
-    } else {
-      for (const category of SKILL_CATEGORIES) {
-        const categoryValue = data.skills[category];
-        if (categoryValue !== undefined && !isStringArray(categoryValue)) {
-          errors.push(`${filename}: 'skills.${category}' must be an array of strings`);
-        }
-      }
-    }
-  }
-
-  // Optional: agents must be an array of strings
+  // Optional array fields
   if (data.agents !== undefined && !isStringArray(data.agents)) {
     errors.push(`${filename}: 'agents' must be an array of strings`);
   }
-
-  // Optional: commands must be an array of strings
   if (data.commands !== undefined && !isStringArray(data.commands)) {
     errors.push(`${filename}: 'commands' must be an array of strings`);
   }
 
-  // Optional: claudeMd validation
-  if (data.claudeMd !== undefined) {
-    if (!isRecord(data.claudeMd)) {
-      errors.push(`${filename}: 'claudeMd' must be an object`);
-    } else {
-      const claudeMd = data.claudeMd;
-
-      if (claudeMd.standards !== undefined && !isStringArray(claudeMd.standards)) {
-        errors.push(`${filename}: 'claudeMd.standards' must be an array of strings`);
-      }
-
-      if (claudeMd.antiPatterns !== undefined && !isStringArray(claudeMd.antiPatterns)) {
-        errors.push(`${filename}: 'claudeMd.antiPatterns' must be an array of strings`);
-      }
-
-      if (claudeMd.autoInvoke !== undefined) {
-        if (!Array.isArray(claudeMd.autoInvoke)) {
-          errors.push(`${filename}: 'claudeMd.autoInvoke' must be an array`);
-        } else {
-          claudeMd.autoInvoke.forEach((item, i) => {
-            if (!isAutoInvokeItem(item)) {
-              errors.push(`${filename}: 'claudeMd.autoInvoke[${i}]' must have 'context' and 'action' strings`);
-            }
-          });
-        }
-      }
-    }
-  }
+  // Nested object validation (delegated to helpers)
+  errors.push(...validateSkills(data.skills, filename));
+  errors.push(...validateClaudeMd(data.claudeMd, filename));
+  errors.push(...validateHooks(data.hooks, filename));
 
   return { valid: errors.length === 0, errors };
 }
@@ -210,6 +225,9 @@ function validateProfileSchema(data: unknown, filename: string): ValidationResul
 // ============================================================================
 // Profile Loading (Async)
 // ============================================================================
+
+/** Config files that are not profiles - skip validation */
+const CONFIG_FILES = new Set(['keyword-detection.yaml', 'workflow-phases.yaml']);
 
 /**
  * Load profiles from a directory (async)
@@ -229,7 +247,9 @@ async function loadProfilesFromDirAsync(dir: string): Promise<ComposableProfile[
 
   try {
     const files = await fsPromises.readdir(dir);
-    const yamlFiles = files.filter(f => f.endsWith('.yaml') || f.endsWith('.yml'));
+    const yamlFiles = files
+      .filter(f => f.endsWith('.yaml') || f.endsWith('.yml'))
+      .filter(f => !CONFIG_FILES.has(f));
 
     for (const file of yamlFiles) {
       const filePath = path.join(dir, file);
@@ -272,7 +292,9 @@ function loadProfilesFromDir(dir: string): ComposableProfile[] {
   }
 
   const profiles: ComposableProfile[] = [];
-  const files = fs.readdirSync(dir).filter(f => f.endsWith('.yaml') || f.endsWith('.yml'));
+  const files = fs.readdirSync(dir)
+    .filter(f => f.endsWith('.yaml') || f.endsWith('.yml'))
+    .filter(f => !CONFIG_FILES.has(f));
 
   for (const file of files) {
     const filePath = path.join(dir, file);
@@ -478,6 +500,7 @@ function mergeProfiles(parent: ComposableProfile, child: ComposableProfile): Com
       enable: mergeArrays(parent.mcpServers?.enable ?? [], child.mcpServers?.enable ?? []),
       disable: mergeArrays(parent.mcpServers?.disable ?? [], child.mcpServers?.disable ?? [])
     },
+    hooks: mergeHooks(parent.hooks, child.hooks),
     ralph: mergeRalphSkills(parent.ralph, child.ralph)
   };
 }
@@ -533,6 +556,32 @@ function mergeArrays<T>(target: T[], source: T[]): T[] {
 }
 
 /**
+ * Merge hooks from two profiles.
+ * Combines hook arrays for each event type.
+ */
+function mergeHooks(
+  parent: ProfileHooksConfig | undefined,
+  child: ProfileHooksConfig | undefined
+): ProfileHooksConfig | undefined {
+  if (!parent && !child) return undefined;
+  if (!parent) return child;
+  if (!child) return parent;
+
+  const eventTypes = ['PreToolUse', 'PostToolUse', 'UserPromptSubmit', 'Notification'] as const;
+  const merged: ProfileHooksConfig = {};
+
+  for (const eventType of eventTypes) {
+    const parentHooks = parent[eventType] ?? [];
+    const childHooks = child[eventType] ?? [];
+    if (parentHooks.length > 0 || childHooks.length > 0) {
+      merged[eventType] = [...parentHooks, ...childHooks];
+    }
+  }
+
+  return Object.keys(merged).length > 0 ? merged : undefined;
+}
+
+/**
  * Combine multiple profiles into a single merged profile.
  *
  * Merges skills, commands, agents, and claudeMd sections.
@@ -550,95 +599,76 @@ function mergeArrays<T>(target: T[], source: T[]): T[] {
  * }
  * ```
  */
+/** Create empty combined profile structure (Bloch: static factory) */
+function createEmptyCombined(profileNames: string[]): ComposableProfile {
+  return {
+    name: profileNames.join(' + '),
+    description: `Combined profile: ${profileNames.join(' + ')}`,
+    composable: true,
+    skills: { security: [], tech: [], canon: [], global: [] },
+    agents: [],
+    commands: [],
+    claudeMd: { standards: [], antiPatterns: [], autoInvoke: [] }
+  };
+}
+
+/** Merge skills by category (Kernighan: single responsibility) */
+function mergeSkillsInto(combined: ComposableProfile, skills: ComposableProfile['skills']): void {
+  if (!skills || !combined.skills) return;
+  for (const category of SKILL_CATEGORIES) {
+    const src = skills[category as SkillCategory] ?? [];
+    const dst = combined.skills[category as SkillCategory] ?? [];
+    combined.skills[category as SkillCategory] = mergeArrays(dst, src);
+  }
+}
+
+/** Merge claudeMd sections (Kernighan: single responsibility) */
+function mergeClaudeMdInto(combined: ComposableProfile, claudeMd: ComposableProfile['claudeMd']): void {
+  if (!claudeMd || !combined.claudeMd) return;
+  if (claudeMd.standards) {
+    combined.claudeMd.standards = mergeArrays(combined.claudeMd.standards ?? [], claudeMd.standards);
+  }
+  if (claudeMd.antiPatterns) {
+    combined.claudeMd.antiPatterns = mergeArrays(combined.claudeMd.antiPatterns ?? [], claudeMd.antiPatterns);
+  }
+  if (claudeMd.autoInvoke) {
+    combined.claudeMd.autoInvoke = [...(combined.claudeMd.autoInvoke ?? []), ...claudeMd.autoInvoke];
+  }
+}
+
+/** Merge MCP servers (Kernighan: single responsibility) */
+function mergeMcpServersInto(combined: ComposableProfile, mcpServers: ComposableProfile['mcpServers']): void {
+  if (!mcpServers) return;
+  if (!combined.mcpServers) {
+    combined.mcpServers = { enable: [], disable: [] };
+  }
+  if (mcpServers.enable) {
+    combined.mcpServers.enable = mergeArrays(combined.mcpServers.enable, mcpServers.enable);
+  }
+  if (mcpServers.disable) {
+    combined.mcpServers.disable = mergeArrays(combined.mcpServers.disable, mcpServers.disable);
+  }
+}
+
+/** Combine multiple profiles into one (Gang-of-Four: Composite pattern) */
 export function combineProfiles(profileNames: string[]): ComposableProfile | null {
   const profiles = profileNames
     .map(name => getProfile(name))
     .filter((p): p is ComposableProfile => p !== null);
 
-  if (profiles.length === 0) {
-    return null;
-  }
+  if (profiles.length === 0) return null;
+  if (profiles.length === 1) return profiles[0];
 
-  if (profiles.length === 1) {
-    return profiles[0];
-  }
-
-  // Initialize combined with explicit structure (no non-null assertions needed)
-  const combined: ComposableProfile = {
-    name: profileNames.join(' + '),
-    description: `Combined profile: ${profileNames.join(' + ')}`,
-    composable: true,
-    skills: {
-      security: [],
-      tech: [],
-      canon: [],
-      global: []
-    },
-    agents: [],
-    commands: [],
-    claudeMd: {
-      standards: [],
-      antiPatterns: [],
-      autoInvoke: []
-    }
-  };
+  const combined = createEmptyCombined(profileNames);
 
   for (const profile of profiles) {
-    const { skills, agents, commands, claudeMd, mcpServers, ralph } = profile;
-
-    // Merge skills by category (safe access - combined.skills is initialized above)
-    if (skills && combined.skills) {
-      for (const category of SKILL_CATEGORIES) {
-        const categorySkills = skills[category as SkillCategory] ?? [];
-        const currentSkills = combined.skills[category as SkillCategory] ?? [];
-        combined.skills[category as SkillCategory] = mergeArrays(currentSkills, categorySkills);
-      }
-    }
-
-    // Merge agents (safe access - combined.agents is initialized above)
-    if (agents && combined.agents) {
-      combined.agents = mergeArrays(combined.agents, agents);
-    }
-
-    // Merge commands (safe access - combined.commands is initialized above)
-    if (commands && combined.commands) {
-      combined.commands = mergeArrays(combined.commands, commands);
-    }
-
-    // Merge claudeMd sections (safe access - combined.claudeMd is initialized above)
-    if (claudeMd && combined.claudeMd) {
-      const { standards, antiPatterns, autoInvoke } = claudeMd;
-
-      if (standards && combined.claudeMd.standards) {
-        combined.claudeMd.standards = mergeArrays(combined.claudeMd.standards, standards);
-      }
-
-      if (antiPatterns && combined.claudeMd.antiPatterns) {
-        combined.claudeMd.antiPatterns = mergeArrays(combined.claudeMd.antiPatterns, antiPatterns);
-      }
-
-      if (autoInvoke && combined.claudeMd.autoInvoke) {
-        combined.claudeMd.autoInvoke = [...combined.claudeMd.autoInvoke, ...autoInvoke];
-      }
-    }
-
-    // Merge MCP servers
-    if (mcpServers) {
-      if (!combined.mcpServers) {
-        combined.mcpServers = { enable: [], disable: [] };
-      }
-      if (mcpServers.enable) {
-        combined.mcpServers.enable = mergeArrays(combined.mcpServers.enable, mcpServers.enable);
-      }
-      if (mcpServers.disable) {
-        combined.mcpServers.disable = mergeArrays(combined.mcpServers.disable, mcpServers.disable);
-      }
-    }
-
-    // Merge ralph config with deep merge for skills
-    if (ralph) {
-      combined.ralph = mergeRalphSkills(combined.ralph, ralph);
-    }
+    mergeSkillsInto(combined, profile.skills);
+    if (profile.agents) combined.agents = mergeArrays(combined.agents ?? [], profile.agents);
+    if (profile.commands) combined.commands = mergeArrays(combined.commands ?? [], profile.commands);
+    mergeClaudeMdInto(combined, profile.claudeMd);
+    mergeMcpServersInto(combined, profile.mcpServers);
+    if (profile.ralph) combined.ralph = mergeRalphSkills(combined.ralph, profile.ralph);
+    if (profile.hooks) combined.hooks = mergeHooks(combined.hooks, profile.hooks);
   }
 
   return combined;
@@ -930,15 +960,17 @@ function getWorkflowCommandsDocs(projectPath: string): string {
     return '';
   }
 
+  // 8 Ralph phases as standalone skills + orchestrator
   const workflowSkills = [
-    { name: 'ralph-loop', cmd: '/ralph-loop [prd-file] [--max N] [--resume] [--external]', desc: 'Autonomous PRD implementation loop' },
-    { name: 'implement', cmd: '/implement [task]', desc: 'Implement a feature with quality gates' },
-    { name: 'review-hard', cmd: '/review-hard [--scope file|function]', desc: 'Rigorous code review with canon lens' },
-    { name: 'test', cmd: '/test [--coverage] [--watch]', desc: 'Run tests with Testing Trophy strategy' },
+    { name: 'ralph-loop', cmd: '/ralph-loop [prd-file] [--max N] [--resume]', desc: 'Autonomous PRD implementation loop' },
     { name: 'plan', cmd: '/plan [task]', desc: 'Create implementation plan before coding' },
     { name: 'structure-first', cmd: '/structure-first [feature]', desc: 'Design data structures before implementation' },
+    { name: 'implement', cmd: '/implement [target]', desc: 'Implement code from plan' },
     { name: 'refactor-check', cmd: '/refactor-check [target]', desc: 'Systematic code cleanup' },
-    { name: 'build-from-plan', cmd: '/build-from-plan [plan-file]', desc: 'Execute approved plan' }
+    { name: 'adversarial-review', cmd: '/adversarial-review [path]', desc: 'Hard-ass code review via Gemini' },
+    { name: 'static-analysis', cmd: '/static-analysis [path]', desc: 'Run Qodana and fix issues' },
+    { name: 'test', cmd: '/test [level]', desc: 'Write and run tests' },
+    { name: 'doc-code', cmd: '/doc-code [path]', desc: 'Generate documentation' }
   ] as const;
 
   const installed = workflowSkills.filter(s =>
@@ -1261,11 +1293,11 @@ async function applyMcpToProject(
     result.errors.push(...mcpResult.errors);
   }
 
-  // Create .mcp.json if using external validation
-  const needsExternalValidation = profile.ralph?.post_loop_validation?.enabled ||
+  // Create .mcp.json if using ralph (needs Gemini + Qodana for review phases)
+  const needsMcpServers = profile.ralph !== undefined ||
     profile.name?.includes('ralph-integration');
 
-  if (needsExternalValidation) {
+  if (needsMcpServers) {
     const mcpJsonResult = await createProjectMcpJsonAsync(projectPath);
 
     // Exhaustive switch on discriminated union (Cherny)
@@ -1284,6 +1316,56 @@ async function applyMcpToProject(
         break;
     }
   }
+}
+
+// ============================================================================
+// Hooks Configuration
+// ============================================================================
+
+/**
+ * Apply hooks configuration from profile to project's settings.json.
+ * Merges profile hooks with existing hooks (appends, doesn't overwrite).
+ */
+async function applyHooksToProject(
+  profile: ComposableProfile,
+  projectPath: string,
+  result: ApplyResult
+): Promise<void> {
+  if (!profile.hooks) {
+    return;
+  }
+
+  const settingsPath = path.join(projectPath, CLAUDE_DIR_NAME, 'settings.json');
+  let settings: Record<string, unknown> = {};
+
+  // Load existing settings if present
+  if (fs.existsSync(settingsPath)) {
+    try {
+      settings = JSON.parse(fs.readFileSync(settingsPath, 'utf-8'));
+    } catch {
+      result.warnings.push('Could not parse existing settings.json, creating new');
+    }
+  }
+
+  // Merge hooks (append to existing, don't overwrite)
+  const existingHooks = (settings.hooks as Record<string, unknown[]>) || {};
+  const profileHooks = profile.hooks as Record<string, unknown[]>;
+
+  for (const [eventType, hookItems] of Object.entries(profileHooks)) {
+    if (!existingHooks[eventType]) {
+      existingHooks[eventType] = [];
+    }
+    existingHooks[eventType].push(...hookItems);
+  }
+
+  settings.hooks = existingHooks;
+
+  // Write updated settings
+  await fsPromises.mkdir(path.dirname(settingsPath), { recursive: true });
+  await fsPromises.writeFile(settingsPath, JSON.stringify(settings, null, 2));
+
+  const hookTypes = Object.keys(profileHooks).join(', ');
+  result.created.push(`Hooks installed: ${hookTypes}`);
 }
 
 // ============================================================================
@@ -1505,6 +1587,9 @@ export async function applyComposableProfile(
   // Apply MCP configuration (decomposed)
   await applyMcpToProject(profile, projectPath, result);
 
+  // Apply hooks to project settings.json
+  await applyHooksToProject(profile, projectPath, result);
+
   return result;
 }
 
@@ -1564,7 +1649,7 @@ export const exampleComposableProfile: ComposableProfile = {
   description: 'Example composable profile',
   composable: true,
   skills: {
-    security: ['security-mindset', 'owasp'],
+    security: ['owasp'],
     tech: ['ceremony'],
     canon: ['abramov', 'dodds']
   },
