@@ -53,7 +53,7 @@ function getDefaultPhaseConfig(): WorkflowPhasesConfig {
         description: 'Write the code',
         experts: ['thompson', 'kernighan', 'pike', 'mcilroy', 'bill-joy', 'carmack'],
       },
-      'build-tests': {
+      'test': {
         description: 'Write tests for implemented code',
         experts: ['meszaros', 'fowler-test', 'dodds', 'hevery', 'feathers'],
       },
@@ -63,11 +63,11 @@ function getDefaultPhaseConfig(): WorkflowPhasesConfig {
       },
       'adversarial-review': {
         description: 'Attack your own code, fix issues found',
-        experts: ['schneier', 'owasp', 'tanya-janca', 'troy-hunt', 'petroski', 'leveson', 'taleb'],
+        experts: [],  // Uses Gemini MCP, not Claude experts
       },
       'static-analysis': {
         description: 'Run analyzers, fix issues found',
-        experts: ['bloch', 'liskov', 'owasp', 'crockford'],
+        experts: ['google-style'],  // Universal style principles for fixing issues
       },
       'doc-code': {
         description: 'Document the completed work',
@@ -78,7 +78,7 @@ function getDefaultPhaseConfig(): WorkflowPhasesConfig {
       'plan',
       'structure-first',
       'implement',
-      'build-tests',
+      'test',
       'refactor-check',
       'adversarial-review',
       'static-analysis',
@@ -212,63 +212,52 @@ function buildRegexFromPatterns(patterns: readonly string[]): RegExp {
   return new RegExp(`\\b(${sorted.join('|')})\\b`, 'i');
 }
 
-/**
- * Load keyword detection rules from keyword-detection.yaml.
- */
+/** Compile a single keyword rule from config. Returns null if invalid. */
+function compileKeywordRule(category: string, rule: KeywordRule): CompiledKeywordRule | null {
+  if (!Array.isArray(rule.patterns) || rule.patterns.length === 0) {
+    console.warn(`Skipping keyword rule "${category}": missing patterns`);
+    return null;
+  }
+  if (!Array.isArray(rule.experts) || rule.experts.length === 0) {
+    console.warn(`Skipping keyword rule "${category}": missing experts`);
+    return null;
+  }
+  return { category, pattern: buildRegexFromPatterns(rule.patterns), experts: [...rule.experts] };
+}
+
+/** Compile all rules from parsed config. */
+function compileRulesFromConfig(parsed: KeywordDetectionConfig): CompiledKeywordRule[] {
+  const rules: CompiledKeywordRule[] = [];
+  for (const [category, rule] of Object.entries(parsed.rules)) {
+    const compiled = compileKeywordRule(category, rule);
+    if (compiled) rules.push(compiled);
+  }
+  return rules;
+}
+
+/** Set cached keyword rules and return them. */
+function setCachedRules(rules: readonly CompiledKeywordRule[], configPath: string): readonly CompiledKeywordRule[] {
+  cachedKeywordRules = rules;
+  cachedKeywordRulesPath = configPath;
+  return cachedKeywordRules;
+}
+
+/** Load keyword detection rules from keyword-detection.yaml. */
 export function loadKeywordRules(projectPath: string): readonly CompiledKeywordRule[] {
   const configPath = path.join(projectPath, 'config', 'keyword-detection.yaml');
-
-  // Return cached if path unchanged
-  if (cachedKeywordRules && cachedKeywordRulesPath === configPath) {
-    return cachedKeywordRules;
-  }
-
-  if (!fs.existsSync(configPath)) {
-    cachedKeywordRules = getDefaultKeywordRules();
-    cachedKeywordRulesPath = configPath;
-    return cachedKeywordRules;
-  }
+  if (cachedKeywordRules && cachedKeywordRulesPath === configPath) return cachedKeywordRules;
+  if (!fs.existsSync(configPath)) return setCachedRules(getDefaultKeywordRules(), configPath);
 
   try {
-    const content = fs.readFileSync(configPath, 'utf-8');
-    const parsed = yaml.parse(content) as KeywordDetectionConfig;
-
+    const parsed = yaml.parse(fs.readFileSync(configPath, 'utf-8')) as KeywordDetectionConfig;
     if (!parsed?.rules || typeof parsed.rules !== 'object') {
       console.warn('Invalid keyword-detection.yaml: missing rules. Using defaults.');
-      cachedKeywordRules = getDefaultKeywordRules();
-      cachedKeywordRulesPath = configPath;
-      return cachedKeywordRules;
+      return setCachedRules(getDefaultKeywordRules(), configPath);
     }
-
-    const rules: CompiledKeywordRule[] = [];
-
-    for (const [category, rule] of Object.entries(parsed.rules)) {
-      if (!Array.isArray(rule.patterns) || rule.patterns.length === 0) {
-        console.warn(`Skipping keyword rule "${category}": missing patterns`);
-        continue;
-      }
-
-      if (!Array.isArray(rule.experts) || rule.experts.length === 0) {
-        console.warn(`Skipping keyword rule "${category}": missing experts`);
-        continue;
-      }
-
-      rules.push({
-        category,
-        pattern: buildRegexFromPatterns(rule.patterns),
-        experts: [...rule.experts],
-      });
-    }
-
-    cachedKeywordRules = rules;
-    cachedKeywordRulesPath = configPath;
-    return cachedKeywordRules;
+    return setCachedRules(compileRulesFromConfig(parsed), configPath);
   } catch (err) {
-    const message = err instanceof Error ? err.message : String(err);
-    console.warn(`Failed to parse keyword-detection.yaml: ${message}. Using defaults.`);
-    cachedKeywordRules = getDefaultKeywordRules();
-    cachedKeywordRulesPath = configPath;
-    return cachedKeywordRules;
+    console.warn(`Failed to parse keyword-detection.yaml: ${err instanceof Error ? err.message : err}. Using defaults.`);
+    return setCachedRules(getDefaultKeywordRules(), configPath);
   }
 }
 
@@ -276,61 +265,53 @@ export function loadKeywordRules(projectPath: string): readonly CompiledKeywordR
 // EXPERT DETECTION
 // =============================================================================
 
-/**
- * Detect experts for a phase + task text.
- * Combines phase experts with keyword-detected experts.
- *
- * @param projectPath - Project root
- * @param phase - Current phase
- * @param taskText - Task description to analyze for keywords
- * @param profileExperts - Additional experts from profile (optional)
- * @returns ExpertDetection with deduplicated experts and sources
- */
-export function detectExperts(
-  projectPath: string,
-  phase: PhaseName,
-  taskText: string,
-  profileExperts: readonly string[] = []
-): ExpertDetection {
-  const experts = new Set<string>();
-  const sources: Record<string, 'phase' | 'keyword' | 'profile'> = {};
-  const matchedKeywords: string[] = [];
+type ExpertSource = 'phase' | 'keyword' | 'profile';
 
-  // 1. Add profile experts
-  for (const expert of profileExperts) {
-    experts.add(expert);
-    sources[expert] = 'profile';
-  }
-
-  // 2. Add phase experts
-  const phaseExperts = getPhaseExperts(projectPath, phase);
-  for (const expert of phaseExperts) {
+/** Add experts to set and record source (only if not already present). */
+function addExperts(
+  experts: Set<string>,
+  sources: Record<string, ExpertSource>,
+  newExperts: readonly string[],
+  source: ExpertSource
+): void {
+  for (const expert of newExperts) {
     if (!experts.has(expert)) {
       experts.add(expert);
-      sources[expert] = 'phase';
+      sources[expert] = source;
     }
   }
+}
 
-  // 3. Add keyword-detected experts
-  const keywordRules = loadKeywordRules(projectPath);
-  for (const rule of keywordRules) {
+/** Find keyword matches and add their experts. */
+function addKeywordExperts(
+  experts: Set<string>,
+  sources: Record<string, ExpertSource>,
+  matchedKeywords: string[],
+  taskText: string,
+  rules: readonly CompiledKeywordRule[]
+): void {
+  for (const rule of rules) {
     const match = taskText.match(rule.pattern);
     if (match) {
       matchedKeywords.push(match[0]);
-      for (const expert of rule.experts) {
-        if (!experts.has(expert)) {
-          experts.add(expert);
-          sources[expert] = 'keyword';
-        }
-      }
+      addExperts(experts, sources, rule.experts, 'keyword');
     }
   }
+}
 
-  return {
-    experts: Array.from(experts),
-    matchedKeywords,
-    sources,
-  };
+/** Detect experts for a phase + task text. Combines phase, profile, and keyword experts. */
+export function detectExperts(
+  projectPath: string, phase: PhaseName, taskText: string, profileExperts: readonly string[] = []
+): ExpertDetection {
+  const experts = new Set<string>();
+  const sources: Record<string, ExpertSource> = {};
+  const matchedKeywords: string[] = [];
+
+  addExperts(experts, sources, profileExperts, 'profile');
+  addExperts(experts, sources, getPhaseExperts(projectPath, phase), 'phase');
+  addKeywordExperts(experts, sources, matchedKeywords, taskText, loadKeywordRules(projectPath));
+
+  return { experts: Array.from(experts), matchedKeywords, sources };
 }
 
 // =============================================================================

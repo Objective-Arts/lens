@@ -13,7 +13,7 @@ import type { Session, PhaseName, Skill, PrdItem, PHASE_ORDER } from '../types.j
  * Following cherny: discriminated union for exhaustive handling.
  */
 export type PhaseResult =
-  | { readonly status: 'success'; readonly message: string; readonly metrics?: Readonly<Record<string, number>> }
+  | { readonly status: 'success'; readonly message: string; readonly metrics?: Readonly<Record<string, number>>; readonly rawOutput?: string }
   | { readonly status: 'failed'; readonly error: string }
   | { readonly status: 'skipped'; readonly reason: string };
 
@@ -84,14 +84,17 @@ export abstract class BasePhase implements Phase {
 
   /**
    * Build expert guidance string for prompts.
+   * Each phase adds its own output format - this just provides the expert content.
    */
   protected buildExpertGuidance(experts: readonly Skill[]): string {
     if (experts.length === 0) {
       return '';
     }
 
+    const expertNames = experts.map(s => s.name).join(', ');
     const guidance = experts.map(s => `## ${s.name}\n\n${this.extractCore(s.content)}`);
-    return '\n\n---\n\nEXPERT GUIDANCE:\n\n' + guidance.join('\n\n---\n\n');
+
+    return `\n\n---\n\nEXPERT GUIDANCE (${expertNames}):\n\n` + guidance.join('\n\n---\n\n');
   }
 
   /**
@@ -115,8 +118,8 @@ export abstract class BasePhase implements Phase {
   /**
    * Create a success result.
    */
-  protected success(message: string, metrics?: Record<string, number>): PhaseResult {
-    return { status: 'success', message, metrics };
+  protected success(message: string, metrics?: Record<string, number>, rawOutput?: string): PhaseResult {
+    return { status: 'success', message, metrics, rawOutput };
   }
 
   /**

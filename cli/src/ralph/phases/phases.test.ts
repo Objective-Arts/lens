@@ -28,10 +28,10 @@ describe('Phases Factory', () => {
       expect(phases[0].name).toBe('plan');
       expect(phases[1].name).toBe('structure-first');
       expect(phases[2].name).toBe('implement');
-      expect(phases[3].name).toBe('build-tests');
-      expect(phases[4].name).toBe('refactor-check');
-      expect(phases[5].name).toBe('adversarial-review');
-      expect(phases[6].name).toBe('static-analysis');
+      expect(phases[3].name).toBe('refactor-check');
+      expect(phases[4].name).toBe('adversarial-review');
+      expect(phases[5].name).toBe('static-analysis');
+      expect(phases[6].name).toBe('test');
       expect(phases[7].name).toBe('doc-code');
     });
 
@@ -76,7 +76,7 @@ describe('Phases Factory', () => {
         'plan',
         'structure-first',
         'implement',
-        'build-tests',
+        'test',
         'refactor-check',
         'adversarial-review',
         'static-analysis',
@@ -96,7 +96,7 @@ describe('Phases Factory', () => {
       expect(getPhaseIcon('plan')).toBe('📝');
       expect(getPhaseIcon('structure-first')).toBe('🏗️');
       expect(getPhaseIcon('implement')).toBe('🛠️');
-      expect(getPhaseIcon('build-tests')).toBe('🧪');
+      expect(getPhaseIcon('test')).toBe('🧪');
       expect(getPhaseIcon('refactor-check')).toBe('🧹');
       expect(getPhaseIcon('adversarial-review')).toBe('🔒');
       expect(getPhaseIcon('static-analysis')).toBe('📊');

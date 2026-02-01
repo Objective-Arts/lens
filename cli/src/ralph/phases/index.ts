@@ -8,7 +8,7 @@ export { Phase, PhaseContext, PhaseResult, BasePhase, PhaseStatus } from './type
 export { PlanPhase } from './plan.js';
 export { StructureFirstPhase } from './structure-first.js';
 export { ImplementPhase } from './implement.js';
-export { BuildTestsPhase } from './build-tests.js';
+export { TestPhase } from './test.js';
 export { RefactorCheckPhase } from './refactor-check.js';
 export { AdversarialReviewPhase } from './adversarial-review.js';
 export { StaticAnalysisPhase } from './static-analysis.js';
@@ -29,7 +29,7 @@ import type { PhaseName } from '../types.js';
 import { PlanPhase } from './plan.js';
 import { StructureFirstPhase } from './structure-first.js';
 import { ImplementPhase } from './implement.js';
-import { BuildTestsPhase } from './build-tests.js';
+import { TestPhase } from './test.js';
 import { RefactorCheckPhase } from './refactor-check.js';
 import { AdversarialReviewPhase } from './adversarial-review.js';
 import { StaticAnalysisPhase } from './static-analysis.js';
@@ -38,15 +38,16 @@ import { DocCodePhase } from './doc-code.js';
 /**
  * Phase execution order.
  * Same sequence used by standalone commands and Ralph loop.
+ * Order: plan → structure → implement → refactor → review → scan → test → doc
  */
 export const PHASE_ORDER: readonly PhaseName[] = [
   'plan',
   'structure-first',
   'implement',
-  'build-tests',
   'refactor-check',
   'adversarial-review',
   'static-analysis',
+  'test',
   'doc-code',
 ] as const;
 
@@ -58,10 +59,10 @@ export function createPhases(): Phase[] {
     new PlanPhase(),
     new StructureFirstPhase(),
     new ImplementPhase(),
-    new BuildTestsPhase(),
     new RefactorCheckPhase(),
     new AdversarialReviewPhase(),
     new StaticAnalysisPhase(),
+    new TestPhase(),
     new DocCodePhase(),
   ];
 }
@@ -74,7 +75,7 @@ export function getPhase(name: PhaseName): Phase | null {
     'plan': new PlanPhase(),
     'structure-first': new StructureFirstPhase(),
     'implement': new ImplementPhase(),
-    'build-tests': new BuildTestsPhase(),
+    'test': new TestPhase(),
     'refactor-check': new RefactorCheckPhase(),
     'adversarial-review': new AdversarialReviewPhase(),
     'static-analysis': new StaticAnalysisPhase(),
@@ -92,7 +93,7 @@ export function getPhaseIcon(name: PhaseName): string {
     'plan': '📝',
     'structure-first': '🏗️',
     'implement': '🛠️',
-    'build-tests': '🧪',
+    'test': '🧪',
     'refactor-check': '🧹',
     'adversarial-review': '🔒',
     'static-analysis': '📊',

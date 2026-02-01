@@ -9,30 +9,45 @@ import * as path from 'path';
 import { BasePhase, PhaseContext, PhaseResult } from './types.js';
 import { runClaude } from '../process/claude.js';
 import { createSlug } from '../prd/parser.js';
+import { extractError } from '../parsers/claude-stream.js';
 
-const STRUCTURE_PROMPT = `Design data structures and types for this PRD item.
+const STRUCTURE_PROMPT = `Design and CREATE data structures and types for this PRD item.
 
 PRD ITEM: {ITEM_TEXT}
 
 PLAN:
 {PLAN_CONTENT}
 
-Apply expert guidance from: {EXPERT_NAMES}
+{EXPERT_GUIDANCE}
 
-Design principles:
-- Data structures first, algorithms follow (linus)
-- Let TypeScript infer, annotate minimally (cherny)
-- Establish invariants early (dijkstra)
-- Types as contracts (liskov)
-- Design for extension (bloch)
+## STRICT REQUIREMENTS - NO JUDGMENT CALLS
 
-Output:
-1. Type definitions (interfaces, types)
-2. Data structure choices with rationale
-3. Invariants that must hold
-4. Patterns to apply (gang-of-four if applicable)
+You MUST actually CREATE the type files. Not describe them - WRITE them using Edit/Write tools.
 
-Output STRUCTURE_COMPLETE when done.`;
+1. **CREATE TYPE FILES** - Use Write tool to create actual .ts files with types
+2. **EVERY TYPE FROM PLAN** - Create all types listed in the plan's TYPES section
+3. **NO PLACEHOLDER TYPES** - Every field must have a real type, not 'any' or 'unknown'
+4. **INVARIANTS AS COMMENTS** - Document invariants as JSDoc comments on types
+
+DO NOT:
+- Just describe types without creating files
+- Use 'any' or 'unknown' types
+- Skip types from the plan
+- Say "will be defined later"
+- Create types not in the plan without justification
+
+## REQUIRED OUTPUT FORMAT
+
+TYPES_CREATED:
+- path/to/types.ts: [list of types defined]
+
+INVARIANTS_DOCUMENTED:
+- TypeName: [invariant as documented]
+
+APPLIED:
+- [expert-name]: [specific decision]
+
+STRUCTURE_COMPLETE`;
 
 export class StructureFirstPhase extends BasePhase {
   readonly name = 'structure-first' as const;
@@ -51,12 +66,12 @@ export class StructureFirstPhase extends BasePhase {
     }
 
     const planContent = fs.readFileSync(planPath, 'utf-8');
-    const expertNames = experts.map(s => s.name).join(', ');
+    const expertGuidance = this.buildExpertGuidance(experts);
 
     const prompt = STRUCTURE_PROMPT
       .replace('{ITEM_TEXT}', item.text)
       .replace('{PLAN_CONTENT}', planContent)
-      .replace('{EXPERT_NAMES}', expertNames || 'none');
+      .replace('{EXPERT_GUIDANCE}', expertGuidance || 'No expert guidance available.');
 
     const logPrefix = this.getLogPrefix(context);
     const output = await runClaude({
@@ -68,9 +83,22 @@ export class StructureFirstPhase extends BasePhase {
     });
 
     if (!output.success) {
-      return this.failed('Structure-first phase did not complete successfully');
+      const error = extractError(output.result) || 'No STRUCTURE_COMPLETE marker found';
+      return this.failed(`Structure design failed: ${error} (see ${output.rawPath})`);
     }
 
-    return this.success('Data structures designed');
+    // Validate types were actually created (not just described)
+    if (!output.result.includes('TYPES_CREATED:')) {
+      return this.failed('No types were created. Must use Write tool to create type files.');
+    }
+
+    // Check for forbidden patterns
+    const forbiddenPatterns = [/: any[;\s]/i, /: unknown[;\s]/i, /will be defined/i, /TODO/i];
+    const hasForbidden = forbiddenPatterns.some(pattern => pattern.test(output.result));
+    if (hasForbidden) {
+      return this.failed('Types contain forbidden patterns (any, unknown, TODO, "will be defined")');
+    }
+
+    return this.success('Data structures created', undefined, output.result);
   }
 }

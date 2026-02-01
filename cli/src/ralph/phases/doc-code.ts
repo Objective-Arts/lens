@@ -6,29 +6,43 @@
 
 import { BasePhase, PhaseContext, PhaseResult } from './types.js';
 import { runClaude } from '../process/claude.js';
+import { extractError } from '../parsers/claude-stream.js';
 
 const DOC_PROMPT = `Document the implemented feature.
 
 PRD ITEM: {ITEM_TEXT}
 
-Apply expert guidance from: {EXPERT_NAMES}
+{EXPERT_GUIDANCE}
 
-Documentation principles:
-- Diátaxis framework: tutorial/how-to/reference/explanation (procida)
-- Omit needless words (strunk-white)
-- Clarity and simplicity (zinsser)
-- Kill your darlings - remove fluff (king)
+## STRICT REQUIREMENTS - NO JUDGMENT CALLS
 
-Documentation to create/update:
-1. Code comments - only where logic isn't self-evident
-2. README updates - if feature affects usage
-3. API docs - for public interfaces (JSDoc/TSDoc)
-4. CHANGELOG entry - if significant
+You MUST do these documentation tasks. Not "consider" - DO:
 
-Do NOT over-document. Good code is self-documenting.
-Only add docs where they provide value.
+1. **PUBLIC FUNCTIONS** - Add JSDoc/TSDoc to every exported function
+2. **COMPLEX LOGIC** - Add inline comments for non-obvious code
+3. **README** - Update if feature adds new usage/commands
+4. **TYPES** - Document non-obvious type fields
 
-Output DOC_COMPLETE when done.`;
+DO NOT:
+- Over-document obvious code
+- Add comments that just repeat the code
+- Say "documentation would help" without writing it
+- Skip JSDoc on public APIs
+- Write vague descriptions ("handles the thing")
+
+## REQUIRED OUTPUT FORMAT
+
+DOCUMENTED:
+- [file:line] [what was documented]
+
+PUBLIC_APIS_DOCUMENTED: N (count of exported functions with JSDoc)
+README_UPDATED: yes/no
+COMMENTS_ADDED: N
+
+APPLIED:
+- [expert-name]: [specific decision]
+
+DOC_COMPLETE`;
 
 export class DocCodePhase extends BasePhase {
   readonly name = 'doc-code' as const;
@@ -38,11 +52,11 @@ export class DocCodePhase extends BasePhase {
   async execute(context: PhaseContext): Promise<PhaseResult> {
     const { item, experts, projectPath, logsDir } = context;
 
-    const expertNames = experts.map(s => s.name).join(', ');
+    const expertGuidance = this.buildExpertGuidance(experts);
 
     const prompt = DOC_PROMPT
       .replace('{ITEM_TEXT}', item.text)
-      .replace('{EXPERT_NAMES}', expertNames || 'none');
+      .replace('{EXPERT_GUIDANCE}', expertGuidance || 'No expert guidance available.');
 
     const logPrefix = this.getLogPrefix(context);
     const output = await runClaude({
@@ -54,9 +68,24 @@ export class DocCodePhase extends BasePhase {
     });
 
     if (!output.success) {
-      return this.failed('Doc-code phase did not complete successfully');
+      const error = extractError(output.result) || 'No DOC_COMPLETE marker found';
+      return this.failed(`Documentation failed: ${error} (see ${output.rawPath})`);
     }
 
-    return this.success('Documentation complete');
+    // Check for DOCUMENTED section
+    if (!output.result.includes('DOCUMENTED:')) {
+      return this.failed('No DOCUMENTED section found. Must document what was done.');
+    }
+
+    // Check public APIs were documented
+    const apisMatch = output.result.match(/PUBLIC_APIS_DOCUMENTED:\s*(\d+)/i);
+    const apisDocumented = apisMatch ? parseInt(apisMatch[1], 10) : 0;
+
+    // Parse documented items
+    const docMatch = output.result.match(/DOCUMENTED:\s*\n([\s\S]*?)(?=\n\n|\nPUBLIC_APIS|\nREADME|\nCOMMENTS|\nAPPLIED)/i);
+    const docCount = docMatch ? docMatch[1].split('\n').filter(l => l.trim().startsWith('-')).length : 0;
+
+    const summary = `${docCount} items documented, ${apisDocumented} public APIs`;
+    return this.success(summary, { documented: docCount, publicApis: apisDocumented }, output.result);
   }
 }

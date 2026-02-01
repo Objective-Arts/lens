@@ -9,30 +9,55 @@ import * as path from 'path';
 import { BasePhase, PhaseContext, PhaseResult } from './types.js';
 import { runClaude } from '../process/claude.js';
 import { createSlug } from '../prd/parser.js';
+import { extractError } from '../parsers/claude-stream.js';
 
-const IMPLEMENT_PROMPT = `Implement this PRD item following the plan.
+const IMPLEMENT_PROMPT = `## IMPLEMENT NOW - NO EXPLORATION
+
+Write the code immediately. Do NOT search or explore first.
 
 PRD ITEM: {ITEM_TEXT}
 
 PLAN:
 {PLAN_CONTENT}
 
-Apply expert guidance from: {EXPERT_NAMES}
+{EXPERT_GUIDANCE}
 
-Implementation principles:
-- Get it working first, then optimize (thompson)
-- Keep code readable (kernighan)
-- Small functions, composition (pike)
-- Do one thing well (mcilroy)
-- Handle failures explicitly (bill-joy)
-- Measure before optimizing (carmack)
+## STRICT REQUIREMENTS - NO JUDGMENT CALLS
 
-Steps:
-1. Create/modify files as specified in plan
-2. Implement functionality
-3. Commit changes with clear message
+You MUST follow these constraints EXACTLY:
 
-Output IMPLEMENT_COMPLETE when done.`;
+1. **MAX 30 LINES PER FUNCTION** - No function may exceed 30 lines. Split if needed.
+2. **ONE FILE PER CONCERN** - No god files. Each file has one purpose.
+3. **FOLLOW THE PLAN** - Create exactly the files/functions listed in the plan. No extras.
+4. **MEANINGFUL NAMES** - Variables/functions must describe what they do. No 'data', 'result', 'temp'.
+5. **NO HARDCODED VALUES** - Use constants or config for magic numbers/strings.
+6. **HANDLE ALL ERRORS** - Every operation that can fail must have error handling.
+
+DO NOT:
+- Create functions longer than 30 lines
+- Put multiple concerns in one file
+- Use vague names (data, info, result, temp, item, stuff)
+- Hardcode configuration values
+- Ignore error cases
+- Add features not in the plan
+- Create "utility" files with random functions
+
+## HOOK RESPONSE (CRITICAL)
+You WILL see a hook asking "Are you operating within a workflow skill?"
+Answer: "Yes, I am in the ralph implement phase. Proceeding."
+Then IMMEDIATELY make the edit.
+
+## REQUIRED OUTPUT FORMAT
+
+FILES_CREATED:
+- path/to/file.ts: [functions defined]
+
+LONGEST_FUNCTION: [name] at [N] lines (must be ≤30)
+
+APPLIED:
+- [expert]: [decision]
+
+IMPLEMENT_COMPLETE`;
 
 export class ImplementPhase extends BasePhase {
   readonly name = 'implement' as const;
@@ -51,12 +76,12 @@ export class ImplementPhase extends BasePhase {
     }
 
     const planContent = fs.readFileSync(planPath, 'utf-8');
-    const expertNames = experts.map(s => s.name).join(', ');
+    const expertGuidance = this.buildExpertGuidance(experts);
 
     const prompt = IMPLEMENT_PROMPT
       .replace('{ITEM_TEXT}', item.text)
       .replace('{PLAN_CONTENT}', planContent)
-      .replace('{EXPERT_NAMES}', expertNames || 'none');
+      .replace('{EXPERT_GUIDANCE}', expertGuidance || 'No expert guidance available.');
 
     const logPrefix = this.getLogPrefix(context);
     const output = await runClaude({
@@ -68,9 +93,34 @@ export class ImplementPhase extends BasePhase {
     });
 
     if (!output.success) {
-      return this.failed('Implement phase did not complete successfully');
+      const error = extractError(output.result) || 'No IMPLEMENT_COMPLETE marker found';
+      return this.failed(`Implementation failed: ${error} (see ${output.rawPath})`);
     }
 
-    return this.success('Implementation complete');
+    // Check for files created
+    if (!output.result.includes('FILES_CREATED:')) {
+      return this.failed('No files were created. Must use Write/Edit tools to create code.');
+    }
+
+    // Check longest function doesn't exceed limit
+    const longestMatch = output.result.match(/LONGEST_FUNCTION:\s*(\w+)\s+at\s+(\d+)\s+lines/i);
+    if (longestMatch) {
+      const lineCount = parseInt(longestMatch[2], 10);
+      if (lineCount > 30) {
+        return this.failed(`Function ${longestMatch[1]} is ${lineCount} lines. Max allowed is 30.`);
+      }
+    }
+
+    // Check for forbidden naming patterns
+    const vagueNames = ['data', 'result', 'temp', 'item', 'stuff', 'info', 'obj'];
+    const hasVagueNaming = vagueNames.some(name => {
+      const pattern = new RegExp(`\\b(const|let|var|function)\\s+${name}\\b`, 'i');
+      return pattern.test(output.result);
+    });
+    if (hasVagueNaming) {
+      return this.failed('Code contains vague variable names (data, result, temp, etc). Use meaningful names.');
+    }
+
+    return this.success('Implementation complete', undefined, output.result);
   }
 }
