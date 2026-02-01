@@ -1,57 +1,78 @@
 /**
- * Static-analysis phase - run analyzers, fix issues found.
+ * Static-analysis phase - run Qodana analyzer, fix issues found.
  *
- * Experts: bloch, liskov, owasp, crockford
+ * Uses Qodana MCP tool for static analysis. No Claude experts needed.
  */
 
 import { BasePhase, PhaseContext, PhaseResult } from './types.js';
 import { runClaude } from '../process/claude.js';
-import { parsePhaseOutput, getPhaseResultSummary } from '../display/phase-output.js';
+import { extractError } from '../parsers/claude-stream.js';
+import {
+  hasNoCode, NO_ANALYSIS_INDICATORS, parseMcpPhaseOutput, buildPhaseMetrics,
+  formatSuccessMessage, QODANA_EVIDENCE,
+} from './mcp-helpers.js';
 
-const STATIC_ANALYSIS_PROMPT = `Run static analysis and fix issues found.
+const STATIC_ANALYSIS_PROMPT = `## CRITICAL: THIS PHASE REQUIRES QODANA MCP TOOL
+
+You MUST call mcp__qodana__qodana_scan. The phase FAILS without it.
 
 PRD ITEM: {ITEM_TEXT}
 
 {EXPERT_GUIDANCE}
 
-Steps:
-1. Run linter (eslint/tsc for TS, pylint for Python, etc.)
-2. Run type checker in strict mode
-3. Check for common security issues
-4. Fix all errors and warnings
-5. Re-run until clean
+## STEP 1: CALL QODANA IMMEDIATELY
+THIS IS MANDATORY. Call the tool NOW:
+\`\`\`
+mcp__qodana__qodana_scan
+  projectDir: "."
+\`\`\`
+Then get issues:
+\`\`\`
+mcp__qodana__qodana_problems
+  projectDir: "."
+\`\`\`
+If tool unavailable, output: QODANA_ERROR: tool not available
 
-Note: Qodana/Gemini external validation runs separately post-loop.
-This phase focuses on built-in project tooling.
+## STEP 2: Run Project Linting
+Also run: \`npx tsc --noEmit\` and \`npm run lint\` (if available)
 
-## OUTPUT FORMAT (Required)
+## STEP 3: FIX ALL ISSUES (MANDATORY - NO EXCEPTIONS)
 
-Output your findings in this exact structured format:
+You MUST fix EVERY issue found by Qodana, tsc, and lint. ALL of them. No exceptions.
+
+DO NOT:
+- Mark issues as "false positive" without proof
+- Say "this is by design"
+- Skip issues because they're LOW severity
+- Punt issues to "future work"
+- Make judgment calls about what's worth fixing
+- Leave ANY issue unfixed
+
+If an analyzer found it, YOU FIX IT. Period.
+
+For EACH issue:
+1. Use Edit tool to fix the code NOW
+2. Verify the fix compiles/passes lint
+3. Record in ISSUES_FIXED
+
+The ONLY valid exception: if Qodana reports an issue that literally cannot be fixed
+(e.g., third-party library code), document WHY with specific evidence.
+
+## REQUIRED OUTPUT FORMAT
+
+QODANA_RESULT: called - [N] issues
+(or: QODANA_RESULT: error - <reason>)
 
 ISSUES_FOUND:
-[CRITICAL] description here (file/path.ts:line)
-[HIGH] description here (file/path.ts:line)
-[MODERATE] description here (file/path.ts:line)
-[LOW] description here (file/path.ts:line)
+[SEVERITY] description (file:line) [source: lint/qodana]
 
 ISSUES_FIXED:
-[CRITICAL] description here (file/path.ts:line) - FIXED
-[HIGH] description here (file/path.ts:line) - FIXED
+[SEVERITY] description - FIXED
 
-SUMMARY:
+UNFIXED: 0 (must be zero or phase fails)
+
 ANALYSIS_ISSUES: N
-ISSUES_FIXED: M
-REMAINING: R
-VERIFIED_CLEAN: yes/no
-
-APPLIED:
-- [expert-name]: [how you applied their guidance]
-
-Severity levels:
-- CRITICAL: Type errors, security issues, broken contracts
-- HIGH: Linter errors, strict mode violations
-- MODERATE: Warnings, style issues
-- LOW: Informational, suggestions`;
+VERIFIED_CLEAN: yes/no`;
 
 export class StaticAnalysisPhase extends BasePhase {
   readonly name = 'static-analysis' as const;
@@ -62,36 +83,54 @@ export class StaticAnalysisPhase extends BasePhase {
     const { item, experts, projectPath, logsDir } = context;
 
     const expertGuidance = this.buildExpertGuidance(experts);
-
     const prompt = STATIC_ANALYSIS_PROMPT
       .replace('{ITEM_TEXT}', item.text)
-      .replace('{EXPERT_GUIDANCE}', expertGuidance || 'No expert guidance available.');
-
-    const logPrefix = this.getLogPrefix(context);
+      .replace('{EXPERT_GUIDANCE}', expertGuidance || '');
     const output = await runClaude({
-      prompt,
-      projectPath,
-      logDir: logsDir,
-      logPrefix,
-      allowedTools: ['Bash', 'Read', 'Write', 'Edit', 'Glob', 'Grep'],
+      prompt, projectPath, logDir: logsDir, logPrefix: this.getLogPrefix(context),
+      allowedTools: ['Bash', 'Read', 'Write', 'Edit', 'Glob', 'Grep', 'mcp__qodana__qodana_scan', 'mcp__qodana__qodana_problems'],
     });
 
+    if (hasNoCode(output.result, NO_ANALYSIS_INDICATORS)) {
+      return this.skipped('No code to analyze');
+    }
     if (!output.success) {
-      return this.failed('Static-analysis phase did not complete successfully');
+      return this.failed(`Analysis failed: ${extractError(output.result) || 'Analysis did not complete'} (see ${output.rawPath})`);
     }
 
-    // Parse structured output
-    const phaseOutput = parsePhaseOutput(output.result);
+    const parsed = parseMcpPhaseOutput(output.result, 'QODANA_RESULT', 'ANALYSIS_ISSUES', QODANA_EVIDENCE);
+    let { toolStatus } = parsed;
 
-    // Legacy count extraction for backwards compatibility
-    const issueMatch = output.result.match(/ANALYSIS_ISSUES:\s*(\d+)/);
-    const issueCount = issueMatch ? parseInt(issueMatch[1], 10) : phaseOutput.fixed.length;
+    // Handle unsupported project types (expected for SQL-only projects)
+    const unsupportedProject = ['could not detect project type', 'no supported linter', 'sql-only project']
+      .some(s => output.result.toLowerCase().includes(s));
+    if (unsupportedProject && toolStatus === 'error') {
+      toolStatus = 'n/a (no supported linter)';
+    }
 
-    return this.success(getPhaseResultSummary(phaseOutput), {
-      issues: issueCount,
-      fixed: phaseOutput.fixed.length,
-      remaining: phaseOutput.remaining,
-      verifiedClean: phaseOutput.verifiedClean ? 1 : 0,
-    }, output.result);
+    // Qodana must be called (unless unsupported project type)
+    if (toolStatus === 'not called' && !parsed.wasInvoked && !unsupportedProject) {
+      return this.failed('Qodana scan was not called - phase requires mcp__qodana__qodana_scan');
+    }
+
+    // Check for unfixed issues - phase MUST fix ALL issues
+    const unfixedMatch = output.result.match(/UNFIXED:\s*(\d+)/i);
+    const unfixedCount = unfixedMatch ? parseInt(unfixedMatch[1], 10) : parsed.phaseOutput.remaining;
+
+    // Also check for "NOT FIXED" or "false positive" excuses without evidence
+    const hasSkippedFixes = /NOT\s*FIXED|false\s*positive|by\s*design|won't\s*fix/i.test(output.result) &&
+      !/cannot be fixed.*third-party|library code/i.test(output.result);
+
+    if (unfixedCount > 0 || hasSkippedFixes) {
+      const issueCount = unfixedCount || 'some';
+      return this.failed(`${issueCount} issues not fixed. ALL analysis issues must be fixed. No exceptions.`);
+    }
+
+    const metrics = buildPhaseMetrics(parsed.phaseOutput, toolStatus === 'called');
+    return this.success(
+      formatSuccessMessage(parsed.summary, 'Qodana', toolStatus),
+      { ...metrics, qodanaCalled: metrics.toolCalled },
+      output.result
+    );
   }
 }
