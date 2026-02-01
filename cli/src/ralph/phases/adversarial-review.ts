@@ -344,16 +344,44 @@ export class AdversarialReviewPhase extends BasePhase {
   /** Parse issues from identify step output */
   private parseIssuesFromOutput(output: string): GeminiIssue[] {
     const issues: GeminiIssue[] = [];
-    const pattern = /\[(CRITICAL|HIGH|MEDIUM|MODERATE|LOW|INFO)\]\s+(.+?)(?:\s+\(([^:)]+)(?::(\d+))?\))?$/gm;
+    const severities = 'CRITICAL|HIGH|MEDIUM|MODERATE|LOW|INFO|WARNING|ERROR';
 
-    let match;
-    while ((match = pattern.exec(output)) !== null) {
-      issues.push({
-        severity: match[1] === 'MEDIUM' ? 'MODERATE' : match[1],
-        description: match[2].trim(),
-        file: match[3],
-        line: match[4] ? parseInt(match[4], 10) : undefined,
-      });
+    // Multiple patterns to match different Gemini output formats:
+    // 1. [SEVERITY] description (file:line)
+    // 2. **SEVERITY**: description
+    // 3. - SEVERITY: description
+    // 4. SEVERITY - description
+    // 5. * SEVERITY: description
+    const patterns = [
+      new RegExp(`\\[(${severities})\\]\\s+(.+?)(?:\\s+\\(([^:)]+)(?::(\\d+))?\\))?$`, 'gmi'),
+      new RegExp(`\\*\\*(${severities})\\*\\*[:\\s]+(.+?)(?:\\s+\\(([^:)]+)(?::(\\d+))?\\))?$`, 'gmi'),
+      new RegExp(`^[-*•]\\s*(?:\\*\\*)?(${severities})(?:\\*\\*)?[:\\s]+(.+?)(?:\\s+\\(([^:)]+)(?::(\\d+))?\\))?$`, 'gmi'),
+      new RegExp(`^(${severities})\\s*[-–:]\\s*(.+?)(?:\\s+\\(([^:)]+)(?::(\\d+))?\\))?$`, 'gmi'),
+    ];
+
+    const seen = new Set<string>();
+
+    for (const pattern of patterns) {
+      let match;
+      while ((match = pattern.exec(output)) !== null) {
+        const rawSeverity = match[1].toUpperCase();
+        const severity = rawSeverity === 'MEDIUM' ? 'MODERATE' :
+                        rawSeverity === 'WARNING' ? 'LOW' :
+                        rawSeverity === 'ERROR' ? 'HIGH' : rawSeverity;
+        const description = match[2].trim();
+
+        // Dedupe by description
+        const key = `${severity}:${description.toLowerCase().slice(0, 50)}`;
+        if (!seen.has(key)) {
+          seen.add(key);
+          issues.push({
+            severity,
+            description,
+            file: match[3],
+            line: match[4] ? parseInt(match[4], 10) : undefined,
+          });
+        }
+      }
     }
 
     return issues;
