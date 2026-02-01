@@ -42,7 +42,7 @@ phases:
       - carmack        # Performance awareness
       # Language-specific loaded from profile
 
-  test:
+  build-tests:
     description: Write tests for implemented code (tests follow code, not TDD)
     experts:
       - meszaros       # xUnit patterns, test doubles
@@ -59,13 +59,11 @@ phases:
       - feathers       # Safe refactoring with seams
       - gang-of-four   # Pattern-based refactoring
       - pike           # Reduce interfaces
-      - fowler-refactoring # Wrote the book
-      - google-style   # Universal formatting and clarity
+      - fowler-refactor # wrote the book 
 
-  code-review:
+  independent-review:
     description: Independent code review via Gemini - bugs, edge cases, quality
     # No Claude experts - Gemini handles the review
-    # Runs on security-sensitive items for extra scrutiny
     experts: []
 
   static-analysis:
@@ -76,36 +74,26 @@ phases:
   doc-code:
     description: Document the completed work
     experts:
-      - procida        # Diataxis framework
+      - procida        # Diátaxis framework
       - strunk-white   # Omit needless words
       - zinsser        # Clarity, simplicity
       - king           # Kill your darlings
       - kernighan      # Clear explanation
 
-  # Post-loop phases (run once at end of PRD, not per-item)
-  production-readiness:
-    description: Final production readiness check
-    # Uses its own comprehensive checklist
-    experts: []
-
-  security-review:
-    description: Adversarial security review - think like an attacker
-    # Uses Gemini with security focus
-    experts: []
-
 # Ralph loops through phases in this order:
-# (matches PHASE_ORDER in cli/src/ralph/types.ts)
+# Refactor-check comes BEFORE test phase - uses existing project tests only
 ralph-sequence:
   - plan
   - structure-first
   - implement
   - refactor-check
-  - code-review
+  - independent-review
   - static-analysis
   - test
   - doc-code
 
-# Post-loop phases run once after all items complete
+# Post-loop phases run ONCE after all PRD items complete
+# Order matters: security review first, production readiness last (applies final fixes)
 post-loop:
-  - production-readiness
-  - security-review
+  - security-review       # Adversarial security review - think like an attacker
+  - production-readiness  # Final production readiness check and fixes

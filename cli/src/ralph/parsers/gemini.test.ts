@@ -236,13 +236,27 @@ ISSUES_FIXED: 0`;
       const result = {
         totalIssues: 10,
         criticalHigh: 2,
-        issuesFixed: 8,
+        issuesFixed: 10, // All issues fixed
         verifiedClean: true,
         raw: '',
       };
 
       expect(getGeminiSummary(result)).toBe(
-        '10 issues, 2 critical/high, 8 fixed, verified clean'
+        '10 issues, 2 critical/high, 10 fixed, verified clean'
+      );
+    });
+
+    it('does not show verified clean when issues remain unfixed', () => {
+      const result = {
+        totalIssues: 10,
+        criticalHigh: 2,
+        issuesFixed: 8, // Only 8 of 10 fixed
+        verifiedClean: true, // Flag is true but should not display
+        raw: '',
+      };
+
+      expect(getGeminiSummary(result)).toBe(
+        '10 issues, 2 critical/high, 8 fixed'
       );
     });
 

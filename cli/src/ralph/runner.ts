@@ -12,7 +12,7 @@ import { parsePrd, countIncomplete, getIncompleteItems, isAllComplete } from './
 import { markItemComplete } from './prd/updater.js';
 import { loadConfig } from './config/loader.js';
 import { loadSkills } from './skills/loader.js';
-import { createPhases, PhaseContext, PhaseStatus, detectExperts, Phase } from './phases/index.js';
+import { createPhases, PhaseContext, PhaseStatus, detectExperts, Phase, createPostLoopPhases } from './phases/index.js';
 import {
   SummaryCollector, generateSummaryHtml, openSummary,
   parseGeminiIssues, parseQodanaIssues, parseRefactorResults, StageSummary,
@@ -75,7 +75,7 @@ async function finalizeSummary(collector: SummaryCollector, logsDir: string): Pr
 }
 
 /** Phases that use MCP tools instead of Claude experts. */
-const MCP_PHASES: readonly PhaseName[] = ['adversarial-review', 'static-analysis'];
+const MCP_PHASES: readonly PhaseName[] = ['independent-review', 'static-analysis'];
 
 /** Build phase execution context. */
 function buildPhaseContext(session: Session, item: PrdItem, config: RalphConfig, phase: Phase, projectPath: string): PhaseContext {
@@ -89,9 +89,9 @@ function buildPhaseContext(session: Session, item: PrdItem, config: RalphConfig,
   return { session, item, experts: skills, projectPath, logsDir: session.logsDir };
 }
 
-/** Parse adversarial-review metrics. Returns updated summary. */
+/** Parse independent-review metrics. Returns updated summary. */
 function parseAdversarialMetrics(summary: StageSummary, logsDir: string, itemNum: number): StageSummary {
-  const rawPath = path.join(logsDir, `item${itemNum}-adversarial-review.raw`);
+  const rawPath = path.join(logsDir, `item${itemNum}-independent-review.raw`);
   const qodanaPath = path.join(logsDir, `item${itemNum}-static-analysis-qodana.raw`);
   let result = { ...summary };
   if (fs.existsSync(rawPath)) {
@@ -105,7 +105,7 @@ function parseAdversarialMetrics(summary: StageSummary, logsDir: string, itemNum
 
 /** Parse phase-specific metrics into summary. Returns updated summary. */
 function parsePhaseMetrics(summary: StageSummary, name: PhaseName, logsDir: string, itemNum: number, metrics: Record<string, unknown>): StageSummary {
-  if (name === 'adversarial-review') {
+  if (name === 'independent-review') {
     return parseAdversarialMetrics(summary, logsDir, itemNum);
   } else if (name === 'test') {
     return {
@@ -153,7 +153,7 @@ function handlePhaseSuccess(result: { message: string; rawOutput?: string }, pha
   printStageComplete(phase.name, durationMs / 1000, result.message);
 
   // Print issues found for review/scan phases
-  if (phase.name === 'adversarial-review' && result.rawOutput) {
+  if (phase.name === 'independent-review' && result.rawOutput) {
     const phaseOutput = parsePhaseOutput(result.rawOutput);
     if (phaseOutput.issues.length > 0 || phaseOutput.fixed.length > 0) {
       printPhaseResults(phase.name, phaseOutput, 'Gemini');
@@ -215,11 +215,12 @@ function processPhaseResult(
 }
 
 /** Maximum retry attempts for self-correction. */
-const MAX_RETRIES = 3;
+const MAX_RETRIES = 5;
 
 /** Check if a failure is correctable (validation failure vs hard error). */
 function isCorrectableFailure(error: string): boolean {
   const correctablePatterns = [
+    // Existing patterns
     /issues not fixed/i,
     /function.*is.*lines.*max.*30/i,
     /vague.*names/i,
@@ -231,6 +232,18 @@ function isCorrectableFailure(error: string): boolean {
     /contains.*forbidden/i,
     /ISSUES_REMAINING.*[1-9]/i,
     /UNFIXED.*[1-9]/i,
+    // Additional patterns for better retry coverage
+    /CRITICAL.*HIGH.*issues/i,
+    /tests.*not.*written/i,
+    /no tests were written/i,
+    /tests were not run/i,
+    /must be fixed/i,
+    /issues must be fixed/i,
+    /\d+ tests? failed/i,
+    /qodana.*not called/i,
+    /gemini.*not called/i,
+    /TEST_COUNT.*not.*reported/i,
+    /no.*TESTS_WRITTEN/i,
   ];
   return correctablePatterns.some(p => p.test(error));
 }
@@ -246,19 +259,66 @@ function sanitizeErrorForPrompt(error: string): string {
     .slice(0, 500);
 }
 
+/** Get phase-specific guidance for retry attempts. */
+function getPhaseSpecificGuidance(phase: string, error: string): string {
+  if (phase === 'test' && (error.includes('No tests') || error.includes('TEST_COUNT'))) {
+    return `WHAT TO DO:
+1. Create test file(s) using Write tool
+2. Run tests with: npm test OR npx vitest run
+3. Report TEST_COUNT, TESTS_PASSED, TESTS_FAILED, TESTS_RUN: yes
+
+EXAMPLE OUTPUT:
+TESTS_WRITTEN:
+- src/foo.test.ts: should handle valid input, should reject invalid input
+
+TESTS_RUN: yes
+TESTS_PASSED: 2
+TESTS_FAILED: 0
+TEST_COUNT: 2`;
+  }
+
+  if (phase === 'test' && error.includes('not run')) {
+    return `WHAT TO DO:
+1. Run: npm test OR npx vitest run (actually execute this command)
+2. Check output for pass/fail counts
+3. Report TESTS_RUN: yes with actual counts`;
+  }
+
+  if (phase === 'static-analysis' && (error.includes('CRITICAL') || error.includes('HIGH'))) {
+    return `WHAT TO DO:
+1. For each issue listed above, use Edit tool to fix the code
+2. Re-run: npx tsc --noEmit to verify fix
+3. Report each fix in ISSUES_FIXED section
+
+EXAMPLE FIX:
+Issue: [HIGH] TS6133: 'foo' is declared but never read (file.ts:5)
+Fix: Remove the unused import with Edit tool
+Verify: npx tsc --noEmit shows no errors`;
+  }
+
+  if (phase === 'static-analysis' && error.includes('Qodana')) {
+    return `WHAT TO DO:
+1. Call mcp__qodana__qodana_scan with projectDir: "."
+2. Call mcp__qodana__qodana_problems to get issues
+3. Fix any CRITICAL/HIGH issues found
+4. Report QODANA_RESULT: called - N issues`;
+  }
+
+  return 'Review the error above and fix the specific issue mentioned.';
+}
+
 /** Build corrective prompt for retry. */
-function buildCorrectivePrompt(error: string, attempt: number): string {
+function buildCorrectivePrompt(error: string, attempt: number, phaseName?: string): string {
   const sanitizedError = sanitizeErrorForPrompt(error);
+  const phaseGuidance = phaseName ? getPhaseSpecificGuidance(phaseName, error) : '';
+
   return `## CORRECTION REQUIRED (Attempt ${attempt + 1}/${MAX_RETRIES})
 
-Your previous output FAILED validation:
+FAILURE: ${sanitizedError}
 
-ERROR: ${sanitizedError}
+${phaseGuidance}
 
-You MUST fix this issue. Do not repeat the same mistake.
-
-Review your previous output and correct the specific problem mentioned above.
-Then re-output the complete result with the fix applied.`;
+You MUST fix this NOW. The same mistake will cause another failure.`;
 }
 
 /** Single retry attempt result. */
@@ -281,7 +341,7 @@ function getRetryableError(result: { status: string; error?: string }, attempt: 
 }
 
 /** Phases that handle their own progress output (no spinner needed). */
-const SELF_REPORTING_PHASES: readonly string[] = ['adversarial-review', 'static-analysis'];
+const SELF_REPORTING_PHASES: readonly string[] = ['independent-review', 'static-analysis'];
 
 /** Execute single retry attempt. */
 async function executeRetryAttempt(
@@ -293,7 +353,7 @@ async function executeRetryAttempt(
   spinner?.start();
   const startTime = Date.now();
 
-  const executeContext = attempt > 0 ? { ...context, correctivePrompt: buildCorrectivePrompt(lastError, attempt) } : context;
+  const executeContext = attempt > 0 ? { ...context, correctivePrompt: buildCorrectivePrompt(lastError, attempt, phase.name) } : context;
   const result = await phase.execute(executeContext);
   spinner?.stop();
 
@@ -343,7 +403,7 @@ async function executePhase(
 
 /** Check if phase should be skipped. Returns skip reason or null to proceed. */
 function shouldSkipPhase(phase: Phase, context: PhaseContext, skipReview?: boolean): string | null {
-  if (phase.name === 'adversarial-review' && skipReview) return 'skipped';
+  if (phase.name === 'independent-review' && skipReview) return 'skipped';
   if (!phase.shouldRun(context)) return 'Not needed';
   return null;
 }
@@ -470,23 +530,72 @@ export async function run(options: RunnerOptions): Promise<void> {
   const ctx: RunContext = { prd, prdPath, projectPath, session, config, phases: createPhases(), collector, skipReview, verbose, trace };
   try {
     await processAllItems(ctx);
+
+    // Run post-loop phases at end of PRD (only if items completed)
+    if (ctx.collector.getCompletedCount() > 0) {
+      await runPostLoopPhases(ctx);
+    }
   } finally {
     // Always generate summary, even if run fails or is interrupted
     await finalizeSummary(collector, session.logsDir);
   }
 }
 
+/** Run post-loop phases (security-review, then production-readiness last). */
+async function runPostLoopPhases(ctx: RunContext): Promise<void> {
+  const phases = createPostLoopPhases();
+
+  for (const phase of phases) {
+    // Create a synthetic item for the phase
+    const syntheticItem: PrdItem = {
+      lineNumber: 0,
+      text: `Post-loop: ${phase.name}`,
+      status: 'pending',
+    };
+
+    const context: PhaseContext = {
+      session: ctx.session,
+      item: syntheticItem,
+      experts: [],
+      projectPath: ctx.projectPath,
+      logsDir: ctx.session.logsDir,
+    };
+
+    try {
+      const result = await phase.execute(context);
+
+      if (result.status === 'success') {
+        printInfo(`${phase.name}: ${result.message}`);
+      } else if (result.status === 'failed') {
+        printWarning(`${phase.name} failed: ${result.error}`);
+      }
+
+      // Add to summary (production-readiness has special handling)
+      if (phase.name === 'production-readiness') {
+        ctx.collector.addProductionCheck(result);
+      }
+      // TODO: Add security-review to summary when type is extended
+    } catch (err) {
+      printWarning(`${phase.name} error: ${err instanceof Error ? err.message : String(err)}`);
+    }
+  }
+}
+
 /** Get profile experts for a phase. */
 function getProfileExpertsForPhase(config: RalphConfig, phaseName: PhaseName): string[] {
-  // adversarial-review and static-analysis use MCP tools (Gemini, Qodana), not Claude experts
-  if (phaseName === 'adversarial-review' || phaseName === 'static-analysis') {
+  // independent-review and static-analysis use MCP tools (Gemini, Qodana), not Claude experts
+  if (phaseName === 'independent-review' || phaseName === 'static-analysis') {
     return [];
   }
-  const mapping: Record<PhaseName, keyof RalphConfig['skills']> = {
+  // Post-loop phases don't use profile experts
+  if (phaseName === 'production-readiness' || phaseName === 'security-review') {
+    return [];
+  }
+  const mapping: Partial<Record<PhaseName, keyof RalphConfig['skills']>> = {
     'plan': 'plan', 'structure-first': 'plan', 'implement': 'build', 'test': 'test',
-    'refactor-check': 'refactor', 'adversarial-review': 'review', 'static-analysis': 'review', 'doc-code': 'doc',
+    'refactor-check': 'refactor', 'doc-code': 'doc',
   };
-  return config.skills[mapping[phaseName]] ?? [];
+  return config.skills[mapping[phaseName] ?? 'review'] ?? [];
 }
 
 /** Create a new session. */

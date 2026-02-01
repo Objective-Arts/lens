@@ -15,16 +15,34 @@ import chalk from 'chalk';
 
 const STATIC_ANALYSIS_PROMPT = `## NON-NEGOTIABLE: FIX EVERY CRITICAL/HIGH/MEDIUM/LOW ISSUE
 
-You MUST fix ALL issues with severity CRITICAL, HIGH, MEDIUM (MODERATE), or LOW.
-INFO-level items are suggestions - acknowledge them but don't try to fix unless trivial.
+THIS PHASE FAILS IF:
+- Any CRITICAL issue unfixed
+- Any HIGH issue unfixed
+- More than 2 MODERATE/LOW unfixed
 
-This is not optional. The phase fails if any CRITICAL/HIGH/MEDIUM/LOW issue remains unfixed.
+TO PASS THIS PHASE YOU MUST:
+1. Call mcp__qodana__qodana_scan with projectDir: "."
+2. For each CRITICAL/HIGH issue: use Edit tool to fix, then verify
+3. Report ISSUES_FIXED section with each fix
 
 ---
 
 ## CRITICAL: THIS PHASE REQUIRES QODANA MCP TOOL
 
 You MUST call mcp__qodana__qodana_scan. The phase FAILS without it.
+
+## HOW TO FIX AN ISSUE
+
+1. Read the file at the line number
+2. Use Edit tool to fix the specific problem
+3. Run: npx tsc --noEmit to verify
+4. Add to ISSUES_FIXED section
+
+EXAMPLE FIX:
+Issue: [HIGH] TS6133: 'afterEach' is declared but never read (test.ts:5)
+Action: Remove the unused import using Edit tool
+Verify: npx tsc --noEmit shows no errors
+Report: [HIGH] TS6133 afterEach unused - FIXED (removed import)
 
 PRD ITEM: {ITEM_TEXT}
 
@@ -118,21 +136,20 @@ export class StaticAnalysisPhase extends BasePhase {
       prompt = `${prompt}\n\n${context.correctivePrompt}`;
     }
 
-    // Stream callbacks to monitor Qodana in real-time
+    // Stream callbacks to monitor Qodana - dedupe repeated messages
+    let scanShown = false;
+    let problemsShown = false;
     const stream: StreamCallbacks = {
       onToolCall: (name) => {
-        if (name.includes('qodana_scan')) {
-          process.stdout.write(`\r      ${chalk.blue('◆')} ${chalk.dim('Running Qodana scan...')}\n`);
-        } else if (name.includes('qodana_problems')) {
-          process.stdout.write(`      ${chalk.blue('◆')} ${chalk.dim('Fetching Qodana problems...')}\n`);
-        }
-      },
-      onToolResult: (name, output) => {
-        if (name.includes('qodana') && output) {
-          const issueMatch = output.match(/(\d+)\s*(?:issue|problem)/i);
-          if (issueMatch) {
-            process.stdout.write(`      ${chalk.blue('◆')} ${chalk.dim(`Qodana found ${issueMatch[1]} issues`)}\n`);
-          }
+        if (name.includes('qodana_scan') && !scanShown) {
+          process.stdout.write(`      ${chalk.blue('◆')} ${chalk.dim('Running Qodana scan...')}\n`);
+          scanShown = true;
+        } else if (name.includes('qodana_scan') && scanShown) {
+          // Subsequent scans are verification - show inline
+          process.stdout.write(`      ${chalk.blue('◆')} ${chalk.dim('Verifying fixes...')}\n`);
+        } else if (name.includes('qodana_problems') && !problemsShown) {
+          process.stdout.write(`      ${chalk.blue('◆')} ${chalk.dim('Checking issues...')}\n`);
+          problemsShown = true;
         }
       },
     };
@@ -185,11 +202,24 @@ export class StaticAnalysisPhase extends BasePhase {
     const criticalHigh = unfixedIssues.filter(i => i.severity === 'CRITICAL' || i.severity === 'HIGH');
     const moderateLow = unfixedIssues.filter(i => i.severity === 'MODERATE' || i.severity === 'LOW');
 
-    // Fail if any CRITICAL/HIGH unfixed
+    // Fail if any CRITICAL/HIGH unfixed - provide specific fix guidance
     if (criticalHigh.length > 0) {
-      const unfixedList = criticalHigh.slice(0, 3).map(i => `[${i.severity}] ${i.description}`).join(', ');
-      const more = criticalHigh.length > 3 ? ` (+${criticalHigh.length - 3} more)` : '';
-      return this.failed(`${criticalHigh.length} CRITICAL/HIGH issues must be fixed: ${unfixedList}${more}`);
+      const fixCommands = criticalHigh.slice(0, 3).map(i => {
+        const loc = i.file ? ` at ${i.file}${i.line ? `:${i.line}` : ''}` : '';
+        if (i.description.includes('TS6133') || i.description.includes('unused') || i.description.includes('never read')) {
+          return `[${i.severity}] Remove unused import/variable${loc}`;
+        }
+        if (i.description.includes('TS2769') || i.description.includes('type')) {
+          return `[${i.severity}] Fix type mismatch${loc}`;
+        }
+        return `[${i.severity}] ${i.description.slice(0, 60)}${loc}`;
+      });
+      const more = criticalHigh.length > 3 ? `\n(+${criticalHigh.length - 3} more)` : '';
+      return this.failed(
+        `${criticalHigh.length} CRITICAL/HIGH issues must be fixed:\n` +
+        fixCommands.join('\n') + more +
+        '\n\nUse Edit tool to fix each, then re-run tsc --noEmit'
+      );
     }
 
     // Allow up to 2 MODERATE/LOW unfixed

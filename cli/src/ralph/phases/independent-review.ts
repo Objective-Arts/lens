@@ -1,11 +1,12 @@
 /**
- * Adversarial-review phase - hard-ass code review via Gemini.
+ * Code-review phase - hard-ass code review via Gemini.
  *
  * Split into two steps:
  * 1. IDENTIFY - Call Gemini, parse issues
  * 2. FIX - Fix issues one at a time
  *
  * This separation prevents cognitive overload and allows targeted retries.
+ * Runs on security-relevant PRD items for extra scrutiny.
  */
 
 import { BasePhase, PhaseContext, PhaseResult } from './types.js';
@@ -16,8 +17,6 @@ import {
   formatSuccessMessage, GEMINI_EVIDENCE,
 } from './mcp-helpers.js';
 import chalk from 'chalk';
-import * as fs from 'fs';
-import * as path from 'path';
 
 /** Issue structure for passing between steps */
 interface GeminiIssue {
@@ -26,6 +25,30 @@ interface GeminiIssue {
   file?: string;
   line?: number;
 }
+
+/** Keywords that trigger code review - broad to catch most real work */
+const REVIEW_TRIGGER_KEYWORDS = [
+  // Common Actions (triggers on most PRD items)
+  'create', 'add', 'implement', 'build', 'make', 'write', 'develop',
+  'update', 'modify', 'change', 'fix', 'refactor', 'improve', 'enhance',
+  'function', 'method', 'class', 'module', 'component', 'service', 'handler',
+  // Quality Keywords
+  'test', 'validate', 'check', 'verify', 'ensure', 'handle', 'process',
+  // Auth & Identity
+  'auth', 'login', 'logout', 'password', 'credential', 'session', 'token', 'jwt', 'oauth', 'sso',
+  'permission', 'role', 'access', 'privilege', 'admin', 'user',
+  // Data Protection
+  'secret', 'key', 'encrypt', 'decrypt', 'hash', 'salt', 'cipher', 'certificate', 'private',
+  // Input/Output
+  'input', 'sanitize', 'escape', 'encode', 'decode', 'parse', 'serialize',
+  // Web Security
+  'cookie', 'cors', 'csrf', 'xss', 'injection', 'sql', 'query', 'command',
+  // External
+  'api', 'webhook', 'external', 'third-party', 'integration', 'fetch', 'request',
+  // Sensitive Operations
+  'payment', 'credit', 'billing', 'pii', 'gdpr', 'hipaa', 'email', 'phone', 'address',
+  'delete', 'remove', 'purge', 'reset', 'forgot',
+];
 
 const IDENTIFY_PROMPT = `## STEP 1: IDENTIFY ISSUES (DO NOT FIX YET)
 
@@ -59,8 +82,8 @@ This is MANDATORY. You must paste actual source code, not placeholders.
 \`\`\`
 mcp__gemini-reviewer__gemini_review
   code: <THE ACTUAL SOURCE CODE YOU READ - not a placeholder>
-  focus: "adversarial"
-  context: "Adversarial code review for: {ITEM_TEXT}. Think like an attacker. Find: security vulnerabilities, race conditions, edge cases that crash, input validation bypasses, resource exhaustion, privilege escalation, error handling gaps, injection vectors. Be hostile and thorough."
+  focus: "general"
+  context: "Hard-ass code review for: {ITEM_TEXT}. Be thorough and critical. Find: bugs, edge cases that crash, error handling gaps, race conditions, resource leaks, logic errors, poor error messages, missing validation, code that will break in production. No false praise - if it's wrong, say so."
 \`\`\`
 
 ## OUTPUT FORMAT
@@ -110,10 +133,18 @@ CANNOT_FIX:
 UNFIXED: N
 FIX_COMPLETE: yes`;
 
-export class AdversarialReviewPhase extends BasePhase {
-  readonly name = 'adversarial-review' as const;
-  readonly icon = '🔒';
-  readonly description = 'Attack your own code, fix issues found';
+export class IndependentReviewPhase extends BasePhase {
+  readonly name = 'independent-review' as const;
+  readonly icon = '🔍';
+  readonly description = 'Independent code review via Gemini, fix issues found';
+
+  /**
+   * Run on items matching trigger keywords (broad list catches most real work).
+   */
+  shouldRun(context: PhaseContext): boolean {
+    const itemText = context.item.text.toLowerCase();
+    return REVIEW_TRIGGER_KEYWORDS.some(keyword => itemText.includes(keyword));
+  }
 
   async execute(context: PhaseContext): Promise<PhaseResult> {
     const { item, projectPath, logsDir } = context;
@@ -196,12 +227,15 @@ export class AdversarialReviewPhase extends BasePhase {
     rawOutput?: string;
   }> {
     const { item, projectPath, logsDir } = context;
-    const prompt = IDENTIFY_PROMPT.replace('{ITEM_TEXT}', item.text);
+    const prompt = IDENTIFY_PROMPT.replace(/{ITEM_TEXT}/g, item.text);
 
+    // Dedupe repeated Gemini calls
+    let geminiShown = false;
     const stream: StreamCallbacks = {
       onToolCall: (name) => {
-        if (name.includes('gemini')) {
-          process.stdout.write(`\r      ${chalk.magenta('◆')} ${chalk.dim('Calling Gemini...')}\n`);
+        if (name.includes('gemini') && !geminiShown) {
+          process.stdout.write(`      ${chalk.magenta('◆')} ${chalk.dim('Calling Gemini...')}\n`);
+          geminiShown = true;
         }
       },
     };
@@ -242,7 +276,6 @@ export class AdversarialReviewPhase extends BasePhase {
     const issues = this.parseIssuesFromOutput(output.result);
 
     // Debug: show if Gemini returned content but parsing found nothing
-    const hasGeminiContent = output.result.includes('gemini') || output.result.includes('Gemini');
     const rawIssueLines = output.result.split('\n').filter(l =>
       /\b(CRITICAL|HIGH|MEDIUM|MODERATE|LOW|WARNING|ERROR)\b/i.test(l)
     ).length;
@@ -344,19 +377,25 @@ export class AdversarialReviewPhase extends BasePhase {
   /** Parse issues from identify step output */
   private parseIssuesFromOutput(output: string): GeminiIssue[] {
     const issues: GeminiIssue[] = [];
-    const severities = 'CRITICAL|HIGH|MEDIUM|MODERATE|LOW|INFO|WARNING|ERROR';
+    // Standard severities only - ERROR/WARNING can appear in descriptions and cause false matches
+    const severities = 'CRITICAL|HIGH|MEDIUM|MODERATE|LOW|INFO';
 
-    // Multiple patterns to match different Gemini output formats:
-    // 1. [SEVERITY] description (file:line)
-    // 2. **SEVERITY**: description
-    // 3. - SEVERITY: description
-    // 4. SEVERITY - description
-    // 5. * SEVERITY: description
+    // Patterns ordered from most specific to most general
     const patterns = [
+      // [SEVERITY] description (file:line) - brackets are unambiguous
       new RegExp(`\\[(${severities})\\]\\s+(.+?)(?:\\s+\\(([^:)]+)(?::(\\d+))?\\))?$`, 'gmi'),
+      // **SEVERITY**: description or **SEVERITY** description
       new RegExp(`\\*\\*(${severities})\\*\\*[:\\s]+(.+?)(?:\\s+\\(([^:)]+)(?::(\\d+))?\\))?$`, 'gmi'),
-      new RegExp(`^[-*•]\\s*(?:\\*\\*)?(${severities})(?:\\*\\*)?[:\\s]+(.+?)(?:\\s+\\(([^:)]+)(?::(\\d+))?\\))?$`, 'gmi'),
-      new RegExp(`^(${severities})\\s*[-–:]\\s*(.+?)(?:\\s+\\(([^:)]+)(?::(\\d+))?\\))?$`, 'gmi'),
+      // - [SEVERITY] or - **SEVERITY**: list items with clear markers
+      new RegExp(`^[-*•]\\s*(?:\\[|\\*\\*)(${severities})(?:\\]|\\*\\*)[:\\s]+(.+?)(?:\\s+\\(([^:)]+)(?::(\\d+))?\\))?$`, 'gmi'),
+      // Numbered: 1. [SEVERITY] or 1. **SEVERITY**
+      new RegExp(`^\\d+\\.\\s*(?:\\[|\\*\\*)(${severities})(?:\\]|\\*\\*)[:\\s]+(.+?)(?:\\s+\\(([^:)]+)(?::(\\d+))?\\))?$`, 'gmi'),
+      // Gemini markdown: - **SEVERITY:** description (colon inside bold)
+      new RegExp(`^[-*•]\\s*\\*\\*(${severities}):\\*\\*\\s*(.+?)(?:\\s+\\(([^:)]+)(?::(\\d+))?\\))?$`, 'gmi'),
+      // Severity in backticks: `SEVERITY` description
+      new RegExp(`\`(${severities})\`[:\\s]+(.+?)(?:\\s+\\(([^:)]+)(?::(\\d+))?\\))?$`, 'gmi'),
+      // Start of line only: SEVERITY: description (requires colon, no loose dash matching)
+      new RegExp(`^(${severities}):\\s+(.+?)(?:\\s+\\(([^:)]+)(?::(\\d+))?\\))?$`, 'gmi'),
     ];
 
     const seen = new Set<string>();
@@ -370,7 +409,6 @@ export class AdversarialReviewPhase extends BasePhase {
                         rawSeverity === 'ERROR' ? 'HIGH' : rawSeverity;
         const description = match[2].trim();
 
-        // Dedupe by description
         const key = `${severity}:${description.toLowerCase().slice(0, 50)}`;
         if (!seen.has(key)) {
           seen.add(key);

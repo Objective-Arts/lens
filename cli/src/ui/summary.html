@@ -4,25 +4,17 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Ralph Run Summary</title>
-  <script src="https://d3js.org/d3.v7.min.js"></script>
   <style>
-    /* Kruzeniski: Typography as interface */
     :root {
       --font-sans: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
       --font-mono: 'SF Mono', 'Fira Code', Consolas, monospace;
-
-      /* Ive: Neutral scale */
       --gray-50: #f9fafb;
       --gray-100: #f3f4f6;
       --gray-200: #e5e7eb;
-      --gray-300: #d1d5db;
-      --gray-400: #9ca3af;
       --gray-500: #6b7280;
       --gray-600: #4b5563;
       --gray-700: #374151;
       --gray-800: #1f2937;
-
-      /* Semantic colors */
       --success: #10b981;
       --success-light: #d1fae5;
       --warning: #f59e0b;
@@ -30,20 +22,8 @@
       --error: #ef4444;
       --error-light: #fee2e2;
       --info: #3b82f6;
-      --info-light: #dbeafe;
-
-      /* Ive: Shadow system */
-      --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.05);
-      --shadow-md: 0 4px 6px rgba(0, 0, 0, 0.07);
-
-      /* Duarte: Motion tokens */
-      --duration-fast: 150ms;
-      --duration-normal: 300ms;
-      --ease-out: cubic-bezier(0.0, 0.0, 0.2, 1);
     }
-
     * { box-sizing: border-box; margin: 0; padding: 0; }
-
     body {
       font-family: var(--font-sans);
       font-size: 16px;
@@ -52,752 +32,257 @@
       background: var(--gray-50);
       padding: 48px 24px;
     }
+    .container { max-width: 1000px; margin: 0 auto; }
+    h1 { font-size: 32px; font-weight: 600; color: var(--gray-800); margin-bottom: 8px; }
+    h2 { font-size: 22px; font-weight: 600; color: var(--gray-800); margin: 32px 0 16px; }
+    .subtitle { font-size: 14px; color: var(--gray-500); margin-bottom: 32px; }
 
-    /* Rams: Maximum width for readability */
-    .container {
-      max-width: 1200px;
-      margin: 0 auto;
+    .stats { display: flex; gap: 16px; margin-bottom: 32px; flex-wrap: wrap; }
+    .stat {
+      background: white;
+      padding: 20px 24px;
+      border-radius: 8px;
+      min-width: 150px;
+      text-align: center;
+      box-shadow: 0 1px 3px rgba(0,0,0,0.08);
     }
+    .stat-value { font-size: 36px; font-weight: 600; }
+    .stat-label { font-size: 13px; color: var(--gray-500); margin-top: 4px; }
+    .stat.success .stat-value { color: var(--success); }
+    .stat.error .stat-value { color: var(--error); }
+    .stat.warning .stat-value { color: var(--warning); }
 
-    /* Kruzeniski: Type hierarchy */
-    h1 {
-      font-size: 36px;
-      font-weight: 600;
-      color: var(--gray-800);
-      letter-spacing: -0.02em;
-      margin-bottom: 8px;
-    }
-
-    h2 {
-      font-size: 24px;
-      font-weight: 600;
-      color: var(--gray-800);
-      letter-spacing: -0.01em;
-      margin-bottom: 16px;
-    }
-
-    h3 {
-      font-size: 18px;
-      font-weight: 600;
-      color: var(--gray-700);
-      margin-bottom: 12px;
-    }
-
-    .subtitle {
-      font-size: 14px;
-      color: var(--gray-500);
-      margin-bottom: 32px;
-    }
-
-    /* Frost: Card atom */
     .card {
       background: white;
       border-radius: 8px;
-      box-shadow: var(--shadow-sm);
-      padding: 24px;
-      margin-bottom: 24px;
+      box-shadow: 0 1px 3px rgba(0,0,0,0.08);
+      overflow: hidden;
     }
 
-    .card:hover {
-      box-shadow: var(--shadow-md);
-      transition: box-shadow var(--duration-fast) var(--ease-out);
-    }
-
-    /* Stats row */
-    .stats-grid {
-      display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-      gap: 16px;
-      margin-bottom: 32px;
-    }
-
-    .stat-card {
-      background: white;
-      border-radius: 8px;
-      box-shadow: var(--shadow-sm);
-      padding: 20px;
-      text-align: center;
-    }
-
-    .stat-value {
-      font-size: 36px;
-      font-weight: 600;
-      color: var(--gray-800);
-      line-height: 1.2;
-    }
-
-    .stat-value.success { color: var(--success); }
-    .stat-value.warning { color: var(--warning); }
-    .stat-value.error { color: var(--error); }
-
-    .stat-label {
-      font-size: 14px;
-      color: var(--gray-500);
-      margin-top: 4px;
-    }
-
-    /* Pipeline visualization */
-    .pipeline-svg {
-      width: 100%;
-      height: 80px;
-    }
-
-    /* Issues list */
-    .issue-list {
-      list-style: none;
-    }
-
-    .issue-item {
+    .item {
+      padding: 16px 20px;
+      border-bottom: 1px solid var(--gray-100);
       display: flex;
       align-items: flex-start;
       gap: 12px;
-      padding: 12px 0;
-      border-bottom: 1px solid var(--gray-100);
     }
+    .item:last-child { border-bottom: none; }
+    .item-num { color: var(--gray-500); font-size: 14px; min-width: 32px; }
+    .item-content { flex: 1; }
+    .item-text { font-weight: 500; margin-bottom: 8px; }
+    .item-status { font-size: 20px; }
+    .item-status.success { color: var(--success); }
+    .item-status.error { color: var(--error); }
 
-    .issue-item:last-child {
-      border-bottom: none;
-    }
-
-    .severity-badge {
-      font-size: 11px;
-      font-weight: 600;
-      padding: 2px 8px;
+    .stages { display: flex; flex-wrap: wrap; gap: 6px; }
+    .stage {
+      font-size: 12px;
+      padding: 3px 10px;
       border-radius: 4px;
-      text-transform: uppercase;
-      letter-spacing: 0.05em;
-      flex-shrink: 0;
-    }
-
-    .severity-CRITICAL { background: var(--error-light); color: var(--error); }
-    .severity-HIGH { background: #fef2f2; color: #dc2626; }
-    .severity-MEDIUM { background: var(--warning-light); color: #d97706; }
-    .severity-LOW { background: var(--info-light); color: var(--info); }
-    .severity-INFO { background: var(--gray-100); color: var(--gray-600); }
-
-    .issue-message {
-      flex: 1;
-      font-size: 14px;
-      color: var(--gray-700);
-    }
-
-    .issue-file {
-      font-family: var(--font-mono);
-      font-size: 12px;
-      color: var(--gray-500);
-    }
-
-    .issue-fixed {
-      font-size: 12px;
-      color: var(--success);
-      font-weight: 500;
-    }
-
-    /* Improvements list */
-    .improvement-list {
-      list-style: none;
-    }
-
-    .improvement-item {
-      display: flex;
-      align-items: center;
-      gap: 8px;
-      padding: 8px 0;
-      font-size: 14px;
-      color: var(--gray-600);
-    }
-
-    .improvement-item::before {
-      content: '✓';
-      color: var(--success);
-      font-weight: 600;
-    }
-
-    /* Item accordion */
-    .item-header {
-      display: flex;
-      align-items: center;
-      gap: 12px;
-      padding: 16px;
-      cursor: pointer;
-      border-radius: 8px;
-      transition: background var(--duration-fast) var(--ease-out);
-    }
-
-    .item-header:hover {
-      background: var(--gray-50);
-    }
-
-    .item-number {
-      font-size: 14px;
-      font-weight: 600;
-      color: var(--gray-400);
-      width: 32px;
-    }
-
-    .item-text {
-      flex: 1;
-      font-size: 16px;
-      font-weight: 500;
-      color: var(--gray-700);
-    }
-
-    .item-status {
-      font-size: 20px;
-    }
-
-    .item-status.success::after { content: '✓'; color: var(--success); }
-    .item-status.failed::after { content: '✗'; color: var(--error); }
-
-    .item-details {
-      display: none;
-      padding: 0 16px 16px 60px;
-    }
-
-    .item-details.expanded {
-      display: block;
-      animation: slideDown var(--duration-normal) var(--ease-out);
-    }
-
-    @keyframes slideDown {
-      from { opacity: 0; transform: translateY(-8px); }
-      to { opacity: 1; transform: translateY(0); }
-    }
-
-    /* Stage mini-pipeline */
-    .stage-list {
-      display: flex;
-      gap: 8px;
-      flex-wrap: wrap;
-      margin-bottom: 16px;
-    }
-
-    .stage-pill {
-      font-size: 12px;
-      padding: 4px 12px;
-      border-radius: 16px;
       background: var(--gray-100);
       color: var(--gray-600);
     }
+    .stage.done { background: var(--success-light); color: #065f46; }
+    .stage.failed { background: var(--error-light); color: #991b1b; }
+    .stage.skipped { background: var(--gray-100); color: var(--gray-500); }
 
-    .stage-pill.done { background: var(--success-light); color: #059669; }
-    .stage-pill.failed { background: var(--error-light); color: var(--error); }
-    .stage-pill.skipped { background: var(--gray-100); color: var(--gray-400); }
-
-    /* Duration chart */
-    .duration-chart {
-      height: 200px;
-      margin-top: 16px;
+    .stage-detail {
+      margin-top: 12px;
+      padding: 12px;
+      background: var(--gray-50);
+      border-radius: 6px;
+      font-size: 13px;
     }
-
-    /* Section spacing */
-    section {
-      margin-bottom: 48px;
+    .stage-detail-title { font-weight: 600; margin-bottom: 8px; color: var(--gray-700); }
+    .issue { padding: 4px 0; display: flex; gap: 8px; }
+    .issue-severity {
+      font-size: 11px;
+      font-weight: 600;
+      padding: 2px 6px;
+      border-radius: 3px;
+      text-transform: uppercase;
     }
+    .issue-severity.critical, .issue-severity.high { background: var(--error-light); color: #991b1b; }
+    .issue-severity.medium, .issue-severity.moderate { background: var(--warning-light); color: #92400e; }
+    .issue-severity.low { background: var(--gray-100); color: var(--gray-600); }
+    .issue-fixed { color: var(--success); margin-left: 8px; }
 
-    /* Empty state */
-    .empty-state {
-      text-align: center;
-      padding: 48px;
-      color: var(--gray-400);
-    }
-
-    /* Footer */
-    footer {
-      text-align: center;
-      font-size: 12px;
-      color: var(--gray-400);
-      margin-top: 48px;
-    }
+    .no-data { padding: 60px; text-align: center; color: var(--gray-500); }
   </style>
 </head>
 <body>
-  <div class="container">
-    <header>
-      <h1>Ralph Run Summary</h1>
-      <p class="subtitle" id="subtitle">Loading...</p>
-    </header>
+<div class="container">
+  <h1>Ralph Run Summary</h1>
+  <div class="subtitle" id="subtitle">Loading...</div>
+  <div class="stats" id="stats"></div>
+  <h2>PRD Items</h2>
+  <div class="card" id="items"></div>
+</div>
 
-    <!-- Stats overview -->
-    <section id="stats-section">
-      <div class="stats-grid" id="stats-grid"></div>
-    </section>
+<script>
+'use strict';
 
-    <!-- Issues overview -->
-    <section id="issues-section">
-      <h2>Issues Found & Fixed</h2>
-      <div class="card">
-        <div id="issues-chart"></div>
-        <div id="issues-breakdown"></div>
+function formatDuration(ms) {
+  if (!ms || ms < 0) return '0s';
+  if (ms < 1000) return ms + 'ms';
+  if (ms < 60000) return Math.round(ms / 1000) + 's';
+  const mins = Math.floor(ms / 60000);
+  const secs = Math.floor((ms % 60000) / 1000);
+  if (mins < 60) return mins + 'm ' + secs + 's';
+  const hrs = Math.floor(mins / 60);
+  return hrs + 'h ' + (mins % 60) + 'm';
+}
+
+function countIssues(items, type) {
+  let count = 0;
+  for (const item of items || []) {
+    for (const stage of item.stages || []) {
+      if (stage.gemini) {
+        count += type === 'found' ? (stage.gemini.totalFound || 0) : (stage.gemini.fixed || 0);
+      }
+      if (stage.qodana) {
+        count += type === 'found' ? (stage.qodana.totalFound || 0) : (stage.qodana.fixed || 0);
+      }
+    }
+  }
+  return count;
+}
+
+function renderStats(data) {
+  const issuesFound = countIssues(data.items, 'found');
+  const issuesFixed = countIssues(data.items, 'fixed');
+
+  return `
+    <div class="stat success"><div class="stat-value">${data.completedItems || 0}</div><div class="stat-label">Completed</div></div>
+    <div class="stat ${data.failedItems > 0 ? 'error' : ''}"><div class="stat-value">${data.failedItems || 0}</div><div class="stat-label">Failed</div></div>
+    <div class="stat"><div class="stat-value">${formatDuration(data.durationMs)}</div><div class="stat-label">Duration</div></div>
+    ${issuesFound > 0 ? `<div class="stat warning"><div class="stat-value">${issuesFound}</div><div class="stat-label">Issues Found</div></div>` : ''}
+    ${issuesFixed > 0 ? `<div class="stat success"><div class="stat-value">${issuesFixed}</div><div class="stat-label">Issues Fixed</div></div>` : ''}
+  `;
+}
+
+function renderStageDetails(stage) {
+  let html = '';
+
+  if (stage.tests) {
+    html += `<div class="stage-detail">
+      <div class="stage-detail-title">Tests</div>
+      <div>Passed: ${stage.tests.passed || 0} | Failed: ${stage.tests.failed || 0} | Written: ${stage.tests.written || 0}</div>
+    </div>`;
+  }
+
+  if (stage.gemini && stage.gemini.issues && stage.gemini.issues.length > 0) {
+    html += `<div class="stage-detail">
+      <div class="stage-detail-title">Gemini Review (${stage.gemini.fixed || 0}/${stage.gemini.totalFound || 0} fixed)</div>`;
+    for (const issue of stage.gemini.issues.slice(0, 5)) {
+      html += `<div class="issue">
+        <span class="issue-severity ${issue.severity.toLowerCase()}">${issue.severity}</span>
+        <span>${issue.message || issue.description || ''}</span>
+        ${issue.fixed ? '<span class="issue-fixed">✓ Fixed</span>' : ''}
+      </div>`;
+    }
+    if (stage.gemini.issues.length > 5) {
+      html += `<div style="color:#666;font-size:12px;margin-top:8px">+ ${stage.gemini.issues.length - 5} more</div>`;
+    }
+    html += '</div>';
+  }
+
+  if (stage.qodana && stage.qodana.issues && stage.qodana.issues.length > 0) {
+    html += `<div class="stage-detail">
+      <div class="stage-detail-title">Qodana Analysis (${stage.qodana.fixed || 0}/${stage.qodana.totalFound || 0} fixed)</div>`;
+    for (const issue of stage.qodana.issues.slice(0, 5)) {
+      html += `<div class="issue">
+        <span class="issue-severity ${(issue.severity || 'low').toLowerCase()}">${issue.severity || 'LOW'}</span>
+        <span>${issue.message || issue.description || ''}</span>
+        ${issue.fixed ? '<span class="issue-fixed">✓ Fixed</span>' : ''}
+      </div>`;
+    }
+    if (stage.qodana.issues.length > 5) {
+      html += `<div style="color:#666;font-size:12px;margin-top:8px">+ ${stage.qodana.issues.length - 5} more</div>`;
+    }
+    html += '</div>';
+  }
+
+  if (stage.refactor && stage.refactor.improvements && stage.refactor.improvements.length > 0) {
+    html += `<div class="stage-detail">
+      <div class="stage-detail-title">Refactoring</div>`;
+    for (const imp of stage.refactor.improvements) {
+      html += `<div class="issue"><span>• ${imp}</span></div>`;
+    }
+    html += '</div>';
+  }
+
+  return html;
+}
+
+function renderItems(items) {
+  if (!items || items.length === 0) {
+    return '<div class="no-data">No items found</div>';
+  }
+
+  let html = '';
+  for (const item of items) {
+    const icon = item.status === 'success' ? '✓' : item.status === 'failed' ? '✗' : '○';
+    const statusClass = item.status === 'success' ? 'success' : item.status === 'failed' ? 'error' : '';
+
+    let stagesHtml = '<div class="stages">';
+    let detailsHtml = '';
+    if (item.stages) {
+      for (const stage of item.stages) {
+        stagesHtml += `<span class="stage ${stage.status}">${stage.name}${stage.durationMs ? ' (' + formatDuration(stage.durationMs) + ')' : ''}</span>`;
+        detailsHtml += renderStageDetails(stage);
+      }
+    }
+    stagesHtml += '</div>';
+
+    html += `
+      <div class="item">
+        <div class="item-num">#${item.number}</div>
+        <div class="item-content">
+          <div class="item-text">${item.text}</div>
+          ${stagesHtml}
+          ${detailsHtml}
+        </div>
+        <div class="item-status ${statusClass}">${icon}</div>
       </div>
-    </section>
-
-    <!-- Improvements -->
-    <section id="improvements-section">
-      <h2>Refactoring Improvements</h2>
-      <div class="card">
-        <ul class="improvement-list" id="improvement-list"></ul>
-      </div>
-    </section>
-
-    <!-- Items detail -->
-    <section id="items-section">
-      <h2>PRD Items</h2>
-      <div class="card" id="items-list"></div>
-    </section>
-
-    <!-- Duration breakdown -->
-    <section id="duration-section">
-      <h2>Time Breakdown</h2>
-      <div class="card">
-        <div class="duration-chart" id="duration-chart"></div>
-      </div>
-    </section>
-
-    <footer>
-      Generated by Ralph • <span id="timestamp"></span>
-    </footer>
-  </div>
-
-  <script>
-    // Bostock: Data-driven documents
-    // Following Crockford: strict mode, const by default
-    'use strict';
-
-    // Load data from embedded script or fetch
-    const DATA_ELEMENT_ID = 'ralph-summary-data';
-
-    async function loadData() {
-      const dataElement = document.getElementById(DATA_ELEMENT_ID);
-      if (dataElement && dataElement.textContent.trim()) {
-        try {
-          return JSON.parse(dataElement.textContent);
-        } catch (e) {
-          console.error('Failed to parse embedded data:', e);
-        }
-      }
-      // Fallback: try to find JSON file matching this HTML file
-      const htmlName = location.pathname.split('/').pop() || '';
-      const jsonName = htmlName.replace('.html', '.json');
-      if (jsonName && jsonName !== htmlName) {
-        const response = await fetch('./' + jsonName);
-        if (response.ok) return response.json();
-      }
-      throw new Error('No data source available');
-    }
-
-    // Duarte: Meaningful transitions
-    const t = d3.transition().duration(300).ease(d3.easeCubicOut);
-
-    // Format duration
-    function formatDuration(ms) {
-      if (ms < 1000) return `${ms}ms`;
-      if (ms < 60000) return `${(ms / 1000).toFixed(1)}s`;
-      const mins = Math.floor(ms / 60000);
-      const secs = Math.floor((ms % 60000) / 1000);
-      return `${mins}m ${secs}s`;
-    }
-
-    // Render stats cards
-    function renderStats(data) {
-      const stats = [
-        {
-          value: data.completedItems,
-          label: 'Items Completed',
-          class: data.completedItems > 0 ? 'success' : ''
-        },
-        {
-          value: data.failedItems,
-          label: 'Items Failed',
-          class: data.failedItems > 0 ? 'error' : ''
-        },
-        {
-          value: formatDuration(data.durationMs),
-          label: 'Total Duration',
-          class: ''
-        },
-        {
-          value: countTotalIssues(data),
-          label: 'Issues Found',
-          class: countTotalIssues(data) > 0 ? 'warning' : ''
-        },
-        {
-          value: countFixedIssues(data),
-          label: 'Issues Fixed',
-          class: countFixedIssues(data) > 0 ? 'success' : ''
-        },
-      ];
-
-      const grid = d3.select('#stats-grid');
-
-      const cards = grid.selectAll('.stat-card')
-        .data(stats)
-        .enter()
-        .append('div')
-        .attr('class', 'stat-card');
-
-      cards.append('div')
-        .attr('class', d => `stat-value ${d.class}`)
-        .text(d => d.value);
-
-      cards.append('div')
-        .attr('class', 'stat-label')
-        .text(d => d.label);
-    }
-
-    function countTotalIssues(data) {
-      let total = 0;
-      for (const item of data.items) {
-        for (const stage of item.stages) {
-          if (stage.gemini) total += stage.gemini.totalFound;
-          if (stage.qodana) total += stage.qodana.totalFound;
-        }
-      }
-      return total;
-    }
-
-    function countFixedIssues(data) {
-      let total = 0;
-      for (const item of data.items) {
-        for (const stage of item.stages) {
-          if (stage.gemini) total += stage.gemini.fixed;
-          if (stage.qodana) total += stage.qodana.fixed;
-        }
-      }
-      return total;
-    }
-
-    // Render issues breakdown chart
-    function renderIssuesChart(data) {
-      const issues = collectAllIssues(data);
-
-      if (issues.length === 0) {
-        d3.select('#issues-section').style('display', 'none');
-        return;
-      }
-
-      // Group by severity
-      const bySeverity = d3.rollup(issues, v => v.length, d => d.severity);
-      const severityOrder = ['CRITICAL', 'HIGH', 'MEDIUM', 'LOW', 'INFO'];
-      const chartData = severityOrder
-        .filter(s => bySeverity.has(s))
-        .map(s => ({ severity: s, count: bySeverity.get(s) }));
-
-      const container = d3.select('#issues-chart');
-      const width = container.node().getBoundingClientRect().width;
-      const height = 120;
-      const margin = { top: 20, right: 20, bottom: 30, left: 80 };
-
-      const svg = container.append('svg')
-        .attr('width', width)
-        .attr('height', height);
-
-      const x = d3.scaleLinear()
-        .domain([0, d3.max(chartData, d => d.count)])
-        .range([margin.left, width - margin.right]);
-
-      const y = d3.scaleBand()
-        .domain(chartData.map(d => d.severity))
-        .range([margin.top, height - margin.bottom])
-        .padding(0.3);
-
-      const colorScale = {
-        CRITICAL: '#ef4444',
-        HIGH: '#dc2626',
-        MEDIUM: '#f59e0b',
-        LOW: '#3b82f6',
-        INFO: '#6b7280'
-      };
-
-      // Bars with Duarte animation
-      svg.selectAll('rect')
-        .data(chartData)
-        .enter()
-        .append('rect')
-        .attr('x', margin.left)
-        .attr('y', d => y(d.severity))
-        .attr('height', y.bandwidth())
-        .attr('fill', d => colorScale[d.severity])
-        .attr('rx', 4)
-        .attr('width', 0)
-        .transition(t)
-        .attr('width', d => x(d.count) - margin.left);
-
-      // Labels
-      svg.selectAll('.label')
-        .data(chartData)
-        .enter()
-        .append('text')
-        .attr('class', 'label')
-        .attr('x', margin.left - 8)
-        .attr('y', d => y(d.severity) + y.bandwidth() / 2)
-        .attr('dy', '0.35em')
-        .attr('text-anchor', 'end')
-        .attr('font-size', '12px')
-        .attr('fill', '#6b7280')
-        .text(d => d.severity);
-
-      // Counts
-      svg.selectAll('.count')
-        .data(chartData)
-        .enter()
-        .append('text')
-        .attr('class', 'count')
-        .attr('x', d => x(d.count) + 8)
-        .attr('y', d => y(d.severity) + y.bandwidth() / 2)
-        .attr('dy', '0.35em')
-        .attr('font-size', '14px')
-        .attr('font-weight', '600')
-        .attr('fill', '#374151')
-        .text(d => d.count);
-
-      // Issues list
-      renderIssuesList(issues);
-    }
-
-    function collectAllIssues(data) {
-      const issues = [];
-      for (const item of data.items) {
-        for (const stage of item.stages) {
-          if (stage.gemini && stage.gemini.issues) {
-            issues.push(...stage.gemini.issues.map(i => ({ ...i, source: 'Gemini' })));
-          }
-          if (stage.qodana && stage.qodana.issues) {
-            issues.push(...stage.qodana.issues.map(i => ({ ...i, source: 'Qodana' })));
-          }
-        }
-      }
-      return issues;
-    }
-
-    function renderIssuesList(issues) {
-      const container = d3.select('#issues-breakdown');
-
-      // Show top 10 issues
-      const topIssues = issues.slice(0, 10);
-
-      const list = container.append('ul').attr('class', 'issue-list');
-
-      const items = list.selectAll('.issue-item')
-        .data(topIssues)
-        .enter()
-        .append('li')
-        .attr('class', 'issue-item');
-
-      items.append('span')
-        .attr('class', d => `severity-badge severity-${d.severity}`)
-        .text(d => d.severity);
-
-      const content = items.append('div').style('flex', '1');
-
-      content.append('div')
-        .attr('class', 'issue-message')
-        .text(d => d.message);
-
-      content.filter(d => d.file)
-        .append('div')
-        .attr('class', 'issue-file')
-        .text(d => d.file + (d.line ? `:${d.line}` : ''));
-
-      items.filter(d => d.fixed)
-        .append('span')
-        .attr('class', 'issue-fixed')
-        .text('Fixed');
-
-      if (issues.length > 10) {
-        container.append('p')
-          .style('font-size', '14px')
-          .style('color', '#9ca3af')
-          .style('margin-top', '12px')
-          .text(`+ ${issues.length - 10} more issues`);
-      }
-    }
-
-    // Render improvements
-    function renderImprovements(data) {
-      const improvements = [];
-      for (const item of data.items) {
-        for (const stage of item.stages) {
-          if (stage.refactor && stage.refactor.improvements) {
-            improvements.push(...stage.refactor.improvements);
-          }
-        }
-      }
-
-      if (improvements.length === 0) {
-        d3.select('#improvements-section').style('display', 'none');
-        return;
-      }
-
-      const list = d3.select('#improvement-list');
-
-      list.selectAll('.improvement-item')
-        .data(improvements)
-        .enter()
-        .append('li')
-        .attr('class', 'improvement-item')
-        .text(d => d);
-    }
-
-    // Render items list
-    function renderItems(data) {
-      const container = d3.select('#items-list');
-
-      const items = container.selectAll('.item')
-        .data(data.items)
-        .enter()
-        .append('div')
-        .attr('class', 'item');
-
-      const headers = items.append('div')
-        .attr('class', 'item-header')
-        .on('click', function(event, d) {
-          const details = d3.select(this.parentNode).select('.item-details');
-          details.classed('expanded', !details.classed('expanded'));
-        });
-
-      headers.append('span')
-        .attr('class', 'item-number')
-        .text(d => `#${d.number}`);
-
-      headers.append('span')
-        .attr('class', 'item-text')
-        .text(d => d.text);
-
-      headers.append('span')
-        .attr('class', d => `item-status ${d.status}`);
-
-      const details = items.append('div')
-        .attr('class', 'item-details');
-
-      // Stage pills
-      const stageLists = details.append('div')
-        .attr('class', 'stage-list');
-
-      stageLists.each(function(item) {
-        const list = d3.select(this);
-        for (const stage of item.stages) {
-          list.append('span')
-            .attr('class', `stage-pill ${stage.status}`)
-            .text(`${stage.name} (${formatDuration(stage.durationMs)})`);
-        }
-      });
-    }
-
-    // Render duration chart
-    function renderDurationChart(data) {
-      const stageDurations = new Map();
-
-      for (const item of data.items) {
-        for (const stage of item.stages) {
-          const current = stageDurations.get(stage.name) || 0;
-          stageDurations.set(stage.name, current + stage.durationMs);
-        }
-      }
-
-      const chartData = Array.from(stageDurations, ([name, duration]) => ({ name, duration }))
-        .sort((a, b) => b.duration - a.duration);
-
-      if (chartData.length === 0) {
-        d3.select('#duration-section').style('display', 'none');
-        return;
-      }
-
-      const container = d3.select('#duration-chart');
-      const width = container.node().getBoundingClientRect().width;
-      const height = 200;
-      const margin = { top: 20, right: 100, bottom: 30, left: 80 };
-
-      const svg = container.append('svg')
-        .attr('width', width)
-        .attr('height', height);
-
-      const x = d3.scaleLinear()
-        .domain([0, d3.max(chartData, d => d.duration)])
-        .range([margin.left, width - margin.right]);
-
-      const y = d3.scaleBand()
-        .domain(chartData.map(d => d.name))
-        .range([margin.top, height - margin.bottom])
-        .padding(0.3);
-
-      // Bars
-      svg.selectAll('rect')
-        .data(chartData)
-        .enter()
-        .append('rect')
-        .attr('x', margin.left)
-        .attr('y', d => y(d.name))
-        .attr('height', y.bandwidth())
-        .attr('fill', '#3b82f6')
-        .attr('rx', 4)
-        .attr('width', 0)
-        .transition(t)
-        .attr('width', d => x(d.duration) - margin.left);
-
-      // Labels
-      svg.selectAll('.stage-label')
-        .data(chartData)
-        .enter()
-        .append('text')
-        .attr('class', 'stage-label')
-        .attr('x', margin.left - 8)
-        .attr('y', d => y(d.name) + y.bandwidth() / 2)
-        .attr('dy', '0.35em')
-        .attr('text-anchor', 'end')
-        .attr('font-size', '14px')
-        .attr('fill', '#374151')
-        .text(d => d.name);
-
-      // Duration labels
-      svg.selectAll('.duration-label')
-        .data(chartData)
-        .enter()
-        .append('text')
-        .attr('class', 'duration-label')
-        .attr('x', d => x(d.duration) + 8)
-        .attr('y', d => y(d.name) + y.bandwidth() / 2)
-        .attr('dy', '0.35em')
-        .attr('font-size', '14px')
-        .attr('font-weight', '500')
-        .attr('fill', '#6b7280')
-        .text(d => formatDuration(d.duration));
-    }
-
-    // Main render function
-    async function render() {
-      try {
-        const data = await loadData();
-
-        // Update header
-        d3.select('#subtitle').text(
-          `${data.prdPath} • ${data.projectType} • ${new Date(data.startTime).toLocaleString()}`
-        );
-        d3.select('#timestamp').text(new Date(data.endTime).toLocaleString());
-
-        // Render all sections
-        renderStats(data);
-        renderIssuesChart(data);
-        renderImprovements(data);
-        renderItems(data);
-        renderDurationChart(data);
-
-      } catch (err) {
-        console.error('Failed to load summary:', err);
-        d3.select('.container').html(`
-          <div class="empty-state">
-            <h2>No data available</h2>
-            <p>Summary data could not be loaded.</p>
-            <p style="font-size: 12px; margin-top: 16px; color: #9ca3af;">
-              Try: Hard refresh (Cmd+Shift+R) or check the JSON file in the same directory.
-            </p>
-          </div>
-        `);
-      }
-    }
-
-    // Run on load
-    render();
-  </script>
+    `;
+  }
+  return html;
+}
+
+function render() {
+  const dataElement = document.getElementById('ralph-summary-data');
+
+  if (!dataElement || !dataElement.textContent.trim()) {
+    document.getElementById('subtitle').textContent = 'No data available';
+    document.getElementById('stats').innerHTML = '';
+    document.getElementById('items').innerHTML = '<div class="no-data">No summary data found. Check if the JSON file exists.</div>';
+    return;
+  }
+
+  try {
+    const data = JSON.parse(dataElement.textContent);
+
+    // Subtitle
+    const startDate = data.startTime ? new Date(data.startTime).toLocaleString() : '';
+    document.getElementById('subtitle').textContent =
+      [data.prdPath, data.projectType, startDate].filter(Boolean).join(' • ');
+
+    // Stats
+    document.getElementById('stats').innerHTML = renderStats(data);
+
+    // Items
+    document.getElementById('items').innerHTML = renderItems(data.items);
+
+  } catch (e) {
+    console.error('Failed to parse summary data:', e);
+    document.getElementById('subtitle').textContent = 'Error loading data';
+    document.getElementById('items').innerHTML = '<div class="no-data">Error: ' + e.message + '</div>';
+  }
+}
+
+// Run on load
+render();
+</script>
 </body>
 </html>

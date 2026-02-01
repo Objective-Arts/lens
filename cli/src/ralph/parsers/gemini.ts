@@ -68,7 +68,8 @@ export function getGeminiSummary(result: GeminiResult): string {
     parts.push(`${result.issuesFixed} fixed`);
   }
 
-  if (result.verifiedClean) {
+  // Only show "verified clean" if all issues are fixed
+  if (result.verifiedClean && result.issuesFixed >= result.totalIssues) {
     parts.push('verified clean');
   }
 

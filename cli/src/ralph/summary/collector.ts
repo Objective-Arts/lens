@@ -17,6 +17,16 @@ import {
   IssueSeverity,
 } from './types.js';
 
+/** Production readiness check result */
+export interface ProductionCheckResult {
+  status: 'success' | 'failed' | 'skipped';
+  message: string;
+  critical: number;
+  high: number;
+  medium: number;
+  low: number;
+}
+
 /** Collector for building run summary incrementally */
 export class SummaryCollector {
   private readonly sessionId: string;
@@ -27,6 +37,7 @@ export class SummaryCollector {
   private items: ItemSummary[] = [];
   private currentItem: Partial<ItemSummary> | null = null;
   private currentStages: StageSummary[] = [];
+  private productionCheck: ProductionCheckResult | null = null;
 
   constructor(sessionId: string, prdPath: string, projectType: string, totalItems: number) {
     this.sessionId = sessionId;
@@ -61,13 +72,30 @@ export class SummaryCollector {
     }
   }
 
+  /** Get count of completed (successful) items */
+  getCompletedCount(): number {
+    return this.items.filter(i => i.status === 'success').length;
+  }
+
+  /** Add production readiness check result */
+  addProductionCheck(result: { status: string; message?: string; error?: string; metrics?: Record<string, number> }): void {
+    this.productionCheck = {
+      status: result.status as 'success' | 'failed' | 'skipped',
+      message: result.status === 'failed' ? (result.error || '') : (result.message || ''),
+      critical: result.metrics?.critical || 0,
+      high: result.metrics?.high || 0,
+      medium: result.metrics?.medium || 0,
+      low: result.metrics?.low || 0,
+    };
+  }
+
   /** Build final summary */
   build(): RunSummary {
     const endTime = new Date();
     const completedItems = this.items.filter(i => i.status === 'success').length;
     const failedItems = this.items.filter(i => i.status === 'failed').length;
 
-    return {
+    const summary: RunSummary = {
       sessionId: this.sessionId,
       startTime: this.startTime.toISOString(),
       endTime: endTime.toISOString(),
@@ -79,6 +107,12 @@ export class SummaryCollector {
       failedItems,
       items: this.items,
     };
+
+    if (this.productionCheck) {
+      summary.productionCheck = this.productionCheck;
+    }
+
+    return summary;
   }
 }
 
@@ -146,8 +180,9 @@ export function parseTestResults(output: string): TestSummary {
 export function parseRefactorResults(output: string): RefactorSummary {
   const improvements: string[] = [];
 
-  // Check for REFACTORED: (current format) or IMPROVEMENTS: (legacy format)
-  const refactoredMatch = output.match(/REFACTORED:\s*([\s\S]*?)(?=\n\n|\nREFACTOR_COUNT|\nAPPLIED|$)/i);
+  // Check for REFACTORED: (current format, handles markdown ## and **bold**)
+  const refactoredMatch = output.match(/(?:##\s*)?\*?\*?REFACTORED:?\*?\*?\s*\n([\s\S]*?)(?=\n\n|\n(?:##\s*)?\*?\*?(?:REFACTOR_COUNT|APPLIED):?\*?\*?|$)/i);
+  // Legacy format fallback
   const improvementsMatch = output.match(/IMPROVEMENTS:\s*([\s\S]*?)(?:IMPROVEMENT_COUNT:|$)/);
 
   const match = refactoredMatch || improvementsMatch;
