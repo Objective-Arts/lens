@@ -1,11 +1,11 @@
 ---
 name: test
-description: Write and run tests at specified level(s). Levels: unit, integration, e2e, all.
+description: Write and run tests. Tests are REQUIRED. All must pass.
 ---
 
 # /test [level]
 
-Write and run tests using testing canon patterns.
+Write and RUN tests. Tests are REQUIRED, not optional.
 
 ## First: Activate Workflow
 
@@ -13,93 +13,74 @@ Write and run tests using testing canon patterns.
 mkdir -p .claude && echo '{"skill":"test","started":"'$(date -Iseconds)'"}' > .claude/active-workflow.json
 ```
 
-## Step 0: Load Expert Context (MANDATORY)
+## ⚠️ STRICT REQUIREMENTS - NO JUDGMENT CALLS
 
-Before writing tests, read these expert skills:
+You MUST write and run tests. Not "consider testing" - WRITE TESTS.
 
-```
-Read: .claude/skills/dodds/SKILL.md       (Testing Trophy, integration-first)
-Read: .claude/skills/meszaros/SKILL.md    (xUnit patterns, test doubles)
-Read: .claude/skills/fowler-test/SKILL.md (test pyramid)
-Read: .claude/skills/feathers/SKILL.md    (characterization tests)
-```
+1. **MINIMUM COVERAGE** - At least one test per public function
+2. **HAPPY PATH** - Test the expected behavior works
+3. **ERROR CASES** - Test that errors are handled correctly
+4. **EDGE CASES** - Test boundary conditions
+5. **MUST RUN** - Execute tests with npm test/vitest/jest and verify they pass
+6. **ALL MUST PASS** - Zero failing tests allowed
 
-Apply these principles throughout testing. Skip if files don't exist.
+## FORBIDDEN (Phase will FAIL if detected):
+
+- Saying "testing would be beneficial" without writing tests
+- Writing tests that don't run
+- Leaving failing tests
+- Skipping error case testing
+- Writing trivial tests that don't verify behavior
+- Not running the tests
 
 ## Levels
 
-- `/test unit` - Unit tests only (pure logic, mocked dependencies)
-- `/test integration` - Integration tests only (component interactions, APIs)
-- `/test e2e` - E2E tests only (user journeys, full stack)
-- `/test all` - All appropriate levels (default)
-- `/test` - Same as `/test all`
-
-## Target
-
-If a path argument is provided after level, test that file/directory.
-If no path, test the code most recently written or modified in this session.
-
-## Canon Sources
-
-- **Dodds**: Testing Trophy - integration tests are the sweet spot
-- **Fowler**: Test pyramid - right level for the concern
-- **Meszaros**: Test doubles (stub/spy/mock/fake as appropriate)
-- **Feathers**: Characterization tests for legacy code
-
-## Test Level Decision Tree
-
-```
-Is it pure logic (no I/O)?
-├── Yes → Unit test (Meszaros patterns)
-└── No → Does it access database/external service?
-    ├── Yes → Integration test (Fowler pyramid middle)
-    └── No → Does it cross system boundaries?
-        ├── Yes → Integration test
-        └── No → Is it a critical user journey?
-            ├── Yes → E2E test (Dodds: sparingly)
-            └── No → Unit or integration based on complexity
-```
-
-## Language-Specific Tools
-
-| Language | Unit | Integration | E2E |
-|----------|------|-------------|-----|
-| **Java** | JUnit + Mockito | Spring TestContext, MockMvc | Selenium, REST Assured |
-| **TypeScript/Angular** | Jasmine + TestBed | HttpClientTestingModule | Playwright, Cypress |
-| **TypeScript/React** | Jest + RTL | MSW, Supertest | Playwright, Cypress |
-| **Python** | pytest + unittest.mock | pytest + fixtures | pytest + Selenium |
-| **Go** | testing + testify | httptest | chromedp |
-| **Rust** | #[test] + mockall | integration tests | - |
-| **C#/.NET** | xUnit + Moq | TestServer | Playwright |
+- `/test unit` - Unit tests only
+- `/test integration` - Integration tests only
+- `/test e2e` - E2E tests only
+- `/test all` or `/test` - All appropriate levels
 
 ## Process
 
-1. **Detect** language/framework from file extensions and project structure
-2. **Analyze** code to determine appropriate test levels
-3. **Write** tests at specified level(s) using idiomatic tools
-4. **Run** tests to verify they pass
-5. **Report** results
+1. **Find Code** - Identify what needs testing
+2. **Write Tests** - Create test files with real assertions
+3. **Run Tests** - Execute and verify they pass
+4. **Report** - Document what was tested
 
-## Output Format
+## REQUIRED Output Format
 
 ```markdown
-## Test Results
+## Tests: [target]
 
-### Tests Written:
-| Level | File | Count |
-|-------|------|-------|
-| Unit | [test file] | N |
-| Integration | [test file] | N |
+TESTS_WRITTEN:
+- src/__tests__/user.test.ts: [test descriptions]
+- src/__tests__/auth.test.ts: [test descriptions]
 
-### Run Results:
-TESTS_WRITTEN: N
+TESTS_RUN: yes (MANDATORY)
 TESTS_PASSED: N
-TESTS_FAILED: N
+TESTS_FAILED: 0 (must be zero)
+TEST_COUNT: N
+
+COVERAGE:
+- createUser: tested (happy path, validation error, duplicate email)
+- validateToken: tested (valid, expired, malformed)
+
+APPLIED:
+- [expert]: [decision]
+
 TEST_COMPLETE
 ```
 
-## Legacy Code (Feathers patterns)
+## Validation (Phase will FAIL if violated)
 
-If code is untested legacy:
-1. Write **characterization tests** first (capture current behavior)
-2. Then add focused tests for new/changed behavior
+- TEST_COUNT: 0 (no tests written)
+- TESTS_RUN: no (tests not executed)
+- TESTS_FAILED > 0 (failing tests)
+
+## 🛑 MANDATORY STOP
+
+After testing:
+- DO NOT proceed to next phase
+- DO NOT continue with "let me also..."
+
+**Your turn ends here.** Output TEST_COMPLETE and STOP.

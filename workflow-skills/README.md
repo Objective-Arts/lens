@@ -1,208 +1,140 @@
 # Workflow Skills
 
-Universal workflow skills for Claude Code. These are **not** canon skills (domain expert knowledge) - they are reusable workflow patterns that apply across all projects.
+Universal workflow skills for Claude Code. Each skill matches a Ralph phase exactly - use standalone or let Ralph orchestrate them.
 
-## Distinction from Canon Skills
+## The 8 Phases
 
-| Aspect | Canon Skills | Workflow Skills |
-|--------|--------------|-----------------|
-| **Purpose** | Domain expert knowledge (Bloch, Cherny, Hevery) | Universal workflow patterns |
-| **Location** | `canon-skills/` repo | `workflow-skills/` directory |
-| **Scope** | Language/framework-specific | Cross-cutting, any project |
-| **Examples** | `/bloch` (Java), `/cherny` (TypeScript) | `/review-hard`, `/test` |
-| **Installation** | Per-project via `cc-config profile apply` | Global or per-project |
+Ralph runs these phases in order. Each phase is also a standalone skill:
 
-## Canon-Driven Development
+| Phase | Skill | Purpose |
+|-------|-------|---------|
+| 1 | `/plan` | Create implementation plan |
+| 2 | `/structure-first` | Design types/interfaces |
+| 3 | `/implement` | Write code from plan |
+| 4 | `/refactor-check` | Clean up code |
+| 5 | `/adversarial-review` | Hard-ass review via Gemini |
+| 6 | `/static-analysis` | Run Qodana, fix issues |
+| 7 | `/test` | Write tests |
+| 8 | `/doc-code` | Generate documentation |
 
-Quality built in from the start, not forced by review when it's too late.
+**Orchestrator:** `/ralph-loop` runs all 8 phases autonomously.
 
-### Dual Workflow Model
+## Standalone Usage
 
-Choose your path based on whether code exists:
+Use skills individually when you don't need the full pipeline:
 
-| New Code Flow | Legacy Code Flow |
-|---------------|------------------|
-| PRD / Feature Request | Existing Codebase |
-| `/plan` → `/structure-first` → `/build-from-plan` | `/plan` → `/structure-first` → `/refactor-check` |
-| Canon: Bloch, Pike, Schneier, Evans, Gang of Four | Canon: Feathers, Fowler, Taleb, Evans, Liskov |
-
-Both flows converge at shared review gates:
-```
-[implementation] → /test → /review-hard → (issues? → fix → re-review)
-```
-
-### New Code Flow
-```
-PRD → /plan → /structure-first → /build-from-plan → /test → /review-hard
-```
-- Start with requirements (PRD, feature request)
-- Design types before implementation
-- Build incrementally from approved plan
-- Canon: architecture & language masters
-
-### Legacy Code Flow
-```
-Existing → /plan → /structure-first → /refactor-check → /test → /review-hard
-```
-- Start with existing code
-- Find seams for safe changes
-- Characterize before changing
-- Canon: Feathers, Fowler, refactoring masters
-
-### Autonomous Flow (Ralph Integration)
-```
-/plan → /structure-first → /ralph-loop (includes test + review internally)
+```bash
+/plan auth-system          # Just plan
+/implement                  # Just implement from plan
+/test unit          # Just write unit tests
+/adversarial-review        # Just review
 ```
 
-## Available Skills
+## Autonomous Usage
+
+Let Ralph orchestrate all phases:
+
+```bash
+/ralph-loop PRD.md         # Run all 8 phases per PRD item
+/ralph-loop --max 30       # Limit iterations
+```
+
+## Skill Details
 
 ### /plan
-Enter planning mode before implementation.
-
-**Use when**: Non-trivial tasks, new features, architectural decisions, multi-file changes.
+Create implementation plan before coding.
 
 ```
-/plan                      # Enter planning mode for current task
+/plan                      # Plan current task
 /plan auth-refactor        # Plan specific feature
 ```
 
 ### /structure-first
 Design data structures and interfaces before implementation.
 
-**Use when**: Starting a new feature, before complex logic, or refactoring.
-
 ```
-/structure-first           # Design structures for current task
-/structure-first UserAuth  # Design structures for specific feature
+/structure-first           # Design for current task
+/structure-first UserAuth  # Design for specific feature
 ```
 
-### /build-from-plan
-Implement code from an approved plan file.
-
-**Use when**: After `/plan` or `/structure-first` has been approved.
+### /implement
+Implement code from the approved plan.
 
 ```
-/build-from-plan                    # Build from most recent plan
-/build-from-plan auth-system        # Build from specific plan
-/build-from-plan --resume           # Resume partially-completed plan
-```
-
-### /doc-code
-Generate documentation using Procida's Diátaxis framework.
-
-**Use when**: After implementing new features or public APIs.
-
-```
-/doc-code                           # Document recent changes
-/doc-code src/services/             # Document specific path
-/doc-code --type=how-to             # Force specific doc type
+/implement                 # Implement from recent plan
+/implement auth-system     # Implement specific feature
 ```
 
 ### /refactor-check
-Systematically clean up messy code with clear before/after structure.
-
-**Use when**: After implementation, before testing. Tech debt cleanup, code smells.
+Systematically clean up code with before/after structure.
 
 ```
-/refactor-check              # Refactor most recent code
-/refactor-check src/legacy   # Refactor specific path
+/refactor-check            # Refactor recent code
+/refactor-check src/legacy # Refactor specific path
+```
+
+### /adversarial-review
+Hard-ass code review using Gemini.
+
+```
+/adversarial-review        # Review recent code
+/adversarial-review src/   # Review specific path
+```
+
+### /static-analysis
+Run Qodana static analysis and fix issues.
+
+```
+/static-analysis           # Analyze project
+/static-analysis src/api   # Analyze specific path
 ```
 
 ### /test
-Write tests at specified level(s) using testing canon patterns.
-
-**Use when**: After implementation and refactoring, before review.
+Write tests at specified level(s).
 
 ```
-/test                    # Analyze and write all levels
-/test unit               # Unit tests only
-/test integration        # Integration tests only
-/test e2e                # E2E tests only
-/test unit src/utils     # Unit tests for specific path
+/test               # All levels
+/test unit          # Unit tests only
+/test integration   # Integration tests only
+/test e2e           # E2E tests only
 ```
 
-### /review-hard
-Adversarial self-review with optional Gemini and Qodana validation.
-
-**Use when**: Before completion, commit, or PR.
+### /doc-code
+Generate documentation using Diátaxis framework.
 
 ```
-/review-hard           # Review most recent code
-/review-hard src/api   # Review specific path
-/review-hard --full    # Include Gemini + Qodana
+/doc-code                  # Document recent changes
+/doc-code src/services/    # Document specific path
 ```
 
 ### /ralph-loop
-Autonomous iteration loop for PRD implementation with quality gates.
-
-**Use when**: Autonomous PRD implementation, long-running sessions, Ralph integration.
+Autonomous orchestrator - runs all 8 phases per PRD item.
 
 ```
-/ralph-loop                  # Run with default PRD.md
-/ralph-loop PRD.md           # Specify PRD file
-/ralph-loop --max 30         # Limit iterations
-/ralph-loop --resume         # Continue from last session
+/ralph-loop                # Run with PRD.md
+/ralph-loop tasks.md       # Specify PRD file
+/ralph-loop --max 30       # Limit iterations
+/ralph-loop --resume       # Continue from last session
 ```
-
-See [Ralph Loop Tutorial](../documentation/tutorials/ralph-loop-basics.md) for full details.
 
 ## Installation
 
 ### Via cc-config (recommended)
 
 ```bash
-# Install a specific workflow skill
-cc-config workflow install review-hard -p .
-
-# Install all workflow skills
-cc-config workflow install --all -p .
-
-# Check status of installed skills
-cc-config workflow status -p .
-
-# Upgrade outdated skills
-cc-config workflow upgrade -p .
+cc-config profile apply javascript+ralph-integration .
 ```
 
-### Manual Installation
-
-Copy specific skills to a project:
+### Manual
 
 ```bash
-cp -r workflow-skills/review-hard your-project/.claude/skills/
+cp -r workflow-skills/* your-project/.claude/skills/
 ```
 
-### Global Installation (all projects)
+## Canon Skills vs Workflow Skills
 
-Copy to your global skills directory:
-
-```bash
-cp -r workflow-skills/* ~/.claude/skills/
-```
-
-## Creating New Workflow Skills
-
-1. Create directory: `workflow-skills/skill-name/`
-2. Create `SKILL.md` with frontmatter:
-
-```markdown
----
-name: skill-name
-description: Brief description for discovery
----
-
-# /skill-name [args]
-
-[Skill instructions...]
-```
-
-3. Skills are invoked as `/skill-name` in Claude Code
-
-## Quality Standards
-
-Workflow skills should:
-- Be language/framework agnostic where possible
-- Provide clear input/output formats
-- Include examples
-- Reference canon sources when applicable
-- Focus on ONE workflow concern
+| Aspect | Canon Skills | Workflow Skills |
+|--------|--------------|-----------------|
+| **Purpose** | Domain expert knowledge | Universal workflow |
+| **Examples** | `/bloch`, `/cherny`, `/dodds` | `/plan`, `/implement`, `/test` |
+| **Scope** | Language/framework-specific | Cross-cutting |

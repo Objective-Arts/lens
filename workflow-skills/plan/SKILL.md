@@ -1,186 +1,91 @@
 ---
 name: plan
-description: Enter planning mode before implementation. Use for non-trivial tasks, new features, or architectural decisions.
+description: Create implementation plan before coding. Plan file must exist with required sections before completion.
 ---
 
 # /plan
 
-Enter planning mode to design approach before writing code. Creates a plan file for user approval.
+Create a detailed, actionable implementation plan. No vague language. No optional sections.
 
-## Why This Skill Exists
+## First: Activate Workflow
 
-Without this skill, Claude skips planning and jumps straight to implementation. When asked to "plan", Claude typically:
+```bash
+mkdir -p .claude && echo '{"skill":"plan","started":"'$(date -Iseconds)'"}' > .claude/active-workflow.json
+```
 
-1. Thinks through the problem in chat
-2. Outlines steps in text
-3. Asks "does this look good?"
-4. Starts coding
+## ⚠️ STRICT REQUIREMENTS - NO JUDGMENT CALLS
 
-**The problem:** That plan lives in chat and disappears. It's not a tangible artifact.
+You MUST produce a plan with ALL sections below. No "TBD". No "as needed". No "if applicable".
 
-**This skill creates a persistent file** at `.claude/plans/[name].md` that you can:
-- Review before approving
-- Edit and refine
-- Refer back to during implementation
-- Commit to version control
-- Share with teammates
-
-The skill enforces discipline: plan first, create artifact, get approval, then implement.
-
-## When to Use
-
-- New feature implementation
-- Multiple valid approaches exist
-- Code modifications affecting existing behavior
-- Multi-file changes (3+ files)
-- Unclear requirements needing exploration
-- Architectural decisions
-
-## When NOT to Use
-
-- Single-line fixes, typos
-- Tasks with specific, detailed instructions
-- Pure research/exploration (use explore agent)
-
-## ⚠️ NO INTERVIEW QUESTIONS
-
-**Do NOT ask the user clarifying questions before planning.**
-
-- Do NOT use AskUserQuestion to ask about scope, approach, or preferences
-- Do NOT present multiple-choice options
-- Do NOT ask "should I do X or Y?"
-- Make reasonable assumptions based on the prompt
-- If the prompt says "use existing X", assume X exists
-- Proceed directly to exploration and planning
-
-If truly ambiguous, state your assumption in the plan and proceed.
+Every item must be SPECIFIC and ACTIONABLE.
 
 ## Process
 
 1. **Explore** - Use Glob, Grep, Read to understand existing code
-2. **Identify** - Find patterns, constraints, integration points
-3. **Invoke Canon** - Apply domain-specific expertise (see below)
-4. **Design** - Outline implementation approach
-5. **Document** - Write plan to `.claude/plans/` file
-6. **Present** - Exit plan mode for user approval
+2. **Design** - Create plan with ALL required sections
+3. **Save** - Write to `.claude/plans/[slug].md`
+4. **Stop** - Exit and wait for approval
 
-## ⚠️ MANDATORY: Invoke Canon Skills
+## ⚠️ NO INTERVIEW QUESTIONS
 
-**These are NOT optional. You MUST invoke the relevant canon skills before writing the plan.**
+- Do NOT ask clarifying questions before planning
+- Make reasonable assumptions
+- State assumptions in the plan and proceed
 
-Before designing, check the project's CLAUDE.md and profile for applicable canon skills. Invoke them to inform your plan:
-
-| Domain | Canon Skills | What They Inform |
-|--------|--------------|------------------|
-| Java | `/bloch` | API design, immutability, builders |
-| Python | `/hettinger`, `/ramalho` | Pythonic idioms, data model |
-| JavaScript/TS | `/kyle-simpson`, `/cherny` | Closures, type system |
-| Architecture | `/pike`, `/mcilroy` | Composition, Unix philosophy |
-| Data structures | `/linus` | Data structures first |
-| Security | `/schneier`, `/owasp` | Threat modeling, vulnerabilities |
-| Legacy code | `/feathers` | Seams, characterization tests |
-| Refactoring | `/fowler` | Code smells, safe refactoring |
-
-**Example**: Planning a Java authentication feature:
-1. Invoke `/bloch` for API design principles
-2. Invoke `/schneier` for security thinking
-3. Let these inform the approach before writing the plan
-
-## Plan File Format
+## MANDATORY Plan File Format
 
 ```markdown
 # Plan: [Feature/Task Name]
 
-## Problem Statement
-[What needs to be done and why]
+## FILES:
+- path/to/file.ts: purpose of this file
+- path/to/another.ts: purpose of this file
 
-## Approach
-[High-level strategy]
+## FUNCTIONS:
+- functionName(params): ReturnType (max N lines) - purpose
+- anotherFunction(params): ReturnType (max N lines) - purpose
 
-## Files to Modify
-- `path/to/file1.ts` - [what changes]
-- `path/to/file2.ts` - [what changes]
+## TYPES:
+- TypeName: { field: Type, field2: Type }
+- AnotherType: { field: Type }
 
-## Implementation Steps
-1. [First step]
-2. [Second step]
-3. [Third step]
+## INVARIANTS:
+- Specific condition that must always be true
+- Another specific invariant
 
-## Testing Strategy
-- [How to verify]
+## SECURITY:
+- Specific security measure to implement
+- Another specific security consideration
 
-## Risks/Considerations
-- [Potential issues]
+## TESTS:
+- Specific test case: [what it verifies]
+- Another test case: [what it verifies]
+
+## APPLIED:
+- [expert-name]: [specific planning decision based on their guidance]
+
+PLAN_COMPLETE
 ```
 
-## Output
+## DO NOT:
+- Be vague ("consider adding tests")
+- Leave sections empty
+- Say "as needed" or "if applicable"
+- Use "TBD" or "to be determined"
+- Make suggestions instead of decisions
+- Proceed without all sections complete
 
-After planning, present summary:
+## Validation (Phase will FAIL if violated)
 
-```markdown
-## Plan Ready
-
-**Task**: [brief description]
-**Files**: [count] files affected
-**Approach**: [one-line summary]
-
-Plan written to: `.claude/plans/[name].md`
-
-Ready for approval.
-```
-
----
+- Missing any of: FILES, FUNCTIONS, TYPES, INVARIANTS, SECURITY, TESTS
+- Contains "as needed", "if applicable", "TBD", "to be determined"
+- Contains "consider" without specific action
 
 ## 🛑 MANDATORY STOP
 
-**After outputting the plan summary above, you MUST STOP.**
-
+After outputting the plan:
 - DO NOT proceed to `/structure-first`
 - DO NOT start writing any code
-- DO NOT create any implementation files
-- DO NOT continue with "let me also..." or "I'll go ahead and..."
+- DO NOT continue with "let me also..."
 
-**Your turn ends here.** Output the plan summary and STOP. Wait for the user to explicitly type the next command.
-
-The user will type `/structure-first` when ready. Until then, do nothing.
-
-## Integration with Claude Code
-
-This skill works with Claude Code's built-in plan mode:
-- Use `EnterPlanMode` tool to start planning
-- Write plan to the designated plan file
-- Use `ExitPlanMode` tool when ready for approval
-
-## Dual Workflow: Entry Point for Both Flows
-
-`/plan` is the entry point for BOTH the New Code and Legacy Code workflows:
-
-```
-NEW CODE FLOW:
-PRD/Feature Request
-       ↓
-    /plan ──────► /structure-first ──────► /build-from-plan ──────► [review gates]
-       │
-       │ Different canon focus
-       │
-LEGACY CODE FLOW:
-Existing Code
-       ↓
-    /plan ──────► /structure-first ──────► /refactor-check ──────► [review gates]
-```
-
-### Canon Focus by Flow
-
-| Flow | Canon to Invoke |
-|------|-----------------|
-| New Code | `/bloch`, `/pike`, `/schneier` (design, architecture, security) |
-| Legacy | `/feathers`, `/fowler`, `/taleb` (seams, smells, risk) |
-
-### Determining Flow
-
-Ask yourself: **Am I building something new or improving something existing?**
-
-- **New** → Plan will feed into `/build-from-plan`
-- **Existing** → Plan will feed into `/refactor-check`
-
-Planning comes FIRST in both flows, before structure design and implementation.
+**Your turn ends here.** Output the plan and STOP.

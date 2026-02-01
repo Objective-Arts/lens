@@ -1,11 +1,11 @@
 ---
 name: static-analysis
-description: Run Qodana static analysis and fix issues found.
+description: Run Qodana static analysis. ALL issues must be fixed. No exceptions.
 ---
 
 # /static-analysis [path]
 
-Run Qodana static analysis on the codebase and fix issues found.
+Run Qodana static analysis. ALL issues must be fixed.
 
 ## First: Activate Workflow
 
@@ -13,77 +13,73 @@ Run Qodana static analysis on the codebase and fix issues found.
 mkdir -p .claude && echo '{"skill":"static-analysis","started":"'$(date -Iseconds)'"}' > .claude/active-workflow.json
 ```
 
-## Target
+## ⚠️ STRICT REQUIREMENTS - NO EXCEPTIONS
 
-If a path argument is provided, analyze that file/directory.
-If no argument, analyze the project root.
+You MUST fix EVERY issue Qodana and lint find. ALL of them. No exceptions.
+
+## FORBIDDEN (Phase will FAIL if detected):
+
+- Marking issues as "false positive" without proof
+- Saying "this is by design"
+- Skipping issues because they're LOW severity
+- Punting issues to "future work"
+- Making judgment calls about what's worth fixing
+- Leaving ANY issue unfixed
+
+**If an analyzer found it, YOU FIX IT. Period.**
 
 ## Process
 
-### Step 1: Run Qodana Scan
+### Step 1: Run Qodana Scan (MANDATORY)
 
 ```
 mcp__qodana__qodana_scan
   projectDir: <project path>
 ```
 
-### Step 2: Get Problems
+### Step 2: Get All Problems
 
 ```
 mcp__qodana__qodana_problems
   projectDir: <project path>
-  severity: "HIGH"
 ```
 
-### Step 3: Fix Issues
+### Step 3: Run Linting
 
-For each CRITICAL and HIGH severity issue:
+```bash
+npx tsc --noEmit
+npm run lint
+```
+
+### Step 4: Fix ALL Issues (MANDATORY - NO EXCEPTIONS)
+
+For EACH issue:
 1. Read the affected file
-2. Understand the problem
-3. Apply the fix using Edit tool
-4. Verify the fix
+2. Fix with Edit tool
+3. Verify the fix
+4. Record in ISSUES_FIXED
 
-## Output Format
+The ONLY exception: third-party library code with documented evidence.
 
-```markdown
-## Static Analysis: [path]
+## REQUIRED Output Format
 
-### Scan Results:
+```
+QODANA_RESULT: called - [N] issues
 
-| Severity | Count |
-|----------|-------|
-| Critical | N |
-| High | N |
-| Moderate | N |
-| Low | N |
+ISSUES_FOUND:
+[SEVERITY] description (file:line) [source: qodana/lint]
 
-### Issues Fixed:
+ISSUES_FIXED:
+[SEVERITY] description - FIXED
 
-| Severity | File | Issue | Status |
-|----------|------|-------|--------|
-| HIGH | src/api.ts:42 | Unused variable | Fixed |
-| HIGH | src/db.ts:15 | SQL injection risk | Fixed |
+UNFIXED: 0 (must be zero or phase fails)
 
-### Remaining Issues:
-
-| Severity | File | Issue | Reason |
-|----------|------|-------|--------|
-| MODERATE | src/utils.ts:8 | Complex function | Deferred |
-
-QODANA_ISSUES: N
-QODANA_FIXED: N
-STATIC_ANALYSIS_COMPLETE
+ANALYSIS_ISSUES: N
+VERIFIED_CLEAN: yes
 ```
 
-## Tool Errors
+## Validation (Phase will FAIL if violated)
 
-If Qodana is unavailable:
-```
-QODANA_ERROR: tool not available
-```
-
-If no issues found:
-```
-QODANA_ISSUES: 0
-STATIC_ANALYSIS_COMPLETE
-```
+- Qodana not called (unless unsupported project)
+- UNFIXED > 0
+- Contains "false positive", "by design", "won't fix" without evidence

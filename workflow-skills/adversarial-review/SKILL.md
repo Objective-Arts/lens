@@ -1,11 +1,11 @@
 ---
 name: adversarial-review
-description: Hard-ass code review via Gemini. Finds and fixes issues.
+description: Hard-ass code review via Gemini. ALL issues must be fixed. No exceptions.
 ---
 
-# /adversarial-review
+# /adversarial-review [path]
 
-Hard-ass code review using Gemini. Works standalone or as Ralph phase.
+Hard-ass code review using Gemini. ALL issues must be fixed.
 
 ## First: Activate Workflow
 
@@ -13,10 +13,20 @@ Hard-ass code review using Gemini. Works standalone or as Ralph phase.
 mkdir -p .claude && echo '{"skill":"adversarial-review","started":"'$(date -Iseconds)'"}' > .claude/active-workflow.json
 ```
 
-## Target
+## ⚠️ STRICT REQUIREMENTS - NO EXCEPTIONS
 
-If a path argument is provided, review that file/directory.
-If no argument, review recently modified files (git diff/log).
+You MUST fix EVERY issue Gemini identifies. ALL of them. No exceptions.
+
+## FORBIDDEN (Phase will FAIL if detected):
+
+- Marking issues as "application-level concern"
+- Saying "requires application code"
+- Punting issues to "future work"
+- Skipping issues because they're "operational" or "architectural"
+- Making judgment calls about what's worth fixing
+- Leaving ANY issue unfixed
+
+**If Gemini found it, YOU FIX IT. Period.**
 
 ## Process
 
@@ -31,26 +41,25 @@ If NO code exists, output "no code to review" and stop.
 ```
 mcp__gemini-reviewer__gemini_review
   code: <paste the source code>
-  focus: "general"
-  context: "Hard-ass code review. Check for: security vulnerabilities, performance issues, bugs, readability problems, and adversarial edge cases. Be thorough and find everything wrong."
+  focus: "adversarial"
+  context: "Adversarial code review. Think like an attacker. Find: security vulnerabilities, race conditions, edge cases that crash, input validation bypasses, resource exhaustion, privilege escalation. Be hostile and thorough."
 ```
 
 If tool unavailable, output: GEMINI_ERROR: tool not available
 
-### Step 3: Fix All Issues
+### Step 3: Fix ALL Issues (MANDATORY - NO EXCEPTIONS)
 
-Fix every CRITICAL and HIGH issue:
-1. Use Edit tool to fix the code
-2. Verify the fix is correct
-3. Record what you fixed
+For EACH issue Gemini identifies:
+1. Use Edit tool to fix the code NOW
+2. Verify the fix compiles/runs
+3. Record in ISSUES_FIXED
 
-Do NOT just report issues - actually fix them.
+If you truly cannot fix an issue (tool limitation), the phase FAILS.
 
-## Output Format
+## REQUIRED Output Format
 
 ```
 GEMINI_RESULT: called - [N] issues
-(or: GEMINI_RESULT: error - <reason>)
 
 ISSUES_FOUND:
 [SEVERITY] description (file:line)
@@ -58,6 +67,15 @@ ISSUES_FOUND:
 ISSUES_FIXED:
 [SEVERITY] description - FIXED
 
+UNFIXED: 0 (must be zero or phase fails)
+
 REVIEW_ISSUES: N
-VERIFIED_CLEAN: yes/no
+VERIFIED_CLEAN: yes
 ```
+
+## Validation (Phase will FAIL if violated)
+
+- Gemini not called
+- UNFIXED > 0
+- Contains "NOT FIXED" or "Application-Level"
+- Contains "application concern" excuses
