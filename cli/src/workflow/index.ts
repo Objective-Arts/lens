@@ -34,7 +34,7 @@ const WORKFLOW_PATHS = [
   // User's home directory alternatives
   path.resolve(process.env.HOME || '', '.claude/workflow-skills'),
   path.resolve(process.env.HOME || '', 'workflow-skills')
-].filter((p): p is string => typeof p === 'string');
+].filter((p): p is string => Boolean(p));
 
 /**
  * Get the workflow skills source path
@@ -89,7 +89,7 @@ export function getWorkflowSourceInfo(): WorkflowSource & { commit?: string; rem
  * List all available workflow skills from source.
  *
  * Workflow skills are universal patterns like ralph-loop, implement,
- * review-hard that apply across all projects.
+ * adversarial-review that apply across all projects.
  *
  * @returns Array of available workflow skills with name, path, and description
  *
@@ -296,7 +296,7 @@ export function installWorkflowSkill(
 /**
  * Install all workflow skills to a project.
  *
- * Copies all available workflow skills (ralph-loop, implement, review-hard, etc.)
+ * Copies all available workflow skills (ralph-loop, implement, adversarial-review, etc.)
  * to the project's `.claude/skills/` directory.
  *
  * @param projectPath - Target project directory

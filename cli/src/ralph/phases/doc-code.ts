@@ -54,9 +54,14 @@ export class DocCodePhase extends BasePhase {
 
     const expertGuidance = this.buildExpertGuidance(experts);
 
-    const prompt = DOC_PROMPT
+    let prompt = DOC_PROMPT
       .replace('{ITEM_TEXT}', item.text)
       .replace('{EXPERT_GUIDANCE}', expertGuidance || 'No expert guidance available.');
+
+    // Append corrective prompt for retry attempts
+    if (context.correctivePrompt) {
+      prompt = `${prompt}\n\n${context.correctivePrompt}`;
+    }
 
     const logPrefix = this.getLogPrefix(context);
     const output = await runClaude({

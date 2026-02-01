@@ -6,7 +6,6 @@
 
 import { BasePhase, PhaseContext, PhaseResult } from './types.js';
 import { runClaude } from '../process/claude.js';
-import { parsePhaseOutput } from '../display/phase-output.js';
 import { extractError } from '../parsers/claude-stream.js';
 import {
   hasNoCode, NO_CODE_INDICATORS, parseMcpPhaseOutput, buildPhaseMetrics,
@@ -80,7 +79,13 @@ export class AdversarialReviewPhase extends BasePhase {
   async execute(context: PhaseContext): Promise<PhaseResult> {
     const { item, projectPath, logsDir } = context;
 
-    const prompt = ADVERSARIAL_PROMPT.replace('{ITEM_TEXT}', item.text);
+    let prompt = ADVERSARIAL_PROMPT.replace('{ITEM_TEXT}', item.text);
+
+    // Append corrective prompt for retry attempts
+    if (context.correctivePrompt) {
+      prompt = `${prompt}\n\n${context.correctivePrompt}`;
+    }
+
     const output = await runClaude({
       prompt, projectPath, logDir: logsDir, logPrefix: this.getLogPrefix(context),
       allowedTools: ['Bash', 'Read', 'Write', 'Edit', 'Glob', 'Grep', 'mcp__gemini-reviewer__gemini_review'],

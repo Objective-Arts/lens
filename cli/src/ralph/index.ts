@@ -13,60 +13,49 @@ import { printError } from './display/terminal.js';
 import { hasConfig } from './config/loader.js';
 import { isClaudeAvailable } from './process/claude.js';
 
-async function main(): Promise<void> {
-  const args = process.argv.slice(2);
-
-  // Parse arguments
-  const options = parseArgs(args);
-
-  if (options.help) {
-    printHelp();
-    process.exit(0);
-  }
-
-  if (!options.prdPath) {
-    printError('PRD file path required. Usage: ralph <PRD.md>');
-    process.exit(1);
-  }
-
-  // Resolve paths
+/** Validate inputs and return resolved paths. Returns null and exits if invalid. */
+function validateInputs(options: ParsedArgs): { prdPath: string; projectPath: string } | null {
+  if (options.help) { printHelp(); process.exit(0); }
+  if (!options.prdPath) { printError('PRD file path required. Usage: ralph <PRD.md>'); process.exit(1); }
   const prdPath = path.resolve(options.prdPath);
-  const projectPath = path.dirname(prdPath);
+  if (!fs.existsSync(prdPath)) { printError(`PRD file not found: ${prdPath}`); process.exit(1); }
+  return { prdPath, projectPath: path.dirname(prdPath) };
+}
 
-  // Validate PRD exists
-  if (!fs.existsSync(prdPath)) {
-    printError(`PRD file not found: ${prdPath}`);
-    process.exit(1);
-  }
-
-  // Check for ralph config
+/** Check prerequisites are met. Exits if not. */
+async function checkPrerequisites(projectPath: string): Promise<void> {
   if (!hasConfig(projectPath)) {
-    printError(
-      'Ralph config not found.\n' +
-      'Run: cc-config profile apply <profile>+ralph-integration -p .'
-    );
+    printError('Ralph config not found.\nRun: cc-config profile apply <profile>+ralph-integration -p .');
     process.exit(1);
   }
-
-  // Check Claude is available
   if (!(await isClaudeAvailable())) {
     printError('Claude CLI not found. Install with: npm install -g @anthropic-ai/claude-code');
     process.exit(1);
   }
+}
 
-  // Run ralph
+/** Run ralph with error handling. */
+async function runWithErrorHandling(runOptions: RunnerOptions): Promise<void> {
   try {
-    await run({
-      prdPath,
-      projectPath,
-      skipReview: options.skipReview,
-      verbose: options.verbose,
-    });
+    await run(runOptions);
   } catch (err) {
-    const message = err instanceof Error ? err.message : String(err);
-    printError(message);
+    printError(err instanceof Error ? err.message : String(err));
     process.exit(1);
   }
+}
+
+async function main(): Promise<void> {
+  const options = parseArgs(process.argv.slice(2));
+  const paths = validateInputs(options);
+  if (!paths) return;
+
+  await checkPrerequisites(paths.projectPath);
+  await runWithErrorHandling({
+    prdPath: paths.prdPath,
+    projectPath: paths.projectPath,
+    skipReview: options.skipReview,
+    verbose: options.verbose,
+  });
 }
 
 interface ParsedArgs {
@@ -129,4 +118,7 @@ Prerequisites:
 `);
 }
 
-main();
+main().catch((err) => {
+  console.error('Fatal error:', err);
+  process.exit(1);
+});

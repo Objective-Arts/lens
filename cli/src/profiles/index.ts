@@ -1100,7 +1100,7 @@ async function copySkillToProject(
   skillName: string,
   category: SkillCategory,
   skillsDir: string,
-  canonPath: string
+  _canonPath: string
 ): Promise<SkillCopyResult> {
   let sourcePath = findSkillSourcePath(skillName);
   if (!sourcePath) {
@@ -1650,7 +1650,6 @@ export const exampleComposableProfile: ComposableProfile = {
   composable: true,
   skills: {
     security: ['owasp'],
-    tech: ['ceremony'],
     canon: ['abramov', 'dodds']
   },
   agents: ['css-expert', 'code-reviewer'],

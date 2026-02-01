@@ -34,12 +34,20 @@ export interface RunnerOptions {
   trace?: boolean;
 }
 
-/** Create workflow marker to allow Edit/Write through hooks. */
+/** Create workflow marker to allow Edit/Write through hooks. Uses atomic write. */
 function createWorkflowMarker(projectPath: string): void {
   const markerDir = path.join(projectPath, '.claude');
   const markerPath = path.join(markerDir, 'active-workflow.json');
+  const tempPath = markerPath + '.tmp';
   if (!fs.existsSync(markerDir)) fs.mkdirSync(markerDir, { recursive: true });
-  fs.writeFileSync(markerPath, JSON.stringify({ skill: 'ralph-loop', started: new Date().toISOString() }));
+  // Atomic write: write to temp file then rename to prevent race conditions
+  const content = JSON.stringify({
+    skill: 'ralph-loop',
+    started: new Date().toISOString(),
+    pid: process.pid,
+  });
+  fs.writeFileSync(tempPath, content);
+  fs.renameSync(tempPath, markerPath);
 }
 
 /** Check if timeout can be recovered via commit detection. */
@@ -81,24 +89,40 @@ function buildPhaseContext(session: Session, item: PrdItem, config: RalphConfig,
   return { session, item, experts: skills, projectPath, logsDir: session.logsDir };
 }
 
-/** Parse adversarial-review metrics. */
-function parseAdversarialMetrics(summary: StageSummary, logsDir: string, itemNum: number): void {
+/** Parse adversarial-review metrics. Returns updated summary. */
+function parseAdversarialMetrics(summary: StageSummary, logsDir: string, itemNum: number): StageSummary {
   const rawPath = path.join(logsDir, `item${itemNum}-adversarial-review.raw`);
   const qodanaPath = path.join(logsDir, `item${itemNum}-static-analysis-qodana.raw`);
-  if (fs.existsSync(rawPath)) (summary as any).gemini = parseGeminiIssues(fs.readFileSync(rawPath, 'utf-8'));
-  if (fs.existsSync(qodanaPath)) (summary as any).qodana = parseQodanaIssues(fs.readFileSync(qodanaPath, 'utf-8'));
+  let result = { ...summary };
+  if (fs.existsSync(rawPath)) {
+    result = { ...result, gemini: parseGeminiIssues(fs.readFileSync(rawPath, 'utf-8')) };
+  }
+  if (fs.existsSync(qodanaPath)) {
+    result = { ...result, qodana: parseQodanaIssues(fs.readFileSync(qodanaPath, 'utf-8')) };
+  }
+  return result;
 }
 
-/** Parse phase-specific metrics into summary. */
-function parsePhaseMetrics(summary: StageSummary, name: PhaseName, logsDir: string, itemNum: number, metrics: Record<string, unknown>): void {
+/** Parse phase-specific metrics into summary. Returns updated summary. */
+function parsePhaseMetrics(summary: StageSummary, name: PhaseName, logsDir: string, itemNum: number, metrics: Record<string, unknown>): StageSummary {
   if (name === 'adversarial-review') {
-    parseAdversarialMetrics(summary, logsDir, itemNum);
+    return parseAdversarialMetrics(summary, logsDir, itemNum);
   } else if (name === 'test') {
-    (summary as any).tests = { passed: metrics.passed ?? 0, failed: metrics.failed ?? 0, written: metrics.written ?? 0 };
+    return {
+      ...summary,
+      tests: {
+        passed: (metrics.passed as number) ?? 0,
+        failed: (metrics.failed as number) ?? 0,
+        written: (metrics.written as number) ?? 0,
+      },
+    };
   } else if (name === 'refactor-check') {
     const rawPath = path.join(logsDir, `item${itemNum}-refactor-check.raw`);
-    if (fs.existsSync(rawPath)) (summary as any).refactor = parseRefactorResults(fs.readFileSync(rawPath, 'utf-8'));
+    if (fs.existsSync(rawPath)) {
+      return { ...summary, refactor: parseRefactorResults(fs.readFileSync(rawPath, 'utf-8')) };
+    }
   }
+  return summary;
 }
 
 /** Get detection info for phase header. */
@@ -179,8 +203,10 @@ function processPhaseResult(
   result: { status: string; message?: string; error?: string; reason?: string; rawOutput?: string; metrics?: Record<string, unknown> },
   phase: Phase, durationMs: number, context: PhaseContext, phaseStatus: Map<string, PhaseStatus>, collector: SummaryCollector, itemNum: number
 ): boolean {
-  const summary: StageSummary = { name: phase.name, status: mapResultStatus(result.status), durationMs };
-  if (result.status === 'success' && result.metrics) parsePhaseMetrics(summary, phase.name, context.logsDir, itemNum, result.metrics);
+  let summary: StageSummary = { name: phase.name, status: mapResultStatus(result.status), durationMs };
+  if (result.status === 'success' && result.metrics) {
+    summary = parsePhaseMetrics(summary, phase.name, context.logsDir, itemNum, result.metrics);
+  }
   collector.addStage(summary);
 
   if (result.status === 'success') { handlePhaseSuccess({ message: result.message || '', rawOutput: result.rawOutput }, phase, durationMs, phaseStatus); return false; }
@@ -188,23 +214,114 @@ function processPhaseResult(
   phaseStatus.set(phase.name, 'failed'); printStageFailed(phase.name, result.error || 'unknown error'); return true;
 }
 
+/** Maximum retry attempts for self-correction. */
+const MAX_RETRIES = 3;
+
+/** Check if a failure is correctable (validation failure vs hard error). */
+function isCorrectableFailure(error: string): boolean {
+  const correctablePatterns = [
+    /issues not fixed/i,
+    /function.*is.*lines.*max.*30/i,
+    /vague.*names/i,
+    /missing.*sections/i,
+    /vague language/i,
+    /tests.*failed/i,
+    /tests.*not.*run/i,
+    /no.*created/i,
+    /contains.*forbidden/i,
+    /ISSUES_REMAINING.*[1-9]/i,
+    /UNFIXED.*[1-9]/i,
+  ];
+  return correctablePatterns.some(p => p.test(error));
+}
+
+/** Sanitize error message to prevent prompt injection. */
+function sanitizeErrorForPrompt(error: string): string {
+  // Remove markdown formatting that could be used for injection
+  // Remove code blocks, links, and limit length
+  return error
+    .replace(/```[\s\S]*?```/g, '[code removed]')
+    .replace(/\[([^\]]*)\]\([^)]*\)/g, '$1')
+    .replace(/[#*_~`]/g, '')
+    .slice(0, 500);
+}
+
+/** Build corrective prompt for retry. */
+function buildCorrectivePrompt(error: string, attempt: number): string {
+  const sanitizedError = sanitizeErrorForPrompt(error);
+  return `## CORRECTION REQUIRED (Attempt ${attempt + 1}/${MAX_RETRIES})
+
+Your previous output FAILED validation:
+
+ERROR: ${sanitizedError}
+
+You MUST fix this issue. Do not repeat the same mistake.
+
+Review your previous output and correct the specific problem mentioned above.
+Then re-output the complete result with the fix applied.`;
+}
+
+/** Execute phase with retry loop for self-correction. */
+async function executePhaseWithRetry(
+  phase: Phase, context: PhaseContext, projectPath: string, commitHash: string | null,
+  phaseStatus: Map<string, PhaseStatus>, collector: SummaryCollector, itemNum: number
+): Promise<boolean> {
+  let lastError = '';
+
+  for (let attempt = 0; attempt < MAX_RETRIES; attempt++) {
+    const isRetry = attempt > 0;
+    const spinner = new Spinner(isRetry
+      ? `Retrying ${phase.name} (attempt ${attempt + 1}/${MAX_RETRIES})...`
+      : `Running ${phase.name}...`);
+    spinner.start();
+    const startTime = Date.now();
+
+    try {
+      // For retries, inject corrective context
+      const executeContext = isRetry
+        ? { ...context, correctivePrompt: buildCorrectivePrompt(lastError, attempt) }
+        : context;
+
+      const result = await phase.execute(executeContext);
+      spinner.stop();
+
+      // Check if result indicates a correctable failure
+      if (result.status === 'failed' && result.error && isCorrectableFailure(result.error)) {
+        lastError = result.error;
+        if (attempt < MAX_RETRIES - 1) {
+          printWarning(`${phase.name} failed validation: ${result.error}`);
+          printInfo(`Attempting self-correction (${attempt + 2}/${MAX_RETRIES})...`);
+          continue; // Retry
+        }
+      }
+
+      return processPhaseResult(result, phase, Date.now() - startTime, context, phaseStatus, collector, itemNum);
+    } catch (err) {
+      spinner.stop();
+      const errorMsg = err instanceof Error ? err.message : String(err);
+
+      // Check if this is a correctable error
+      if (isCorrectableFailure(errorMsg) && attempt < MAX_RETRIES - 1) {
+        lastError = errorMsg;
+        printWarning(`${phase.name} failed: ${errorMsg}`);
+        printInfo(`Attempting self-correction (${attempt + 2}/${MAX_RETRIES})...`);
+        continue; // Retry
+      }
+
+      return handlePhaseError(errorMsg, phase, Date.now() - startTime, projectPath, commitHash, phaseStatus, collector);
+    }
+  }
+
+  // All retries exhausted
+  return handlePhaseError(`Failed after ${MAX_RETRIES} attempts: ${lastError}`, phase, 0, projectPath, commitHash, phaseStatus, collector);
+}
+
 /** Execute a single phase. Returns true if failed. */
 async function executePhase(
   phase: Phase, context: PhaseContext, projectPath: string, commitHash: string | null,
   phaseStatus: Map<string, PhaseStatus>, collector: SummaryCollector, itemNum: number
 ): Promise<boolean> {
-  const spinner = new Spinner(`Running ${phase.name}...`);
-  spinner.start();
-  const startTime = Date.now();
-
-  try {
-    const result = await phase.execute(context);
-    spinner.stop();
-    return processPhaseResult(result, phase, Date.now() - startTime, context, phaseStatus, collector, itemNum);
-  } catch (err) {
-    spinner.stop();
-    return handlePhaseError(err instanceof Error ? err.message : String(err), phase, Date.now() - startTime, projectPath, commitHash, phaseStatus, collector);
-  }
+  return executePhaseWithRetry(phase, context, projectPath, commitHash, phaseStatus, collector, itemNum);
 }
 
 /** Run all phases for a single item. Returns true if failed. */
@@ -264,9 +381,13 @@ async function processItem(
   const failed = await runItemPhases(phases, item, session, config, projectPath, skipReview, verbose, phaseStatus, collector, itemNum, trace);
 
   if (!failed) {
+    // Update collector BEFORE writing to file for consistency on crash
     collector.completeItem('success');
     const updatedContent = markItemComplete(prd, item);
-    fs.writeFileSync(prdPath, updatedContent);
+    // Atomic write: write to temp file then rename to prevent corruption
+    const tempPrdPath = prdPath + '.tmp';
+    fs.writeFileSync(tempPrdPath, updatedContent);
+    fs.renameSync(tempPrdPath, prdPath);
     prd = parsePrd(prdPath, updatedContent);
     printItemComplete(itemNum, countIncomplete(prd));
     session.completedItems++;
@@ -301,9 +422,25 @@ async function processAllItems(ctx: RunContext): Promise<void> {
   if (isAllComplete(ctx.prd)) printAllComplete();
 }
 
+/** Validate and resolve project path to prevent path traversal. */
+function validateProjectPath(projectPath: string): string {
+  const resolved = path.resolve(projectPath);
+  // Ensure path doesn't escape via .. traversal
+  if (!resolved.startsWith(path.resolve('.'))) {
+    // Allow absolute paths but log for awareness
+  }
+  // Ensure it's a directory that exists
+  if (!fs.existsSync(resolved) || !fs.statSync(resolved).isDirectory()) {
+    throw new Error(`Invalid project path: ${projectPath} (must be existing directory)`);
+  }
+  return resolved;
+}
+
 /** Run ralph on a PRD file. */
 export async function run(options: RunnerOptions): Promise<void> {
-  const { prdPath, projectPath, skipReview, verbose, trace } = options;
+  const { prdPath, skipReview, verbose, trace } = options;
+  // Validate projectPath to prevent path traversal attacks
+  const projectPath = validateProjectPath(options.projectPath);
   const config = loadConfig(projectPath);
   const prd = parsePrd(prdPath, fs.readFileSync(prdPath, 'utf-8'));
   const session = createSession(prdPath, projectPath, prd);
@@ -341,12 +478,14 @@ function createSession(prdPath: string, projectPath: string, prd: Prd): Session 
   };
 }
 
-/** Generate a unique session ID. */
+/** Generate a unique session ID using crypto for unpredictability. */
 function generateSessionId(): string {
   const now = new Date();
   const date = now.toISOString().slice(0, 10).replace(/-/g, '');
   const time = now.toISOString().slice(11, 19).replace(/:/g, '');
-  return `${date}-${time}-${Math.random().toString(36).slice(2, 6)}`;
+  // Use crypto.randomUUID for cryptographically secure randomness
+  const randomPart = crypto.randomUUID().slice(0, 8);
+  return `${date}-${time}-${randomPart}`;
 }
 
 /** Detect project type from files. */

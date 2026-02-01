@@ -62,7 +62,7 @@ export async function openSummary(htmlPath: string): Promise<void> {
     cmd = `xdg-open "${htmlPath}"`;
   }
 
-  return new Promise((resolve, reject) => {
+  return new Promise((resolve) => {
     exec(cmd, (error) => {
       if (error) {
         // Don't fail if browser can't open, just log

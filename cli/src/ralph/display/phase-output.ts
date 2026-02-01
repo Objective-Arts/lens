@@ -234,14 +234,6 @@ function printFixedSection(fixed: PhaseIssue[]): void {
   console.log('');
 }
 
-/** Build summary line parts. */
-function buildSummaryParts(output: PhaseOutput, totalCount: number): string[] {
-  const parts = [`${totalCount} found`, `${output.fixed.length} fixed`];
-  if (output.remaining > 0) parts.push(chalk.yellow(`${output.remaining} remaining`));
-  if (output.verifiedClean) parts.push(chalk.green('verified clean'));
-  return parts;
-}
-
 /** Print phase results to terminal. */
 export function printPhaseResults(phaseName: string, output: PhaseOutput, source?: string, maxIssues = 5): void {
   const totalIssues = output.issues.length + output.fixed.length;

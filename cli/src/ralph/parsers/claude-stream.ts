@@ -20,6 +20,12 @@ const SUCCESS_MARKERS = [
   'REVIEW_ISSUES:',
   'ANALYSIS_ISSUES:',
   'DOC_COMPLETE',
+  // Alternative markers for flexible matching
+  'VERIFIED_CLEAN:',
+  'GEMINI_RESULT:',
+  'QODANA_RESULT:',
+  'ISSUES_FOUND:',
+  'No issues found',
 ] as const;
 
 /** Failure markers - single source of truth */
@@ -33,19 +39,6 @@ const FAILURE_MARKERS = [
   'ANALYSIS_FAILED',
   'DOC_FAILED',
 ] as const;
-
-/** Claude stream message types */
-type MessageType = 'system' | 'user' | 'assistant' | 'result';
-
-interface StreamMessage {
-  type?: MessageType;
-  text?: string;
-  result?: string;
-  tool_use?: {
-    name: string;
-    input: Record<string, unknown>;
-  };
-}
 
 /**
  * Parse Claude's JSON stream file and extract the final result.
@@ -62,37 +55,44 @@ export function extractResult(jsonPath: string): string {
   return extractResultFromContent(content);
 }
 
+/** Extract all text values from JSON stream content. */
+function extractAllTextBlocks(content: string): string[] {
+  const blocks: string[] = [];
+  const pattern = /"text"\s*:\s*"((?:[^"\\]|\\.)*)"/g;
+  let match;
+  while ((match = pattern.exec(content)) !== null) {
+    blocks.push(unescapeJson(match[1]));
+  }
+  return blocks;
+}
+
 /**
  * Extract result from JSON stream content.
- * Pure function for testing.
+ * Concatenates all assistant text blocks to preserve APPLIED sections.
  */
 export function extractResultFromContent(content: string): string {
   // Try to find explicit "result" field first
-  const resultMatch = content.match(/"result"\s*:\s*"([^"]*(?:\\.[^"]*)*)"/);
+  const resultMatch = content.match(/"result"\s*:\s*"((?:[^"\\]|\\.)*)"/);
   if (resultMatch && resultMatch[1]) {
     return unescapeJson(resultMatch[1]);
   }
 
-  // Fall back to searching text blocks for markers
-  for (const marker of SUCCESS_MARKERS) {
-    const pattern = new RegExp(`"text"\\s*:\\s*"([^"]*${marker}[^"]*)"`, 'i');
-    const match = content.match(pattern);
-    if (match && match[1]) {
-      return unescapeJson(match[1]);
-    }
+  // Collect all text blocks and concatenate
+  const allBlocks = extractAllTextBlocks(content);
+  if (allBlocks.length === 0) return '';
+
+  // Check if any block contains a success marker
+  const hasSuccess = SUCCESS_MARKERS.some(marker =>
+    allBlocks.some(block => block.includes(marker))
+  );
+
+  // If successful, return all blocks concatenated to preserve APPLIED section
+  if (hasSuccess) {
+    return allBlocks.join('\n');
   }
 
-  // Last resort: get the last text block
-  const textMatches = content.match(/"text"\s*:\s*"([^"]+)"/g);
-  if (textMatches && textMatches.length > 0) {
-    const last = textMatches[textMatches.length - 1];
-    const valueMatch = last.match(/"text"\s*:\s*"([^"]+)"/);
-    if (valueMatch) {
-      return unescapeJson(valueMatch[1]);
-    }
-  }
-
-  return '';
+  // Last resort: return all blocks
+  return allBlocks.join('\n');
 }
 
 /**

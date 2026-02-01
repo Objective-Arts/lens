@@ -4,11 +4,8 @@
  * Experts: meszaros, fowler-test, dodds, hevery, feathers
  */
 
-import * as fs from 'fs';
-import * as path from 'path';
 import { BasePhase, PhaseContext, PhaseResult } from './types.js';
 import { runClaude } from '../process/claude.js';
-import { createSlug } from '../prd/parser.js';
 import { extractError } from '../parsers/claude-stream.js';
 
 const BUILD_TESTS_PROMPT = `Write tests for the implemented code and RUN them.
@@ -69,9 +66,14 @@ export class TestPhase extends BasePhase {
 
     const expertGuidance = this.buildExpertGuidance(experts);
 
-    const prompt = BUILD_TESTS_PROMPT
+    let prompt = BUILD_TESTS_PROMPT
       .replace('{ITEM_TEXT}', item.text)
       .replace('{EXPERT_GUIDANCE}', expertGuidance || 'No expert guidance available.');
+
+    // Append corrective prompt for retry attempts
+    if (context.correctivePrompt) {
+      prompt = `${prompt}\n\n${context.correctivePrompt}`;
+    }
 
     const logPrefix = this.getLogPrefix(context);
     const output = await runClaude({

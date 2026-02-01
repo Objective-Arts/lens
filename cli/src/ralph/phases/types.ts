@@ -6,7 +6,7 @@
  * Following liskov: substitutable phase implementations.
  */
 
-import type { Session, PhaseName, Skill, PrdItem, PHASE_ORDER } from '../types.js';
+import type { Session, PhaseName, Skill, PrdItem } from '../types.js';
 
 /**
  * Result of phase execution.
@@ -27,6 +27,8 @@ export interface PhaseContext {
   readonly experts: readonly Skill[];
   readonly projectPath: string;
   readonly logsDir: string;
+  /** Corrective prompt for retry attempts after validation failure. */
+  readonly correctivePrompt?: string;
 }
 
 /**

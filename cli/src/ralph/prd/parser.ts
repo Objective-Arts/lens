@@ -7,9 +7,7 @@
 
 import { Prd, PrdItem, ItemStatus } from '../types.js';
 
-/** Regex patterns for PRD checkboxes */
-const INCOMPLETE_PATTERN = /^(\s*)[-*]\s*\[\s*\]/;
-const COMPLETE_PATTERN = /^(\s*)[-*]\s*\[x\]/i;
+/** Regex pattern for PRD checkboxes */
 const CHECKBOX_PATTERN = /^(\s*)[-*]\s*\[([ x])\]\s*(.*)$/i;
 
 /**

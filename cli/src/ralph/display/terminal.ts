@@ -15,16 +15,12 @@ const STAGE_ICONS: Record<string, string> = {
   'plan': '📝',
   'structure-first': '🏗️',
   'implement': '🛠️',
-  'build-tests': '🧪',
+  'test': '🧪',
   'refactor-check': '🧹',
   'adversarial-review': '🔒',
   'static-analysis': '📊',
   'doc-code': '📚',
 };
-
-/** ANSI escape for dim text */
-const DIM = '\x1b[2m';
-const NC = '\x1b[0m';
 
 /**
  * Print the ralph header.
@@ -37,16 +33,16 @@ export function printHeader(prdPath: string, remaining: number, projectType: str
 
 /** All pipeline stage names in execution order - matches PHASE_ORDER */
 const PIPELINE_STAGES = [
-  'plan', 'structure-first', 'implement', 'build-tests',
-  'refactor-check', 'adversarial-review', 'static-analysis', 'doc-code'
+  'plan', 'structure-first', 'implement', 'refactor-check',
+  'adversarial-review', 'static-analysis', 'test', 'doc-code'
 ] as const;
 
 /** Short display names for pipeline progress */
 const STAGE_SHORT_NAMES: Record<string, string> = {
   'plan': 'plan',
   'structure-first': 'structure',
-  'implement': 'build',
-  'build-tests': 'test',
+  'implement': 'implement',
+  'test': 'test',
   'refactor-check': 'refactor',
   'adversarial-review': 'review',
   'static-analysis': 'scan',
@@ -112,10 +108,10 @@ export function printStageHeader(
 
   console.log('');
   console.log(chalk.dim('─'.repeat(84)));
-  // Add external tool indicator for review stages
-  const externalTools = (stage === 'adversarial-review' || stage === 'static-analysis')
-    ? chalk.dim(' (self-review)')
-    : '';
+  // Add external tool indicator for review/analysis stages
+  let externalTools = '';
+  if (stage === 'adversarial-review') externalTools = chalk.dim(' (+ Gemini)');
+  if (stage === 'static-analysis') externalTools = chalk.dim(' (+ Qodana)');
   console.log(`  ${icon}  ${chalk.cyan(capitalize(stage))}${progress}${externalTools}`);
 
   if (detection.skills.length > 0) {
@@ -132,49 +128,29 @@ export function printStageHeader(
 
 /**
  * Parse APPLIED section from Claude's output.
- * Handles:
- * - Standard format: "- expert: description"
- * - Bold format: "- **expert**: description"
- * - Multi-line descriptions (continued lines don't start with - or •)
+ * Handles multiple formats:
+ * - APPLIED: followed by bullets
+ * - **APPLIED:** markdown format
+ * - Lines starting with - or • or *
  */
 export function parseAppliedSection(rawOutput: string): string[] {
   const lines: string[] = [];
 
-  // Find APPLIED section - stop at next section marker or double newline
-  const appliedMatch = rawOutput.match(/APPLIED:\s*([\s\S]*?)(?=\n\n[A-Z]|\n[A-Z_]+:|\n```|$)/);
+  // Find APPLIED section - match various markdown formats
+  // Stop at double newline, uppercase markers, or end
+  const appliedMatch = rawOutput.match(/\*?\*?APPLIED:?\*?\*?\s*([\s\S]*?)(?=\n\n|\n[A-Z_]{3,}|\n#{1,3}\s|$)/i);
   if (!appliedMatch) return lines;
 
   const appliedBlock = appliedMatch[1].trim();
-  let currentLine = '';
 
   for (const line of appliedBlock.split('\n')) {
     const trimmed = line.trim();
-
-    // Skip empty lines and section markers
-    if (!trimmed || /^[A-Z_]+:/.test(trimmed) || trimmed.startsWith('```')) {
-      if (currentLine) {
-        lines.push(currentLine);
-        currentLine = '';
-      }
-      continue;
+    // Match various bullet formats: -, •, *, or numbered
+    if (/^[-•*]\s/.test(trimmed) || /^\d+\.\s/.test(trimmed)) {
+      // Remove bullet/number and ** markers
+      const content = trimmed.replace(/^[-•*]\s*/, '').replace(/^\d+\.\s*/, '').replace(/\*\*/g, '').trim();
+      if (content && content.includes(':')) lines.push(content);
     }
-
-    // New bullet point
-    if (trimmed.startsWith('-') || trimmed.startsWith('•')) {
-      if (currentLine) {
-        lines.push(currentLine);
-      }
-      // Remove bullet, normalize **bold** markers
-      currentLine = trimmed.slice(1).trim().replace(/\*\*/g, '');
-    } else if (currentLine) {
-      // Continuation of previous line - append with space
-      currentLine += ' ' + trimmed;
-    }
-  }
-
-  // Don't forget the last line
-  if (currentLine) {
-    lines.push(currentLine);
   }
 
   return lines;
@@ -182,7 +158,6 @@ export function parseAppliedSection(rawOutput: string): string[] {
 
 /**
  * Print how skills were actually applied (substantive usage).
- * Wraps long lines to fit terminal width.
  */
 export function printAppliedSkills(rawOutput: string | undefined): void {
   if (!rawOutput) return;
@@ -190,36 +165,9 @@ export function printAppliedSkills(rawOutput: string | undefined): void {
   const applied = parseAppliedSection(rawOutput);
   if (applied.length === 0) return;
 
-  const maxWidth = Math.min(process.stdout.columns || 80, 100) - 12; // 12 = indent
-
   console.log(`      ${chalk.dim('Applied:')}`);
   for (const line of applied) {
-    // Wrap long lines
-    if (line.length <= maxWidth) {
-      console.log(`        ${chalk.yellow('•')} ${line}`);
-    } else {
-      // First line with bullet
-      const words = line.split(' ');
-      let currentLine = '';
-      let isFirst = true;
-
-      for (const word of words) {
-        if (currentLine.length + word.length + 1 <= maxWidth) {
-          currentLine += (currentLine ? ' ' : '') + word;
-        } else {
-          // Print current line and start new one
-          const prefix = isFirst ? `        ${chalk.yellow('•')} ` : '          ';
-          console.log(prefix + currentLine);
-          currentLine = word;
-          isFirst = false;
-        }
-      }
-      // Print remaining
-      if (currentLine) {
-        const prefix = isFirst ? `        ${chalk.yellow('•')} ` : '          ';
-        console.log(prefix + currentLine);
-      }
-    }
+    console.log(`        ${chalk.yellow('•')} ${line}`);
   }
 }
 
@@ -235,7 +183,6 @@ export function printStageHeaderLegacy(stage: string, skills: string[]): void {
  * Print stage completion.
  */
 export function printStageComplete(stage: string, durationSec: number, message?: string): void {
-  const icon = STAGE_ICONS[stage] || '\u2713';
   const time = formatDuration(durationSec);
   const suffix = message ? ` - ${message}` : '';
   console.log(`  ${chalk.green('\u2713')} ${capitalize(stage)} done (${time})${suffix}`);

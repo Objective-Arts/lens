@@ -52,8 +52,7 @@ export function writeManifest(projectPath: string, manifest: CanonManifest): voi
 
 /**
  * Create a new manifest with default values
- * @param source - Source configuration
- * @param version - Optional manifest version for future migrations (P2)
+ * @param source - Source configuration (may include optional version for future migrations)
  */
 export function createManifest(
   source: CanonSource & { version?: number }

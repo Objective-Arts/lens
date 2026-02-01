@@ -45,7 +45,7 @@ function readMCPConfig(): { mcpServers?: Record<string, unknown> } {
         const content = fs.readFileSync(configPath, 'utf-8');
         return JSON.parse(content);
       } catch {
-        continue;
+        // Try next config location
       }
     }
   }

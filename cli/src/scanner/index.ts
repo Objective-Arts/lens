@@ -188,66 +188,64 @@ async function scanDirectory(dirPath: string, scope: ConfigScope, type: ConfigIt
   return items;
 }
 
-async function scanSkillOrCommandDir(dirPath: string, scope: ConfigScope, type: ConfigItemType): Promise<ConfigItem | null> {
+/** Resolve symlink path, returning null if broken. */
+function resolveSymlink(dirPath: string): { isSymlink: boolean; realPath: string; target?: string } | null {
   const stats = fs.lstatSync(dirPath);
-  const isSymlink = stats.isSymbolicLink();
-  let symlinkTarget: string | undefined;
-  let realPath = dirPath;
-
-  if (isSymlink) {
-    try {
-      symlinkTarget = fs.readlinkSync(dirPath);
-      realPath = fs.realpathSync(dirPath);
-    } catch {
-      // Broken symlink
-      return null;
-    }
+  if (!stats.isSymbolicLink()) {
+    return { isSymlink: false, realPath: dirPath };
   }
+  try {
+    return {
+      isSymlink: true,
+      realPath: fs.realpathSync(dirPath),
+      target: fs.readlinkSync(dirPath),
+    };
+  } catch {
+    return null; // Broken symlink
+  }
+}
 
-  // Find the main content file
+/** Find content file in skill/command directory. */
+function findContentFile(realPath: string): { path?: string; content: string } {
   const possibleFiles = ['SKILL.md', 'skill.md', 'index.md', 'README.md'];
-  let contentFile: string | undefined;
-  let content = '';
 
   for (const file of possibleFiles) {
     const filePath = path.join(realPath, file);
     if (fs.existsSync(filePath)) {
-      contentFile = filePath;
-      content = fs.readFileSync(filePath, 'utf-8');
-      break;
+      return { path: filePath, content: fs.readFileSync(filePath, 'utf-8') };
     }
   }
 
-  // Also check for .md files directly in the directory
-  if (!contentFile) {
-    // Ensure realPath is a directory before trying to read it
-    const realStats = fs.statSync(realPath);
-    if (realStats.isDirectory()) {
-      const mdFiles = fs.readdirSync(realPath).filter(f => f.endsWith('.md'));
-      if (mdFiles.length > 0) {
-        contentFile = path.join(realPath, mdFiles[0]);
-        content = fs.readFileSync(contentFile, 'utf-8');
-      }
+  // Fallback: first .md file in directory
+  const realStats = fs.statSync(realPath);
+  if (realStats.isDirectory()) {
+    const mdFiles = fs.readdirSync(realPath).filter(f => f.endsWith('.md'));
+    if (mdFiles.length > 0) {
+      const filePath = path.join(realPath, mdFiles[0]);
+      return { path: filePath, content: fs.readFileSync(filePath, 'utf-8') };
     }
   }
+  return { content: '' };
+}
 
-  const name = path.basename(dirPath);
-  const tokens = estimateTokens(content);
+async function scanSkillOrCommandDir(dirPath: string, scope: ConfigScope, type: ConfigItemType): Promise<ConfigItem | null> {
+  const resolved = resolveSymlink(dirPath);
+  if (!resolved) return null;
+
+  const { content } = findContentFile(resolved.realPath);
 
   return {
     type,
-    name,
+    name: path.basename(dirPath),
     scope,
     path: dirPath,
-    isSymlink,
-    symlinkTarget,
-    tokens,
+    isSymlink: resolved.isSymlink,
+    symlinkTarget: resolved.target,
+    tokens: estimateTokens(content),
     content,
     dependencies: [],
     referencedBy: [],
-    metadata: {
-      description: extractDescription(content)
-    }
+    metadata: { description: extractDescription(content) },
   };
 }
 
@@ -339,17 +337,16 @@ function buildDependencies(items: ConfigItem[], claudeMds: (Awaited<ReturnType<t
   }
 }
 
-function generateSummary(items: ConfigItem[], claudeMds: (Awaited<ReturnType<typeof parseClaudeMd>> | null)[]): ScanSummary {
-  const byType: Record<ConfigItemType, number> = {
-    skill: 0, command: 0, agent: 0, memory: 0, settings: 0, hook: 0, mcp: 0
-  };
-  const byScope: Record<ConfigScope, number> = {
-    global: 0, project: 0, plugin: 0
-  };
-  const tokensByScope: Record<ConfigScope, number> = {
-    global: 0, project: 0, plugin: 0
-  };
-
+/** Count items by type and scope. */
+function countItems(items: ConfigItem[]): {
+  byType: Record<ConfigItemType, number>;
+  byScope: Record<ConfigScope, number>;
+  tokensByScope: Record<ConfigScope, number>;
+  totalTokens: number;
+} {
+  const byType: Record<ConfigItemType, number> = { skill: 0, command: 0, agent: 0, memory: 0, settings: 0, hook: 0, mcp: 0 };
+  const byScope: Record<ConfigScope, number> = { global: 0, project: 0, plugin: 0 };
+  const tokensByScope: Record<ConfigScope, number> = { global: 0, project: 0, plugin: 0 };
   let totalTokens = 0;
 
   for (const item of items) {
@@ -358,62 +355,56 @@ function generateSummary(items: ConfigItem[], claudeMds: (Awaited<ReturnType<typ
     totalTokens += item.tokens;
     tokensByScope[item.scope] += item.tokens;
   }
+  return { byType, byScope, tokensByScope, totalTokens };
+}
 
-  // Find conflicts (same name in multiple scopes)
-  const conflicts: ConfigConflict[] = [];
+/** Find items with same name in multiple scopes. */
+function findConflicts(items: ConfigItem[]): ConfigConflict[] {
   const nameMap = new Map<string, ConfigItem[]>();
-
   for (const item of items) {
     const key = `${item.type}:${item.name}`;
-    if (!nameMap.has(key)) {
-      nameMap.set(key, []);
-    }
+    if (!nameMap.has(key)) nameMap.set(key, []);
     nameMap.get(key)!.push(item);
   }
 
-  for (const [key, itemsWithName] of nameMap) {
-    if (itemsWithName.length > 1) {
+  return Array.from(nameMap.entries())
+    .filter(([, itemsWithName]) => itemsWithName.length > 1)
+    .map(([key, itemsWithName]) => {
       const [type, name] = key.split(':');
-      conflicts.push({
-        name,
-        type: type as ConfigItemType,
-        locations: itemsWithName.map(i => i.path)
-      });
-    }
-  }
+      return { name, type: type as ConfigItemType, locations: itemsWithName.map(i => i.path) };
+    });
+}
 
-  // Find missing references
-  const missingReferences: MissingReference[] = [];
-  const allItemNames = new Set(items.map(i => i.name));
-
+/** Find skill references that don't exist. */
+function findMissingReferences(
+  claudeMds: (Awaited<ReturnType<typeof parseClaudeMd>> | null)[],
+  allItemNames: Set<string>
+): MissingReference[] {
+  const missing: MissingReference[] = [];
   for (const claudeMd of claudeMds) {
     if (!claudeMd) continue;
-
     for (const skillRef of claudeMd.skillReferences) {
       if (!allItemNames.has(skillRef)) {
-        missingReferences.push({
-          referencedName: skillRef,
-          referencedIn: claudeMd.path,
-          referenceType: 'skill'
-        });
+        missing.push({ referencedName: skillRef, referencedIn: claudeMd.path, referenceType: 'skill' });
       }
     }
   }
+  return missing;
+}
 
-  // Find unused items (not referenced anywhere)
-  const unusedItems = items
-    .filter(i => i.type === 'skill' && i.referencedBy.length === 0)
-    .map(i => i.name);
+function generateSummary(items: ConfigItem[], claudeMds: (Awaited<ReturnType<typeof parseClaudeMd>> | null)[]): ScanSummary {
+  const counts = countItems(items);
+  const conflicts = findConflicts(items);
+  const allItemNames = new Set(items.map(i => i.name));
+  const missingReferences = findMissingReferences(claudeMds, allItemNames);
+  const unusedItems = items.filter(i => i.type === 'skill' && i.referencedBy.length === 0).map(i => i.name);
 
   return {
     totalItems: items.length,
-    byType,
-    byScope,
-    totalTokens,
-    tokensByScope,
+    ...counts,
     conflicts,
     missingReferences,
-    unusedItems
+    unusedItems,
   };
 }
 

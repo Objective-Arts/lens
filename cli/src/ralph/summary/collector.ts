@@ -19,11 +19,11 @@ import {
 
 /** Collector for building run summary incrementally */
 export class SummaryCollector {
-  private sessionId: string;
-  private startTime: Date;
-  private prdPath: string;
-  private projectType: string;
-  private totalItems: number;
+  private readonly sessionId: string;
+  private readonly startTime: Date;
+  private readonly prdPath: string;
+  private readonly projectType: string;
+  private readonly totalItems: number;
   private items: ItemSummary[] = [];
   private currentItem: Partial<ItemSummary> | null = null;
   private currentStages: StageSummary[] = [];

@@ -19,7 +19,7 @@ const MAX_NAME_LENGTH = 100;
  * Prevents path injection via names like "../../../etc/passwd"
  */
 export function isValidName(name: string): boolean {
-  if (!name || typeof name !== 'string') {
+  if (!name) {
     return false;
   }
 
@@ -37,7 +37,7 @@ export function isValidName(name: string): boolean {
  * @returns Normalized absolute path if valid, null if invalid
  */
 export function validateProjectPath(projectPath: string, allowedRoot?: string): string | null {
-  if (!projectPath || typeof projectPath !== 'string') {
+  if (!projectPath) {
     return null;
   }
 

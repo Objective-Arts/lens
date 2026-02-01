@@ -11,13 +11,11 @@ import * as path from 'path';
 import * as yaml from 'yaml';
 import type {
   PhaseName,
-  PhaseConfig,
   WorkflowPhasesConfig,
   KeywordRule,
   KeywordDetectionConfig,
   CompiledKeywordRule,
   ExpertDetection,
-  PHASE_ORDER,
 } from '../types.js';
 
 // =============================================================================

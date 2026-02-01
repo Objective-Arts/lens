@@ -83,9 +83,15 @@ export class StaticAnalysisPhase extends BasePhase {
     const { item, experts, projectPath, logsDir } = context;
 
     const expertGuidance = this.buildExpertGuidance(experts);
-    const prompt = STATIC_ANALYSIS_PROMPT
+    let prompt = STATIC_ANALYSIS_PROMPT
       .replace('{ITEM_TEXT}', item.text)
       .replace('{EXPERT_GUIDANCE}', expertGuidance || '');
+
+    // Append corrective prompt for retry attempts
+    if (context.correctivePrompt) {
+      prompt = `${prompt}\n\n${context.correctivePrompt}`;
+    }
+
     const output = await runClaude({
       prompt, projectPath, logDir: logsDir, logPrefix: this.getLogPrefix(context),
       allowedTools: ['Bash', 'Read', 'Write', 'Edit', 'Glob', 'Grep', 'mcp__qodana__qodana_scan', 'mcp__qodana__qodana_problems'],

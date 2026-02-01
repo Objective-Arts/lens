@@ -20,7 +20,6 @@ import {
   isServerInstalled,
   isServerEnabled,
   addServerToRegistry,
-  getRegistryPath,
   ensureRegistryDir,
   getMcpConfigPath
 } from '../../mcp/index.js';

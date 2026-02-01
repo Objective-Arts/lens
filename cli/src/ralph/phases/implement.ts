@@ -78,10 +78,15 @@ export class ImplementPhase extends BasePhase {
     const planContent = fs.readFileSync(planPath, 'utf-8');
     const expertGuidance = this.buildExpertGuidance(experts);
 
-    const prompt = IMPLEMENT_PROMPT
+    let prompt = IMPLEMENT_PROMPT
       .replace('{ITEM_TEXT}', item.text)
       .replace('{PLAN_CONTENT}', planContent)
       .replace('{EXPERT_GUIDANCE}', expertGuidance || 'No expert guidance available.');
+
+    // Append corrective prompt for retry attempts
+    if (context.correctivePrompt) {
+      prompt = `${prompt}\n\n${context.correctivePrompt}`;
+    }
 
     const logPrefix = this.getLogPrefix(context);
     const output = await runClaude({
