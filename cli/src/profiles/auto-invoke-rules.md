@@ -85,8 +85,8 @@ Copy this table into CLAUDE.md or integrate into profile generation.
 | Context | Action |
 |---------|--------|
 | Starting implementation of a feature or task | INVOKE `/plan` first |
-| Feature implementation complete | INVOKE `/test` then `/review-hard` |
-| Before commit or PR | INVOKE `/review-hard` |
+| Feature implementation complete | INVOKE `/test` then `/adversarial-review` |
+| Before commit or PR | INVOKE `/adversarial-review` |
 | Review finds critical issues | Fix immediately before continuing |
 | Writing new code from scratch | INVOKE `/structure-first` then `/build-from-plan` |
 | Refactoring existing code | INVOKE `/test` first, then refactor, then `/test` again |

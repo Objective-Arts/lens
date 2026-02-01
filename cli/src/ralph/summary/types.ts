@@ -66,6 +66,16 @@ export interface ItemSummary {
   readonly stages: StageSummary[];
 }
 
+/** Production readiness check result */
+export interface ProductionCheckSummary {
+  readonly status: 'success' | 'failed' | 'skipped';
+  readonly message: string;
+  readonly critical: number;
+  readonly high: number;
+  readonly medium: number;
+  readonly low: number;
+}
+
 /** Full run summary */
 export interface RunSummary {
   readonly sessionId: string;
@@ -78,4 +88,5 @@ export interface RunSummary {
   readonly completedItems: number;
   readonly failedItems: number;
   readonly items: ItemSummary[];
+  productionCheck?: ProductionCheckSummary;
 }

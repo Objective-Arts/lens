@@ -23,17 +23,36 @@ const __dirname = path.dirname(__filename);
 export function generateSummaryHtml(summary: RunSummary, outputDir: string): string {
   // Read template
   const templatePath = path.join(__dirname, '../../ui/summary.html');
+
+  if (!fs.existsSync(templatePath)) {
+    console.error(`Summary template not found: ${templatePath}`);
+    throw new Error(`Summary template not found: ${templatePath}`);
+  }
+
   let template = fs.readFileSync(templatePath, 'utf-8');
 
-  // Embed data as script tag
-  const dataScript = `<script id="ralph-summary-data" type="application/json">${JSON.stringify(summary, null, 2)}</script>`;
+  // Verify template has closing body tag
+  if (!template.includes('</body>')) {
+    console.error('Summary template missing </body> tag');
+    throw new Error('Summary template missing </body> tag');
+  }
 
-  // Insert before closing body tag
-  template = template.replace('</body>', `${dataScript}\n</body>`);
+  // Embed data as script tag - MUST be before the render script runs
+  const dataScript = `<script id="ralph-summary-data" type="application/json">\n${JSON.stringify(summary, null, 2)}\n</script>`;
+
+  // Insert BEFORE the main script (which calls render()), not at end of body
+  // The main script starts with <script>\n'use strict';
+  template = template.replace("<script>\n'use strict';", `${dataScript}\n<script>\n'use strict';`);
 
   // Write output file
   const outputPath = path.join(outputDir, `ralph-summary-${summary.sessionId}.html`);
   fs.writeFileSync(outputPath, template);
+
+  // Verify data was embedded
+  const written = fs.readFileSync(outputPath, 'utf-8');
+  if (!written.includes('ralph-summary-data')) {
+    console.error('Failed to embed summary data in HTML');
+  }
 
   // Also write JSON for reference
   const jsonPath = path.join(outputDir, `ralph-summary-${summary.sessionId}.json`);

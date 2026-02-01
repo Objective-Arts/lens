@@ -1,0 +1,18 @@
+{
+  "mcpServers": {
+    "gemini-reviewer": {
+      "type": "stdio",
+      "command": "node",
+      "args": [
+        "/Users/steve/local-tech-projects/claude-optimal/mcp-servers/gemini-reviewer/index.js"
+      ]
+    },
+    "qodana": {
+      "type": "stdio",
+      "command": "node",
+      "args": [
+        "/Users/steve/local-tech-projects/claude-optimal/mcp-servers/qodana/dist/index.js"
+      ]
+    }
+  }
+}

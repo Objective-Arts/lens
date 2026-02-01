@@ -11,7 +11,18 @@ import { runClaude } from '../process/claude.js';
 import { createSlug } from '../prd/parser.js';
 import { extractError } from '../parsers/claude-stream.js';
 
-const PLAN_PROMPT = `Create an implementation plan for this PRD item.
+const PLAN_PROMPT = `## NON-NEGOTIABLE: OUTPUT THE PLAN DIRECTLY - DO NOT WRITE TO A FILE
+
+Before you start:
+1. Output the plan DIRECTLY in your response - do NOT write it to a file first
+2. Use the EXACT section headers shown below (FILES:, FUNCTIONS:, etc.)
+3. Do NOT summarize - output the complete plan
+
+This is not optional. The phase fails if you write to a file instead of outputting directly.
+
+---
+
+Create an implementation plan for this PRD item.
 
 PRD ITEM: {ITEM_TEXT}
 
@@ -85,6 +96,8 @@ export class PlanPhase extends BasePhase {
       projectPath,
       logDir: logsDir,
       logPrefix,
+      // No Write/Edit - plan must be OUTPUT directly, phase saves it
+      allowedTools: ['Read', 'Glob', 'Grep', 'Bash'],
     });
 
     if (!output.success) {
@@ -92,11 +105,15 @@ export class PlanPhase extends BasePhase {
       return this.failed(`Planning failed: ${error} (see ${output.rawPath})`);
     }
 
-    // Validate all required sections are present
-    const requiredSections = ['FILES:', 'FUNCTIONS:', 'TYPES:', 'INVARIANTS:', 'SECURITY:', 'TESTS:'];
-    const missingSections = requiredSections.filter(section => !output.result.includes(section));
+    // Validate all required sections are present (handle markdown bold)
+    const requiredSections = ['FILES', 'FUNCTIONS', 'TYPES', 'INVARIANTS', 'SECURITY', 'TESTS'];
+    const missingSections = requiredSections.filter(section => {
+      // Match "SECTION:" or "**SECTION:**" or "## SECTION"
+      const pattern = new RegExp(`(\\*\\*)?${section}:?\\*?\\*?`, 'i');
+      return !pattern.test(output.result);
+    });
     if (missingSections.length > 0) {
-      return this.failed(`Plan missing required sections: ${missingSections.join(', ')}`);
+      return this.failed(`Plan missing required sections: ${missingSections.map(s => s + ':').join(', ')}`);
     }
 
     // Check for vague language that indicates judgment calls

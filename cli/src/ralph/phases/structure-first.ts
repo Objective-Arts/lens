@@ -11,7 +11,16 @@ import { runClaude } from '../process/claude.js';
 import { createSlug } from '../prd/parser.js';
 import { extractError } from '../parsers/claude-stream.js';
 
-const STRUCTURE_PROMPT = `Design and CREATE data structures and types for this PRD item.
+const STRUCTURE_PROMPT = `## NON-NEGOTIABLE: CREATE ACTUAL TYPE FILES
+
+Before you start: You WILL create real type files using Write tool. Not describe them.
+No "any" types. No "unknown." No TODOs. No "will be defined later."
+
+This is not optional. The phase fails if type files aren't actually created.
+
+---
+
+Design and CREATE data structures and types for this PRD item.
 
 PRD ITEM: {ITEM_TEXT}
 

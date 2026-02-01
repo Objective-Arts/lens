@@ -27,8 +27,8 @@ export interface PhaseContext {
   readonly experts: readonly Skill[];
   readonly projectPath: string;
   readonly logsDir: string;
-  /** Corrective prompt for retry attempts after validation failure. */
-  readonly correctivePrompt?: string;
+  /** Corrective prompt for retry attempts after validation failure. Mutable for retry logic. */
+  correctivePrompt?: string;
 }
 
 /**

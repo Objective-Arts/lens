@@ -59,6 +59,21 @@ describe('IndependentReviewPhase.parseIssuesFromOutput', () => {
       const issues = parseIssues(output);
       expect(issues).toHaveLength(3);
     });
+
+    it('parses Gemini **[SEVERITY]** format', () => {
+      const output = `
+- **[HIGH]** Missing runtime type check - typeof ms !== 'number' not validated (formatDuration.ts:32)
+- **[MEDIUM]** Redundant zero check (formatDuration.ts:37-39)
+- **[LOW]** Missing test for boundary values (formatDuration.test.ts)
+- **[INFO]** Potential regex backtracking
+`;
+      const issues = parseIssues(output);
+      expect(issues).toHaveLength(4);
+      expect(issues[0].severity).toBe('HIGH');
+      expect(issues[0].description).toContain('Missing runtime type check');
+      expect(issues[0].file).toBe('formatDuration.ts');
+      expect(issues[1].severity).toBe('MODERATE'); // MEDIUM normalized to MODERATE
+    });
   });
 
   describe('does NOT false-match common words', () => {

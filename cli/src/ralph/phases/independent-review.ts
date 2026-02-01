@@ -234,7 +234,7 @@ export class IndependentReviewPhase extends BasePhase {
     const stream: StreamCallbacks = {
       onToolCall: (name) => {
         if (name.includes('gemini') && !geminiShown) {
-          process.stdout.write(`      ${chalk.magenta('◆')} ${chalk.dim('Calling Gemini...')}\n`);
+          process.stdout.write(`\n      ${chalk.magenta('◆')} ${chalk.dim('Calling Gemini...')}`);
           geminiShown = true;
         }
       },
@@ -382,20 +382,22 @@ export class IndependentReviewPhase extends BasePhase {
 
     // Patterns ordered from most specific to most general
     const patterns = [
+      // Gemini's actual format: - **[SEVERITY]** description (file:line)
+      new RegExp(`^[-*•]\\s*\\*\\*\\[(${severities})\\]\\*\\*\\s+(.+?)(?:\\s+\\(([^:)]+?)(?::(\\d+(?:-\\d+)?))?\\))?$`, 'gmi'),
       // [SEVERITY] description (file:line) - brackets are unambiguous
-      new RegExp(`\\[(${severities})\\]\\s+(.+?)(?:\\s+\\(([^:)]+)(?::(\\d+))?\\))?$`, 'gmi'),
+      new RegExp(`\\[(${severities})\\]\\s+(.+?)(?:\\s+\\(([^:)]+?)(?::(\\d+))?\\))?$`, 'gmi'),
       // **SEVERITY**: description or **SEVERITY** description
-      new RegExp(`\\*\\*(${severities})\\*\\*[:\\s]+(.+?)(?:\\s+\\(([^:)]+)(?::(\\d+))?\\))?$`, 'gmi'),
+      new RegExp(`\\*\\*(${severities})\\*\\*[:\\s]+(.+?)(?:\\s+\\(([^:)]+?)(?::(\\d+))?\\))?$`, 'gmi'),
       // - [SEVERITY] or - **SEVERITY**: list items with clear markers
-      new RegExp(`^[-*•]\\s*(?:\\[|\\*\\*)(${severities})(?:\\]|\\*\\*)[:\\s]+(.+?)(?:\\s+\\(([^:)]+)(?::(\\d+))?\\))?$`, 'gmi'),
+      new RegExp(`^[-*•]\\s*(?:\\[|\\*\\*)(${severities})(?:\\]|\\*\\*)[:\\s]+(.+?)(?:\\s+\\(([^:)]+?)(?::(\\d+))?\\))?$`, 'gmi'),
       // Numbered: 1. [SEVERITY] or 1. **SEVERITY**
-      new RegExp(`^\\d+\\.\\s*(?:\\[|\\*\\*)(${severities})(?:\\]|\\*\\*)[:\\s]+(.+?)(?:\\s+\\(([^:)]+)(?::(\\d+))?\\))?$`, 'gmi'),
+      new RegExp(`^\\d+\\.\\s*(?:\\[|\\*\\*)(${severities})(?:\\]|\\*\\*)[:\\s]+(.+?)(?:\\s+\\(([^:)]+?)(?::(\\d+))?\\))?$`, 'gmi'),
       // Gemini markdown: - **SEVERITY:** description (colon inside bold)
-      new RegExp(`^[-*•]\\s*\\*\\*(${severities}):\\*\\*\\s*(.+?)(?:\\s+\\(([^:)]+)(?::(\\d+))?\\))?$`, 'gmi'),
+      new RegExp(`^[-*•]\\s*\\*\\*(${severities}):\\*\\*\\s*(.+?)(?:\\s+\\(([^:)]+?)(?::(\\d+))?\\))?$`, 'gmi'),
       // Severity in backticks: `SEVERITY` description
-      new RegExp(`\`(${severities})\`[:\\s]+(.+?)(?:\\s+\\(([^:)]+)(?::(\\d+))?\\))?$`, 'gmi'),
+      new RegExp(`\`(${severities})\`[:\\s]+(.+?)(?:\\s+\\(([^:)]+?)(?::(\\d+))?\\))?$`, 'gmi'),
       // Start of line only: SEVERITY: description (requires colon, no loose dash matching)
-      new RegExp(`^(${severities}):\\s+(.+?)(?:\\s+\\(([^:)]+)(?::(\\d+))?\\))?$`, 'gmi'),
+      new RegExp(`^(${severities}):\\s+(.+?)(?:\\s+\\(([^:)]+?)(?::(\\d+))?\\))?$`, 'gmi'),
     ];
 
     const seen = new Set<string>();

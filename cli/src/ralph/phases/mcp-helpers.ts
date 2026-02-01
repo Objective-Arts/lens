@@ -1,5 +1,5 @@
 /**
- * Shared helpers for MCP-based phases (adversarial-review, static-analysis).
+ * Shared helpers for MCP-based phases (independent-review, static-analysis, security-review).
  *
  * Following kernighan: single-responsibility, no duplication.
  * Following gang-of-four: Template Method pattern via composition.

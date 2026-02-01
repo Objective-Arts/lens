@@ -113,10 +113,9 @@ describe('Tools Module', () => {
       const content = fs.readFileSync(path.join(tempDir, 'ralph'), 'utf-8');
 
       expect(content.startsWith('#!/bin/bash')).toBe(true);
-      expect(content).toContain('RALPH LOOP ITERATION');
-      expect(content).toContain('/frost');
-      expect(content).toContain('/dodds');
-      expect(content).toContain('JSDoc');
+      expect(content).toContain('PRD implementation');
+      expect(content).toContain('count_incomplete');
+      expect(content).toContain('mark_complete');
     });
 
     it('fails when tool already installed without force', () => {
@@ -141,7 +140,7 @@ describe('Tools Module', () => {
 
       // Verify original content restored
       const content = fs.readFileSync(scriptPath, 'utf-8');
-      expect(content).toContain('RALPH LOOP');
+      expect(content).toContain('PRD implementation');
     });
 
     it('fails gracefully for unknown tool', () => {
@@ -209,104 +208,29 @@ describe('Tools Module', () => {
   });
 
   describe('ralph script content', () => {
-    it('includes mandatory workflow steps', () => {
+    it('is a valid bash script', () => {
       installTool('ralph');
       const content = fs.readFileSync(path.join(tempDir, 'ralph'), 'utf-8');
 
-      // Check for UI/UX canon masters
-      expect(content).toContain('/frost');
-      expect(content).toContain('/ive');
-      expect(content).toContain('/norman');
-      expect(content).toContain('/wroblewski');
-      expect(content).toContain('/duarte');
+      // Must be a bash script
+      expect(content).toContain('#!/bin/bash');
+    });
 
-      // Check for code quality masters
-      expect(content).toContain('/abramov');
-      expect(content).toContain('/cherny');
+    it('includes core functionality', () => {
+      installTool('ralph');
+      const content = fs.readFileSync(path.join(tempDir, 'ralph'), 'utf-8');
 
-      // Check for testing requirement
-      expect(content).toContain('/dodds');
-      expect(content).toContain('Testing Trophy');
+      // Check for core loop functionality
+      expect(content).toContain('count_incomplete');
+      expect(content).toContain('mark_complete');
+      expect(content).toContain('run_stage');
+    });
 
-      // Check for documentation requirements
+    it('includes documentation requirements', () => {
+      installTool('ralph');
+      const content = fs.readFileSync(path.join(tempDir, 'ralph'), 'utf-8');
+
       expect(content).toContain('JSDoc');
-      expect(content).toContain('XML comments');
-      expect(content).toContain('docstrings');
-
-      // Check for review
-      expect(content).toContain('/review-hard');
-    });
-
-    it('includes verification checklist requiring proof of skill invocation', () => {
-      installTool('ralph');
-      const content = fs.readFileSync(path.join(tempDir, 'ralph'), 'utf-8');
-
-      // Must have verification checklist
-      expect(content).toContain('VERIFICATION CHECKLIST');
-      expect(content).toContain('Appropriate canon skills were invoked');
-      expect(content).toContain('Tests written and passing');
-
-      // Must require showing work
-      expect(content).toContain('OUTPUT FORMAT');
-      expect(content).toContain('SKILLS INVOKED');
-      expect(content).toContain('TESTS WRITTEN');
-      expect(content).toContain('TEST RESULT');
-    });
-
-    it('enforces JSDoc/XML documentation with proof requirement', () => {
-      installTool('ralph');
-      const content = fs.readFileSync(path.join(tempDir, 'ralph'), 'utf-8');
-
-      // Must require showing documentation samples
-      expect(content).toContain('DOCUMENTATION ADDED');
-      expect(content).toContain('JSDoc added for JS/TS (show sample in output)');
-      expect(content).toContain('XML comments added for C# (show sample in output)');
-      expect(content).toContain('Cannot mark complete without showing documentation samples');
-      expect(content).toContain('@param');
-      expect(content).toContain('@returns');
-      expect(content).toContain('<summary>');
-    });
-
-    it('requires actual skill invocation not just mentions', () => {
-      installTool('ralph');
-      const content = fs.readFileSync(path.join(tempDir, 'ralph'), 'utf-8');
-
-      // Should explicitly tell Claude to use Skill tool
-      expect(content).toContain('ACTUALLY INVOKE');
-      expect(content).toContain('use the Skill tool');
-    });
-
-    it('includes anti-patterns warnings', () => {
-      installTool('ralph');
-      const content = fs.readFileSync(path.join(tempDir, 'ralph'), 'utf-8');
-
-      expect(content).toContain('ANTI-PATTERN');
-      expect(content).toContain('Marking items complete without documentation');
-      expect(content).toContain('Skipping tests');
-      expect(content).toContain('simple');
-    });
-
-    it('requires README.md for new modules', () => {
-      installTool('ralph');
-      const content = fs.readFileSync(path.join(tempDir, 'ralph'), 'utf-8');
-
-      expect(content).toContain('README.md exists for new modules');
-    });
-
-    it('invokes /procida for documentation', () => {
-      installTool('ralph');
-      const content = fs.readFileSync(path.join(tempDir, 'ralph'), 'utf-8');
-
-      expect(content).toContain('/procida');
-      expect(content).toContain('Diátaxis');
-    });
-
-    it('includes idle detection', () => {
-      installTool('ralph');
-      const content = fs.readFileSync(path.join(tempDir, 'ralph'), 'utf-8');
-
-      expect(content).toContain('idle_count');
-      expect(content).toContain('No progress for 3 iterations');
     });
 
     it('includes progress tracking', () => {
@@ -315,7 +239,23 @@ describe('Tools Module', () => {
 
       expect(content).toContain('initial_incomplete');
       expect(content).toContain('remaining');
-      expect(content).toContain('completed');
+      expect(content).toContain('done_count');
+    });
+
+    it('includes item counting functions', () => {
+      installTool('ralph');
+      const content = fs.readFileSync(path.join(tempDir, 'ralph'), 'utf-8');
+
+      expect(content).toContain('count_incomplete');
+      expect(content).toContain('mark_complete');
+    });
+
+    it('includes checkpoint functionality', () => {
+      installTool('ralph');
+      const content = fs.readFileSync(path.join(tempDir, 'ralph'), 'utf-8');
+
+      expect(content).toContain('Checkpoint');
+      expect(content).toContain('progress-');
     });
   });
 });

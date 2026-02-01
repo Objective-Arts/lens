@@ -21,7 +21,7 @@ const STAGE_ICONS: Record<string, string> = {
   'implement': '🛠️',
   'test': '🧪',
   'refactor-check': '🧹',
-  'adversarial-review': '🔒',
+  'independent-review': '🔍',
   'static-analysis': '📊',
   'doc-code': '📚',
 };
@@ -38,7 +38,7 @@ export function printHeader(prdPath: string, remaining: number, projectType: str
 /** All pipeline stage names in execution order - matches PHASE_ORDER */
 const PIPELINE_STAGES = [
   'plan', 'structure-first', 'implement', 'refactor-check',
-  'adversarial-review', 'static-analysis', 'test', 'doc-code'
+  'independent-review', 'static-analysis', 'test', 'doc-code'
 ] as const;
 
 /** Short display names for pipeline progress */
@@ -48,7 +48,7 @@ const STAGE_SHORT_NAMES: Record<string, string> = {
   'implement': 'implement',
   'test': 'test',
   'refactor-check': 'refactor',
-  'adversarial-review': 'review',
+  'independent-review': 'review',
   'static-analysis': 'scan',
   'doc-code': 'doc',
 };
@@ -95,7 +95,7 @@ export function printItemHeader(
 
 /** External tool indicators for stages */
 const EXTERNAL_TOOLS: Record<string, string> = {
-  'adversarial-review': ' (+ Gemini)',
+  'independent-review': ' (+ Gemini)',
   'static-analysis': ' (+ Qodana)',
 };
 

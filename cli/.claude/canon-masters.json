@@ -1,0 +1,50 @@
+{
+  "session": {
+    "timestamp": "2026-01-31T20:35:00Z",
+    "source": "cli project history"
+  },
+  "skills": [
+    {"name": "/ive", "count": 60, "domain": "ui-ux"},
+    {"name": "/gang-of-four", "count": 54, "domain": "architecture"},
+    {"name": "/bloch", "count": 54, "domain": "code-quality"},
+    {"name": "/dodds", "count": 50, "domain": "testing-quality"},
+    {"name": "/cherny", "count": 43, "domain": "code-quality"},
+    {"name": "/fowler", "count": 40, "domain": "code-quality"},
+    {"name": "/feathers", "count": 40, "domain": "testing-quality"},
+    {"name": "/kernighan", "count": 39, "domain": "code-quality"},
+    {"name": "/owasp", "count": 38, "domain": "security"},
+    {"name": "/norman", "count": 38, "domain": "ui-ux"},
+    {"name": "/linus", "count": 38, "domain": "code-quality"},
+    {"name": "/frost", "count": 38, "domain": "ui-ux"},
+    {"name": "/meszaros", "count": 36, "domain": "testing-quality"},
+    {"name": "/schneier", "count": 32, "domain": "security"},
+    {"name": "/abramov", "count": 32, "domain": "code-quality"},
+    {"name": "/rams", "count": 30, "domain": "ui-ux"},
+    {"name": "/thompson", "count": 29, "domain": "code-quality"},
+    {"name": "/procida", "count": 28, "domain": "documentation"},
+    {"name": "/pike", "count": 28, "domain": "code-quality"},
+    {"name": "/knuth", "count": 28, "domain": "code-quality"},
+    {"name": "/crockford", "count": 28, "domain": "code-quality"},
+    {"name": "/mcilroy", "count": 26, "domain": "code-quality"},
+    {"name": "/liskov", "count": 26, "domain": "code-quality"},
+    {"name": "/dijkstra", "count": 26, "domain": "code-quality"},
+    {"name": "/carmack", "count": 26, "domain": "code-quality"},
+    {"name": "/bill-joy", "count": 26, "domain": "code-quality"},
+    {"name": "/strunk-white", "count": 24, "domain": "documentation"},
+    {"name": "/leveson", "count": 24, "domain": "architecture"},
+    {"name": "/hevery", "count": 24, "domain": "testing-quality"},
+    {"name": "/hejlsberg", "count": 24, "domain": "code-quality"}
+  ],
+  "connections": [
+    {"source": "/gang-of-four", "target": "/bloch", "weight": 40},
+    {"source": "/kernighan", "target": "/pike", "weight": 28},
+    {"source": "/schneier", "target": "/owasp", "weight": 32},
+    {"source": "/frost", "target": "/ive", "weight": 38},
+    {"source": "/frost", "target": "/norman", "weight": 30},
+    {"source": "/dodds", "target": "/meszaros", "weight": 35},
+    {"source": "/cherny", "target": "/bloch", "weight": 30},
+    {"source": "/feathers", "target": "/gang-of-four", "weight": 25},
+    {"source": "/liskov", "target": "/bloch", "weight": 20},
+    {"source": "/procida", "target": "/strunk-white", "weight": 20}
+  ]
+}

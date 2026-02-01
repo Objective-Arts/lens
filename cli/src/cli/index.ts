@@ -16,7 +16,8 @@ import {
   registerCanonCommands,
   registerWorkflowCommands,
   registerToolsCommands,
-  registerHooksCommands
+  registerHooksCommands,
+  registerTraceCommand
 } from './commands/index.js';
 
 const program = new Command();
@@ -34,6 +35,7 @@ registerCanonCommands(program);
 registerWorkflowCommands(program);
 registerToolsCommands(program);
 registerHooksCommands(program);
+registerTraceCommand(program);
 
 // UI command - kept here as it's a single simple command
 program

@@ -29,7 +29,7 @@ describe('Phases Factory', () => {
       expect(phases[1].name).toBe('structure-first');
       expect(phases[2].name).toBe('implement');
       expect(phases[3].name).toBe('refactor-check');
-      expect(phases[4].name).toBe('adversarial-review');
+      expect(phases[4].name).toBe('independent-review');
       expect(phases[5].name).toBe('static-analysis');
       expect(phases[6].name).toBe('test');
       expect(phases[7].name).toBe('doc-code');
@@ -78,7 +78,7 @@ describe('Phases Factory', () => {
         'implement',
         'test',
         'refactor-check',
-        'adversarial-review',
+        'independent-review',
         'static-analysis',
         'doc-code',
       ];
@@ -98,7 +98,7 @@ describe('Phases Factory', () => {
       expect(getPhaseIcon('implement')).toBe('🛠️');
       expect(getPhaseIcon('test')).toBe('🧪');
       expect(getPhaseIcon('refactor-check')).toBe('🧹');
-      expect(getPhaseIcon('adversarial-review')).toBe('🔒');
+      expect(getPhaseIcon('independent-review')).toBe('🔍');
       expect(getPhaseIcon('static-analysis')).toBe('📊');
       expect(getPhaseIcon('doc-code')).toBe('📚');
     });
@@ -146,11 +146,12 @@ describe('Phases Factory', () => {
       }
     });
 
-    it('all phases default to shouldRun = true', () => {
+    it('all phases run for security-relevant items', () => {
       const phases = createPhases();
+      // Use security-relevant text to trigger independent-review
       const mockContext = {
         session: {} as any,
-        item: { lineNumber: 1, text: 'test', status: 'pending' as const },
+        item: { lineNumber: 1, text: 'implement user authentication with password validation', status: 'pending' as const },
         experts: [],
         projectPath: '/tmp',
         logsDir: '/tmp/logs',
@@ -159,6 +160,36 @@ describe('Phases Factory', () => {
       for (const phase of phases) {
         expect(phase.shouldRun(mockContext)).toBe(true);
       }
+    });
+
+    it('independent-review runs on most code items (broad keywords)', () => {
+      const phases = createPhases();
+      const reviewPhase = phases.find(p => p.name === 'independent-review');
+      const mockContext = {
+        session: {} as any,
+        item: { lineNumber: 1, text: 'add loading spinner to button', status: 'pending' as const },
+        experts: [],
+        projectPath: '/tmp',
+        logsDir: '/tmp/logs',
+      };
+
+      // Independent-review now runs on most items (contains "add")
+      expect(reviewPhase?.shouldRun(mockContext)).toBe(true);
+    });
+
+    it('independent-review skips items with no trigger keywords', () => {
+      const phases = createPhases();
+      const reviewPhase = phases.find(p => p.name === 'independent-review');
+      const mockContext = {
+        session: {} as any,
+        item: { lineNumber: 1, text: 'read documentation about patterns', status: 'pending' as const },
+        experts: [],
+        projectPath: '/tmp',
+        logsDir: '/tmp/logs',
+      };
+
+      // No trigger keywords like add, create, update, etc.
+      expect(reviewPhase?.shouldRun(mockContext)).toBe(false);
     });
   });
 });

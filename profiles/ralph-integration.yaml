@@ -25,7 +25,7 @@ claudeMd:
 
     # Quality gates
     - "Run tests after implementing each feature"
-    - "Run /review-hard before marking any item complete"
+    - "Run /adversarial-review before marking any item complete"
     - "Fix all critical issues before moving to next item"
 
     # Autonomous loop safety
@@ -44,7 +44,7 @@ claudeMd:
     - context: Starting a new PRD item implementation
       action: Read git log, identify related previous work
     - context: Feature implementation complete
-      action: INVOKE `/test` then `/review-hard`
+      action: INVOKE `/test` then `/adversarial-review`
     - context: Review finds critical issues
       action: Fix immediately before continuing
     - context: Stuck on same error multiple iterations

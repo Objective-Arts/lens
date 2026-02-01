@@ -71,12 +71,23 @@ describe('Claude Stream Parser', () => {
       expect(result).toContain('GEMINI_ISSUES');
     });
 
-    it('returns last text block as fallback', () => {
+    it('concatenates all text blocks as fallback', () => {
       const content = `{"text":"First message"}
 {"text":"Second message"}
 {"text":"Final message"}`;
 
-      expect(extractResultFromContent(content)).toBe('Final message');
+      expect(extractResultFromContent(content)).toBe('First message\nSecond message\nFinal message');
+    });
+
+    it('preserves APPLIED section across multiple text blocks', () => {
+      const content = `{"text":"APPLIED:\\n- kernighan: Simplified the code\\n- pike: Reduced API surface"}
+{"text":"\\nSome more work done..."}
+{"text":"IMPLEMENT_COMPLETE"}`;
+
+      const result = extractResultFromContent(content);
+      expect(result).toContain('APPLIED:');
+      expect(result).toContain('kernighan: Simplified the code');
+      expect(result).toContain('IMPLEMENT_COMPLETE');
     });
 
     it('returns empty string for empty content', () => {

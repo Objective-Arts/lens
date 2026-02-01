@@ -8,7 +8,16 @@ import { BasePhase, PhaseContext, PhaseResult } from './types.js';
 import { runClaude } from '../process/claude.js';
 import { extractError } from '../parsers/claude-stream.js';
 
-const REFACTOR_PROMPT = `Review and refactor the implemented code.
+const REFACTOR_PROMPT = `## NON-NEGOTIABLE: FIX EVERY ISSUE YOU FIND
+
+Before you start: You WILL fix ALL issues. No "could be improved" without fixing.
+No "minor issues." No "future work." If you identify it, you fix it. Period.
+
+This is not optional. The phase fails if ANY identified issue remains unfixed.
+
+---
+
+Review and refactor the implemented code.
 
 PRD ITEM: {ITEM_TEXT}
 
@@ -29,8 +38,10 @@ You MUST check for and FIX all of these issues. Not "consider" - FIX:
 For EACH issue found, you MUST:
 1. Identify it specifically (file:line)
 2. Fix it using Edit tool
-3. Run tests to verify fix didn't break anything
+3. Run existing project tests to verify fix didn't break anything
 4. Record in REFACTORED section
+
+NOTE: Tests for the NEW code will be written later. Only verify existing tests still pass.
 
 DO NOT:
 - Say "could be improved" without fixing
@@ -55,7 +66,7 @@ ISSUES_REMAINING: 0 (must be zero)
 
 REFACTOR_COUNT: N
 
-TESTS_PASS: yes/no
+TESTS_PASS: yes/n-a (yes=tests pass, n-a=no tests for this code exist yet)
 
 APPLIED:
 - [expert-name]: [specific decision]
@@ -102,23 +113,29 @@ export class RefactorCheckPhase extends BasePhase {
       return this.failed(`${remaining} refactoring issues remain unfixed. ALL issues must be fixed.`);
     }
 
-    // Check tests pass
-    const testsPassMatch = output.result.match(/TESTS_PASS:\s*(\w+)/i);
-    const testsPass = testsPassMatch ? testsPassMatch[1].toLowerCase() === 'yes' : false;
-    if (!testsPass && output.result.includes('TESTS_PASS:')) {
-      return this.failed('Tests do not pass after refactoring. Fix before proceeding.');
+    // Check tests pass - accept "yes" or "n/a" (no tests for new code yet)
+    const testsPassMatch = output.result.match(/TESTS_PASS:\s*([\w\/\-]+)/i);
+    if (testsPassMatch) {
+      const value = testsPassMatch[1].toLowerCase();
+      // Accept yes, n/a, n-a, na (with or without explanation after)
+      if (!['yes', 'n/a', 'n-a', 'na'].includes(value)) {
+        return this.failed('Tests do not pass after refactoring. Fix before proceeding.');
+      }
     }
 
-    // Parse refactoring count
-    const countMatch = output.result.match(/REFACTOR_COUNT:\s*(\d+)/i);
+    // Parse refactoring count (handles markdown bold)
+    const countMatch = output.result.match(/\*?\*?REFACTOR_COUNT:?\*?\*?\s*(\d+)/i);
     const refactorCount = countMatch ? parseInt(countMatch[1], 10) : 0;
 
-    // Parse refactored items for summary
-    const refactoredMatch = output.result.match(/REFACTORED:\s*\n([\s\S]*?)(?=\n\n|\nISSUES_REMAINING|\nREFACTOR_COUNT|\nTESTS_PASS|\nAPPLIED)/i);
+    // Parse refactored items for summary (handle ## markdown headers and **bold**)
+    const refactoredMatch = output.result.match(/(?:##\s*)?\*?\*?REFACTORED:?\*?\*?\s*\n([\s\S]*?)(?=\n(?:##\s*)?\*?\*?(?:ISSUES_REMAINING|REFACTOR_COUNT|TESTS_PASS|APPLIED):?\*?\*?|\n\n\n)/i);
     let summary = 'No changes needed';
     if (refactoredMatch) {
       const items = refactoredMatch[1].split('\n').filter(l => l.trim().startsWith('-')).length;
       summary = items > 0 ? `${items} refactorings applied` : 'No changes needed';
+    } else if (refactorCount > 0) {
+      // Fallback to count if regex didn't match
+      summary = `${refactorCount} refactorings applied`;
     }
 
     return this.success(summary, { refactorings: refactorCount }, output.result);

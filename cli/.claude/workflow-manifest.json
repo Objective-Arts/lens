@@ -7,19 +7,12 @@
   "installedAt": "2026-01-25T15:17:19.013Z",
   "sourceCommit": "c431726",
   "skills": {
-    "build-from-plan": {
-      "installedAt": "2026-01-25T15:17:19.037Z",
-      "sourceFile": "build-from-plan/SKILL.md",
-      "hash": "34ddab0f6357fac0",
-      "modified": false,
-      "installedCommit": "c431726"
-    },
     "implement": {
-      "installedAt": "2026-01-25T15:17:19.063Z",
+      "installedAt": "2026-02-01T03:16:46.353Z",
       "sourceFile": "implement/SKILL.md",
-      "hash": "037c937771de0cfd",
+      "hash": "8fd4b85b981851dd",
       "modified": false,
-      "installedCommit": "c431726"
+      "installedCommit": "0a7f923"
     },
     "plan": {
       "installedAt": "2026-01-25T15:17:19.087Z",
@@ -57,11 +50,11 @@
       "installedCommit": "c431726"
     },
     "test": {
-      "installedAt": "2026-01-25T15:17:19.221Z",
+      "installedAt": "2026-02-01T03:16:46.413Z",
       "sourceFile": "test/SKILL.md",
-      "hash": "8e98580af7921ba2",
+      "hash": "d6164012e1093100",
       "modified": false,
-      "installedCommit": "c431726"
+      "installedCommit": "0a7f923"
     },
     "doc-code": {
       "installedAt": "2026-01-25T20:09:11.589Z",
@@ -83,6 +76,13 @@
       "hash": "fd7cc7d7424be173",
       "modified": false,
       "installedCommit": "8db7d11"
+    },
+    "static-analysis": {
+      "installedAt": "2026-02-01T03:16:46.384Z",
+      "sourceFile": "static-analysis/SKILL.md",
+      "hash": "ec5e7428ed62238a",
+      "modified": false,
+      "installedCommit": "0a7f923"
     }
   }
 }

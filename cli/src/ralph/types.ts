@@ -39,21 +39,23 @@ export type PhaseName =
   | 'plan'
   | 'structure-first'
   | 'implement'
-  | 'build-tests'
+  | 'test'
   | 'refactor-check'
-  | 'adversarial-review'
+  | 'independent-review'
   | 'static-analysis'
-  | 'doc-code';
+  | 'doc-code'
+  | 'production-readiness'  // Post-loop phase
+  | 'security-review';      // Post-loop phase
 
 /** Phase execution order - same for commands and Ralph loop */
 export const PHASE_ORDER: readonly PhaseName[] = [
   'plan',
   'structure-first',
   'implement',
-  'build-tests',
   'refactor-check',
-  'adversarial-review',
+  'independent-review',
   'static-analysis',
+  'test',
   'doc-code',
 ] as const;
 
@@ -117,6 +119,7 @@ export interface QodanaResult {
 /** Claude process output */
 export interface ClaudeOutput {
   success: boolean;
+  hasSuccessMarker?: boolean; // true if output contains expected completion marker
   jsonPath: string;
   rawPath: string;
   result: string;

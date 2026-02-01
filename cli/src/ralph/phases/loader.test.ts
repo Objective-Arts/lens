@@ -226,9 +226,9 @@ rules:
     });
 
     it('tracks source of each expert', () => {
-      const result = detectExperts(TEST_DIR, 'adversarial-review', 'check auth security');
+      const result = detectExperts(TEST_DIR, 'independent-review', 'check auth security');
 
-      // schneier is both in adversarial-review phase AND triggered by 'auth' keyword
+      // schneier is both in independent-review phase AND triggered by 'auth' keyword
       // Should be marked as 'phase' since phase comes after profile in the logic
       expect(result.sources['schneier']).toBeDefined();
     });

@@ -1,25 +1,36 @@
 ---
 name: test
-description: Write and run tests with mandatory verification. Test files must exist and tests must execute.
+description: Write and run tests at specified level(s). Levels: unit, integration, e2e, all.
 ---
 
 # /test [level]
 
-Write tests at specified level(s) using testing canon patterns. **Tests must be written AND executed.**
+Write and run tests using testing canon patterns.
 
 ## First: Activate Workflow
-
-**Before any other action**, activate this workflow session:
 
 ```bash
 mkdir -p .claude && echo '{"skill":"test","started":"'$(date -Iseconds)'"}' > .claude/active-workflow.json
 ```
 
+## Step 0: Load Expert Context (MANDATORY)
+
+Before writing tests, read these expert skills:
+
+```
+Read: .claude/skills/dodds/SKILL.md       (Testing Trophy, integration-first)
+Read: .claude/skills/meszaros/SKILL.md    (xUnit patterns, test doubles)
+Read: .claude/skills/fowler-test/SKILL.md (test pyramid)
+Read: .claude/skills/feathers/SKILL.md    (characterization tests)
+```
+
+Apply these principles throughout testing. Skip if files don't exist.
+
 ## Levels
 
 - `/test unit` - Unit tests only (pure logic, mocked dependencies)
-- `/test integration` - Integration tests only (component interactions)
-- `/test e2e` - E2E tests only (user journeys)
+- `/test integration` - Integration tests only (component interactions, APIs)
+- `/test e2e` - E2E tests only (user journeys, full stack)
 - `/test all` - All appropriate levels (default)
 - `/test` - Same as `/test all`
 
@@ -31,136 +42,64 @@ If no path, test the code most recently written or modified in this session.
 ## Canon Sources
 
 - **Dodds**: Testing Trophy - integration tests are the sweet spot
+- **Fowler**: Test pyramid - right level for the concern
 - **Meszaros**: Test doubles (stub/spy/mock/fake as appropriate)
 - **Feathers**: Characterization tests for legacy code
 
+## Test Level Decision Tree
+
+```
+Is it pure logic (no I/O)?
+├── Yes → Unit test (Meszaros patterns)
+└── No → Does it access database/external service?
+    ├── Yes → Integration test (Fowler pyramid middle)
+    └── No → Does it cross system boundaries?
+        ├── Yes → Integration test
+        └── No → Is it a critical user journey?
+            ├── Yes → E2E test (Dodds: sparingly)
+            └── No → Unit or integration based on complexity
+```
+
+## Language-Specific Tools
+
+| Language | Unit | Integration | E2E |
+|----------|------|-------------|-----|
+| **Java** | JUnit + Mockito | Spring TestContext, MockMvc | Selenium, REST Assured |
+| **TypeScript/Angular** | Jasmine + TestBed | HttpClientTestingModule | Playwright, Cypress |
+| **TypeScript/React** | Jest + RTL | MSW, Supertest | Playwright, Cypress |
+| **Python** | pytest + unittest.mock | pytest + fixtures | pytest + Selenium |
+| **Go** | testing + testify | httptest | chromedp |
+| **Rust** | #[test] + mockall | integration tests | - |
+| **C#/.NET** | xUnit + Moq | TestServer | Playwright |
+
 ## Process
 
-1. **Detect** language/framework from file extensions
+1. **Detect** language/framework from file extensions and project structure
 2. **Analyze** code to determine appropriate test levels
-3. **Write** tests using idiomatic tools
-4. **Run** tests to verify they execute
-5. **Report** results with counts
-
----
-
-## VERIFICATION (MANDATORY - DO NOT SKIP)
-
-**You MUST execute these commands and show output before claiming completion.**
-
-### Step 1: Verify Test Files Were Created
-
-```bash
-# List test files created/modified
-ls -la <test-files>
-
-# Show test file count
-find . -name "*.test.*" -o -name "*.spec.*" | wc -l
-```
-
-### Step 2: Show Test File Contents (Summary)
-
-```bash
-# Show test names/descriptions
-grep -h "describe\|it\|test(" <test-files> | head -30
-```
-
-### Step 3: Run Tests and Show Output
-
-```bash
-# Actually run the tests - show REAL output
-npm test
-# or: npx jest
-# or: npx vitest
-# or: pytest
-# or: go test ./...
-```
-
-**You MUST show the actual test runner output, not a summary.**
-
-### Step 4: Verify Test Counts
-
-```bash
-# Count tests in files
-grep -c "it(\|test(" <test-files>
-```
-
-### Completion Criteria (ALL must be TRUE)
-
-| Criterion | Evidence Required | Pass? |
-|-----------|-------------------|-------|
-| Test files exist | `ls -la` shows test files | [ ] |
-| Tests have content | `grep` shows test descriptions | [ ] |
-| Tests were executed | Actual test runner output shown | [ ] |
-| Test count documented | Number of tests stated | [ ] |
-| Pass/fail status shown | Test runner shows results | [ ] |
-
-**If ANY criterion fails: write more tests or fix failures. Do not report complete.**
-
----
+3. **Write** tests at specified level(s) using idiomatic tools
+4. **Run** tests to verify they pass
+5. **Report** results
 
 ## Output Format
 
 ```markdown
-## Tests: [target]
+## Test Results
 
-### Test Files Created
+### Tests Written:
+| Level | File | Count |
+|-------|------|-------|
+| Unit | [test file] | N |
+| Integration | [test file] | N |
 
-```bash
-$ ls -la src/__tests__/
--rw-r--r--  1 user  staff  3421 Jan 15 10:30 feature.test.ts
--rw-r--r--  1 user  staff  2103 Jan 15 10:30 utils.test.ts
-
-$ find . -name "*.test.*" | wc -l
-2
+### Run Results:
+TESTS_WRITTEN: N
+TESTS_PASSED: N
+TESTS_FAILED: N
+TEST_COMPLETE
 ```
 
-### Test Descriptions
+## Legacy Code (Feathers patterns)
 
-```bash
-$ grep -h "describe\|it(" src/__tests__/*.test.ts
-describe('Feature', () => {
-  it('should handle valid input', () => {
-  it('should reject invalid input', () => {
-  it('should handle edge cases', () => {
-describe('Utils', () => {
-  it('should format correctly', () => {
-```
-
-### Test Execution
-
-```bash
-$ npm test
-
- PASS  src/__tests__/feature.test.ts
- PASS  src/__tests__/utils.test.ts
-
-Test Suites: 2 passed, 2 total
-Tests:       5 passed, 5 total
-Snapshots:   0 total
-Time:        1.234s
-```
-
-### Summary
-
-| Level | Count | Status |
-|-------|-------|--------|
-| Unit | 5 | ✓ Pass |
-| Integration | 0 | - |
-| E2E | 0 | - |
-
-TEST_VERIFIED
-```
-
-**The marker `TEST_VERIFIED` may ONLY appear if all criteria pass.**
-
----
-
-## Anti-Patterns (Immediate Failure)
-
-- Claiming "tests written" without showing `ls -la` of test files
-- Not showing actual test runner output
-- Saying "all tests pass" without the test runner output
-- Test files with no actual test cases
-- Skipping test execution ("I'll run them later")
-- Summarizing results without showing the actual output
+If code is untested legacy:
+1. Write **characterization tests** first (capture current behavior)
+2. Then add focused tests for new/changed behavior

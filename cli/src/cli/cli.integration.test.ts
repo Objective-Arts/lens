@@ -308,7 +308,7 @@ describe('workflow commands', () => {
 
     expect(result.exitCode).toBe(0);
     expect(result.stdout).toContain('Available Workflow Skills');
-    expect(result.stdout).toContain('review-hard');
+    expect(result.stdout).toContain('adversarial-review');
     expect(result.stdout).toContain('refactor-check');
     expect(result.stdout).toContain('structure-first');
     expect(result.stdout).toContain('test');
@@ -325,13 +325,13 @@ describe('workflow commands', () => {
   });
 
   it('workflow install - installs a single skill', () => {
-    const result = runCli(`workflow install review-hard -p ${testDir}`);
+    const result = runCli(`workflow install adversarial-review -p ${testDir}`);
 
     expect(result.exitCode).toBe(0);
-    expect(result.stdout).toContain('Installed workflow skill: review-hard');
+    expect(result.stdout).toContain('Installed workflow skill: adversarial-review');
 
     // Verify skill was copied
-    const skillPath = path.join(testDir, '.claude', 'skills', 'review-hard');
+    const skillPath = path.join(testDir, '.claude', 'skills', 'adversarial-review');
     expect(fs.existsSync(skillPath)).toBe(true);
     expect(fs.existsSync(path.join(skillPath, 'SKILL.md'))).toBe(true);
   });
@@ -345,21 +345,21 @@ describe('workflow commands', () => {
     // Verify all skills installed
     const skillsDir = path.join(testDir, '.claude', 'skills');
     expect(fs.existsSync(path.join(skillsDir, 'plan', 'SKILL.md'))).toBe(true);
-    expect(fs.existsSync(path.join(skillsDir, 'review-hard', 'SKILL.md'))).toBe(true);
+    expect(fs.existsSync(path.join(skillsDir, 'adversarial-review', 'SKILL.md'))).toBe(true);
     expect(fs.existsSync(path.join(skillsDir, 'refactor-check', 'SKILL.md'))).toBe(true);
     expect(fs.existsSync(path.join(skillsDir, 'structure-first', 'SKILL.md'))).toBe(true);
     expect(fs.existsSync(path.join(skillsDir, 'test', 'SKILL.md'))).toBe(true);
   });
 
   it('workflow install - creates workflow-manifest.json', () => {
-    runCli(`workflow install review-hard -p ${testDir}`);
+    runCli(`workflow install adversarial-review -p ${testDir}`);
 
     const manifestPath = path.join(testDir, '.claude', 'workflow-manifest.json');
     expect(fs.existsSync(manifestPath)).toBe(true);
 
     const manifest = JSON.parse(fs.readFileSync(manifestPath, 'utf-8'));
-    expect(manifest.skills).toHaveProperty('review-hard');
-    expect(manifest.skills['review-hard'].hash).toBeTruthy();
+    expect(manifest.skills).toHaveProperty('adversarial-review');
+    expect(manifest.skills['adversarial-review'].hash).toBeTruthy();
   });
 
   it('workflow status - shows installed skills status', () => {
@@ -369,15 +369,15 @@ describe('workflow commands', () => {
 
     expect(result.exitCode).toBe(0);
     expect(result.stdout).toContain('Workflow Skills Status');
-    expect(result.stdout).toContain('review-hard');
+    expect(result.stdout).toContain('adversarial-review');
     expect(result.stdout).toContain('current');
   });
 
   it('workflow status - detects local modifications', () => {
-    runCli(`workflow install review-hard -p ${testDir}`);
+    runCli(`workflow install adversarial-review -p ${testDir}`);
 
     // Modify the skill
-    const skillMdPath = path.join(testDir, '.claude', 'skills', 'review-hard', 'SKILL.md');
+    const skillMdPath = path.join(testDir, '.claude', 'skills', 'adversarial-review', 'SKILL.md');
     fs.appendFileSync(skillMdPath, '\n# Local modification for testing');
 
     const result = runCli(`workflow status -p ${testDir}`);
@@ -386,8 +386,8 @@ describe('workflow commands', () => {
   });
 
   it('workflow upgrade - skips locally modified skills without --force', () => {
-    runCli(`workflow install review-hard -p ${testDir}`);
-    const skillMdPath = path.join(testDir, '.claude', 'skills', 'review-hard', 'SKILL.md');
+    runCli(`workflow install adversarial-review -p ${testDir}`);
+    const skillMdPath = path.join(testDir, '.claude', 'skills', 'adversarial-review', 'SKILL.md');
     fs.appendFileSync(skillMdPath, '\n# Local modification');
 
     const result = runCli(`workflow upgrade -p ${testDir}`);
@@ -397,8 +397,8 @@ describe('workflow commands', () => {
   });
 
   it('workflow upgrade --force - overwrites modified skills', () => {
-    runCli(`workflow install review-hard -p ${testDir}`);
-    const skillMdPath = path.join(testDir, '.claude', 'skills', 'review-hard', 'SKILL.md');
+    runCli(`workflow install adversarial-review -p ${testDir}`);
+    const skillMdPath = path.join(testDir, '.claude', 'skills', 'adversarial-review', 'SKILL.md');
     const originalContent = fs.readFileSync(skillMdPath, 'utf-8');
     fs.appendFileSync(skillMdPath, '\n# Local modification');
 
@@ -430,14 +430,14 @@ describe('profile apply with workflow skills', () => {
 
     expect(result.exitCode).toBe(0);
     expect(result.stdout).toContain('Workflow skills:');
-    expect(result.stdout).toContain('review-hard');
+    expect(result.stdout).toContain('adversarial-review');
     expect(result.stdout).toContain('structure-first');
     expect(result.stdout).toContain('plan');
 
     // Verify all workflow skills installed
     const skillsDir = path.join(testDir, '.claude', 'skills');
     expect(fs.existsSync(path.join(skillsDir, 'plan', 'SKILL.md'))).toBe(true);
-    expect(fs.existsSync(path.join(skillsDir, 'review-hard', 'SKILL.md'))).toBe(true);
+    expect(fs.existsSync(path.join(skillsDir, 'adversarial-review', 'SKILL.md'))).toBe(true);
     expect(fs.existsSync(path.join(skillsDir, 'refactor-check', 'SKILL.md'))).toBe(true);
     expect(fs.existsSync(path.join(skillsDir, 'structure-first', 'SKILL.md'))).toBe(true);
     expect(fs.existsSync(path.join(skillsDir, 'test', 'SKILL.md'))).toBe(true);
@@ -450,7 +450,7 @@ describe('profile apply with workflow skills', () => {
 
     // Should have workflow skills
     expect(fs.existsSync(path.join(skillsDir, 'plan', 'SKILL.md'))).toBe(true);
-    expect(fs.existsSync(path.join(skillsDir, 'review-hard', 'SKILL.md'))).toBe(true);
+    expect(fs.existsSync(path.join(skillsDir, 'adversarial-review', 'SKILL.md'))).toBe(true);
 
     // Should also have canon/profile skills
     const entries = fs.readdirSync(skillsDir);

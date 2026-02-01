@@ -221,7 +221,7 @@ skill_desc() {
   case "$1" in
     # Composite skills (chain to individuals)
     planning-masters) echo "→ kernighan, pike, dijkstra, bloch..." ;;
-    security-canon) echo "→ schneier, owasp, threat-model..." ;;
+    security-canon) echo "→ schneier, owasp, tanya-janca..." ;;
     testing-experts) echo "→ dodds, meszaros, hevery..." ;;
     docs-masters) echo "→ procida, tufte, strunk-white..." ;;
     refactor-masters) echo "→ kernighan, feathers, gang-of-four..." ;;
@@ -241,12 +241,9 @@ skill_desc() {
     gang-of-four) echo "design patterns" ;;
     feathers) echo "refactoring" ;;
     schneier|bruce-schneier) echo "security mindset" ;;
-    security-mindset) echo "think like attacker" ;;
     owasp) echo "secure coding" ;;
     tanya-janca) echo "appsec" ;;
     troy-hunt) echo "breach lessons" ;;
-    threat-model) echo "threat analysis" ;;
-    defense-in-depth) echo "layered security" ;;
     leveson) echo "safety engineering" ;;
     dodds) echo "testing" ;;
     meszaros) echo "test patterns" ;;
@@ -777,7 +774,7 @@ while read -r count skill; do
       domain="code-quality" ;;
     /procida)
       domain="documentation" ;;
-    /plan|/review-hard)
+    /plan|/adversarial-review)
       domain="workflow" ;;
     *)
       domain="other" ;;

@@ -1,0 +1,46 @@
+_generated: "Auto-generated from profile: javascript"
+_regenerate: cc-config profile apply
+skills:
+  plan:
+    - kernighan
+    - pike
+    - dijkstra
+    - mcilroy
+    - linus
+    - bill-joy
+    - kyle-simpson
+  build:
+    - kernighan
+    - pike
+    - bloch
+    - liskov
+    - gang-of-four
+    - thompson
+    - carmack
+    - cherny
+    - crockford
+    - kyle-simpson
+    - osmani
+  refactor:
+    - kernighan
+    - feathers
+    - gang-of-four
+    - bill-joy
+    - osmani
+    - crockford
+  test:
+    - meszaros
+    - fowler-test
+    - feathers
+    - dodds
+  review:
+    - schneier
+    - owasp
+    - petroski
+    - leveson
+    - taleb
+  doc:
+    - procida
+    - strunk-white
+    - zinsser
+    - king

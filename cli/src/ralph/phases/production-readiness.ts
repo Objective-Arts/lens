@@ -2,7 +2,10 @@
  * Production-readiness phase - final check before deployment.
  *
  * Runs once at the end of the PRD, not per-item.
- * Checks for common production issues that slip through other phases.
+ * Checks for operational concerns that slip through other phases.
+ * Fixes what it finds and updates documentation.
+ *
+ * Experts: bill-joy (handle failure), leveson (system safety), petroski (learn from failures)
  */
 
 import { BasePhase, PhaseContext, PhaseResult } from './types.js';
@@ -10,100 +13,125 @@ import { runClaude } from '../process/claude.js';
 import { extractError } from '../parsers/claude-stream.js';
 import chalk from 'chalk';
 
-const PRODUCTION_READINESS_PROMPT = `## PRODUCTION READINESS CHECK
+const AUDIT_PROMPT = `## PRODUCTION READINESS AUDIT
 
-You are performing a final production readiness review. This runs once at the end of a PRD implementation.
+You are performing a final production readiness review. Focus on OPERATIONAL concerns
+that other phases miss (security-review handles security, static-analysis handles code quality).
 
-Be hard-ass and evidence-based. Every finding must have a file:line reference.
+Experts guiding this review:
+- Bill Joy: "Handle failure explicitly" - every failure path must be covered
+- Nancy Leveson: System safety - what failure modes exist? What constraints prevent accidents?
+- Henry Petroski: Learn from failures - what has gone wrong before? What could go wrong?
 
-## CHECKS TO PERFORM
+## CHECKS TO PERFORM (operational focus)
 
-### 1. Error Handling
-- No swallowed errors (empty catch blocks)
-- All async operations have error handling
-- Errors are logged before being thrown/returned
-- User-facing errors don't leak internal details
-
-### 2. Configuration
-- Environment variables validated on startup
-- No hardcoded secrets, URLs, or credentials
-- Config has sensible defaults or fails fast
-- Feature flags properly implemented
-
-### 3. Resilience
-- External API calls have timeouts
-- Retries with backoff for transient failures
-- Circuit breakers where appropriate
+### 1. Resilience (Bill Joy)
+- External API calls have timeouts (find fetch/axios without timeout)
+- Retries with exponential backoff for transient failures
 - Graceful degradation when dependencies fail
+- No unbounded queues or memory growth
 
-### 4. Observability
-- Logging at appropriate levels (info, warn, error)
-- Request IDs or correlation IDs propagated
+### 2. Error Recovery (Leveson)
+- No swallowed errors (empty catch blocks)
+- Errors logged with context before re-throwing
+- Graceful shutdown handlers exist
+- Partial failure doesn't corrupt state
+
+### 3. Observability (Petroski - learn from failures)
+- Logging at appropriate levels
 - Health check endpoints exist
-- Key operations are instrumented
+- Key operations have timing/metrics
+- Errors include enough context to debug
 
-### 5. Data Safety
-- Database migrations are idempotent
-- Rollback path exists
-- No data loss on restart
-- Sensitive data is not logged
+### 4. Configuration
+- Environment variables validated on startup (fail fast)
+- No hardcoded URLs, ports, or credentials
+- Sensible defaults OR explicit failure
 
-### 6. Rate Limiting & Abuse Prevention
-- Rate limiting on public endpoints
-- Input size limits enforced
-- Expensive operations protected
-
-### 7. Security Basics
-- HTTPS enforced
-- Security headers set (CSP, HSTS, etc.)
-- Session management is secure
-- CORS configured correctly
+### 5. Documentation Accuracy
+- README reflects current state
+- API endpoints documented
+- Environment variables documented
+- Setup instructions work
 
 ## HOW TO CHECK
 
-1. Use Glob to find relevant files (routes, services, config, middleware)
-2. Use Grep to find patterns (catch blocks, env vars, setTimeout, etc.)
+1. Use Grep to find patterns:
+   - \`fetch|axios|http\\.get\` without timeout
+   - \`catch\\s*\\{\\s*\\}\` empty catch blocks
+   - \`process\\.env\\.\` without validation
+   - \`console\\.log\` instead of proper logging
+
+2. Use Glob to find config/health/middleware files
 3. Use Read to examine suspicious files
-4. Document each finding with evidence
+4. Check README.md against reality
 
 ## OUTPUT FORMAT
 
 CHECKS_PERFORMED:
-- [x] Error handling
+- [x] Resilience patterns
+- [x] Error recovery
+- [x] Observability
 - [x] Configuration
-- etc.
+- [x] Documentation
 
 FINDINGS:
 
-[CRITICAL] Description of critical issue
-Evidence: file.ts:123 - \`code snippet\`
-Fix: What should be done
+[CRITICAL] Description
+  File: path/to/file.ts:123
+  Evidence: \`code snippet\`
+  Fix needed: What should be done
 
-[HIGH] Description of high severity issue
-Evidence: file.ts:456 - \`code snippet\`
-Fix: What should be done
+[HIGH] Description
+  File: path/to/file.ts:456
+  Evidence: \`code snippet\`
+  Fix needed: What should be done
 
-[MEDIUM] Description of medium issue
-Evidence: file.ts:789 - \`code snippet\`
-Fix: What should be done
+[MEDIUM] Description
+  File: path/to/file.ts:789
+  Evidence: \`code snippet\`
 
-[LOW] Description of low severity issue
-Evidence: file.ts:101 - \`code snippet\`
+[LOW] Description
+  File: path/to/file.ts:101
 
-SUMMARY:
-- CRITICAL: N
-- HIGH: N
-- MEDIUM: N
-- LOW: N
+DOC_ISSUES:
+- README missing X section
+- API docs don't mention Y endpoint
 
-PRODUCTION_READY: yes/no (no if any CRITICAL/HIGH unfixed)
+AUDIT_COMPLETE`;
 
-PRODUCTION_CHECK_COMPLETE`;
+const FIX_PROMPT = `## FIX PRODUCTION READINESS ISSUES
+
+Fix these issues found during the production readiness audit:
+
+{FINDINGS}
+
+## For each CRITICAL/HIGH issue:
+1. Read the file
+2. Use Edit tool to fix
+3. Verify the fix works
+
+## For documentation issues:
+1. Update README.md or relevant docs
+2. Ensure accuracy
+
+Report what you fixed:
+
+FIXES_APPLIED:
+[SEVERITY] description
+  File: path/to/file.ts
+  Change: What you changed
+
+DOCS_UPDATED:
+- README.md: Added X section
+- Updated Y documentation
+
+FIX_COMPLETE`;
 
 export class ProductionReadinessPhase extends BasePhase {
   readonly name = 'production-readiness' as const;
   readonly icon = '🚀';
-  readonly description = 'Final production readiness check';
+  readonly description = 'Final production readiness check - fix operational issues, update docs';
 
   async execute(context: PhaseContext): Promise<PhaseResult> {
     const { projectPath, logsDir } = context;
@@ -112,58 +140,217 @@ export class ProductionReadinessPhase extends BasePhase {
     process.stdout.write(`${chalk.cyan('🚀')} ${chalk.bold('Production Readiness Check')}\n`);
     process.stdout.write(`${chalk.cyan('━'.repeat(60))}\n\n`);
 
-    const output = await runClaude({
-      prompt: PRODUCTION_READINESS_PROMPT,
+    // Step 1: Audit
+    process.stdout.write(`${chalk.bold('Auditing...')}\n`);
+    const auditOutput = await runClaude({
+      prompt: AUDIT_PROMPT,
       projectPath,
       logDir: logsDir,
-      logPrefix: 'production-readiness',
+      logPrefix: 'production-readiness-audit',
       allowedTools: ['Bash', 'Read', 'Glob', 'Grep'],
     });
 
-    if (!output.success) {
-      return this.failed(`Production readiness check failed: ${extractError(output.result)}`);
+    if (!auditOutput.success) {
+      return this.failed(`Audit failed: ${extractError(auditOutput.result)}`);
     }
 
     // Parse findings
-    const criticalCount = (output.result.match(/\[CRITICAL\]/gi) || []).length;
-    const highCount = (output.result.match(/\[HIGH\]/gi) || []).length;
-    const mediumCount = (output.result.match(/\[MEDIUM\]/gi) || []).length;
-    const lowCount = (output.result.match(/\[LOW\]/gi) || []).length;
+    const findings = this.parseFindings(auditOutput.result);
+    const docIssues = this.parseDocIssues(auditOutput.result);
 
-    // Check if marked as production ready
-    const readyMatch = output.result.match(/PRODUCTION_READY:\s*(yes|no)/i);
-    const isReady = readyMatch ? readyMatch[1].toLowerCase() === 'yes' : false;
-
-    // Print summary
-    process.stdout.write(`\n${chalk.bold('Findings:')}\n`);
-    if (criticalCount > 0) process.stdout.write(`  ${chalk.red(`CRITICAL: ${criticalCount}`)}\n`);
-    if (highCount > 0) process.stdout.write(`  ${chalk.red(`HIGH: ${highCount}`)}\n`);
-    if (mediumCount > 0) process.stdout.write(`  ${chalk.yellow(`MEDIUM: ${mediumCount}`)}\n`);
-    if (lowCount > 0) process.stdout.write(`  ${chalk.blue(`LOW: ${lowCount}`)}\n`);
-    if (criticalCount + highCount + mediumCount + lowCount === 0) {
-      process.stdout.write(`  ${chalk.green('No issues found')}\n`);
+    if (findings.length === 0 && docIssues.length === 0) {
+      process.stdout.write(`\n  ${chalk.green('✓')} No issues found - production ready\n`);
+      return this.success('Production ready - no issues', { issuesFound: 0, issuesFixed: 0, docsUpdated: 0 });
     }
 
-    const total = criticalCount + highCount + mediumCount + lowCount;
-
-    if (criticalCount > 0 || highCount > 0) {
-      return this.failed(
-        `Not production ready: ${criticalCount} CRITICAL, ${highCount} HIGH issues found`
-      );
+    // Show findings
+    process.stdout.write(`\n${chalk.bold('Issues Found:')}\n`);
+    for (const finding of findings) {
+      const color = finding.severity === 'CRITICAL' ? chalk.red.bold :
+                    finding.severity === 'HIGH' ? chalk.red :
+                    finding.severity === 'MEDIUM' ? chalk.yellow : chalk.blue;
+      process.stdout.write(`  ${color(`[${finding.severity}]`)} ${finding.description}\n`);
+      if (finding.file) {
+        process.stdout.write(`    ${chalk.dim(`→ ${finding.file}`)}\n`);
+      }
     }
 
-    if (mediumCount > 0) {
+    if (docIssues.length > 0) {
+      process.stdout.write(`\n${chalk.bold('Documentation Issues:')}\n`);
+      for (const issue of docIssues) {
+        process.stdout.write(`  ${chalk.yellow('○')} ${issue}\n`);
+      }
+    }
+
+    // Step 2: Fix CRITICAL/HIGH and doc issues
+    const criticalHigh = findings.filter(f => f.severity === 'CRITICAL' || f.severity === 'HIGH');
+    if (criticalHigh.length > 0 || docIssues.length > 0) {
+      process.stdout.write(`\n${chalk.bold('Fixing issues...')}\n`);
+
+      const fixPrompt = FIX_PROMPT.replace('{FINDINGS}', auditOutput.result);
+      const fixOutput = await runClaude({
+        prompt: fixPrompt,
+        projectPath,
+        logDir: logsDir,
+        logPrefix: 'production-readiness-fix',
+        allowedTools: ['Bash', 'Read', 'Write', 'Edit', 'Glob', 'Grep'],
+      });
+
+      // Parse and display fixes
+      const fixes = this.parseFixes(fixOutput.result);
+      const docsUpdated = this.parseDocsUpdated(fixOutput.result);
+
+      if (fixes.length > 0) {
+        process.stdout.write(`\n${chalk.bold('Fixes Applied:')}\n`);
+        for (const fix of fixes) {
+          process.stdout.write(`  ${chalk.green('✓')} ${chalk.dim(`[${fix.severity}]`)} ${fix.description}\n`);
+          if (fix.change) {
+            process.stdout.write(`    ${chalk.green(fix.change)}\n`);
+          }
+        }
+      }
+
+      if (docsUpdated.length > 0) {
+        process.stdout.write(`\n${chalk.bold('Documentation Updated:')}\n`);
+        for (const doc of docsUpdated) {
+          process.stdout.write(`  ${chalk.green('✓')} ${doc}\n`);
+        }
+      }
+
+      // Check if CRITICAL issues remain
+      const fixedCritical = fixes.filter(f => f.severity === 'CRITICAL').length;
+      const criticalCount = findings.filter(f => f.severity === 'CRITICAL').length;
+      if (fixedCritical < criticalCount) {
+        return this.failed(`${criticalCount - fixedCritical} CRITICAL issues remain unfixed`);
+      }
+
+      const metrics = {
+        issuesFound: findings.length,
+        issuesFixed: fixes.length,
+        docsUpdated: docsUpdated.length,
+        critical: criticalCount,
+        high: findings.filter(f => f.severity === 'HIGH').length,
+        medium: findings.filter(f => f.severity === 'MEDIUM').length,
+        low: findings.filter(f => f.severity === 'LOW').length,
+      };
+
       return this.success(
-        `Production check passed with ${mediumCount} MEDIUM, ${lowCount} LOW issues noted`,
-        { critical: criticalCount, high: highCount, medium: mediumCount, low: lowCount },
-        output.result
+        `Fixed ${fixes.length} issues, updated ${docsUpdated.length} docs`,
+        metrics,
+        fixOutput.result
       );
     }
+
+    // Only MEDIUM/LOW - note but don't fix
+    const metrics = {
+      issuesFound: findings.length,
+      issuesFixed: 0,
+      docsUpdated: 0,
+      medium: findings.filter(f => f.severity === 'MEDIUM').length,
+      low: findings.filter(f => f.severity === 'LOW').length,
+    };
 
     return this.success(
-      `Production ready - ${total === 0 ? 'no issues' : `${lowCount} LOW issues noted`}`,
-      { critical: 0, high: 0, medium: mediumCount, low: lowCount },
-      output.result
+      `Production ready - ${findings.length} minor issues noted`,
+      metrics,
+      auditOutput.result
     );
+  }
+
+  /** Parse findings from audit output */
+  private parseFindings(output: string): Array<{
+    severity: string;
+    description: string;
+    file?: string;
+  }> {
+    const findings: Array<{ severity: string; description: string; file?: string }> = [];
+    const pattern = /\[(CRITICAL|HIGH|MEDIUM|LOW)\]\s+(.+?)(?:\n|$)/gi;
+
+    let match;
+    while ((match = pattern.exec(output)) !== null) {
+      const finding: { severity: string; description: string; file?: string } = {
+        severity: match[1].toUpperCase(),
+        description: match[2].trim(),
+      };
+
+      // Look for File: line after
+      const afterMatch = output.slice(match.index + match[0].length, match.index + match[0].length + 200);
+      const fileMatch = afterMatch.match(/File:\s*([^\n]+)/i);
+      if (fileMatch) {
+        finding.file = fileMatch[1].trim();
+      }
+
+      findings.push(finding);
+    }
+
+    return findings;
+  }
+
+  /** Parse documentation issues */
+  private parseDocIssues(output: string): string[] {
+    const issues: string[] = [];
+    const section = output.match(/DOC_ISSUES:([\s\S]*?)(?:AUDIT_COMPLETE|$)/i);
+    if (section) {
+      const lines = section[1].split('\n');
+      for (const line of lines) {
+        const trimmed = line.trim();
+        if (trimmed.startsWith('-')) {
+          issues.push(trimmed.slice(1).trim());
+        }
+      }
+    }
+    return issues;
+  }
+
+  /** Parse fixes from fix output */
+  private parseFixes(output: string): Array<{
+    severity: string;
+    description: string;
+    change?: string;
+  }> {
+    const fixes: Array<{ severity: string; description: string; change?: string }> = [];
+    const section = output.match(/FIXES_APPLIED:([\s\S]*?)(?:DOCS_UPDATED:|FIX_COMPLETE|$)/i);
+    if (!section) return fixes;
+
+    const lines = section[1].split('\n');
+    let current: { severity: string; description: string; change?: string } | null = null;
+
+    for (const line of lines) {
+      const severityMatch = line.match(/\[(CRITICAL|HIGH|MEDIUM|LOW)\]\s+(.+)/i);
+      if (severityMatch) {
+        if (current) fixes.push(current);
+        current = {
+          severity: severityMatch[1].toUpperCase(),
+          description: severityMatch[2].trim(),
+        };
+        continue;
+      }
+
+      if (current) {
+        const changeMatch = line.match(/Change:\s*(.+)/i);
+        if (changeMatch) {
+          current.change = changeMatch[1].trim();
+        }
+      }
+    }
+
+    if (current) fixes.push(current);
+    return fixes;
+  }
+
+  /** Parse docs updated from fix output */
+  private parseDocsUpdated(output: string): string[] {
+    const docs: string[] = [];
+    const section = output.match(/DOCS_UPDATED:([\s\S]*?)(?:FIX_COMPLETE|$)/i);
+    if (section) {
+      const lines = section[1].split('\n');
+      for (const line of lines) {
+        const trimmed = line.trim();
+        if (trimmed.startsWith('-')) {
+          docs.push(trimmed.slice(1).trim());
+        }
+      }
+    }
+    return docs;
   }
 }

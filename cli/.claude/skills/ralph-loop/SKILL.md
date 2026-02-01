@@ -117,6 +117,65 @@ Item 4: OAuth integration
 
 **NEVER output "complete" or stop until the last item is done.**
 
+## Visual Output Format
+
+Each workflow step has a **three-part output structure** with clear boundaries:
+
+```
+═══════════════════════════════════════════════════════════════
+## IMPLEMENT: [Item Name]
+═══════════════════════════════════════════════════════════════
+
+┌─ CANON ─────────────────────────────────────────────────────┐
+│ 📐 Clarity   🔧 Simplicity   🛡️ Security   📝 Types         │
+└─────────────────────────────────────────────────────────────┘
+
+┌─ SKILLS LOADED ─────────────────────────────────────────────┐
+│ /owasp /cherny /frost                                       │
+└─────────────────────────────────────────────────────────────┘
+
+┌─ APPLICATION ───────────────────────────────────────────────┐
+│ 📐K Renamed handleAuth → authenticateUser (Kernighan)       │
+│ 🛡️S Added input sanitization (OWASP)                        │
+│ 📝Ty Defined AuthResult type (Cherny)                       │
+│ 🎨U Button → Card → Form structure (Frost)                  │
+└─────────────────────────────────────────────────────────────┘
+
+Summary: 📐K×2 🔧P×1 🛡️S×3 📝Ty×1 🎨U×1
+═══════════════════════════════════════════════════════════════
+```
+
+### Output Order (DO NOT REPEAT)
+
+1. **CANON** - Show which core principles apply (emoji + name)
+2. **SKILLS LOADED** - List skills being invoked (once only)
+3. **APPLICATION** - Show how each principle was applied with tag
+4. **Summary** - Compact count of tags used
+
+### Tag Reference
+
+| Emoji | Code | Domain |
+|-------|------|--------|
+| 📐 | K | Kernighan (clarity) |
+| 🔧 | P | Pike (simplicity) |
+| 🧩 | M | McIlroy (composability) |
+| 📊 | L | Linus (data structures) |
+| ✓ | D | Dijkstra (correctness) |
+| 🎯 | T | Thompson (pragmatism) |
+| ⚡ | C | Carmack (performance) |
+| 🛡️ | S | Security (OWASP, Schneier) |
+| 🧪 | Te | Testing (Dodds, Meszaros) |
+| 📝 | Ty | Types (Cherny, Hejlsberg) |
+| 🏛️ | A | Architecture (Taleb, Petroski) |
+| 🎨 | U | UI/UX (Frost, Ive, Norman) |
+
+### Rules
+
+1. **Skills appear ONCE** in "SKILLS LOADED" section only
+2. **Application tags** show skill name in parentheses
+3. **No duplication** - don't list skills twice
+4. **Log to session** - Append to `session-log.json`
+
 ## Arguments
 
 | Argument | Description |
@@ -138,47 +197,29 @@ while PRD has incomplete items AND iteration < max:
         1. Read item requirements from PRD
         2. Check git log for related previous work
 
-        3. ⚠️ MANDATORY: Detect and invoke domain masters:
+        3. OUTPUT step header with visual boundary:
+           ═══════════════════════════════════════════════════
+           ## IMPLEMENT: [Item Name]
+           ═══════════════════════════════════════════════════
 
-           # Frontend Detection (MUST check these patterns)
-           if file matches *.tsx, *.jsx, *.vue, *.svelte:
-               OUTPUT: "🎨 Frontend detected → Invoking /frost, /ive, /norman"
-               INVOKE /frost   # Atomic Design structure
-               INVOKE /ive     # Visual design principles
-               INVOKE /norman  # Affordances, feedback
+        4. OUTPUT CANON section (which principles apply):
+           ┌─ CANON ──────────────────────────────────────────┐
+           │ 📐 Clarity   🛡️ Security   📝 Types              │
+           └──────────────────────────────────────────────────┘
 
-           if file matches *.css, *.scss, *.styled.*:
-               OUTPUT: "🎨 CSS detected → Invoking /rams"
-               INVOKE /rams    # Simplicity, 10 principles
+        5. Detect domain, OUTPUT SKILLS LOADED (once only):
+           ┌─ SKILLS LOADED ──────────────────────────────────┐
+           │ /owasp /cherny /frost                            │
+           └──────────────────────────────────────────────────┘
 
-           if PRD item mentions "form", "input", "validation":
-               OUTPUT: "📝 Form detected → Invoking /wroblewski, /norman"
-               INVOKE /wroblewski  # Forms expert
-               INVOKE /norman      # Affordances
+        6. Implement with canon lens, OUTPUT APPLICATION:
+           ┌─ APPLICATION ────────────────────────────────────┐
+           │ 📐K Renamed handleClick → submitPaymentForm      │
+           │ 🛡️S Added CSRF token validation (OWASP)          │
+           │ 📝Ty Strict return type: Promise<User | null>    │
+           └──────────────────────────────────────────────────┘
 
-           if PRD item mentions "animation", "transition", "motion":
-               OUTPUT: "✨ Animation detected → Invoking /duarte"
-               INVOKE /duarte  # Meaningful motion
-
-           if PRD item mentions "mobile", "responsive", "touch":
-               OUTPUT: "📱 Mobile detected → Invoking /wroblewski, /buxton"
-               INVOKE /wroblewski  # Mobile-first
-               INVOKE /buxton      # Input fundamentals
-
-           # Code Quality Detection
-           if file matches *.tsx, *.jsx (React):
-               OUTPUT: "⚛️ React detected → Invoking /abramov"
-               INVOKE /abramov  # React mental models
-
-           if file matches *.ts (TypeScript):
-               OUTPUT: "📘 TypeScript detected → Invoking /cherny"
-               INVOKE /cherny   # Type design
-
-           # These skills provide the LENS for implementation
-           # Read the skill, apply its principles, then implement
-
-        4. Implement (with canon lens active)
-        5. ADD DOCUMENTATION:
+        7. ADD DOCUMENTATION:
            - JS/TS: JSDoc with @param, @returns, @example
            - C#: XML comments with <summary>, <param>, <example>
            - Python: Google-style docstrings
@@ -728,46 +769,64 @@ Claude-Optimal provides:
 **Items**: 4 incomplete, 0 complete
 **Max iterations**: 50
 
----
+═══════════════════════════════════════════════════════════════
+## IMPLEMENT: User authentication
+═══════════════════════════════════════════════════════════════
 
-## Iteration 1
+┌─ CANON ─────────────────────────────────────────────────────┐
+│ 📐 Clarity   🔧 Simplicity   🛡️ Security   📝 Types         │
+└─────────────────────────────────────────────────────────────┘
 
-**Item**: User authentication
-**Action**: Implementing...
+┌─ SKILLS LOADED ─────────────────────────────────────────────┐
+│ /owasp /cherny /schneier                                    │
+└─────────────────────────────────────────────────────────────┘
 
-[Implementation happens with canon lens]
+┌─ APPLICATION ───────────────────────────────────────────────┐
+│ 📐K Clear function name: authenticateUser (Kernighan)       │
+│ 🛡️S Password hashing with bcrypt (Schneier)                 │
+│ 📝Ty Defined AuthResult type (Cherny)                       │
+│ 🔧P Single responsibility: split validate/authenticate      │
+└─────────────────────────────────────────────────────────────┘
 
 Commit: abc1234 - Add basic auth structure
+Summary: 📐K×1 🔧P×1 🛡️S×1 📝Ty×1
 
-**Tests**: Running...
+───────────────────────────────────────────────────────────────
 **Tests**: 3 passed, 0 failed
-
-**/review-hard**: Running...
 **/review-hard**: 1 high issue (missing input validation)
+**Status**: Fixing...
+───────────────────────────────────────────────────────────────
 
-**Status**: Fixing review issues...
+═══════════════════════════════════════════════════════════════
+## FIX: Input validation
+═══════════════════════════════════════════════════════════════
 
----
-
-## Iteration 2
-
-**Item**: User authentication (continued)
-**Action**: Fixing input validation...
-
-[Fix implemented]
+┌─ APPLICATION ───────────────────────────────────────────────┐
+│ 🛡️S Input sanitization before processing (OWASP)            │
+│ 🛡️S Email format validation (OWASP)                         │
+└─────────────────────────────────────────────────────────────┘
 
 Commit: def5678 - Add input validation to auth
+Summary: 🛡️S×2
 
+───────────────────────────────────────────────────────────────
 **Tests**: 4 passed, 0 failed
-**/review-hard**: Clean
-
+**/review-hard**: Clean ✓
 **Status**: COMPLETE - marking in PRD
+───────────────────────────────────────────────────────────────
 
----
+═══════════════════════════════════════════════════════════════
+## IMPLEMENT: Session management
+═══════════════════════════════════════════════════════════════
 
-## Iteration 3
+┌─ CANON ─────────────────────────────────────────────────────┐
+│ 📐 Clarity   🛡️ Security   📊 Data structures               │
+└─────────────────────────────────────────────────────────────┘
 
-**Item**: Session management
+┌─ SKILLS LOADED ─────────────────────────────────────────────┐
+│ /schneier /linus /cherny                                    │
+└─────────────────────────────────────────────────────────────┘
+
 ...
 ```
 

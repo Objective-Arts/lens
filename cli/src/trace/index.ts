@@ -69,7 +69,7 @@ function skillToPhase(skill: string): PhaseName | null {
     'implement': 'implement',
     'test': 'test',
     'refactor-check': 'refactor-check',
-    'adversarial-review': 'adversarial-review',
+    'independent-review': 'independent-review',
     'static-analysis': 'static-analysis',
     'doc-code': 'doc-code',
   };
@@ -128,7 +128,7 @@ export function traceSkillConfig(projectPath: string, skillName: string, taskTex
           'implement': 'build',
           'test': 'test',
           'refactor-check': 'refactor',
-          'adversarial-review': 'review',
+          'independent-review': 'review',
           'static-analysis': 'review',
           'doc-code': 'doc',
         };
@@ -225,7 +225,7 @@ export function traceSkillConfig(projectPath: string, skillName: string, taskTex
         'implement': 'build',
         'test': 'test',
         'refactor-check': 'refactor',
-        'adversarial-review': 'review',
+        'independent-review': 'review',
         'static-analysis': 'review',
         'doc-code': 'doc',
       };
@@ -247,7 +247,7 @@ export function traceSkillConfig(projectPath: string, skillName: string, taskTex
     }
 
     // Add known tools for phases
-    if (phase === 'adversarial-review') {
+    if (phase === 'independent-review') {
       tools.push('mcp__gemini-reviewer__gemini_review');
     } else if (phase === 'static-analysis') {
       tools.push('mcp__qodana__qodana_scan', 'mcp__qodana__qodana_problems');

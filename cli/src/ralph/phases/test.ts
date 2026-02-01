@@ -4,11 +4,26 @@
  * Experts: meszaros, fowler-test, dodds, hevery, feathers
  */
 
+import { execSync } from 'child_process';
 import { BasePhase, PhaseContext, PhaseResult } from './types.js';
 import { runClaude } from '../process/claude.js';
 import { extractError } from '../parsers/claude-stream.js';
 
-const BUILD_TESTS_PROMPT = `Write tests for the implemented code and RUN them.
+const BUILD_TESTS_PROMPT = `## NON-NEGOTIABLE: WRITE TESTS AND RUN THEM
+
+THIS PHASE FAILS IF:
+- TEST_COUNT is 0 or missing → "No tests were written"
+- TESTS_RUN is not "yes" → "Tests were not run"
+- TESTS_FAILED > 0 → "Tests failed"
+
+TO PASS THIS PHASE YOU MUST:
+1. Use Write tool to create .test.ts file(s)
+2. Run: npm test OR npx vitest run
+3. Output EXACT format below
+
+---
+
+Write tests for the implemented code and RUN them.
 
 PRD ITEM: {ITEM_TEXT}
 
@@ -37,15 +52,15 @@ You WILL see a hook asking "Are you operating within a workflow skill?"
 Answer: "Yes, I am in the ralph test phase. Proceeding."
 Then IMMEDIATELY make the edit.
 
-## REQUIRED OUTPUT FORMAT
+## REQUIRED OUTPUT FORMAT (copy this structure)
 
 TESTS_WRITTEN:
-- path/to/test.ts: [test descriptions]
+- src/feature.test.ts: should handle valid input, should reject invalid input, should handle edge case
 
-TESTS_RUN: yes (MANDATORY - must actually run them)
-TESTS_PASSED: N
-TESTS_FAILED: 0 (must be zero or phase fails)
-TEST_COUNT: N
+TESTS_RUN: yes
+TESTS_PASSED: 3
+TESTS_FAILED: 0
+TEST_COUNT: 3
 
 COVERAGE:
 - [function name]: tested
@@ -60,6 +75,23 @@ export class TestPhase extends BasePhase {
   readonly name = 'test' as const;
   readonly icon = '🧪';
   readonly description = 'Write tests for implemented code';
+
+  /** Find test files modified in the last 10 minutes. */
+  private findRecentTestFiles(projectPath: string): string[] {
+    try {
+      const result = execSync(
+        'find . -name "*.test.ts" -o -name "*.spec.ts" | xargs ls -lt 2>/dev/null | head -5',
+        { cwd: projectPath, encoding: 'utf-8', timeout: 5000 }
+      );
+      return result.split('\n')
+        .filter(line => line.includes('.test.ts') || line.includes('.spec.ts'))
+        .map(line => line.split(' ').pop() || '')
+        .filter(Boolean)
+        .slice(0, 3);
+    } catch {
+      return [];
+    }
+  }
 
   async execute(context: PhaseContext): Promise<PhaseResult> {
     const { item, experts, projectPath, logsDir } = context;
@@ -111,7 +143,17 @@ export class TestPhase extends BasePhase {
     const testsRun = testsRunMatch ? testsRunMatch[1].toLowerCase() === 'yes' : false;
 
     if (testCount === 0) {
-      return this.failed('No tests were written. Tests are REQUIRED, not optional.');
+      // Check if test files were actually created but TEST_COUNT not reported
+      const recentTestFiles = this.findRecentTestFiles(projectPath);
+      if (recentTestFiles.length > 0) {
+        return this.failed(
+          `Test files created (${recentTestFiles.join(', ')}) but TEST_COUNT not reported. ` +
+          'Re-run with proper output format: TESTS_WRITTEN, TESTS_RUN: yes, TEST_COUNT: N'
+        );
+      }
+      return this.failed(
+        'No tests were written. You MUST: 1) Write test file with Write tool 2) Run npm test 3) Report TEST_COUNT'
+      );
     }
 
     // Tests MUST be run - no exceptions

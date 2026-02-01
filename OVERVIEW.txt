@@ -1,0 +1,228 @@
+Claude Optimal: Embedded Expert Knowledge for AI-Assisted Development
+
+When developers use Claude Code, they get a capable assistant. But that
+assistant lacks specialized knowledge--the accumulated wisdom of Kernighan on
+clarity, Schneier on security, Abramov on React state, Tufte on visualization.
+Claude Optimal embeds this expertise directly into coding sessions.
+
+The system works through "canon skills"--distilled principles from domain
+masters. Each skill is a SKILL.md file containing philosophy, patterns,
+anti-patterns, and examples. When a developer invokes /kernighan, Claude
+receives Kernighan's principles: clarity over cleverness, small functions,
+explicit control flow. When they invoke /schneier, Claude thinks like an
+attacker, questions trust assumptions, validates all input.
+
+
+Skills in Practice
+
+A developer writes authentication code. Their CLAUDE.md contains an auto-invoke
+rule: "Security-sensitive code → INVOKE /schneier then /owasp." Claude loads
+both skills before generating code. The result reflects Schneier's threat
+modeling and OWASP's input validation patterns.
+
+Another developer builds React components. Their auto-invoke rule triggers
+/abramov for state management and /dodds for testing. Claude structures
+components with proper state lifting and writes tests using Testing Library
+idioms.
+
+A third developer refactors legacy code. They invoke /feathers directly for
+guidance on characterization tests and seams. No auto-invoke needed--they
+chose the expert.
+
+Skills work three ways:
+  - Direct invocation: /kernighan, /schneier, /abramov
+  - Auto-invoke rules: Context patterns in CLAUDE.md trigger skills
+  - Workflow phases: Automated pipelines load skills per stage
+
+
+The Canon
+
+Seventy-five skills span twelve categories:
+
+  Computing Fundamentals
+    kernighan    - clarity over cleverness
+    pike         - small composable interfaces
+    linus        - data structures first
+    dijkstra     - correctness by construction
+    thompson     - make it work first
+    mcilroy      - do one thing well
+    knuth        - algorithmic rigor
+    carmack      - measure before optimizing
+    liskov       - substitution principle
+    bloch        - API design
+    gang-of-four - design patterns
+    bill-joy     - handle failure explicitly
+
+  JavaScript
+    abramov      - React state, composition
+    dodds        - Testing Library, Testing Trophy
+    cherny       - TypeScript types, generics
+    crockford    - safe subset, avoiding pitfalls
+    kyle-simpson - closures, scope, this
+    ashkenas     - functional patterns
+    osmani       - module patterns
+    harris       - Svelte, reactive frameworks
+
+  Security
+    schneier     - think like an attacker
+    owasp        - input validation, output encoding
+    troy-hunt    - authentication, sessions
+    tanya-janca  - secure development lifecycle
+    threat-model - systematic threat analysis
+
+  Testing
+    feathers     - legacy code, characterization tests
+    fowler-test  - test pyramid, test strategy
+    meszaros     - test patterns, fixtures
+
+  UI/UX
+    frost        - atomic design, component systems
+    ive          - visual design principles
+    norman       - usability, affordances
+    rams         - less but better
+    cooper       - interaction design
+
+  Visualization
+    bostock      - D3, data-driven documents
+    tufte        - information density, clarity
+    few          - dashboard design
+    knaflic      - storytelling with data
+
+  Engineering
+    leveson      - system safety
+    petroski     - learning from failure
+    taleb        - antifragility, uncertainty
+
+  Writing
+    zinsser      - clarity, removing clutter
+    strunk-white - omit needless words
+    king         - kill your darlings
+
+  Patterns
+    ceremony     - checkpoints for critical operations
+    escalate     - simple fix first, investigate if needed
+    evans        - domain-driven design
+
+Each category includes more skills. Python has Beazley, Hettinger, Ramalho,
+Slatkin. Angular has Hevery, Gechev, Lesh. C# has Skeet, Cleary, Hejlsberg.
+
+
+Profiles
+
+Projects need different expert combinations. A React project needs Abramov,
+Dodds, and Cherny. A Python data pipeline needs Hettinger, Ramalho, and
+Beazley. A security-critical system needs Schneier, OWASP, and Leveson.
+
+Profiles compose these combinations. A profile defines:
+  - Which skills to install
+  - Auto-invoke rules for CLAUDE.md
+  - MCP servers to enable
+  - Workflow configuration
+
+Profiles combine with + syntax:
+
+  cc-config profile apply javascript+react ./myproject
+  cc-config profile apply python+security ./myproject
+  cc-config profile apply angular+testing ./myproject
+
+The first installs Abramov, Dodds, Cherny, Osmani. The second installs
+Schneier, OWASP, Hettinger, Ramalho. Each profile adds its auto-invoke rules.
+
+
+Portability
+
+Skills copy as real files into each project's .claude/skills/ directory. No
+symlinks, no remote dependencies. A manifest tracks version and hash for each
+skill. Projects work standalone--clone the repo, skills are there.
+
+Upgrades are explicit. Run "cc-config canon upgrade" to pull new versions from
+the source repository. Local edits persist unless forced. The manifest shows
+which skills are current, outdated, or modified.
+
+
+The CLI
+
+cc-config manages the system:
+
+  cc-config canon list          - show available skills
+  cc-config canon install NAME  - copy a skill to project
+  cc-config canon status        - compare installed vs source
+  cc-config canon upgrade       - update outdated skills
+  cc-config canon diff NAME     - show changes between versions
+
+  cc-config profile list        - show available profiles
+  cc-config profile show NAME   - display profile contents
+  cc-config profile apply NAME  - configure a project
+
+  cc-config scan                - discover all Claude configuration
+  cc-config mcp list            - show MCP server status
+
+
+Auto-Invoke Rules
+
+CLAUDE.md drives automatic skill loading. A project's CLAUDE.md contains a
+table mapping contexts to actions:
+
+  | Context                        | Action                    |
+  |--------------------------------|---------------------------|
+  | Writing any code               | INVOKE /kernighan /pike   |
+  | Security-sensitive code        | INVOKE /schneier /owasp   |
+  | React components               | INVOKE /abramov           |
+  | Writing tests                  | INVOKE /dodds /meszaros   |
+  | Performance-critical code      | INVOKE /carmack           |
+  | Working with legacy code       | INVOKE /feathers          |
+
+When Claude detects matching context, it loads the specified skills. The
+developer gets expert guidance without invoking skills manually.
+
+
+The Ralph Loop
+
+One workflow built on this foundation automates PRD implementation. A developer
+writes a PRD with checkbox items. The Ralph runner processes each item through
+eight phases:
+
+  1. Plan       - design approach, load planning experts
+  2. Structure  - design types before algorithms (Linus)
+  3. Implement  - write code with implementation experts
+  4. Test       - write tests with testing experts
+  5. Refactor   - simplify with refactoring experts
+  6. Review     - Gemini security analysis
+  7. Analyze    - Qodana static analysis
+  8. Document   - record what was built
+
+Each phase loads relevant skills from the profile. The Plan phase might load
+Bloch and Evans. The Test phase loads Dodds and Meszaros. Keyword detection
+adds more--an item mentioning "auth" triggers Schneier and OWASP.
+
+The runner spawns Claude CLI, passes the accumulated context and expert
+guidance, captures output, and advances. Success marks the PRD item complete.
+Failure stops the loop.
+
+This automation exists because the skill system exists. Without embedded
+expertise, the loop would produce generic code. With it, each phase benefits
+from domain knowledge.
+
+
+What This Solves
+
+Claude Code is powerful but generic. It lacks the specialized knowledge that
+experienced developers carry. A senior engineer knows to think about failure
+modes (Leveson), design data structures first (Linus), and distrust user input
+(Schneier). Claude doesn't--unless you tell it.
+
+Claude Optimal tells it systematically. Expert knowledge enters at write-time,
+not review-time. The developer chooses their experts through profiles and
+auto-invoke rules. The result: code that reflects accumulated wisdom from the
+start.
+
+Skills work standalone. Invoke /kernighan while writing a function. Invoke
+/feathers before touching legacy code. Invoke /tufte before building a chart.
+No automation required.
+
+Profiles scale this to projects. Apply a profile once, get auto-invoke rules
+for every relevant context. The expertise follows the code.
+
+The Ralph loop scales further--fully autonomous implementation with expert
+guidance at every phase. But the loop is optional. Skills and profiles stand
+alone.

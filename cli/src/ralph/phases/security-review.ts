@@ -97,7 +97,7 @@ export class SecurityReviewPhase extends BasePhase {
     process.stdout.write(`${chalk.red('🔒')} ${chalk.bold('Security Review')} ${chalk.dim('(adversarial)')}\n`);
     process.stdout.write(`${chalk.red('━'.repeat(60))}\n\n`);
 
-    // Dedupe repeated Gemini calls
+    // Dedupe repeated Gemini calls (runner spinner shows elapsed time)
     let geminiShown = false;
     const stream: StreamCallbacks = {
       onToolCall: (name) => {
@@ -131,29 +131,41 @@ export class SecurityReviewPhase extends BasePhase {
       return this.failed('Gemini was not called for security review');
     }
 
-    // Parse findings by severity
-    const criticalCount = (output.result.match(/\[CRITICAL\]/gi) || []).length;
-    const highCount = (output.result.match(/\[HIGH\]/gi) || []).length;
-    const mediumCount = (output.result.match(/\[MEDIUM\]/gi) || []).length;
-    const lowCount = (output.result.match(/\[LOW\]/gi) || []).length;
+    // Parse actual findings with descriptions
+    const findings = this.parseFindings(output.result);
 
-    // Print summary
-    process.stdout.write(`\n${chalk.bold('Security Findings:')}\n`);
-    if (criticalCount > 0) process.stdout.write(`  ${chalk.red.bold(`CRITICAL: ${criticalCount}`)}\n`);
-    if (highCount > 0) process.stdout.write(`  ${chalk.red(`HIGH: ${highCount}`)}\n`);
-    if (mediumCount > 0) process.stdout.write(`  ${chalk.yellow(`MEDIUM: ${mediumCount}`)}\n`);
-    if (lowCount > 0) process.stdout.write(`  ${chalk.blue(`LOW: ${lowCount}`)}\n`);
-
-    const total = criticalCount + highCount + mediumCount + lowCount;
-
-    if (total === 0) {
-      process.stdout.write(`  ${chalk.green('No vulnerabilities found')}\n`);
+    if (findings.length === 0) {
+      process.stdout.write(`\n  ${chalk.green('✓')} No vulnerabilities found\n`);
       return this.success('Security review passed - no vulnerabilities found');
     }
 
-    // Fix CRITICAL and HIGH issues
-    if (criticalCount > 0 || highCount > 0) {
-      process.stdout.write(`\n      ${chalk.red('○')} ${chalk.dim('Fixing CRITICAL/HIGH vulnerabilities...')}\n`);
+    // Print each finding
+    process.stdout.write(`\n${chalk.bold('Vulnerabilities Found:')}\n`);
+    for (const finding of findings) {
+      const color = finding.severity === 'CRITICAL' ? chalk.red.bold :
+                    finding.severity === 'HIGH' ? chalk.red :
+                    finding.severity === 'MEDIUM' ? chalk.yellow : chalk.blue;
+      process.stdout.write(`  ${color(`[${finding.severity}]`)} ${finding.description}\n`);
+      if (finding.file) {
+        process.stdout.write(`    ${chalk.dim(`→ ${finding.file}${finding.line ? `:${finding.line}` : ''}`)}\n`);
+      }
+    }
+
+    const criticalCount = findings.filter(f => f.severity === 'CRITICAL').length;
+    const highCount = findings.filter(f => f.severity === 'HIGH').length;
+    const mediumCount = findings.filter(f => f.severity === 'MEDIUM').length;
+    const lowCount = findings.filter(f => f.severity === 'LOW').length;
+
+    // Fix CRITICAL, HIGH, and MEDIUM issues (note LOW)
+    const fixableFindings = findings.filter(f =>
+      f.severity === 'CRITICAL' || f.severity === 'HIGH' || f.severity === 'MEDIUM'
+    );
+
+    if (fixableFindings.length > 0) {
+      process.stdout.write(`\n${chalk.bold('Fixing CRITICAL/HIGH/MEDIUM vulnerabilities...')}\n`);
+      if (lowCount > 0) {
+        process.stdout.write(`${chalk.dim(`(${lowCount} LOW issues noted but not fixed)`)}\n`);
+      }
 
       const fixPrompt = `## FIX SECURITY VULNERABILITIES
 
@@ -161,15 +173,19 @@ The security review found these issues that MUST be fixed:
 
 ${output.result}
 
-For each CRITICAL and HIGH issue:
+For each CRITICAL, HIGH, and MEDIUM issue:
 1. Read the vulnerable file
 2. Use Edit tool to fix the vulnerability
 3. Verify the fix doesn't break functionality
 
-After fixing, report:
+LOW issues are informational - note them but don't fix.
+
+After fixing, report EXACTLY what you changed:
 
 FIXES_APPLIED:
-[SEVERITY] Brief description - FIXED
+[SEVERITY] description
+  File: path/to/file.ts
+  Change: What you changed (e.g., "Added parameterized query", "Added CSRF token check")
 
 SECURITY_FIXES_COMPLETE`;
 
@@ -181,21 +197,129 @@ SECURITY_FIXES_COMPLETE`;
         allowedTools: ['Bash', 'Read', 'Write', 'Edit', 'Glob', 'Grep'],
       });
 
-      // Count fixes
-      const fixedCount = (fixOutput.result.match(/- FIXED/gi) || []).length;
-      process.stdout.write(`      ${chalk.green('◆')} ${chalk.dim(`Fixed ${fixedCount} vulnerabilities`)}\n`);
+      // Parse and display actual fixes
+      const fixes = this.parseFixes(fixOutput.result);
+      if (fixes.length > 0) {
+        process.stdout.write(`\n${chalk.bold('Fixes Applied:')}\n`);
+        for (const fix of fixes) {
+          process.stdout.write(`  ${chalk.green('✓')} ${chalk.dim(`[${fix.severity}]`)} ${fix.description}\n`);
+          if (fix.file) {
+            process.stdout.write(`    ${chalk.dim(`→ ${fix.file}`)}\n`);
+          }
+          if (fix.change) {
+            process.stdout.write(`    ${chalk.green(fix.change)}\n`);
+          }
+        }
+      } else {
+        process.stdout.write(`  ${chalk.yellow('⚠')} No fixes reported in expected format\n`);
+      }
 
       // If CRITICAL issues remain unfixed, fail
-      const unfixedCritical = criticalCount - (fixOutput.result.match(/\[CRITICAL\].*FIXED/gi) || []).length;
+      const fixedCritical = fixes.filter(f => f.severity === 'CRITICAL').length;
+      const unfixedCritical = criticalCount - fixedCritical;
       if (unfixedCritical > 0) {
         return this.failed(`${unfixedCritical} CRITICAL vulnerabilities remain unfixed`);
       }
+
+      // Count what was fixed
+      const fixedHigh = fixes.filter(f => f.severity === 'HIGH').length;
+      const fixedMedium = fixes.filter(f => f.severity === 'MEDIUM').length;
+
+      return this.success(
+        `Fixed ${fixes.length} vulnerabilities (${criticalCount}C/${fixedHigh}H/${fixedMedium}M), ${lowCount} LOW noted`,
+        { critical: criticalCount, high: highCount, medium: mediumCount, low: lowCount, fixed: fixes.length },
+        fixOutput.result
+      );
+    }
+
+    // Only LOW findings - note but don't fix
+    if (lowCount > 0) {
+      return this.success(
+        `Security review complete - ${lowCount} LOW issues noted`,
+        { critical: 0, high: 0, medium: 0, low: lowCount, fixed: 0 },
+        output.result
+      );
     }
 
     return this.success(
-      `Security review complete - ${criticalCount} CRITICAL, ${highCount} HIGH fixed, ${mediumCount + lowCount} minor noted`,
-      { critical: criticalCount, high: highCount, medium: mediumCount, low: lowCount },
+      'Security review complete - no issues found',
+      { critical: 0, high: 0, medium: 0, low: 0, fixed: 0 },
       output.result
     );
+  }
+
+  /** Parse vulnerability findings from Gemini output */
+  private parseFindings(output: string): Array<{
+    severity: string;
+    description: string;
+    file?: string;
+    line?: number;
+  }> {
+    const findings: Array<{ severity: string; description: string; file?: string; line?: number }> = [];
+    const pattern = /\[(CRITICAL|HIGH|MEDIUM|LOW)\]\s+(.+?)(?:\n|$)/gi;
+
+    let match;
+    while ((match = pattern.exec(output)) !== null) {
+      const finding: { severity: string; description: string; file?: string; line?: number } = {
+        severity: match[1].toUpperCase(),
+        description: match[2].trim(),
+      };
+
+      // Look for Evidence: line after this match
+      const afterMatch = output.slice(match.index + match[0].length, match.index + match[0].length + 200);
+      const evidenceMatch = afterMatch.match(/Evidence:\s*([^:]+):(\d+)/i);
+      if (evidenceMatch) {
+        finding.file = evidenceMatch[1].trim();
+        finding.line = parseInt(evidenceMatch[2], 10);
+      }
+
+      findings.push(finding);
+    }
+
+    return findings;
+  }
+
+  /** Parse applied fixes from fix step output */
+  private parseFixes(output: string): Array<{
+    severity: string;
+    description: string;
+    file?: string;
+    change?: string;
+  }> {
+    const fixes: Array<{ severity: string; description: string; file?: string; change?: string }> = [];
+
+    // Look for FIXES_APPLIED section
+    const fixSection = output.match(/FIXES_APPLIED:([\s\S]*?)(?:SECURITY_FIXES_COMPLETE|$)/i);
+    if (!fixSection) return fixes;
+
+    const lines = fixSection[1].split('\n');
+    let current: { severity: string; description: string; file?: string; change?: string } | null = null;
+
+    for (const line of lines) {
+      const severityMatch = line.match(/\[(CRITICAL|HIGH|MEDIUM|LOW)\]\s+(.+)/i);
+      if (severityMatch) {
+        if (current) fixes.push(current);
+        current = {
+          severity: severityMatch[1].toUpperCase(),
+          description: severityMatch[2].trim(),
+        };
+        continue;
+      }
+
+      if (current) {
+        const fileMatch = line.match(/File:\s*(.+)/i);
+        if (fileMatch) {
+          current.file = fileMatch[1].trim();
+          continue;
+        }
+        const changeMatch = line.match(/Change:\s*(.+)/i);
+        if (changeMatch) {
+          current.change = changeMatch[1].trim();
+        }
+      }
+    }
+
+    if (current) fixes.push(current);
+    return fixes;
   }
 }

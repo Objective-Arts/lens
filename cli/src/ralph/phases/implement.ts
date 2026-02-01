@@ -11,7 +11,16 @@ import { runClaude } from '../process/claude.js';
 import { createSlug } from '../prd/parser.js';
 import { extractError } from '../parsers/claude-stream.js';
 
-const IMPLEMENT_PROMPT = `## IMPLEMENT NOW - NO EXPLORATION
+const IMPLEMENT_PROMPT = `## NON-NEGOTIABLE: WRITE REAL CODE, NOT STUBS
+
+Before you start: You WILL write complete, working code. No stubs. No TODOs.
+No "implement later." No placeholder functions. Every function fully implemented.
+
+This is not optional. The phase fails if ANY code is incomplete.
+
+---
+
+## IMPLEMENT NOW - NO EXPLORATION
 
 Write the code immediately. Do NOT search or explore first.
 

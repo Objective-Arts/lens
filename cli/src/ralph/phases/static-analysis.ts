@@ -136,19 +136,18 @@ export class StaticAnalysisPhase extends BasePhase {
       prompt = `${prompt}\n\n${context.correctivePrompt}`;
     }
 
-    // Stream callbacks to monitor Qodana - dedupe repeated messages
+    // Stream callbacks to show Qodana progress (runner spinner shows elapsed time)
     let scanShown = false;
     let problemsShown = false;
     const stream: StreamCallbacks = {
       onToolCall: (name) => {
         if (name.includes('qodana_scan') && !scanShown) {
-          process.stdout.write(`      ${chalk.blue('◆')} ${chalk.dim('Running Qodana scan...')}\n`);
+          process.stdout.write(`\n      ${chalk.blue('◆')} ${chalk.dim('Running Qodana scan...')}`);
           scanShown = true;
         } else if (name.includes('qodana_scan') && scanShown) {
-          // Subsequent scans are verification - show inline
-          process.stdout.write(`      ${chalk.blue('◆')} ${chalk.dim('Verifying fixes...')}\n`);
+          process.stdout.write(`\n      ${chalk.blue('◆')} ${chalk.dim('Verifying fixes...')}`);
         } else if (name.includes('qodana_problems') && !problemsShown) {
-          process.stdout.write(`      ${chalk.blue('◆')} ${chalk.dim('Checking issues...')}\n`);
+          process.stdout.write(`\n      ${chalk.blue('◆')} ${chalk.dim('Checking issues...')}`);
           problemsShown = true;
         }
       },
@@ -170,16 +169,29 @@ export class StaticAnalysisPhase extends BasePhase {
     const parsed = parseMcpPhaseOutput(output.result, 'QODANA_RESULT', 'ANALYSIS_ISSUES', QODANA_EVIDENCE);
     let { toolStatus } = parsed;
 
-    // Debug: show raw issue count from Qodana output
-    const rawIssueLines = output.result.split('\n').filter(l =>
-      /\b(CRITICAL|HIGH|MEDIUM|MODERATE|LOW|WARNING|ERROR)\b/i.test(l) &&
-      !l.includes('ISSUES_FOUND:') && !l.includes('ISSUES_FIXED:')
-    ).length;
-    const lintErrors = (output.result.match(/error TS\d+/gi) || []).length;
-    const eslintErrors = (output.result.match(/\d+:\d+\s+(error|warning)/gi) || []).length;
+    // Show what was actually found and fixed
+    const issuesFound = parsed.phaseOutput.issues.filter(i => i.severity !== 'INFO');
+    const issuesFixed = parsed.phaseOutput.issues.filter(i => i.fixed);
 
-    if (rawIssueLines > 0 || lintErrors > 0 || eslintErrors > 0) {
-      process.stdout.write(`      ${chalk.blue('◆')} ${chalk.dim(`Raw: ${rawIssueLines} severity, ${lintErrors} TS errors, ${eslintErrors} lint errors`)}\n`);
+    if (issuesFound.length > 0) {
+      process.stdout.write(`\n${chalk.bold('Issues Found:')}\n`);
+      for (const issue of issuesFound.slice(0, 5)) {
+        const color = issue.severity === 'CRITICAL' ? chalk.red.bold :
+                      issue.severity === 'HIGH' ? chalk.red :
+                      issue.severity === 'MODERATE' ? chalk.yellow : chalk.blue;
+        const status = issue.fixed ? chalk.green(' ✓') : '';
+        process.stdout.write(`  ${color(`[${issue.severity}]`)} ${issue.description}${status}\n`);
+        if (issue.file) {
+          process.stdout.write(`    ${chalk.dim(`→ ${issue.file}${issue.line ? `:${issue.line}` : ''}`)}\n`);
+        }
+      }
+      if (issuesFound.length > 5) {
+        process.stdout.write(`  ${chalk.dim(`... and ${issuesFound.length - 5} more`)}\n`);
+      }
+
+      if (issuesFixed.length > 0) {
+        process.stdout.write(`\n${chalk.green(`Fixed ${issuesFixed.length}/${issuesFound.length} issues`)}\n`);
+      }
     }
 
     // Handle unsupported project types (expected for SQL-only projects)
@@ -231,8 +243,19 @@ export class StaticAnalysisPhase extends BasePhase {
 
     const metrics = buildPhaseMetrics(parsed.phaseOutput, toolStatus === 'called');
     const suffix = moderateLow.length > 0 ? ` (${moderateLow.length} MODERATE/LOW noted)` : '';
+
+    // If this is a retry (correctivePrompt exists) and no issues remain, say "resolved" not "no issues found"
+    let message: string;
+    if (context.correctivePrompt && issuesFound.length === 0) {
+      message = 'Issues resolved';
+    } else if (issuesFixed.length > 0) {
+      message = `${issuesFixed.length} issue${issuesFixed.length > 1 ? 's' : ''} fixed`;
+    } else {
+      message = parsed.summary || 'No issues found';
+    }
+
     return this.success(
-      formatSuccessMessage(parsed.summary, 'Qodana', toolStatus) + suffix,
+      `${message}${suffix} [Qodana: ${toolStatus}]`,
       { ...metrics, qodanaCalled: metrics.toolCalled },
       output.result
     );

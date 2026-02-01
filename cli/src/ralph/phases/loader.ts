@@ -59,8 +59,8 @@ function getDefaultPhaseConfig(): WorkflowPhasesConfig {
         description: 'Simplify and clean up, verify still works',
         experts: ['kernighan', 'thompson', 'feathers', 'gang-of-four', 'pike'],
       },
-      'adversarial-review': {
-        description: 'Attack your own code, fix issues found',
+      'independent-review': {
+        description: 'Independent code review via Gemini, fix issues found',
         experts: [],  // Uses Gemini MCP, not Claude experts
       },
       'static-analysis': {
@@ -71,6 +71,14 @@ function getDefaultPhaseConfig(): WorkflowPhasesConfig {
         description: 'Document the completed work',
         experts: ['procida', 'strunk-white', 'zinsser', 'king'],
       },
+      'production-readiness': {
+        description: 'Final production readiness check (post-loop)',
+        experts: [],  // Uses its own prompts, not Claude experts
+      },
+      'security-review': {
+        description: 'Adversarial security review (post-loop)',
+        experts: [],  // Uses Gemini MCP with security focus
+      },
     },
     'ralph-sequence': [
       'plan',
@@ -78,7 +86,7 @@ function getDefaultPhaseConfig(): WorkflowPhasesConfig {
       'implement',
       'test',
       'refactor-check',
-      'adversarial-review',
+      'independent-review',
       'static-analysis',
       'doc-code',
     ],

@@ -251,47 +251,232 @@
       height: 16px;
       border-radius: 4px;
     }
+    .legend-color.skill { background: #f0883e; }
     .legend-color.config { background: #58a6ff; }
     .legend-color.ralph { background: #a371f7; }
     .legend-color.phase { background: #3fb950; }
     .legend-color.mcp { background: #fbbf24; }
     .legend-color.external { background: #f85149; }
+
+    /* Three-layer architecture */
+    .three-layer {
+      margin-bottom: 40px;
+    }
+
+    .layer-box {
+      background: #161b22;
+      border-radius: 12px;
+      padding: 25px;
+      border: 2px solid;
+      margin-bottom: 0;
+    }
+
+    .skill-layer {
+      border-color: #f0883e;
+      text-align: center;
+    }
+
+    .layer-title {
+      font-size: 1.4rem;
+      font-weight: 700;
+      margin-bottom: 5px;
+    }
+    .skill-layer .layer-title { color: #f0883e; }
+
+    .layer-location {
+      font-family: monospace;
+      font-size: 0.85rem;
+      color: #6e7681;
+      margin-bottom: 10px;
+    }
+
+    .layer-desc {
+      color: #8b949e;
+      font-size: 0.9rem;
+      margin-bottom: 20px;
+    }
+
+    .skill-grid {
+      display: grid;
+      grid-template-columns: repeat(8, 1fr);
+      gap: 10px;
+    }
+
+    .skill-item {
+      background: rgba(240, 136, 62, 0.15);
+      border: 1px solid rgba(240, 136, 62, 0.4);
+      border-radius: 6px;
+      padding: 10px 8px;
+      font-family: monospace;
+      font-size: 0.8rem;
+      color: #f0883e;
+    }
+
+    .layer-arrows {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 30px;
+      padding: 15px 50px;
+    }
+
+    .arrow-box {
+      text-align: center;
+    }
+
+    .arrow-label {
+      font-size: 0.8rem;
+      color: #6e7681;
+      margin-bottom: 5px;
+    }
+
+    .arrow-down {
+      font-size: 1.5rem;
+      color: #6e7681;
+    }
+
+    .systems-row {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 30px;
+    }
+
+    .system-type {
+      font-size: 0.75rem;
+      color: #6e7681;
+      font-family: monospace;
+      margin-bottom: 12px;
+    }
+
+    /* Explanation grid */
+    .explanation-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 20px;
+      margin-bottom: 40px;
+    }
+
+    .explanation-box {
+      background: #161b22;
+      border-radius: 12px;
+      padding: 20px;
+      border: 1px solid #30363d;
+    }
+    .explanation-box h3 {
+      margin: 0 0 15px 0;
+      font-size: 1rem;
+    }
+    .explanation-box p {
+      font-size: 0.85rem;
+      color: #8b949e;
+      margin: 8px 0;
+    }
+    .explanation-box strong { color: #c9d1d9; }
+    .explanation-box code {
+      background: rgba(0,0,0,0.3);
+      padding: 2px 6px;
+      border-radius: 3px;
+      font-size: 0.8rem;
+    }
+
+    .skill-exp { border-color: #f0883e; }
+    .skill-exp h3 { color: #f0883e; }
+    .config-exp { border-color: #58a6ff; }
+    .config-exp h3 { color: #58a6ff; }
+    .ralph-exp { border-color: #a371f7; }
+    .ralph-exp h3 { color: #a371f7; }
   </style>
 </head>
 <body>
 
 <h1>CLI Architecture</h1>
-<p class="subtitle">cc-config and Ralph: Two distinct systems in one codebase</p>
+<p class="subtitle">Three systems: Workflow Skills, cc-config CLI, and Ralph Loop</p>
 
 <div class="legend">
-  <div class="legend-item"><div class="legend-color config"></div> cc-config (Configuration)</div>
-  <div class="legend-item"><div class="legend-color ralph"></div> Ralph (Autonomous Loop)</div>
+  <div class="legend-item"><div class="legend-color skill"></div> Workflow Skills (SKILL.md)</div>
+  <div class="legend-item"><div class="legend-color config"></div> cc-config CLI (TypeScript)</div>
+  <div class="legend-item"><div class="legend-color ralph"></div> Ralph Loop (TypeScript)</div>
   <div class="legend-item"><div class="legend-color phase"></div> Phase (Claude-based)</div>
   <div class="legend-item"><div class="legend-color mcp"></div> MCP Tool (External AI)</div>
-  <div class="legend-item"><div class="legend-color external"></div> External Process</div>
 </div>
 
-<!-- Two Systems Overview -->
-<div class="systems-container">
-  <div class="system-box config">
-    <div class="system-title">cc-config CLI</div>
-    <div class="system-desc">Configuration management for Claude Code projects. Sets up profiles, installs skills, manages MCP servers.</div>
-    <div class="system-entry">$ cc-config profile apply javascript+react .</div>
-    <div class="system-entry">$ cc-config canon install kernighan</div>
-    <div class="system-entry">$ cc-config workflow status</div>
-    <div class="system-entry">$ cc-config mcp enable qodana</div>
+<!-- Three-Layer Architecture -->
+<div class="three-layer">
+  <div class="layer-box skill-layer">
+    <div class="layer-title">Workflow Skills</div>
+    <div class="layer-location">.claude/skills/*.md</div>
+    <div class="layer-desc">User-facing instructions that tell Claude what to do. NOT code - these ARE the documentation.</div>
+    <div class="skill-grid">
+      <div class="skill-item">/plan</div>
+      <div class="skill-item">/structure-first</div>
+      <div class="skill-item">/implement</div>
+      <div class="skill-item">/refactor-check</div>
+      <div class="skill-item">/adversarial-review</div>
+      <div class="skill-item">/static-analysis</div>
+      <div class="skill-item">/test</div>
+      <div class="skill-item">/doc-code</div>
+    </div>
   </div>
-  <div class="system-box ralph">
-    <div class="system-title">Ralph Autonomous Loop</div>
-    <div class="system-desc">PRD-driven implementation. Reads a checklist, processes each item through 8 phases until all complete.</div>
-    <div class="system-entry">$ ralph prd.md</div>
-    <div class="system-entry">$ ralph --resume prd.md</div>
-    <div class="system-entry">$ ralph --skip-review prd.md</div>
+
+  <div class="layer-arrows">
+    <div class="arrow-box">
+      <div class="arrow-label">installed by</div>
+      <div class="arrow-down">↓</div>
+    </div>
+    <div class="arrow-box">
+      <div class="arrow-label">loaded by</div>
+      <div class="arrow-down">↓</div>
+    </div>
+  </div>
+
+  <div class="systems-row">
+    <div class="system-box config">
+      <div class="system-title">cc-config CLI</div>
+      <div class="system-type">TypeScript • src/cli/, src/profiles/, src/canon/</div>
+      <div class="system-desc">Configuration management. Installs skills, applies profiles, manages MCP servers.</div>
+      <div class="system-entry">$ cc-config profile apply javascript+react .</div>
+      <div class="system-entry">$ cc-config canon install kernighan</div>
+      <div class="system-entry">$ cc-config workflow status</div>
+      <div class="system-entry">$ cc-config mcp enable qodana</div>
+    </div>
+    <div class="system-box ralph">
+      <div class="system-title">Ralph Loop</div>
+      <div class="system-type">TypeScript • src/ralph/</div>
+      <div class="system-desc">Autonomous PRD processing. Runs 8 phases per item, loads skills as expert guidance.</div>
+      <div class="system-entry">$ ralph prd.md</div>
+      <div class="system-entry">$ ralph --resume prd.md</div>
+      <div class="system-entry">$ ralph --skip-review prd.md</div>
+    </div>
+  </div>
+</div>
+
+<!-- What Each Layer Does -->
+<h2>What Each Layer Does</h2>
+<div class="explanation-grid">
+  <div class="explanation-box skill-exp">
+    <h3>Workflow Skills</h3>
+    <p><strong>What:</strong> Markdown files with instructions for Claude</p>
+    <p><strong>Where:</strong> <code>.claude/skills/*/SKILL.md</code></p>
+    <p><strong>Purpose:</strong> When user types <code>/implement</code>, Claude reads the skill file and follows the instructions. The skill tells Claude what to do, what output format to use, which experts to apply.</p>
+    <p><strong>Documentation:</strong> Skills ARE documentation. No separate tech docs needed.</p>
+  </div>
+  <div class="explanation-box config-exp">
+    <h3>cc-config CLI</h3>
+    <p><strong>What:</strong> TypeScript CLI tool</p>
+    <p><strong>Where:</strong> <code>src/cli/</code>, <code>src/profiles/</code>, <code>src/canon/</code>, <code>src/workflow/</code></p>
+    <p><strong>Purpose:</strong> Sets up projects with the right skills. Composes profiles, copies canon skills, configures MCP servers, generates CLAUDE.md.</p>
+    <p><strong>Documentation:</strong> Needs code-level docs (this page).</p>
+  </div>
+  <div class="explanation-box ralph-exp">
+    <h3>Ralph Loop</h3>
+    <p><strong>What:</strong> TypeScript autonomous runner</p>
+    <p><strong>Where:</strong> <code>src/ralph/</code></p>
+    <p><strong>Purpose:</strong> Given a PRD file, processes each item through 8 phases automatically. Spawns Claude with prompts, parses output, handles retries, generates summary.</p>
+    <p><strong>Documentation:</strong> Needs code-level docs (this page).</p>
   </div>
 </div>
 
 <!-- cc-config Module Tree -->
-<h2>cc-config Modules</h2>
+<h2>cc-config Modules (TypeScript)</h2>
 <div class="module-tree">
   <div class="tree-section">
     <div class="tree-header config">Entry & Commands (src/cli/)</div>

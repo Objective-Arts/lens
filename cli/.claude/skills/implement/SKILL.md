@@ -1,167 +1,85 @@
 ---
 name: implement
-description: Enforced workflow with mandatory verification. Session log and command output prove the framework was executed.
+description: Implement code from plan. Writes the actual code following the approved plan and structure.
 ---
 
-# /implement [feature-name]
+# /implement [target]
 
-Execute the full canon workflow with **mandatory checkpoints and verification**. The session log AND command outputs prove you actually ran the framework.
+Implement code from the approved plan. Just write the code - no TDD ceremony.
 
 ## First: Activate Workflow
 
-**Before any other action**, activate this workflow session:
-
 ```bash
-mkdir -p .claude && echo '{"skill":"implement","started":"'$(date -Iseconds)'","feature":"[FEATURE_NAME]"}' > .claude/active-workflow.json
+mkdir -p .claude && echo '{"skill":"implement","started":"'$(date -Iseconds)'"}' > .claude/active-workflow.json
 ```
 
-## Arguments
+## Step 0: Load Expert Context (MANDATORY)
 
-| Argument | Description |
-|----------|-------------|
-| `feature-name` | Name of the feature (used for session log and artifacts) |
-| `--prd PATH` | Path to PRD file (default: `PRD.md` or `.claude/prd.md`) |
-| `--resume` | Resume from last checkpoint |
+Before writing code, read these expert skills:
 
-## Mandatory Sequence (Cannot Skip)
-
-| Step | Skill | What Gets Logged |
-|------|-------|------------------|
-| 1 | `/plan` | Plan file created |
-| 2 | `/structure-first` | Types/interfaces defined |
-| 3 | `/test` (write tests) | Test files created |
-| 4 | TDD Red | All tests fail (count) |
-| 5 | `/build-from-plan` | Implementation code |
-| 6 | TDD Green | Tests pass (count) |
-| 7 | `/review-hard` | Issues by severity |
-| 8 | Static Analysis | Qodana/ESLint results |
-| 9 | Fix & Iterate | Fixes applied |
-| 10 | Final Validation | All tests pass |
-
-## Session Log
-
-A `session-log.json` file is created in `.claude/` and updated at each checkpoint:
-
-```json
-{
-  "meta": {
-    "feature": "feature-name",
-    "started": "2024-01-15T10:30:00Z",
-    "status": "in_progress"
-  },
-  "checkpoints": [],
-  "testing": {
-    "red": { "passed": 0, "failed": 0 },
-    "green": { "passed": 0, "failed": 0 }
-  },
-  "reviews": {},
-  "issues": []
-}
+```
+Read: .claude/skills/kernighan/SKILL.md   (clarity, readability)
+Read: .claude/skills/bloch/SKILL.md       (effective APIs)
+Read: .claude/skills/gang-of-four/SKILL.md (design patterns)
+Read: .claude/skills/thompson/SKILL.md    (get it working first)
 ```
 
----
+Apply these principles throughout implementation. Skip if files don't exist.
 
-## VERIFICATION (MANDATORY - DO NOT SKIP)
+## When to Use
 
-**You MUST execute these commands and show output before claiming completion.**
+- After `/plan` has created an implementation plan
+- After `/structure-first` has defined types/interfaces
+- When you have a clear plan and just need to write code
 
-### Step 1: Verify Session Log Exists
+## Target
 
-```bash
-# Session log must exist and have checkpoints
-cat .claude/session-log.json | head -50
-```
+If a path/feature argument is provided, implement that specific item.
+If no argument, implement from the most recent plan in `.claude/plans/`.
 
-### Step 2: Verify Artifacts Created
+## Process
 
-```bash
-# Plan file must exist
-ls -la .claude/plans/*.md
-
-# Test files must exist
-find . -name "*.test.*" -o -name "*.spec.*" | head -20
-
-# Count test files
-find . -name "*.test.*" -o -name "*.spec.*" | wc -l
-```
-
-### Step 3: Verify Tests Were Run
-
-```bash
-# Test output must show actual execution
-# (show actual test runner output from TDD red AND green phases)
-```
-
-### Step 4: Verify Review Was Performed
-
-```bash
-# Session log must contain review findings
-grep -A 20 '"reviews"' .claude/session-log.json
-```
-
-### Completion Criteria (ALL must be TRUE)
-
-| Criterion | Evidence Required | Pass? |
-|-----------|-------------------|-------|
-| Session log exists | `cat .claude/session-log.json` shows data | [ ] |
-| Plan file created | `ls .claude/plans/*.md` shows file | [ ] |
-| Test files created | `find` shows test files | [ ] |
-| TDD Red executed | Test runner shows failures | [ ] |
-| TDD Green executed | Test runner shows passes | [ ] |
-| Review performed | Session log has review findings | [ ] |
-| All tests pass | Final test run shows 0 failures | [ ] |
-
-**If ANY criterion fails: continue implementation. Do not report complete.**
-
----
+1. **Load Plan** - Read plan from `.claude/plans/` or context
+2. **Check Structure** - Verify types/interfaces exist from `/structure-first`
+3. **Implement** - Write code following the plan step by step
+4. **Verify** - Ensure code compiles/lints
 
 ## Output Format
 
 ```markdown
-## Implementation: [feature-name]
+## Implementation: [feature]
 
-### Checkpoints Completed
+### Plan Used:
+.claude/plans/[plan-name].md
 
-| Step | Status | Evidence |
-|------|--------|----------|
-| Plan | ✓ | .claude/plans/feature.md |
-| Structure | ✓ | src/types/feature.ts |
-| Tests Written | ✓ | 12 test files |
-| TDD Red | ✓ | 45 tests failed |
-| Implementation | ✓ | src/feature/*.ts |
-| TDD Green | ✓ | 45 tests passed |
-| Review | ✓ | 3 issues found, fixed |
-| Final | ✓ | All tests pass |
+### Files Created/Modified:
 
-### Verification Results
+| File | Action | Description |
+|------|--------|-------------|
+| src/service.ts | Created | Main service implementation |
+| src/types.ts | Modified | Added new interface |
 
+### Implementation Steps:
+
+| Step | Description | Status |
+|------|-------------|--------|
+| 1 | Create service class | Done |
+| 2 | Add validation logic | Done |
+| 3 | Wire up dependencies | Done |
+
+### Verification:
 ```bash
-$ cat .claude/session-log.json | head -20
-{"meta":{"feature":"feature-name"...}
-...
-
-$ find . -name "*.test.*" | wc -l
-12
-
-$ npm test
-45 passed, 0 failed
+$ npx tsc --noEmit
+(no errors)
 ```
 
-### Session Log Location
-`.claude/session-log.json`
-
-IMPLEMENT_VERIFIED
+IMPLEMENT_COMPLETE
 ```
 
-**The marker `IMPLEMENT_VERIFIED` may ONLY appear if all criteria pass.**
+## Rules
 
----
-
-## Anti-Patterns (Immediate Failure)
-
-- Claiming completion without showing session-log.json contents
-- Skipping TDD red phase (tests must fail first)
-- Reporting "tests pass" without showing test runner output
-- Empty or missing session log checkpoints
-- No plan file in .claude/plans/
-- Review section empty in session log
+- Follow the plan exactly - don't add features not in the plan
+- Use types/interfaces from `/structure-first` if they exist
+- Keep functions small (max 30 lines per Kernighan)
+- Handle errors explicitly
+- Don't write tests here - that's `/build-tests`

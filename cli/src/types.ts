@@ -99,6 +99,26 @@ export interface ProfileMCPServerConfig {
   requireAll?: boolean;  // Fail if any unavailable (default: false)
 }
 
+/**
+ * Hook configuration for profiles
+ * Maps hook event types to hook definitions
+ */
+export interface ProfileHookItem {
+  matcher?: string;  // Regex pattern for tool/event matching
+  hooks: Array<{
+    type: 'command' | 'prompt';
+    command?: string;  // For type: command
+    prompt?: string;   // For type: prompt
+  }>;
+}
+
+export interface ProfileHooksConfig {
+  PreToolUse?: ProfileHookItem[];
+  PostToolUse?: ProfileHookItem[];
+  UserPromptSubmit?: ProfileHookItem[];
+  Notification?: ProfileHookItem[];
+}
+
 export interface ComposableProfile {
   name: string;
   description?: string;
@@ -106,7 +126,7 @@ export interface ComposableProfile {
   composable?: boolean;
   extends?: string;  // Base profile to extend
   skills?: {
-    security?: string[];  // Security skills (owasp, security-mindset, etc.)
+    security?: string[];  // Security skills (owasp, schneier, etc.)
     tech?: string[];      // Tech workflow skills (ceremony, etc.)
     canon?: string[];     // Domain experts (abramov, bostock, etc.)
     global?: string[];    // Productivity workflows, meta skills
@@ -120,6 +140,7 @@ export interface ComposableProfile {
   };
   mcpServers?: ProfileMCPServerConfig;
   settings?: Record<string, unknown>;
+  hooks?: ProfileHooksConfig;  // Hooks to install in project settings.json
   ralph?: RalphConfig;  // Ralph Loop configuration
 }
 
