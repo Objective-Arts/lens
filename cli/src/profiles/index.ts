@@ -338,7 +338,7 @@ function loadProfilesFromDir(dir: string): ComposableProfile[] {
  * console.log(`Available profiles: ${profiles.map(p => p.name).join(', ')}`);
  * ```
  */
-export async function listProfilesAsync(): Promise<ComposableProfile[]> {
+async function listProfilesAsync(): Promise<ComposableProfile[]> {
   const [builtinProfiles, userProfiles] = await Promise.all([
     loadProfilesFromDirAsync(BUILTIN_PROFILES_DIR),
     loadProfilesFromDirAsync(USER_PROFILES_DIR)
@@ -511,7 +511,7 @@ function mergeProfiles(parent: ComposableProfile, child: ComposableProfile): Com
  * @param name - Profile name to look up
  * @returns The profile if found, null otherwise
  */
-export async function getProfileAsync(name: string): Promise<ComposableProfile | null> {
+async function getProfileAsync(name: string): Promise<ComposableProfile | null> {
   const profiles = await listProfilesAsync();
   const profile = profiles.find(p => p.name === name) ?? null;
 
@@ -728,7 +728,7 @@ async function findSkillPathAsync(skillName: string, category: SkillCategory): P
 /**
  * Save a profile to the user profiles directory (async)
  */
-export async function saveProfileAsync(profile: ComposableProfile): Promise<void> {
+async function saveProfileAsync(profile: ComposableProfile): Promise<void> {
   await fsPromises.mkdir(USER_PROFILES_DIR, { recursive: true });
 
   const filename = profile.name.toLowerCase().replace(/\s+/g, '-') + '.yaml';
@@ -1593,25 +1593,6 @@ export async function applyComposableProfile(
   return result;
 }
 
-/**
- * Legacy applyProfile for backwards compatibility
- */
-export async function applyProfile(profile: Profile, projectPath: string): Promise<ApplyResult> {
-  const composable: ComposableProfile = {
-    name: profile.name,
-    description: profile.description,
-    skills: {
-      global: profile.skills?.include ?? []
-    },
-    agents: profile.agents?.include,
-    commands: profile.commands?.include,
-    claudeMd: profile.claudeMd,
-    mcpServers: profile.mcpServers
-  };
-
-  return applyComposableProfile(composable, projectPath);
-}
-
 // ============================================================================
 // Utility Exports
 // ============================================================================
@@ -1621,23 +1602,6 @@ export async function applyProfile(profile: Profile, projectPath: string): Promi
  */
 export function getSkillLibraryPaths(): SkillLibraryPaths {
   return { ...SKILL_LIBRARY_PATHS };
-}
-
-/**
- * Get configured directories (for debugging/diagnostics)
- */
-export function getConfiguredPaths(): {
-  userProfiles: string;
-  builtinProfiles: string;
-  mcpServers: string;
-  skillLibrary: SkillLibraryPaths;
-} {
-  return {
-    userProfiles: USER_PROFILES_DIR,
-    builtinProfiles: BUILTIN_PROFILES_DIR,
-    mcpServers: MCP_SERVERS_DIR,
-    skillLibrary: { ...SKILL_LIBRARY_PATHS }
-  };
 }
 
 // ============================================================================
