@@ -126,6 +126,6 @@ The `+` operator merges profiles, adding React-specific skills.
 
 ## Next Steps
 
-- [Run ralph on a PRD](first-ralph-run.md) — Implement a feature autonomously
+- [Run ralph on a PRD](./first-ralph-run.md) — Implement a feature autonomously
 - [How to Manage Skills](../how-to/manage-skills.md) — Install and upgrade skills
 - [Command Reference](../reference/commands.md) — All available commands

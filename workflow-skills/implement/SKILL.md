@@ -18,17 +18,26 @@ mkdir -p .claude && echo '{"skill":"implement","started":"'$(date -Iseconds)'"}'
 You MUST follow these constraints EXACTLY:
 
 1. **MAX 30 LINES PER FUNCTION** - No function may exceed 30 lines. Split if needed.
-2. **ONE FILE PER CONCERN** - No god files. Each file has one purpose.
-3. **FOLLOW THE PLAN** - Create exactly the files/functions listed in the plan. No extras.
-4. **MEANINGFUL NAMES** - Variables/functions must describe what they do.
-5. **NO HARDCODED VALUES** - Use constants or config for magic numbers/strings.
-6. **HANDLE ALL ERRORS** - Every operation that can fail must have error handling.
+2. **MAX 300 LINES PER FILE** - Split into modules if approaching limit.
+3. **MAX COMPLEXITY 10** - Cyclomatic complexity ≤10 per function. Flatten with early returns, extract helpers.
+4. **ONE FILE PER CONCERN** - No god files. Each file has one purpose.
+5. **SEARCH BEFORE CREATE** - Before writing a utility function, search for existing implementations:
+   - Check `utils/`, `lib/`, `helpers/`, `common/` directories
+   - `grep -r "function copyDir" --include="*.ts"` (or similar)
+   - If similar exists, import it. Don't recreate.
+6. **FOLLOW THE PLAN** - Create exactly the files/functions listed in the plan. No extras.
+7. **MEANINGFUL NAMES** - Variables/functions must describe what they do.
+8. **NO HARDCODED VALUES** - Use constants or config for magic numbers/strings.
+9. **HANDLE ALL ERRORS** - Every operation that can fail must have error handling.
 
 ## FORBIDDEN (Phase will FAIL if detected):
 
 - Functions longer than 30 lines
+- Files longer than 300 lines
+- Cyclomatic complexity > 10 (too many branches/paths)
 - Vague names: `data`, `result`, `temp`, `item`, `stuff`, `info`, `obj`
 - Multiple concerns in one file
+- Recreating utilities that already exist in the codebase
 - Hardcoded configuration values
 - Ignored error cases
 - Features not in the plan
@@ -94,7 +103,10 @@ Skip items marked with `@keep`, `// keep`, or `# keep`.
 ## Validation (Phase will FAIL if violated)
 
 - Any function > 30 lines
+- Any file > 300 lines
+- Any function with cyclomatic complexity > 10
 - Vague variable names detected
+- Duplicated utility that exists elsewhere in codebase
 - Files not in plan created without justification
 - Dead code left behind in files you created/modified
 

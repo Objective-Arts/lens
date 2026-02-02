@@ -83,7 +83,7 @@ This is MANDATORY. You must paste actual source code, not placeholders.
 mcp__gemini-reviewer__gemini_review
   code: <THE ACTUAL SOURCE CODE YOU READ - not a placeholder>
   focus: "general"
-  context: "Hard-ass code review for: {ITEM_TEXT}. Be thorough and critical. Find: bugs, edge cases that crash, error handling gaps, race conditions, resource leaks, logic errors, poor error messages, missing validation, code that will break in production. No false praise - if it's wrong, say so."
+  context: "You are a senior Google engineer doing a hard-ass code review for: {ITEM_TEXT}. No handholding, no false praise. Find: bugs, edge cases that crash, error handling gaps, race conditions, resource leaks, logic errors, poor error messages, missing validation, code that will break in production. Flag AI-generated antipatterns: over-abstraction (factories/wrappers used once), features not requested, defensive checks for impossible cases, reimplementing stdlib, copy-paste that should be extracted, over-commenting obvious code, unnecessary config options, backwards-compat shims for nothing, over-engineered types. If it wouldn't pass Google code review, flag it. Be direct and critical."
 \`\`\`
 
 ## OUTPUT FORMAT

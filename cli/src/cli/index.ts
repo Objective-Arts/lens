@@ -17,7 +17,8 @@ import {
   registerWorkflowCommands,
   registerToolsCommands,
   registerHooksCommands,
-  registerTraceCommand
+  registerTraceCommand,
+  registerDedupeCommands
 } from './commands/index.js';
 
 const program = new Command();
@@ -36,5 +37,6 @@ registerWorkflowCommands(program);
 registerToolsCommands(program);
 registerHooksCommands(program);
 registerTraceCommand(program);
+registerDedupeCommands(program);
 
 program.parse();

@@ -7,8 +7,6 @@
 
 import * as fs from 'fs';
 import * as path from 'path';
-import { createHash } from 'crypto';
-import { execSync } from 'child_process';
 import type {
   WorkflowManifest,
   WorkflowSource,
@@ -16,6 +14,9 @@ import type {
   WorkflowSkillInfo,
   WorkflowSkillStatus
 } from './types.js';
+import { copyDirectorySync } from '../utils/fs.js';
+import { getGitCommit, getGitRemote } from '../utils/git.js';
+import { hashDirectoryContents } from '../utils/hash.js';
 
 // Default workflow skills source (relative to claude-optimal)
 const DEFAULT_WORKFLOW_SOURCE = path.resolve(
@@ -53,28 +54,8 @@ function getWorkflowSourcePath(): string {
  */
 export function getWorkflowSourceInfo(): WorkflowSource & { commit?: string; remote?: string } {
   const sourcePath = getWorkflowSourcePath();
-  let commit: string | undefined;
-  let remote: string | undefined;
-
-  try {
-    commit = execSync('git rev-parse --short HEAD', {
-      cwd: sourcePath,
-      encoding: 'utf-8',
-      stdio: ['pipe', 'pipe', 'pipe']
-    }).trim();
-  } catch {
-    // Not a git repo
-  }
-
-  try {
-    remote = execSync('git remote get-url origin', {
-      cwd: sourcePath,
-      encoding: 'utf-8',
-      stdio: ['pipe', 'pipe', 'pipe']
-    }).trim();
-  } catch {
-    // No remote
-  }
+  const commit = getGitCommit(sourcePath);
+  const remote = getGitRemote(sourcePath);
 
   return {
     type: 'local',
@@ -185,61 +166,6 @@ function createWorkflowManifest(): WorkflowManifest {
 }
 
 /**
- * Hash a directory's contents
- */
-function hashDirectory(dirPath: string): string {
-  const hash = createHash('sha256');
-
-  function processDir(dir: string) {
-    const entries = fs.readdirSync(dir, { withFileTypes: true }).sort((a, b) =>
-      a.name.localeCompare(b.name)
-    );
-
-    for (const entry of entries) {
-      const fullPath = path.join(dir, entry.name);
-      const relativePath = path.relative(dirPath, fullPath);
-
-      if (entry.isDirectory()) {
-        hash.update(`dir:${relativePath}\n`);
-        processDir(fullPath);
-      } else {
-        const content = fs.readFileSync(fullPath);
-        hash.update(`file:${relativePath}:${content.length}\n`);
-        hash.update(content);
-      }
-    }
-  }
-
-  if (fs.existsSync(dirPath)) {
-    processDir(dirPath);
-  }
-
-  return hash.digest('hex').slice(0, 16);
-}
-
-/**
- * Copy a directory recursively
- */
-function copyDirectoryRecursive(src: string, dest: string): void {
-  if (!fs.existsSync(dest)) {
-    fs.mkdirSync(dest, { recursive: true });
-  }
-
-  const entries = fs.readdirSync(src, { withFileTypes: true });
-
-  for (const entry of entries) {
-    const srcPath = path.join(src, entry.name);
-    const destPath = path.join(dest, entry.name);
-
-    if (entry.isDirectory()) {
-      copyDirectoryRecursive(srcPath, destPath);
-    } else {
-      fs.copyFileSync(srcPath, destPath);
-    }
-  }
-}
-
-/**
  * Install a workflow skill to a project
  */
 export function installWorkflowSkill(
@@ -269,7 +195,7 @@ export function installWorkflowSkill(
   if (fs.existsSync(targetPath)) {
     fs.rmSync(targetPath, { recursive: true });
   }
-  copyDirectoryRecursive(skillSourcePath, targetPath);
+  copyDirectorySync(skillSourcePath, targetPath);
 
   // Update manifest
   let manifest = getWorkflowManifest(projectPath);
@@ -278,7 +204,7 @@ export function installWorkflowSkill(
   }
 
   const sourceInfo = getWorkflowSourceInfo();
-  const hash = hashDirectory(targetPath);
+  const hash = hashDirectoryContents(targetPath);
 
   manifest.skills[skillName] = {
     installedAt: new Date().toISOString(),
@@ -360,7 +286,7 @@ export function checkWorkflowStatus(projectPath: string): WorkflowStatusInfo[] {
       continue;
     }
 
-    const currentHash = hashDirectory(installedPath);
+    const currentHash = hashDirectoryContents(installedPath);
     const modified = currentHash !== info.hash;
 
     if (!fs.existsSync(sourceSkillPath)) {
@@ -373,7 +299,7 @@ export function checkWorkflowStatus(projectPath: string): WorkflowStatusInfo[] {
       continue;
     }
 
-    const sourceHash = hashDirectory(sourceSkillPath);
+    const sourceHash = hashDirectoryContents(sourceSkillPath);
 
     let status: WorkflowSkillStatus;
     if (modified) {

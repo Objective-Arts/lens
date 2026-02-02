@@ -18,12 +18,15 @@ mkdir -p .claude && echo '{"skill":"refactor-check","started":"'$(date -Iseconds
 You MUST check for and FIX all of these issues. Not "consider" - FIX:
 
 1. **FUNCTIONS > 30 LINES** - Split them. No exceptions.
-2. **VAGUE NAMES** - Rename data/result/temp/item/info to meaningful names.
-3. **DUPLICATE CODE** - Extract to shared function.
-4. **DEEP NESTING** - Flatten with early returns.
-5. **MAGIC NUMBERS/STRINGS** - Extract to named constants.
-6. **MISSING ERROR HANDLING** - Add it.
-7. **GOD FILES** - Split files with multiple concerns.
+2. **FILES > 300 LINES** - Split into focused modules. Create thin re-export index if needed.
+3. **COMPLEXITY > 10** - Cyclomatic complexity too high. Flatten with early returns, extract helpers.
+4. **VAGUE NAMES** - Rename data/result/temp/item/info to meaningful names.
+5. **DUPLICATE CODE** - Extract to shared function. Run `cc-config dedupe` to find cross-file duplications.
+6. **CROSS-FILE DUPLICATION** - Same function in multiple files → extract to utils/.
+7. **DEEP NESTING** - Flatten with early returns.
+8. **MAGIC NUMBERS/STRINGS** - Extract to named constants.
+9. **MISSING ERROR HANDLING** - Add it.
+10. **GOD FILES** - Split files with multiple concerns.
 
 ## FORBIDDEN (Phase will FAIL if detected):
 
@@ -70,6 +73,8 @@ REFACTOR_COMPLETE
 - ISSUES_REMAINING > 0
 - TESTS_PASS: no
 - Issues identified but not in REFACTORED section
+- Any file > 300 lines after refactoring
+- Any function with cyclomatic complexity > 10 after refactoring
 
 ## 🛑 MANDATORY STOP
 

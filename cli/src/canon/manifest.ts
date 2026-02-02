@@ -6,6 +6,9 @@ import * as fs from 'fs';
 import * as path from 'path';
 import type { CanonManifest, CanonSource, InstalledSkillInfo } from './types.js';
 
+// Re-export git utilities for backwards compatibility
+export { getGitCommit, getGitRemote } from '../utils/git.js';
+
 const MANIFEST_FILENAME = 'canon-manifest.json';
 
 /**
@@ -93,51 +96,3 @@ function markSkillModified(manifest: CanonManifest, skillName: string): void {
   }
 }
 
-/**
- * Get the commit hash from a git repository
- */
-export function getGitCommit(repoPath: string): string | undefined {
-  const gitHeadPath = path.join(repoPath, '.git', 'HEAD');
-
-  if (!fs.existsSync(gitHeadPath)) {
-    return undefined;
-  }
-
-  try {
-    const headContent = fs.readFileSync(gitHeadPath, 'utf-8').trim();
-
-    // Check if it's a direct ref or a symbolic ref
-    if (headContent.startsWith('ref: ')) {
-      const refPath = headContent.slice(5);
-      const refFilePath = path.join(repoPath, '.git', refPath);
-      if (fs.existsSync(refFilePath)) {
-        return fs.readFileSync(refFilePath, 'utf-8').trim().slice(0, 7);
-      }
-    } else {
-      return headContent.slice(0, 7);
-    }
-  } catch {
-    return undefined;
-  }
-
-  return undefined;
-}
-
-/**
- * Get the git remote URL from a repository
- */
-export function getGitRemote(repoPath: string): string | undefined {
-  const configPath = path.join(repoPath, '.git', 'config');
-
-  if (!fs.existsSync(configPath)) {
-    return undefined;
-  }
-
-  try {
-    const content = fs.readFileSync(configPath, 'utf-8');
-    const match = content.match(/\[remote "origin"\][\s\S]*?url\s*=\s*(.+)/);
-    return match ? match[1].trim() : undefined;
-  } catch {
-    return undefined;
-  }
-}

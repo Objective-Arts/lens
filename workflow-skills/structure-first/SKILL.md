@@ -35,8 +35,26 @@ You MUST actually CREATE the type files. Not describe them - WRITE them using Ed
 
 1. **Load Plan** - Read plan from `.claude/plans/`
 2. **Create Type Files** - Use Write tool to create .ts files
-3. **Document Invariants** - Add JSDoc comments
-4. **Output Summary** - List what was created
+3. **Apply Elegance Principles** - Review interfaces against criteria below
+4. **Document Invariants** - Add JSDoc comments
+5. **Output Summary** - List what was created
+
+## Elegance Principles
+
+Design interfaces with restraint and precision:
+
+| Principle | Apply It |
+|-----------|----------|
+| **Minimal surface** | Only methods/fields that are essential. If in doubt, leave it out. |
+| **Consistent naming** | Same operation = same name everywhere. `size()` not `length`/`count`/`size`. |
+| **Orthogonal operations** | Operations compose cleanly. `add` + `remove` + `contains`, not `addIfNotExists`. |
+| **Interface over implementation** | Return `List<T>` not `ArrayList<T>`. Don't leak internals. |
+| **Clear contracts** | Document preconditions, postconditions, what throws. Contract > implementation detail. |
+| **Immutability by default** | Prefer readonly/immutable. Mutation should be explicit choice. |
+| **Factory over constructor** | `User.create()` over `new User()` when construction is complex. |
+| **Fail-fast** | Detect misuse early. Validate at boundaries. |
+
+**Test your design:** Can someone use this interface correctly by reading only the type signatures and JSDoc? If they need to read implementation, the contract is unclear.
 
 ## REQUIRED Output Format
 

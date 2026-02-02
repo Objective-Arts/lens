@@ -3,7 +3,7 @@
 Run ralph to autonomously implement a feature from a PRD. By the end, you'll understand how the 10-phase workflow builds quality in from the start.
 
 **Time**: 15 minutes
-**Prerequisites**: Completed [Getting Started](getting-started.md), project with profile applied
+**Prerequisites**: Completed [Getting Started](./getting-started.md), project with profile applied
 
 ---
 
