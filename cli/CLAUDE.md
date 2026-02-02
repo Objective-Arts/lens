@@ -26,19 +26,19 @@
 
 ## Standards
 
-- Clarity over cleverness (Kernighan)
-- Data structures first, algorithms follow (Linus)
-- Small, composable interfaces (Pike)
-- Do one thing and do it well (McIlroy)
-- Handle failure explicitly (Joy)
-- Correctness by construction (Dijkstra)
-- Get it working first, then optimize (Thompson)
-- Measure before optimizing (Carmack)
-- Subtypes must be substitutable (Liskov)
-- Think like an attacker (Schneier)
-- Validate all input, encode all output (OWASP)
-- Learn from failures (Petroski)
-- Safety is a system property (Leveson)
+- Clarity over cleverness
+- Data structures first, algorithms follow
+- Small, composable interfaces
+- Do one thing and do it well
+- Handle failure explicitly
+- Correctness by construction
+- Get it working first, then optimize
+- Measure before optimizing
+- Subtypes must be substitutable
+- Think like an attacker
+- Validate all input, encode all output
+- Learn from failures
+- Safety is a system property
 - Use const by default, let when reassignment needed
 - Prefer arrow functions for callbacks
 - Use async/await over raw promises
@@ -57,7 +57,7 @@
 - Functions longer than 30 lines
 - Trusting user input
 - Security through obscurity
-- Violating Liskov substitution
+- Violating substitution principle
 - God objects that do everything
 - var declarations (use const/let)
 - Implicit type coercion (use === and !==)
@@ -71,29 +71,30 @@
 
 | Context | Action |
 |---------|--------|
-| Writing any code | Apply Base Brain lens (kernighan, pike, mcilroy, linus, dijkstra) |
-| Performance-critical code | INVOKE `/carmack` for optimization patterns |
-| Algorithm design | INVOKE `/knuth` for algorithmic rigor |
-| OOP design, inheritance, patterns | INVOKE `/liskov` then `/gang-of-four` |
-| Security-sensitive code (auth, input, data) | INVOKE `/schneier` then `/owasp` |
-| Writing tests | INVOKE `/meszaros` for test patterns |
-| Working with legacy code | INVOKE `/feathers` for seams and characterization tests |
-| Writing documentation | INVOKE `/procida` for Diataxis, `/zinsser` for clarity |
-| Writing READMEs, comments, commit messages | INVOKE `/strunk-white` (omit needless words) and `/king` (kill darlings) |
-| Analyzing failures or risks | INVOKE `/petroski` and `/leveson` |
-| Complex JavaScript runtime, closures, this, scope | INVOKE `/kyle-simpson` |
-| TypeScript types, generics, inference, utility types | INVOKE `/cherny` |
-| JavaScript subset, safe patterns, avoiding pitfalls | INVOKE `/crockford` |
-| React testing, Testing Library, Testing Trophy | INVOKE `/dodds` |
-| Redux, React state, composition patterns | INVOKE `/abramov` |
-| Functional JavaScript, lodash patterns | INVOKE `/ashkenas` |
-| Svelte, reactive frameworks | INVOKE `/harris` |
-| JavaScript design patterns, module patterns | INVOKE `/osmani` |
-| Building UI components, React components, frontend | INVOKE `/frost` then `/ive` then `/norman` |
-| Forms, inputs, validation UI | INVOKE `/wroblewski` then `/norman` |
-| Animations, transitions, motion | INVOKE `/duarte` |
-| Mobile design, responsive, touch | INVOKE `/wroblewski` then `/buxton` |
-| Design system, tokens, theming | INVOKE `/curtis` |
-| Typography, text styling, fonts | INVOKE `/kruzeniski` |
-| CSS, styling, layouts | INVOKE `/rams` |
-| Static analysis, linting, code style | INVOKE `/google-style` for universal formatting/clarity |
+| Writing any code | Apply Base Brain lens (clarity, simplicity, composition, data-first, correctness) |
+| Performance-critical code | INVOKE `/optimization` for optimization patterns |
+| Algorithm design | INVOKE `/algorithms` for algorithmic rigor |
+| OOP design, inheritance, patterns | INVOKE `/abstraction` then `/design-patterns` |
+| Security-sensitive code (auth, input, data) | INVOKE `/security-mindset` then `/owasp` |
+| Writing tests | INVOKE `/test-doubles` for test patterns |
+| Working with legacy code | INVOKE `/legacy` for seams and characterization tests |
+| Writing documentation | INVOKE `/docs` for Diataxis, `/prose` for clarity |
+| Writing READMEs, comments, commit messages | INVOKE `/brevity` (omit needless words) and `/editing` (kill darlings) |
+| Analyzing failures or risks | INVOKE `/failure` and `/safety` |
+| Complex JavaScript runtime, closures, this, scope | INVOKE `/js-internals` |
+| TypeScript types, generics, inference, utility types | INVOKE `/typescript` |
+| JavaScript subset, safe patterns, avoiding pitfalls | INVOKE `/js-safety` |
+| React testing, Testing Library, Testing Trophy | INVOKE `/react-test` |
+| Redux, React state, composition patterns | INVOKE `/react-state` |
+| Functional JavaScript, lodash patterns | INVOKE `/functional` |
+| Svelte, reactive frameworks | INVOKE `/reactivity` |
+| JavaScript design patterns, module patterns | INVOKE `/js-perf` |
+| Building UI components, React components, frontend | INVOKE `/components` then `/visual` then `/usability` |
+| Forms, inputs, validation UI | INVOKE `/mobile` then `/usability` |
+| Animations, transitions, motion | INVOKE `/motion` |
+| Mobile design, responsive, touch | INVOKE `/mobile` then `/interaction` |
+| Design system, tokens, theming | INVOKE `/tokens` |
+| Typography, text styling, fonts | INVOKE `/typography` |
+| CSS, styling, layouts | INVOKE `/design` |
+| Static analysis, linting, code style | INVOKE `/style` for universal formatting/clarity |
+| SQL queries, database design | INVOKE `/sql` then `/sql-perf` |

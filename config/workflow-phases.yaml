@@ -10,57 +10,57 @@ phases:
   plan:
     description: Understand requirements, design approach
     experts:
-      - kernighan      # Clarity of requirements
-      - pike           # Minimal interfaces
-      - bill-joy
-      - thompson
-      - linus          # Data structures first thinking
-      - dijkstra       # Correctness, invariants
-      - liskov         # Type contracts
-      - taleb          # Antifragility, black swans
-      - petroski       # Learn from failures
-      - leveson        # Safety as system property
+      - clarity        # Clarity of requirements
+      - simplicity     # Minimal interfaces
+      - distributed    # Distributed systems
+      - pragmatism     # Get it working
+      - data-first     # Data structures first thinking
+      - correctness    # Correctness, invariants
+      - abstraction    # Type contracts
+      - resilience     # Antifragility, black swans
+      - failure        # Learn from failures
+      - safety         # Safety as system property
 
   structure-first:
     description: Design data structures and types before code
     experts:
-      - linus          # Data structures first
-      - dijkstra       # Invariants, formal correctness
-      - liskov         # Substitution principle
-      - bloch          # API/data structure design
-      - gang-of-four   # Structural patterns
-      - thompson
+      - data-first     # Data structures first
+      - correctness    # Invariants, formal correctness
+      - abstraction    # Substitution principle
+      - java           # API/data structure design
+      - design-patterns # Structural patterns
+      - pragmatism     # Get it working
 
   implement:
     description: Write the code
     experts:
-      - thompson       # Get it working first
-      - kernighan      # Keep it readable
-      - pike           # Composition over complexity
-      - mcilroy        # Unix philosophy, pipelines
-      - bill-joy       # Failure handling
-      - carmack        # Performance awareness
+      - pragmatism     # Get it working first
+      - clarity        # Keep it readable
+      - simplicity     # Composition over complexity
+      - composition    # Unix philosophy, pipelines
+      - distributed    # Failure handling
+      - optimization   # Performance awareness
       # Language-specific loaded from profile
 
   test:
     description: Write tests for implemented code (tests follow code, not TDD)
     experts:
-      - meszaros       # xUnit patterns, test doubles
-      - fowler-test    # Test pyramid, test strategy
-      - dodds          # Testing Trophy, integration focus
-      - hevery         # Testable code design
-      - feathers       # Characterization tests for existing code
+      - test-doubles   # xUnit patterns, test doubles
+      - test-strategy  # Test pyramid, test strategy
+      - react-test     # Testing Trophy, integration focus
+      - angular-core   # Testable code design
+      - legacy         # Characterization tests for existing code
 
   refactor-check:
     description: Simplify and clean up, verify still works
     experts:
-      - kernighan      # Simplify, clarify
-      - thompson       # Remove cruft
-      - feathers       # Safe refactoring with seams
-      - gang-of-four   # Pattern-based refactoring
-      - pike           # Reduce interfaces
-      - fowler-refactoring # Wrote the book
-      - google-style   # Universal formatting and clarity
+      - clarity        # Simplify, clarify
+      - pragmatism     # Remove cruft
+      - legacy         # Safe refactoring with seams
+      - design-patterns # Pattern-based refactoring
+      - simplicity     # Reduce interfaces
+      - refactoring    # Wrote the book
+      - style          # Universal formatting and clarity
 
   code-review:
     description: Independent code review via Gemini - bugs, edge cases, quality
@@ -76,11 +76,11 @@ phases:
   doc-code:
     description: Document the completed work
     experts:
-      - procida        # Diataxis framework
-      - strunk-white   # Omit needless words
-      - zinsser        # Clarity, simplicity
-      - king           # Kill your darlings
-      - kernighan      # Clear explanation
+      - docs           # Diataxis framework
+      - brevity        # Omit needless words
+      - prose          # Clarity, simplicity
+      - editing        # Kill your darlings
+      - clarity        # Clear explanation
 
   # Post-loop phases (run once at end of PRD, not per-item)
   production-readiness:

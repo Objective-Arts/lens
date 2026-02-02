@@ -10,8 +10,9 @@
     "cc-reset": "./scripts/reset.sh"
   },
   "scripts": {
-    "build": "tsc && npm run copy-assets",
+    "build": "tsc && npm run copy-assets && npm run chmod-bins",
     "copy-assets": "mkdir -p dist/ui && cp src/ui/*.html dist/ui/ 2>/dev/null || true",
+    "chmod-bins": "chmod +x dist/cli/index.js dist/ralph/index.js",
     "dev": "tsx src/cli/index.ts",
     "start": "node dist/cli/index.js",
     "test": "vitest"

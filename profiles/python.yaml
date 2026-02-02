@@ -7,31 +7,31 @@ extends: software-base
 ralph:
   skills:
     plan:
-      - hettinger      # Pythonic design
+      - python-idioms    # Pythonic design
     build:
-      - hettinger      # Pythonic code
-      - ramalho        # Fluent Python
-      - beazley        # Python cookbook
-      - slatkin        # Effective Python
+      - python-idioms    # Pythonic code
+      - python-protocols # Fluent Python
+      - python-advanced  # Python cookbook
+      - python-patterns  # Effective Python
     refactor:
-      - hettinger      # Pythonic refactoring
-      - ramalho        # Idiomatic patterns
+      - python-idioms    # Pythonic refactoring
+      - python-protocols # Idiomatic patterns
     test:
-      - hettinger      # pytest patterns
+      - python-idioms    # pytest patterns
     # review and doc inherit from software-base
 
 skills:
   canon:
-    - hettinger      # Pythonic idioms, generators, decorators
-    - beazley        # Deep internals, concurrency, metaprogramming
-    - ramalho        # Fluent Python - data model, protocols
-    - slatkin        # Effective Python - 90 practical patterns
+    - python-idioms    # Pythonic idioms, generators, decorators
+    - python-advanced  # Deep internals, concurrency, metaprogramming
+    - python-protocols # Fluent Python - data model, protocols
+    - python-patterns  # Effective Python - 90 practical patterns
 
 claudeMd:
   standards:
-    - "Pythonic over clever - readability counts (Hettinger)"
+    - "Pythonic over clever - readability counts"
     - "Use generators for memory-efficient iteration"
-    - "Understand the data model - __dunder__ methods (Ramalho)"
+    - "Understand the data model - __dunder__ methods"
     - "Use type hints for documentation and tooling"
 
   antiPatterns:
@@ -42,10 +42,10 @@ claudeMd:
 
   autoInvoke:
     - context: Pythonic idioms, generators, decorators
-      action: INVOKE `/hettinger`
+      action: INVOKE `/python-idioms`
     - context: Concurrency, metaprogramming, internals
-      action: INVOKE `/beazley`
+      action: INVOKE `/python-advanced`
     - context: Data model, protocols, type hints
-      action: INVOKE `/ramalho`
+      action: INVOKE `/python-protocols`
     - context: Practical patterns, best practices
-      action: INVOKE `/slatkin`
+      action: INVOKE `/python-patterns`

@@ -25,10 +25,12 @@ import type {
   SkillStatusInfo,
   CanonUpgradeResult
 } from './types.js';
+import { resolveSkillName, formatSkillName } from './naming.js';
 
 export * from './types.js';
 export * from './hash.js';
 export * from './manifest.js';
+export * from './naming.js';
 
 // Default canon source paths - use claude-optimal/canon as the source of truth
 const DEFAULT_CANON_PATH = path.join(homedir(), 'local-tech-projects', 'claude-optimal', 'canon');
@@ -278,14 +280,20 @@ export function listCanonSkills(): CanonListItem[] {
 }
 
 /**
- * Find the source path for a skill by name
+ * Find the source path for a skill by name.
+ *
+ * When CANON_TRIBUTE_NAMES=1 is set, tribute names (kernighan, dijkstra)
+ * are resolved to their generic equivalents (clarity, correctness).
  */
 export function findSkillSourcePath(skillName: string): string | null {
+  // Resolve tribute names to generic names when flag is set
+  const resolvedName = resolveSkillName(skillName);
+
   // Check canon-skills first
   const canonPath = getCanonSourcePath();
 
   for (const subdir of CANON_SUBDIRS) {
-    const searchPath = subdir ? path.join(canonPath, subdir, skillName) : path.join(canonPath, skillName);
+    const searchPath = subdir ? path.join(canonPath, subdir, resolvedName) : path.join(canonPath, resolvedName);
 
     if (fs.existsSync(searchPath) && fs.existsSync(path.join(searchPath, 'SKILL.md'))) {
       return searchPath;
@@ -293,13 +301,13 @@ export function findSkillSourcePath(skillName: string): string | null {
   }
 
   // Check security skills
-  const securityPath = path.join(SECURITY_SKILL_PATH, skillName);
+  const securityPath = path.join(SECURITY_SKILL_PATH, resolvedName);
   if (fs.existsSync(securityPath) && fs.existsSync(path.join(securityPath, 'SKILL.md'))) {
     return securityPath;
   }
 
   // Check tech skills
-  const techPath = path.join(TECH_SKILL_PATH, skillName);
+  const techPath = path.join(TECH_SKILL_PATH, resolvedName);
   if (fs.existsSync(techPath) && fs.existsSync(path.join(techPath, 'SKILL.md'))) {
     return techPath;
   }

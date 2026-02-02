@@ -115,42 +115,43 @@ describe('canon source directory', () => {
 });
 
 describe('software-base profile skill existence', () => {
+  // Using generic names (not tribute names)
   const baseBrainSkills = [
-    'kernighan',
-    'thompson',
-    'pike',
-    'mcilroy',
-    'bill-joy',
-    'linus',
-    'dijkstra',
-    'knuth',
-    'liskov',
-    'carmack'
+    'clarity',      // kernighan
+    'pragmatism',   // thompson
+    'simplicity',   // pike
+    'composition',  // mcilroy
+    'distributed',  // bill-joy
+    'data-first',   // linus
+    'correctness',  // dijkstra
+    'algorithms',   // knuth
+    'abstraction',  // liskov
+    'optimization'  // carmack
   ];
 
   const designPatternSkills = [
-    'gang-of-four'
+    'design-patterns'  // gang-of-four
   ];
 
   const securitySkills = [
-    'schneier',
+    'security-mindset',  // schneier
     'owasp'
   ];
 
   const engineeringSkills = [
-    'petroski',
-    'leveson',
-    'taleb'
+    'failure',     // petroski
+    'safety',      // leveson
+    'resilience'   // taleb
   ];
 
   const documentationSkills = [
-    'procida'
+    'docs'  // procida
   ];
 
   const testingSkills = [
-    'feathers',
-    'meszaros',
-    'fowler-test'
+    'legacy',         // feathers
+    'test-doubles',   // meszaros
+    'test-strategy'   // fowler-test
   ];
 
   // Helper to test skill existence without non-null assertions
@@ -201,11 +202,12 @@ describe('software-base profile skill existence', () => {
 });
 
 describe('csharp profile skill existence', () => {
+  // Using generic names (not tribute names)
   const csharpSkills = [
-    'skeet',
-    'cleary',
-    'hejlsberg',
-    'bloch'
+    'csharp-depth',   // skeet
+    'async',          // cleary
+    'type-systems',   // hejlsberg
+    'java'            // bloch
   ];
 
   csharpSkills.forEach(skill => {
@@ -221,10 +223,11 @@ describe('csharp profile skill existence', () => {
 });
 
 describe('javascript profile skill existence', () => {
+  // Using generic names (not tribute names)
   const jsSkills = [
-    'cherny',
-    'crockford',
-    'dodds'
+    'typescript',   // cherny
+    'js-safety',    // crockford
+    'react-test'    // dodds
   ];
 
   jsSkills.forEach(skill => {
@@ -238,11 +241,9 @@ describe('javascript profile skill existence', () => {
     });
   });
 
-  it('kyle-simpson exists in tech skill library', () => {
-    const techPath = path.join(homedir(), '.claude', 'skill-library', 'tech', 'kyle-simpson');
-    // This may not exist on all machines, so we just check if findSkillSourcePath works
-    const skillPath = findSkillSourcePath('kyle-simpson');
-    // kyle-simpson might be in tech library or canon
+  it('js-internals exists in canon', () => {
+    // Using generic name now (was kyle-simpson)
+    const skillPath = findSkillSourcePath('js-internals');
     if (skillPath) {
       expect(fs.existsSync(skillPath)).toBe(true);
     }
@@ -343,21 +344,21 @@ describe('profile combination integration', () => {
       expect(result.name).toBe('software-base + csharp + javascript + ralph-integration');
       expect(result.skills).toBeDefined();
 
-      // Should have canon skills from all profiles
+      // Should have canon skills from all profiles (now uses generic names)
       const canonSkills = result.skills?.canon || [];
 
       // From software-base
-      expect(canonSkills).toContain('kernighan');
-      expect(canonSkills).toContain('pike');
-      expect(canonSkills).toContain('dijkstra');
+      expect(canonSkills).toContain('clarity');
+      expect(canonSkills).toContain('simplicity');
+      expect(canonSkills).toContain('correctness');
 
       // From csharp
-      expect(canonSkills).toContain('skeet');
-      expect(canonSkills).toContain('cleary');
+      expect(canonSkills).toContain('csharp-depth');
+      expect(canonSkills).toContain('async');
 
       // From javascript
-      expect(canonSkills).toContain('cherny');
-      expect(canonSkills).toContain('crockford');
+      expect(canonSkills).toContain('typescript');
+      expect(canonSkills).toContain('js-safety');
     }
   });
 

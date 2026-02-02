@@ -69,8 +69,8 @@ describe('cc-config CLI integration', () => {
       expect(result.exitCode).toBe(0);
       expect(result.stdout).toContain('Available Canon Skills');
       expect(result.stdout).toContain('Source:');
-      // Should contain at least some known skills
-      expect(result.stdout).toMatch(/bloch|kernighan|cherny/);
+      // Should contain at least some known skills (using generic names)
+      expect(result.stdout).toMatch(/java|clarity|typescript/);
     });
 
     it('canon source - shows canon source path and info', () => {
@@ -83,13 +83,13 @@ describe('cc-config CLI integration', () => {
     });
 
     it('canon install - copies skill to project (not symlink)', () => {
-      const result = runCli(`canon install bloch -p ${testDir}`);
+      const result = runCli(`canon install java -p ${testDir}`);
 
       expect(result.exitCode).toBe(0);
-      expect(result.stdout).toContain('Copied skill: bloch');
+      expect(result.stdout).toContain('Copied skill: java');
 
       // Verify it's a real directory, not a symlink
-      const skillPath = path.join(testDir, '.claude', 'skills', 'bloch');
+      const skillPath = path.join(testDir, '.claude', 'skills', 'java');
       expect(fs.existsSync(skillPath)).toBe(true);
       expect(isSymlink(skillPath)).toBe(false);
       expect(fs.statSync(skillPath).isDirectory()).toBe(true);
@@ -99,35 +99,35 @@ describe('cc-config CLI integration', () => {
     });
 
     it('canon install - creates canon-manifest.json', () => {
-      runCli(`canon install bloch -p ${testDir}`);
+      runCli(`canon install java -p ${testDir}`);
 
       const manifestPath = path.join(testDir, '.claude', 'canon-manifest.json');
       expect(fs.existsSync(manifestPath)).toBe(true);
 
       const manifest = JSON.parse(fs.readFileSync(manifestPath, 'utf-8'));
-      expect(manifest.skills).toHaveProperty('bloch');
-      expect(manifest.skills.bloch.hash).toBeTruthy();
-      expect(manifest.skills.bloch.installedAt).toBeTruthy();
+      expect(manifest.skills).toHaveProperty('java');
+      expect(manifest.skills.java.hash).toBeTruthy();
+      expect(manifest.skills.java.installedAt).toBeTruthy();
     });
 
     it('canon status - shows current status for installed skills', () => {
       // Install a skill first
-      runCli(`canon install kernighan -p ${testDir}`);
+      runCli(`canon install clarity -p ${testDir}`);
 
       const result = runCli(`canon status -p ${testDir}`);
 
       expect(result.exitCode).toBe(0);
       expect(result.stdout).toContain('Canon Skills Status');
-      expect(result.stdout).toContain('kernighan');
+      expect(result.stdout).toContain('clarity');
       expect(result.stdout).toContain('current');
     });
 
     it('canon status - detects local modifications', () => {
       // Install a skill
-      runCli(`canon install bloch -p ${testDir}`);
+      runCli(`canon install java -p ${testDir}`);
 
       // Modify the skill
-      const skillMdPath = path.join(testDir, '.claude', 'skills', 'bloch', 'SKILL.md');
+      const skillMdPath = path.join(testDir, '.claude', 'skills', 'java', 'SKILL.md');
       fs.appendFileSync(skillMdPath, '\n# Local modification for testing');
 
       const result = runCli(`canon status -p ${testDir}`);
@@ -137,8 +137,8 @@ describe('cc-config CLI integration', () => {
 
     it('canon upgrade - skips locally modified skills without --force', () => {
       // Install and modify a skill
-      runCli(`canon install bloch -p ${testDir}`);
-      const skillMdPath = path.join(testDir, '.claude', 'skills', 'bloch', 'SKILL.md');
+      runCli(`canon install java -p ${testDir}`);
+      const skillMdPath = path.join(testDir, '.claude', 'skills', 'java', 'SKILL.md');
       fs.appendFileSync(skillMdPath, '\n# Local modification');
 
       const result = runCli(`canon upgrade -p ${testDir}`);
@@ -149,8 +149,8 @@ describe('cc-config CLI integration', () => {
 
     it('canon upgrade --force - overwrites modified skills', () => {
       // Install and modify a skill
-      runCli(`canon install bloch -p ${testDir}`);
-      const skillMdPath = path.join(testDir, '.claude', 'skills', 'bloch', 'SKILL.md');
+      runCli(`canon install java -p ${testDir}`);
+      const skillMdPath = path.join(testDir, '.claude', 'skills', 'java', 'SKILL.md');
       const originalContent = fs.readFileSync(skillMdPath, 'utf-8');
       fs.appendFileSync(skillMdPath, '\n# Local modification');
 
@@ -164,13 +164,13 @@ describe('cc-config CLI integration', () => {
 
     it('canon diff - shows differences between installed and source', () => {
       // Install and modify a skill
-      runCli(`canon install kernighan -p ${testDir}`);
-      const skillMdPath = path.join(testDir, '.claude', 'skills', 'kernighan', 'SKILL.md');
+      runCli(`canon install clarity -p ${testDir}`);
+      const skillMdPath = path.join(testDir, '.claude', 'skills', 'clarity', 'SKILL.md');
       fs.appendFileSync(skillMdPath, '\n# Test diff line');
 
-      const result = runCli(`canon diff kernighan -p ${testDir}`);
+      const result = runCli(`canon diff clarity -p ${testDir}`);
 
-      expect(result.stdout).toContain('Diff: kernighan');
+      expect(result.stdout).toContain('Diff: clarity');
       expect(result.stdout).toContain('Test diff line');
     });
   });
@@ -239,10 +239,10 @@ describe('cc-config CLI integration', () => {
   describe('portability', () => {
     it('project works without canon-skills source present', () => {
       // Install a skill
-      runCli(`canon install bloch -p ${testDir}`);
+      runCli(`canon install java -p ${testDir}`);
 
       // The project should have all necessary files to work standalone
-      const skillPath = path.join(testDir, '.claude', 'skills', 'bloch', 'SKILL.md');
+      const skillPath = path.join(testDir, '.claude', 'skills', 'java', 'SKILL.md');
       expect(fs.existsSync(skillPath)).toBe(true);
 
       // Read the file - should work since it's a copy
@@ -268,8 +268,8 @@ describe('cc-config CLI integration', () => {
   describe('scan/audit', () => {
     it('finds all installed skills (real files, not symlinks)', () => {
       // Install some skills
-      runCli(`canon install bloch -p ${testDir}`);
-      runCli(`canon install kernighan -p ${testDir}`);
+      runCli(`canon install java -p ${testDir}`);
+      runCli(`canon install clarity -p ${testDir}`);
 
       const result = runCli(`scan -p ${testDir}`);
 
@@ -278,7 +278,7 @@ describe('cc-config CLI integration', () => {
     });
 
     it('audit reports installed skills', () => {
-      runCli(`canon install bloch -p ${testDir}`);
+      runCli(`canon install java -p ${testDir}`);
 
       const result = runCli(`audit -p ${testDir}`);
 
@@ -588,7 +588,7 @@ describe('error handling', () => {
   });
 
   it('canon diff on non-installed skill reports appropriately', () => {
-    const result = runCli(`canon diff kernighan -p ${testDir}`);
+    const result = runCli(`canon diff clarity -p ${testDir}`);
 
     // Should indicate skill not installed
     expect(

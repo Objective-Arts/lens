@@ -7,13 +7,13 @@ extends: software-base
 ralph:
   skills:
     plan:
-      - bloch          # API architecture
+      - java           # API architecture
     build:
-      - bloch          # Effective Java patterns
+      - java           # Effective Java patterns
 
 skills:
   canon:
-    - bloch          # Effective Java - API design, immutability, builders
+    - java           # Effective Java - API design, immutability, builders
 
 claudeMd:
   standards:
@@ -37,10 +37,10 @@ claudeMd:
 
   autoInvoke:
     - context: Java API design, collections, builders, immutability
-      action: INVOKE `/bloch`
+      action: INVOKE `/java`
     - context: Code clarity, naming, magic numbers, readability
-      action: INVOKE `/kernighan`
+      action: INVOKE `/clarity`
     - context: Design patterns, Factory, Strategy, Observer, Decorator
-      action: INVOKE `/gang-of-four`
+      action: INVOKE `/design-patterns`
     - context: Inheritance design, LSP violations, type hierarchies
-      action: INVOKE `/liskov`
+      action: INVOKE `/abstraction`

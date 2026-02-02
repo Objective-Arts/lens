@@ -2,45 +2,45 @@ _generated: "Auto-generated from profile: javascript"
 _regenerate: cc-config profile apply
 skills:
   plan:
-    - kernighan
-    - pike
-    - dijkstra
-    - mcilroy
-    - linus
-    - bill-joy
-    - kyle-simpson
+    - clarity
+    - simplicity
+    - correctness
+    - composition
+    - data-first
+    - distributed
+    - js-internals
   build:
-    - kernighan
-    - pike
-    - bloch
-    - liskov
-    - gang-of-four
-    - thompson
-    - carmack
-    - cherny
-    - crockford
-    - kyle-simpson
-    - osmani
+    - clarity
+    - simplicity
+    - java
+    - abstraction
+    - design-patterns
+    - pragmatism
+    - optimization
+    - typescript
+    - js-safety
+    - js-internals
+    - js-perf
   refactor:
-    - kernighan
-    - feathers
-    - gang-of-four
-    - bill-joy
-    - osmani
-    - crockford
+    - clarity
+    - legacy
+    - design-patterns
+    - distributed
+    - js-perf
+    - js-safety
   test:
-    - meszaros
-    - fowler-test
-    - feathers
-    - dodds
+    - test-doubles
+    - test-strategy
+    - legacy
+    - react-test
   review:
-    - schneier
+    - security-mindset
     - owasp
-    - petroski
-    - leveson
-    - taleb
+    - failure
+    - safety
+    - resilience
   doc:
-    - procida
-    - strunk-white
-    - zinsser
-    - king
+    - docs
+    - brevity
+    - prose
+    - editing

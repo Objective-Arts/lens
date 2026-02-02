@@ -34,10 +34,10 @@ rules:
       - trust
       - untrust
     experts:
-      - schneier
+      - security-mindset
       - owasp
-      - tanya-janca
-      - troy-hunt
+      - appsec
+      - web-security
 
   # === DATABASE ===
   database:
@@ -63,8 +63,9 @@ rules:
       - join
       - foreign key
     experts:
-      - bloch
-      - schneier       # SQL injection awareness
+      - sql
+      - sql-perf
+      - security-mindset  # SQL injection awareness
 
   # === API ===
   api:
@@ -84,8 +85,8 @@ rules:
       - pagination
       - rate limit
     experts:
-      - bloch
-      - pike
+      - java
+      - simplicity
 
   # === TESTING ===
   testing:
@@ -110,11 +111,11 @@ rules:
       - vitest
       - pytest
     experts:
-      - meszaros
-      - fowler-test
-      - dodds
-      - hevery
-      - feathers
+      - test-doubles
+      - test-strategy
+      - react-test
+      - angular-core
+      - legacy
 
   # === PERFORMANCE ===
   performance:
@@ -134,8 +135,8 @@ rules:
       - bottleneck
       - n+1
     experts:
-      - carmack
-      - knuth
+      - optimization
+      - algorithms
 
   # === UI/UX ===
   ui:
@@ -161,11 +162,11 @@ rules:
       - aria
       - screen reader
     experts:
-      - frost
-      - norman
-      - cooper
-      - rams
-      - ive
+      - components
+      - usability
+      - personas
+      - design
+      - visual
 
   forms:
     patterns:
@@ -177,8 +178,8 @@ rules:
       - error message
       - required field
     experts:
-      - wroblewski
-      - norman
+      - mobile
+      - usability
 
   animation:
     patterns:
@@ -191,8 +192,8 @@ rules:
       - gesture
       - swipe
     experts:
-      - duarte
-      - buxton
+      - motion
+      - interaction
 
   design-system:
     patterns:
@@ -203,9 +204,9 @@ rules:
       - component library
       - atomic design
     experts:
-      - curtis
-      - frost
-      - rams
+      - tokens
+      - components
+      - design
 
   typography:
     patterns:
@@ -216,7 +217,7 @@ rules:
       - letter spacing
       - text hierarchy
     experts:
-      - kruzeniski
+      - typography
 
   # === ALGORITHMS ===
   algorithms:
@@ -241,8 +242,8 @@ rules:
       - dynamic programming
       - greedy
     experts:
-      - knuth
-      - dijkstra
+      - algorithms
+      - correctness
 
   # === ARCHITECTURE ===
   architecture:
@@ -262,9 +263,9 @@ rules:
       - dry
       - kiss
     experts:
-      - gang-of-four
-      - liskov
-      - pike
+      - design-patterns
+      - abstraction
+      - simplicity
 
   distributed:
     patterns:
@@ -281,8 +282,8 @@ rules:
       - cqrs
       - event sourcing
     experts:
-      - bill-joy
-      - taleb
+      - distributed
+      - resilience
 
   # === CLI/UNIX ===
   cli:
@@ -302,10 +303,10 @@ rules:
       - stdout
       - stderr
     experts:
-      - mcilroy
-      - pike
-      - kernighan
-      - thompson
+      - composition
+      - simplicity
+      - clarity
+      - pragmatism
 
   # === DOCUMENTATION ===
   documentation:
@@ -323,10 +324,10 @@ rules:
       - tutorial
       - guide
     experts:
-      - procida
-      - strunk-white
-      - zinsser
-      - king
+      - docs
+      - brevity
+      - prose
+      - editing
 
   # === VISUALIZATION ===
   visualization:
@@ -342,10 +343,10 @@ rules:
       - svg
       - canvas
     experts:
-      - tufte
-      - few
-      - knaflic
-      - bostock
+      - charts
+      - dashboards
+      - data-story
+      - d3
 
   # === ERROR HANDLING ===
   error-handling:
@@ -362,8 +363,8 @@ rules:
       - graceful
       - fallback
     experts:
-      - bill-joy
-      - thompson
+      - distributed
+      - pragmatism
 
   # === DEBUGGING ===
   debugging:
@@ -377,7 +378,7 @@ rules:
       - log
       - trace
     experts:
-      - feathers        # Working with unfamiliar code
+      - legacy  # Working with unfamiliar code
 
   # === DEPLOYMENT ===
   deployment:
@@ -393,7 +394,7 @@ rules:
       - ci cd
       - pipeline
     experts:
-      - leveson         # Safety for critical operations
+      - safety  # Safety for critical operations
 
   # === RISK/SAFETY ===
   risk:
@@ -409,9 +410,9 @@ rules:
       - resilient
       - fault tolerant
     experts:
-      - taleb
-      - petroski
-      - leveson
+      - resilience
+      - failure
+      - safety
 
   # === REFACTORING ===
   refactoring:
@@ -426,9 +427,10 @@ rules:
       - inline
       - rename
     experts:
-      - feathers
-      - kernighan
-      - thompson
+      - legacy
+      - clarity
+      - pragmatism
+      - refactoring
 
   # === JAVASCRIPT ===
   javascript:
@@ -441,9 +443,9 @@ rules:
       - yarn
       - pnpm
     experts:
-      - crockford
-      - kyle-simpson
-      - osmani
+      - js-safety
+      - js-internals
+      - js-perf
 
   javascript-advanced:
     patterns:
@@ -455,8 +457,8 @@ rules:
       - callback
       - promise
     experts:
-      - kyle-simpson
-      - cleary
+      - js-internals
+      - async
 
   functional-js:
     patterns:
@@ -470,7 +472,7 @@ rules:
       - pure function
       - immutable
     experts:
-      - ashkenas
+      - functional
 
   # === TYPESCRIPT ===
   typescript:
@@ -487,8 +489,8 @@ rules:
       - as const
       - satisfies
     experts:
-      - cherny
-      - hejlsberg
+      - typescript
+      - type-systems
 
   # === REACT ===
   react:
@@ -506,8 +508,8 @@ rules:
       - redux
       - zustand
     experts:
-      - abramov
-      - dodds
+      - react-state
+      - react-test
 
   # === ANGULAR ===
   angular:
@@ -522,9 +524,9 @@ rules:
       - zone
       - change detection
     experts:
-      - hevery
-      - kurata
-      - minko-gechev
+      - angular-core
+      - angular-arch
+      - angular-perf
 
   # === RXJS ===
   rxjs:
@@ -539,8 +541,8 @@ rules:
       - mergemap
       - combinelatest
     experts:
-      - ben-lesh
-      - cleary
+      - rxjs
+      - async
 
   # === SVELTE ===
   svelte:
@@ -551,7 +553,7 @@ rules:
       - reactive
       - store
     experts:
-      - harris
+      - reactivity
 
   # === PYTHON ===
   python:
@@ -567,9 +569,9 @@ rules:
       - comprehension
       - dataclass
     experts:
-      - hettinger
-      - ramalho
-      - slatkin
+      - python-idioms
+      - python-protocols
+      - python-patterns
 
   python-async:
     patterns:
@@ -580,7 +582,7 @@ rules:
       - aiohttp
       - fastapi
     experts:
-      - beazley
+      - python-advanced
 
   # === JAVA ===
   java:
@@ -595,7 +597,7 @@ rules:
       - optional
       - stream api
     experts:
-      - bloch
+      - java
 
   # === C# ===
   csharp:
@@ -609,7 +611,7 @@ rules:
       - asp.net
       - blazor
     experts:
-      - skeet
+      - csharp-depth
 
   # === GO ===
   golang:
@@ -621,4 +623,4 @@ rules:
       - defer
       - interface go
     experts:
-      - pike
+      - simplicity

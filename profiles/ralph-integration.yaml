@@ -25,7 +25,7 @@ claudeMd:
 
     # Quality gates
     - "Run tests after implementing each feature"
-    - "Run /adversarial-review before marking any item complete"
+    - "Run /independent-review before marking any item complete"
     - "Fix all critical issues before moving to next item"
 
     # Autonomous loop safety
@@ -44,7 +44,7 @@ claudeMd:
     - context: Starting a new PRD item implementation
       action: Read git log, identify related previous work
     - context: Feature implementation complete
-      action: INVOKE `/test` then `/adversarial-review`
+      action: INVOKE `/test` then `/independent-review`
     - context: Review finds critical issues
       action: Fix immediately before continuing
     - context: Stuck on same error multiple iterations
@@ -93,7 +93,7 @@ ralph:
 #   cc-config profile apply python+ralph-integration -p .
 #
 # This gives you:
-#   - Tech profile: language canon (Bloch, Simpson, etc.) + standards
+#   - Tech profile: language canon + standards
 #   - Ralph profile: iteration discipline + quality gates + /ralph-loop skill
 #
 # Then run:

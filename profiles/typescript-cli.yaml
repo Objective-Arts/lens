@@ -9,44 +9,44 @@ composable: true
 skills:
   canon:
     # TypeScript mastery
-    - cherny          # Programming TypeScript - inference, generics, type guards
-    - hejlsberg       # TypeScript compiler, type system design
+    - typescript      # Programming TypeScript - inference, generics, type guards
+    - type-systems    # TypeScript compiler, type system design
 
     # JavaScript foundations
-    - crockford       # JavaScript: The Good Parts - safe subset
-    - kyle-simpson    # You Don't Know JS - closures, this, scope, prototypes
-    - osmani          # JavaScript design patterns, module patterns
-    - ashkenas        # Functional JS, lodash patterns
-    - cleary          # Async patterns, promises, event loop
+    - js-safety       # JavaScript safe subset
+    - js-internals    # Closures, this, scope, prototypes
+    - js-perf         # JavaScript design patterns, module patterns
+    - functional      # Functional JS, lodash patterns
+    - async           # Async patterns, promises, event loop
 
     # Node.js
-    - mcilroy         # Unix philosophy for CLI design
-    - pike            # Small tools, composition
+    - composition     # Unix philosophy for CLI design
+    - simplicity      # Small tools, composition
 
 claudeMd:
   standards:
     # TypeScript
-    - "Let TypeScript infer types - annotate sparingly (Cherny)"
-    - "Use discriminated unions for state machines (Cherny)"
-    - "Prefer unknown over any, narrow with type guards (Cherny)"
-    - "Use const assertions for literal types (Cherny)"
-    - "Understand the type system, don't fight it (Hejlsberg)"
+    - "Let TypeScript infer types - annotate sparingly"
+    - "Use discriminated unions for state machines"
+    - "Prefer unknown over any, narrow with type guards"
+    - "Use const assertions for literal types"
+    - "Understand the type system, don't fight it"
 
     # JavaScript
-    - "Avoid the bad parts - with, eval, implied globals (Crockford)"
-    - "Understand closures, this binding, scope chain (Kyle Simpson)"
-    - "Use strict mode always (Crockford)"
-    - "Prefer composition over inheritance (Osmani)"
+    - "Avoid the bad parts - with, eval, implied globals"
+    - "Understand closures, this binding, scope chain"
+    - "Use strict mode always"
+    - "Prefer composition over inheritance"
 
     # Async
-    - "Use async/await over raw promises (Cleary)"
-    - "Understand the event loop - never block it (Cleary)"
-    - "Handle promise rejections explicitly (Cleary)"
+    - "Use async/await over raw promises"
+    - "Understand the event loop - never block it"
+    - "Handle promise rejections explicitly"
 
     # CLI/Node
-    - "Do one thing well, compose with pipes (McIlroy)"
-    - "Exit codes matter - 0 for success, non-zero for failure (McIlroy)"
-    - "Stderr for errors and diagnostics, stdout for output (Pike)"
+    - "Do one thing well, compose with pipes"
+    - "Exit codes matter - 0 for success, non-zero for failure"
+    - "Stderr for errors and diagnostics, stdout for output"
 
   antiPatterns:
     - "Over-annotating types TypeScript can infer"
@@ -63,20 +63,20 @@ claudeMd:
 
   autoInvoke:
     - context: TypeScript types, generics, inference, utility types
-      action: INVOKE /cherny
+      action: INVOKE /typescript
     - context: Type guards, discriminated unions, exhaustive checks
-      action: INVOKE /cherny
+      action: INVOKE /typescript
     - context: TypeScript compiler behavior, type system edge cases
-      action: INVOKE /hejlsberg
+      action: INVOKE /type-systems
     - context: JavaScript closures, this, scope, prototypes
-      action: INVOKE /kyle-simpson
+      action: INVOKE /js-internals
     - context: JavaScript pitfalls, safe patterns
-      action: INVOKE /crockford
+      action: INVOKE /js-safety
     - context: Async/await, promises, event loop
-      action: INVOKE /cleary
+      action: INVOKE /async
     - context: Functional patterns, lodash-style operations
-      action: INVOKE /ashkenas
+      action: INVOKE /functional
     - context: Module patterns, design patterns in JS
-      action: INVOKE /osmani
+      action: INVOKE /js-perf
     - context: CLI argument parsing, stdin/stdout handling
-      action: INVOKE /mcilroy and /pike
+      action: INVOKE /composition and /simplicity

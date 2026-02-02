@@ -6,37 +6,37 @@ composable: true
 ralph:
   skills:
     plan:
-      - porter         # Competitive strategy
-      - rumelt         # Good strategy/bad strategy
-      - grove          # OKRs, execution
+      - competition    # Competitive strategy
+      - strategy       # Good strategy/bad strategy
+      - management     # OKRs, execution
     build:
-      - grove          # High output management
-      - horowitz       # Hard things execution
+      - management     # High output management
+      - leadership     # Hard things execution
     review:
-      - horowitz       # Reality check
-      - porter         # Strategic review
+      - leadership     # Reality check
+      - competition    # Strategic review
     doc:
-      - helmer         # Business writing
-      - knaflic        # Data presentation
+      - moats          # Business writing
+      - data-story     # Data presentation
 
 skills:
   canon:
     # Strategy
-    - grove          # High Output Management, OKRs, paranoid leadership
-    - porter         # Competitive strategy, five forces, value chain
-    - rumelt         # Good Strategy/Bad Strategy, kernel of strategy
+    - management     # High Output Management, OKRs, paranoid leadership
+    - competition    # Competitive strategy, five forces, value chain
+    - strategy       # Good Strategy/Bad Strategy, kernel of strategy
     # Execution
-    - horowitz       # Hard things, wartime CEO, management
+    - leadership     # Hard things, wartime CEO, management
     # Analysis
-    - helmer         # Scenario planning, strategic foresight
+    - moats          # Scenario planning, strategic foresight
 
 claudeMd:
   standards:
-    - "Start with diagnosis before prescription (Rumelt)"
-    - "Strategy is a coherent set of actions, not goals (Rumelt)"
-    - "Focus on leverage points (Grove)"
-    - "Understand your competitive position (Porter)"
-    - "Peacetime vs wartime requires different approaches (Horowitz)"
+    - "Start with diagnosis before prescription"
+    - "Strategy is a coherent set of actions, not goals"
+    - "Focus on leverage points"
+    - "Understand your competitive position"
+    - "Peacetime vs wartime requires different approaches"
 
   antiPatterns:
     - "Fluff - restating the obvious dressed up as strategy"
@@ -46,10 +46,10 @@ claudeMd:
 
   autoInvoke:
     - context: Strategic planning, competitive analysis
-      action: INVOKE `/porter` then `/rumelt`
+      action: INVOKE `/competition` then `/strategy`
     - context: Management, OKRs, organizational design
-      action: INVOKE `/grove`
+      action: INVOKE `/management`
     - context: Startup decisions, hard choices, crisis management
-      action: INVOKE `/horowitz`
+      action: INVOKE `/leadership`
     - context: Scenario planning, future uncertainty
-      action: INVOKE `/helmer`
+      action: INVOKE `/moats`

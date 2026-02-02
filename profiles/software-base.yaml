@@ -6,73 +6,73 @@ composable: true
 skills:
   canon:
     # THE BASELINE BRAIN - masters that shape all code
-    - kernighan      # Clarity, readability, style
-    - thompson       # Pragmatism, brute force, get it working
-    - pike           # Small interfaces, composition
-    - mcilroy        # Unix philosophy, do one thing well, pipelines
-    - bill-joy       # Distributed systems, failure handling
-    - linus          # Good taste, data structures first
-    - dijkstra       # Formal discipline, correctness
-    - knuth          # Algorithms, literate programming, rigor
-    - liskov         # Substitution principle, type contracts
-    - carmack        # Performance, clean code, pragmatic optimization
+    - clarity        # Clarity, readability, style
+    - pragmatism     # Pragmatism, brute force, get it working
+    - simplicity     # Small interfaces, composition
+    - composition    # Unix philosophy, do one thing well, pipelines
+    - distributed    # Distributed systems, failure handling
+    - data-first     # Good taste, data structures first
+    - correctness    # Formal discipline, correctness
+    - algorithms     # Algorithms, literate programming, rigor
+    - abstraction    # Substitution principle, type contracts
+    - optimization   # Performance, clean code, pragmatic optimization
     # Design patterns
-    - gang-of-four   # Classic OOP patterns
+    - design-patterns   # Classic OOP patterns
     # Security mindset
-    - schneier       # Think like an attacker
-    - owasp          # Vulnerability patterns, Top 10
+    - security-mindset  # Think like an attacker
+    - owasp             # Vulnerability patterns, Top 10
     # Engineering wisdom
-    - petroski       # Form follows failure
-    - leveson        # STAMP/STPA safety analysis
-    - taleb          # Antifragility, black swans
+    - failure        # Form follows failure
+    - safety         # STAMP/STPA safety analysis
+    - resilience     # Antifragility, black swans
     # Documentation & Writing
-    - procida        # Diataxis framework
-    - zinsser        # Clarity, remove clutter
-    - strunk-white   # Omit needless words, active voice
-    - king           # Kill your darlings, practical writing
+    - docs           # Diataxis framework
+    - prose          # Clarity, remove clutter
+    - brevity        # Omit needless words, active voice
+    - editing        # Kill your darlings, practical writing
     # Testing
-    - dodds          # Testing Trophy, integration-first
-    - feathers       # Legacy code testing
-    - meszaros       # xUnit patterns, test doubles
-    - fowler-test    # Test pyramid
+    - react-test     # Testing Trophy, integration-first
+    - legacy         # Legacy code testing
+    - test-doubles   # xUnit patterns, test doubles
+    - test-strategy  # Test pyramid
 
 ralph:
   skills:
     plan:
-      - kernighan      # Clarity in design
-      - pike           # Small interfaces
-      - dijkstra       # Formal correctness
-      - mcilroy        # Unix philosophy
-      - linus          # Data structures first
-      - bill-joy       # Failure handling, distributed systems
+      - clarity        # Clarity in design
+      - simplicity     # Small interfaces
+      - correctness    # Formal correctness
+      - composition    # Unix philosophy
+      - data-first     # Data structures first
+      - distributed    # Failure handling, distributed systems
     build:
-      - kernighan      # Readable code
-      - pike           # Composition
-      - bloch          # Effective APIs
-      - liskov         # Substitution principle
-      - gang-of-four   # Design patterns
-      - thompson       # Get it working
-      - carmack        # Performance awareness
+      - clarity        # Readable code
+      - simplicity     # Composition
+      - java           # Effective APIs
+      - abstraction    # Substitution principle
+      - design-patterns # Design patterns
+      - pragmatism     # Get it working
+      - optimization   # Performance awareness
     refactor:
-      - kernighan      # Simplify
-      - feathers       # Legacy code seams
-      - gang-of-four   # Pattern refactoring
-      - bill-joy       # Failure handling
+      - clarity        # Simplify
+      - legacy         # Legacy code seams
+      - design-patterns # Pattern refactoring
+      - distributed    # Failure handling
     test:
-      - meszaros       # xUnit patterns
-      - fowler-test    # Test pyramid
-      - feathers       # Characterization tests
+      - test-doubles   # xUnit patterns
+      - test-strategy  # Test pyramid
+      - legacy         # Characterization tests
     review:
-      - schneier       # Attacker mindset (covers security thinking)
+      - security-mindset # Attacker mindset (covers security thinking)
       - owasp          # Vulnerability patterns
-      - petroski       # Failure analysis
-      - leveson        # Safety analysis
-      - taleb          # Antifragility
+      - failure        # Failure analysis
+      - safety         # Safety analysis
+      - resilience     # Antifragility
     doc:
-      - procida        # Diataxis framework
-      - strunk-white   # Omit needless words
-      - zinsser        # Clarity
-      - king           # Kill darlings
+      - docs           # Diataxis framework
+      - brevity        # Omit needless words
+      - prose          # Clarity
+      - editing        # Kill darlings
 
 agents:
   - security-auditor
@@ -82,21 +82,21 @@ agents:
 claudeMd:
   standards:
     # Base Brain principles
-    - "Clarity over cleverness (Kernighan)"
-    - "Data structures first, algorithms follow (Linus)"
-    - "Small, composable interfaces (Pike)"
-    - "Do one thing and do it well (McIlroy)"
-    - "Handle failure explicitly (Joy)"
-    - "Correctness by construction (Dijkstra)"
-    - "Get it working first, then optimize (Thompson)"
-    - "Measure before optimizing (Carmack)"
-    - "Subtypes must be substitutable (Liskov)"
+    - "Clarity over cleverness"
+    - "Data structures first, algorithms follow"
+    - "Small, composable interfaces"
+    - "Do one thing and do it well"
+    - "Handle failure explicitly"
+    - "Correctness by construction"
+    - "Get it working first, then optimize"
+    - "Measure before optimizing"
+    - "Subtypes must be substitutable"
     # Security
-    - "Think like an attacker (Schneier)"
-    - "Validate all input, encode all output (OWASP)"
+    - "Think like an attacker"
+    - "Validate all input, encode all output"
     # Engineering
-    - "Learn from failures (Petroski)"
-    - "Safety is a system property (Leveson)"
+    - "Learn from failures"
+    - "Safety is a system property"
 
   antiPatterns:
     - "Clever code that requires comments to understand"
@@ -106,27 +106,27 @@ claudeMd:
     - "Functions longer than 30 lines"
     - "Trusting user input"
     - "Security through obscurity"
-    - "Violating Liskov substitution"
+    - "Violating substitution principle"
     - "God objects that do everything"
 
   autoInvoke:
     - context: Writing any code
-      action: Apply Base Brain lens (kernighan, pike, mcilroy, linus, dijkstra)
+      action: Apply Base Brain lens (clarity, simplicity, composition, data-first, correctness)
     - context: Performance-critical code
-      action: INVOKE `/carmack` for optimization patterns
+      action: INVOKE `/optimization` for optimization patterns
     - context: Algorithm design
-      action: INVOKE `/knuth` for algorithmic rigor
+      action: INVOKE `/algorithms` for algorithmic rigor
     - context: OOP design, inheritance, patterns
-      action: INVOKE `/liskov` then `/gang-of-four`
+      action: INVOKE `/abstraction` then `/design-patterns`
     - context: Security-sensitive code (auth, input, data)
-      action: INVOKE `/schneier` then `/owasp`
+      action: INVOKE `/security-mindset` then `/owasp`
     - context: Writing tests
-      action: INVOKE `/meszaros` for test patterns
+      action: INVOKE `/test-doubles` for test patterns
     - context: Working with legacy code
-      action: INVOKE `/feathers` for seams and characterization tests
+      action: INVOKE `/legacy` for seams and characterization tests
     - context: Writing documentation
-      action: INVOKE `/procida` for Diataxis, `/zinsser` for clarity
+      action: INVOKE `/docs` for Diataxis, `/prose` for clarity
     - context: Writing READMEs, comments, commit messages
-      action: INVOKE `/strunk-white` (omit needless words) and `/king` (kill darlings)
+      action: INVOKE `/brevity` (omit needless words) and `/editing` (kill darlings)
     - context: Analyzing failures or risks
-      action: INVOKE `/petroski` and `/leveson`
+      action: INVOKE `/failure` and `/safety`

@@ -6,35 +6,35 @@ composable: true
 ralph:
   skills:
     plan:
-      - schneier         # Security architecture, threat modeling
+      - security-mindset # Security architecture, threat modeling
     build:
-      - tanya-janca      # Secure SDLC, DevSecOps
+      - appsec           # Secure SDLC, DevSecOps
       - owasp            # OWASP guidelines
-      - schneier         # Cryptography principles
+      - security-mindset # Cryptography principles
     refactor:
       - owasp            # Security debt cleanup
     test:
       - owasp            # Security testing
-      - troy-hunt        # Breach pattern testing
+      - web-security     # Breach pattern testing
     review:
-      - schneier         # Attacker mindset
+      - security-mindset # Attacker mindset
       - owasp            # Vulnerability patterns
-      - tanya-janca      # DevSecOps review
-      - troy-hunt        # Breach patterns
-      - leveson          # Safety analysis
-      - taleb            # Antifragility
+      - appsec           # DevSecOps review
+      - web-security     # Breach patterns
+      - safety           # Safety analysis
+      - resilience       # Antifragility
     doc:
       - owasp            # Security documentation
 
 skills:
   canon:
-    - schneier           # Think like an attacker, crypto principles
+    - security-mindset   # Think like an attacker, crypto principles
     - owasp              # OWASP Top 10, secure coding
-    - tanya-janca        # DevSecOps, security champions
-    - troy-hunt          # Breach patterns, password security
-    - leveson            # System safety, accident causation
-    - taleb              # Antifragility, black swans
-    - petroski           # Learning from failures
+    - appsec             # DevSecOps, security champions
+    - web-security       # Breach patterns, password security
+    - safety             # System safety, accident causation
+    - resilience         # Antifragility, black swans
+    - failure            # Learning from failures
 
 agents:
   - security-auditor

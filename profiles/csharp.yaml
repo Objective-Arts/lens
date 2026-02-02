@@ -7,21 +7,21 @@ extends: software-base
 ralph:
   skills:
     plan:
-      - hejlsberg      # Type system design
+      - type-systems   # Type system design
     build:
-      - skeet          # C# in depth
-      - cleary         # Async patterns
-      - hejlsberg      # Language features
+      - csharp-depth   # C# in depth
+      - async          # Async patterns
+      - type-systems   # Language features
     refactor:
-      - skeet          # Modern C# idioms
-      - cleary         # Async refactoring
+      - csharp-depth   # Modern C# idioms
+      - async          # Async refactoring
 
 skills:
   canon:
-    - skeet          # C# in Depth - language mechanics, generics, edge cases
-    - cleary         # Concurrency in C# - async/await, Task, threading
-    - hejlsberg      # Language design philosophy, type system decisions
-    - bloch          # API design principles (transfers well from Java)
+    - csharp-depth   # C# in Depth - language mechanics, generics, edge cases
+    - async          # Concurrency in C# - async/await, Task, threading
+    - type-systems   # Language design philosophy, type system decisions
+    - java           # API design principles (transfers well)
 
 claudeMd:
   standards:
@@ -33,7 +33,7 @@ claudeMd:
     - "Use file-scoped namespaces (C# 10+)"
     - "Prefer primary constructors where appropriate (C# 12+)"
 
-    # Async/await (Cleary)
+    # Async/await
     - "Use async/await all the way down - no sync-over-async"
     - "Use ConfigureAwait(false) in library code"
     - "Prefer ValueTask for hot paths that often complete synchronously"
@@ -50,7 +50,7 @@ claudeMd:
     - "Prefer structs for small, immutable value types (< 16 bytes)"
     - "Use ArrayPool<T> for frequently allocated arrays"
 
-    # API design (Bloch-influenced)
+    # API design
     - "Return empty collections, not null"
     - "Favor composition over inheritance"
     - "Make classes sealed by default unless designed for inheritance"
@@ -70,10 +70,10 @@ claudeMd:
 
   autoInvoke:
     - context: C# language features, generics, covariance, edge cases
-      action: INVOKE `/skeet`
+      action: INVOKE `/csharp-depth`
     - context: async/await, Task, CancellationToken, concurrency, threading
-      action: INVOKE `/cleary`
+      action: INVOKE `/async`
     - context: Language design decisions, type system, why C# works this way
-      action: INVOKE `/hejlsberg`
+      action: INVOKE `/type-systems`
     - context: API design, immutability, builders, factory methods
-      action: INVOKE `/bloch`
+      action: INVOKE `/java`

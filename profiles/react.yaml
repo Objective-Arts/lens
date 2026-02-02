@@ -7,20 +7,20 @@ extends: javascript
 ralph:
   skills:
     plan:
-      - abramov        # State architecture
-      - frost          # Component hierarchy
+      - react-state    # State architecture
+      - components     # Component hierarchy
     build:
-      - abramov        # Composition patterns
-      - frost          # Atomic design
-      - harris         # Reactive patterns
+      - react-state    # Composition patterns
+      - components     # Atomic design
+      - reactivity     # Reactive patterns
     refactor:
-      - abramov        # State refactoring
-      - frost          # Component extraction
+      - react-state    # State refactoring
+      - components     # Component extraction
     test:
-      - dodds          # React Testing Library
+      - react-test     # React Testing Library
     review:
-      - norman         # UX review
+      - usability      # UX review
 
 skills:
   canon:
-    - abramov        # Mental models, hooks, composition
+    - react-state    # Mental models, hooks, composition

@@ -1,9 +1,9 @@
 /**
  * Phase and keyword configuration loader.
  *
- * Following thompson: get it working first, then optimize.
- * Following kernighan: explicit error handling, clear code.
- * Following pike: small functions, single responsibility.
+ * Pragmatic: get it working first, then optimize.
+ * Clarity: explicit error handling, clear code.
+ * Simplicity: small functions, single responsibility.
  */
 
 import * as fs from 'fs';
@@ -17,6 +17,7 @@ import type {
   CompiledKeywordRule,
   ExpertDetection,
 } from '../types.js';
+import { resolveSkillName } from '../../canon/naming.js';
 
 // =============================================================================
 // CACHES
@@ -32,32 +33,29 @@ let cachedKeywordRulesPath: string | null = null;
 // DEFAULT CONFIGURATIONS
 // =============================================================================
 
-/**
- * Default phase experts when YAML not available.
- * Following bill-joy: handle missing config gracefully.
- */
+/** Default phase experts when YAML not available. */
 function getDefaultPhaseConfig(): WorkflowPhasesConfig {
   return {
     phases: {
       'plan': {
         description: 'Understand requirements, design approach',
-        experts: ['kernighan', 'pike', 'linus', 'dijkstra', 'liskov'],
+        experts: ['clarity', 'simplicity', 'data-first', 'correctness', 'abstraction'],
       },
       'structure-first': {
         description: 'Design data structures and types before code',
-        experts: ['linus', 'cherny', 'dijkstra', 'liskov', 'bloch', 'gang-of-four'],
+        experts: ['data-first', 'typescript', 'correctness', 'abstraction', 'java', 'design-patterns'],
       },
       'implement': {
         description: 'Write the code',
-        experts: ['thompson', 'kernighan', 'pike', 'mcilroy', 'bill-joy', 'carmack'],
+        experts: ['pragmatism', 'clarity', 'simplicity', 'composition', 'distributed', 'optimization'],
       },
       'test': {
         description: 'Write tests for implemented code',
-        experts: ['meszaros', 'fowler-test', 'dodds', 'hevery', 'feathers'],
+        experts: ['test-doubles', 'test-strategy', 'react-test', 'angular-core', 'legacy'],
       },
       'refactor-check': {
         description: 'Simplify and clean up, verify still works',
-        experts: ['kernighan', 'thompson', 'feathers', 'gang-of-four', 'pike'],
+        experts: ['clarity', 'pragmatism', 'legacy', 'design-patterns', 'simplicity'],
       },
       'independent-review': {
         description: 'Independent code review via Gemini, fix issues found',
@@ -65,11 +63,11 @@ function getDefaultPhaseConfig(): WorkflowPhasesConfig {
       },
       'static-analysis': {
         description: 'Run analyzers, fix issues found',
-        experts: ['google-style'],  // Universal style principles for fixing issues
+        experts: ['style'],  // Universal style principles for fixing issues
       },
       'doc-code': {
         description: 'Document the completed work',
-        experts: ['procida', 'strunk-white', 'zinsser', 'king'],
+        experts: ['docs', 'brevity', 'prose', 'editing'],
       },
       'production-readiness': {
         description: 'Final production readiness check (post-loop)',
@@ -101,32 +99,32 @@ function getDefaultKeywordRules(): readonly CompiledKeywordRule[] {
     {
       category: 'security',
       pattern: /\b(auth|password|login|token|jwt|oauth|credential|secret|encrypt|hash|session|permission|csrf|xss|injection)\b/i,
-      experts: ['schneier', 'owasp', 'tanya-janca', 'troy-hunt'],
+      experts: ['security-mindset', 'owasp', 'appsec', 'web-security'],
     },
     {
       category: 'testing',
       pattern: /\b(test|spec|mock|stub|coverage|unit|integration|e2e|jest|vitest|pytest)\b/i,
-      experts: ['meszaros', 'fowler-test', 'dodds', 'hevery'],
+      experts: ['test-doubles', 'test-strategy', 'react-test', 'angular-core'],
     },
     {
       category: 'api',
       pattern: /\b(api|endpoint|rest|graphql|route|controller|middleware|http)\b/i,
-      experts: ['bloch', 'pike'],
+      experts: ['java', 'simplicity'],
     },
     {
       category: 'performance',
       pattern: /\b(performance|optimize|cache|memory|latency|benchmark)\b/i,
-      experts: ['carmack', 'knuth'],
+      experts: ['optimization', 'algorithms'],
     },
     {
       category: 'typescript',
       pattern: /\b(typescript|type|interface|generic|inference)\b/i,
-      experts: ['cherny', 'hejlsberg'],
+      experts: ['typescript', 'type-systems'],
     },
     {
       category: 'react',
       pattern: /\b(react|hook|component|state|props|redux)\b/i,
-      experts: ['abramov', 'dodds'],
+      experts: ['react-state', 'react-test'],
     },
   ];
 }
@@ -273,7 +271,7 @@ export function loadKeywordRules(projectPath: string): readonly CompiledKeywordR
 
 type ExpertSource = 'phase' | 'keyword' | 'profile';
 
-/** Add experts to set and record source (only if not already present). */
+/** Add experts to set and record source (only if not already present). Resolves tribute names. */
 function addExperts(
   experts: Set<string>,
   sources: Record<string, ExpertSource>,
@@ -281,9 +279,10 @@ function addExperts(
   source: ExpertSource
 ): void {
   for (const expert of newExperts) {
-    if (!experts.has(expert)) {
-      experts.add(expert);
-      sources[expert] = source;
+    const resolved = resolveSkillName(expert);
+    if (!experts.has(resolved)) {
+      experts.add(resolved);
+      sources[resolved] = source;
     }
   }
 }

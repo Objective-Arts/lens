@@ -7,28 +7,28 @@ extends: javascript
 ralph:
   skills:
     plan:
-      - tufte          # Data-ink planning
-      - few            # Dashboard design
+      - charts         # Data-ink planning
+      - dashboards     # Dashboard design
     build:
-      - bostock        # D3 implementation
-      - tufte          # Graphical excellence
-      - few            # Chart best practices
-      - knaflic        # Storytelling with data
+      - d3             # D3 implementation
+      - charts         # Graphical excellence
+      - dashboards     # Chart best practices
+      - data-story     # Storytelling with data
     refactor:
-      - tufte          # Remove chartjunk
-      - few            # Simplify dashboards
+      - charts         # Remove chartjunk
+      - dashboards     # Simplify dashboards
     review:
-      - few            # Visualization critique
-      - tufte          # Data integrity
+      - dashboards     # Visualization critique
+      - charts         # Data integrity
     doc:
-      - knaflic        # Data storytelling
+      - data-story     # Data storytelling
 
 skills:
   canon:
-    - bostock        # Selections, data joins, scales
-    - tufte          # Visual Display of Quantitative Information
-    - few            # Dashboard design, information clarity
-    - knaflic        # Storytelling with Data
+    - d3             # Selections, data joins, scales
+    - charts         # Visual Display of Quantitative Information
+    - dashboards     # Dashboard design, information clarity
+    - data-story     # Storytelling with Data
 
 agents:
   - css-expert

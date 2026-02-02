@@ -153,6 +153,12 @@
       "sourceFile": "javascript/osmani",
       "hash": "498961011cfadfcf6627335060958e79fe3d769de91c0d7a390ab0f0b20e2d0c",
       "modified": false
+    },
+    "deadcode": {
+      "installedAt": "2026-02-02T01:37:38.767Z",
+      "sourceFile": "deadcode",
+      "hash": "d1390eb3e44f1edf58971584f0a78ed92c1310a172d9f95f8aa85efbc6c61016",
+      "modified": false
     }
   }
 }

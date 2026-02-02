@@ -1,23 +1,29 @@
 /**
  * Skill file loader.
  *
- * Following hevery: explicit dependencies, testable.
- * Following kernighan: simple file operations, clear errors.
+ * Explicit dependencies, testable.
+ * Simple file operations, clear errors.
  */
 
 import * as fs from 'fs';
 import * as path from 'path';
 import { Skill } from '../types.js';
+import { resolveSkillName, formatSkillName } from '../../canon/naming.js';
 
 /**
  * Load a skill from the project's .claude/skills directory.
  *
+ * When CANON_TRIBUTE_NAMES=1 is set, tribute names (kernighan, dijkstra)
+ * are resolved to their generic equivalents (clarity, correctness).
+ *
  * @param projectPath - Project root path
- * @param skillName - Name of the skill to load
+ * @param skillName - Name of the skill to load (can be tribute or generic name)
  * @returns Skill object or null if not found
  */
 export function loadSkill(projectPath: string, skillName: string): Skill | null {
-  const skillPath = path.join(projectPath, '.claude', 'skills', skillName, 'SKILL.md');
+  // Resolve tribute names to generic names when flag is set
+  const resolvedName = resolveSkillName(skillName);
+  const skillPath = path.join(projectPath, '.claude', 'skills', resolvedName, 'SKILL.md');
 
   if (!fs.existsSync(skillPath)) {
     return null;
@@ -25,7 +31,7 @@ export function loadSkill(projectPath: string, skillName: string): Skill | null 
 
   const content = fs.readFileSync(skillPath, 'utf-8');
   return {
-    name: skillName,
+    name: resolvedName,
     content,
     source: 'profile',
   };
@@ -35,7 +41,7 @@ export function loadSkill(projectPath: string, skillName: string): Skill | null 
  * Load multiple skills by name.
  *
  * @param projectPath - Project root path
- * @param skillNames - Array of skill names
+ * @param skillNames - Array of skill names (can be tribute or generic names)
  * @param verbose - Print confirmation of loaded skills
  * @returns Array of loaded skills (excludes not found)
  */
@@ -49,7 +55,9 @@ export function loadSkills(projectPath: string, skillNames: string[], verbose: b
       if (verbose) {
         const lines = skill.content.split('\n').length;
         const preview = skill.content.slice(0, 60).replace(/\n/g, ' ').trim();
-        console.log(`      ✓ ${name}: ${lines} lines loaded "${preview}..."`);
+        // Show tribute name in parentheses when CANON_TRIBUTE_NAMES=1
+        const displayName = formatSkillName(skill.name);
+        console.log(`      ✓ ${displayName}: ${lines} lines loaded "${preview}..."`);
       }
     }
   }
@@ -61,8 +69,8 @@ export function loadSkills(projectPath: string, skillNames: string[], verbose: b
  * Load skills with source tracking (profile vs dynamic).
  *
  * @param projectPath - Project root path
- * @param profileSkills - Skills from profile configuration
- * @param dynamicSkills - Skills detected from PRD content
+ * @param profileSkills - Skills from profile configuration (can be tribute or generic names)
+ * @param dynamicSkills - Skills detected from PRD content (can be tribute or generic names)
  * @returns Array of loaded skills with correct source attribution
  */
 export function loadSkillsWithSources(
@@ -71,15 +79,19 @@ export function loadSkillsWithSources(
   dynamicSkills: string[]
 ): Skill[] {
   const skills: Skill[] = [];
-  const profileSet = new Set(profileSkills);
+  // Resolve names for the profile set check
+  const profileSet = new Set(profileSkills.map(resolveSkillName));
 
-  // Merge unique skill names
-  const allSkills = new Set([...profileSkills, ...dynamicSkills]);
+  // Merge unique skill names (resolve all to generic)
+  const allSkills = new Set([
+    ...profileSkills.map(resolveSkillName),
+    ...dynamicSkills.map(resolveSkillName)
+  ]);
 
   for (const name of allSkills) {
     const skill = loadSkill(projectPath, name);
     if (skill) {
-      skill.source = profileSet.has(name) ? 'profile' : 'dynamic';
+      skill.source = profileSet.has(skill.name) ? 'profile' : 'dynamic';
       skills.push(skill);
     }
   }
@@ -133,6 +145,7 @@ export function extractGuidance(skill: Skill, maxLines: number = 50): string {
 
 /**
  * Build combined skill guidance for a stage prompt.
+ * When CANON_TRIBUTE_NAMES=1, shows tribute names in section headers.
  */
 export function buildSkillGuidance(skills: Skill[]): string {
   if (skills.length === 0) {
@@ -141,7 +154,8 @@ export function buildSkillGuidance(skills: Skill[]): string {
 
   const sections = skills.map(skill => {
     const guidance = extractGuidance(skill);
-    return `## ${skill.name}\n\n${guidance}`;
+    const displayName = formatSkillName(skill.name);
+    return `## ${displayName}\n\n${guidance}`;
   });
 
   return sections.join('\n\n---\n\n');

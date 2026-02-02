@@ -7,25 +7,25 @@ extends: javascript
 ralph:
   skills:
     plan:
-      - hevery         # DI architecture
-      - minko-gechev   # Angular patterns
+      - angular-core   # DI architecture
+      - angular-perf   # Angular patterns
     build:
-      - hevery         # Angular core
-      - ben-lesh       # RxJS
-      - minko-gechev   # Performance
-      - kurata         # Angular best practices
+      - angular-core   # Angular core
+      - rxjs           # RxJS
+      - angular-perf   # Performance
+      - angular-arch   # Angular best practices
     refactor:
-      - minko-gechev   # Angular optimization
-      - ben-lesh       # RxJS refactoring
+      - angular-perf   # Angular optimization
+      - rxjs           # RxJS refactoring
     test:
-      - hevery         # Angular testing
+      - angular-core   # Angular testing
 
 skills:
   canon:
-    - hevery         # Angular creator - DI, testability, component design
-    - kurata         # Angular architecture, module organization, state patterns
-    - minko-gechev   # Performance - lazy loading, OnPush, bundle optimization
-    - ben-lesh       # RxJS patterns - streams, operators, subscription management
+    - angular-core   # DI, testability, component design
+    - angular-arch   # Angular architecture, module organization, state patterns
+    - angular-perf   # Performance - lazy loading, OnPush, bundle optimization
+    - rxjs           # RxJS patterns - streams, operators, subscription management
 
 agents:
   - css-expert
@@ -53,10 +53,10 @@ claudeMd:
 
   autoInvoke:
     - context: Angular DI, testability, component architecture
-      action: INVOKE `/hevery`
+      action: INVOKE `/angular-core`
     - context: Module organization, feature structure, state management
-      action: INVOKE `/kurata`
+      action: INVOKE `/angular-arch`
     - context: Performance, lazy loading, change detection, bundle size
-      action: INVOKE `/minko-gechev`
+      action: INVOKE `/angular-perf`
     - context: RxJS, observables, streams, async composition
-      action: INVOKE `/ben-lesh`
+      action: INVOKE `/rxjs`

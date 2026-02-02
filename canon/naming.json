@@ -1,0 +1,91 @@
+{
+  "_comment": "Generic names for public use. Set CANON_TRIBUTE_NAMES=1 for debug mode.",
+  "_debugFlag": "CANON_TRIBUTE_NAMES",
+
+  "skills": {
+    "clarity": { "tribute": "kernighan", "category": "core" },
+    "simplicity": { "tribute": "pike", "category": "core" },
+    "composition": { "tribute": "mcilroy", "category": "core" },
+    "correctness": { "tribute": "dijkstra", "category": "core" },
+    "data-first": { "tribute": "linus", "category": "core" },
+    "pragmatism": { "tribute": "thompson", "category": "core" },
+    "algorithms": { "tribute": "knuth", "category": "core" },
+    "abstraction": { "tribute": "liskov", "category": "core" },
+    "distributed": { "tribute": "bill-joy", "category": "core" },
+    "optimization": { "tribute": "carmack", "category": "core" },
+    "design-patterns": { "tribute": "gang-of-four", "category": "core" },
+    "refactoring": { "tribute": "fowler-refactoring", "category": "core" },
+
+    "rxjs": { "tribute": "ben-lesh", "category": "angular" },
+    "angular-core": { "tribute": "hevery", "category": "angular" },
+    "angular-arch": { "tribute": "kurata", "category": "angular" },
+    "angular-perf": { "tribute": "minko-gechev", "category": "angular" },
+
+    "management": { "tribute": "grove", "category": "business" },
+    "moats": { "tribute": "helmer", "category": "business" },
+    "leadership": { "tribute": "horowitz", "category": "business" },
+    "competition": { "tribute": "porter", "category": "business" },
+    "strategy": { "tribute": "rumelt", "category": "business" },
+    "platforms": { "tribute": "thompson-stratechery", "category": "business" },
+
+    "async": { "tribute": "cleary", "category": "csharp" },
+    "type-systems": { "tribute": "hejlsberg", "category": "csharp" },
+    "csharp-depth": { "tribute": "skeet", "category": "csharp" },
+
+    "sql": { "tribute": "celko", "category": "database" },
+    "sql-perf": { "tribute": "winand", "category": "database" },
+
+    "style": { "tribute": "google-style", "category": "engineering" },
+    "safety": { "tribute": "leveson", "category": "engineering" },
+    "failure": { "tribute": "petroski", "category": "engineering" },
+    "resilience": { "tribute": "taleb", "category": "engineering" },
+
+    "react-state": { "tribute": "abramov", "category": "javascript" },
+    "functional": { "tribute": "ashkenas", "category": "javascript" },
+    "typescript": { "tribute": "cherny", "category": "javascript" },
+    "js-safety": { "tribute": "crockford", "category": "javascript" },
+    "react-test": { "tribute": "dodds", "category": "javascript" },
+    "reactivity": { "tribute": "harris", "category": "javascript" },
+    "js-internals": { "tribute": "kyle-simpson", "category": "javascript" },
+    "js-perf": { "tribute": "osmani", "category": "javascript" },
+
+    "python-advanced": { "tribute": "beazley", "category": "python" },
+    "python-idioms": { "tribute": "hettinger", "category": "python" },
+    "python-protocols": { "tribute": "ramalho", "category": "python" },
+    "python-patterns": { "tribute": "slatkin", "category": "python" },
+
+    "threat-model": { "tribute": "bruce-schneier", "category": "security" },
+    "owasp": { "tribute": "owasp", "category": "security", "note": "not a person - acronym" },
+    "security-mindset": { "tribute": "schneier", "category": "security" },
+    "appsec": { "tribute": "tanya-janca", "category": "security" },
+    "web-security": { "tribute": "troy-hunt", "category": "security" },
+
+    "legacy": { "tribute": "feathers", "category": "testing" },
+    "test-strategy": { "tribute": "fowler-test", "category": "testing" },
+    "test-doubles": { "tribute": "meszaros", "category": "testing" },
+
+    "interaction": { "tribute": "buxton", "category": "ui-ux" },
+    "personas": { "tribute": "cooper", "category": "ui-ux" },
+    "tokens": { "tribute": "curtis", "category": "ui-ux" },
+    "motion": { "tribute": "duarte", "category": "ui-ux" },
+    "components": { "tribute": "frost", "category": "ui-ux" },
+    "visual": { "tribute": "ive", "category": "ui-ux" },
+    "typography": { "tribute": "kruzeniski", "category": "ui-ux" },
+    "handoff": { "tribute": "mall", "category": "ui-ux" },
+    "usability": { "tribute": "norman", "category": "ui-ux" },
+    "design": { "tribute": "rams", "category": "ui-ux" },
+    "mobile": { "tribute": "wroblewski", "category": "ui-ux" },
+
+    "d3": { "tribute": "bostock", "category": "visualization" },
+    "dashboards": { "tribute": "few", "category": "visualization" },
+    "data-story": { "tribute": "knaflic", "category": "visualization" },
+    "charts": { "tribute": "tufte", "category": "visualization" },
+
+    "docs": { "tribute": "procida", "category": "writing" },
+    "editing": { "tribute": "king", "category": "writing" },
+    "brevity": { "tribute": "strunk-white", "category": "writing" },
+    "prose": { "tribute": "zinsser", "category": "writing" },
+
+    "java": { "tribute": "bloch", "category": "java" }
+  }
+}

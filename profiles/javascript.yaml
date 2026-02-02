@@ -7,40 +7,40 @@ extends: software-base
 ralph:
   skills:
     plan:
-      - kyle-simpson   # JS runtime mental model
+      - js-internals   # JS runtime mental model
     build:
-      - cherny         # TypeScript types
-      - crockford      # Good parts
-      - kyle-simpson   # Closures, scope, this
-      - osmani         # JS design patterns
+      - typescript     # TypeScript types
+      - js-safety      # Good parts
+      - js-internals   # Closures, scope, this
+      - js-perf        # JS design patterns
     refactor:
-      - osmani         # Pattern refactoring
-      - crockford      # Simplify to good parts
+      - js-perf        # Pattern refactoring
+      - js-safety      # Simplify to good parts
     test:
-      - dodds          # Testing Trophy
+      - react-test     # Testing Trophy
     # review and doc inherit from software-base
 
 skills:
   canon:
     # JavaScript experts
-    - kyle-simpson   # You Don't Know JS - closures, scope, this
-    - abramov        # Redux, React patterns, composition
-    - ashkenas       # Underscore/Backbone, functional JS
-    - cherny         # Programming TypeScript - type system mastery
-    - crockford      # JavaScript: The Good Parts - language subset
-    - dodds          # Testing Trophy, React testing
-    - harris         # Svelte, reactive programming
-    - osmani         # Learning JavaScript Design Patterns
+    - js-internals   # Closures, scope, this
+    - react-state    # Redux, React patterns, composition
+    - functional     # Underscore/Backbone, functional JS
+    - typescript     # Type system mastery
+    - js-safety      # Language subset
+    - react-test     # Testing Trophy, React testing
+    - reactivity     # Svelte, reactive programming
+    - js-perf        # JavaScript Design Patterns
     # UI/UX experts (frontend JS needs these)
-    - frost          # Atomic Design - components
-    - ive            # Visual design - minimalism
-    - norman         # UX psychology - affordances
-    - wroblewski     # Mobile-first, forms
-    - duarte         # Motion design, animation
-    - buxton         # Input design, sketching
-    - curtis         # Design systems, tokens
-    - kruzeniski     # Typography
-    - rams           # 10 principles - simplicity
+    - components     # Atomic Design - components
+    - visual         # Visual design - minimalism
+    - usability      # UX psychology - affordances
+    - mobile         # Mobile-first, forms
+    - motion         # Motion design, animation
+    - interaction    # Input design, sketching
+    - tokens         # Design systems, tokens
+    - typography     # Typography
+    - design         # 10 principles - simplicity
 
 claudeMd:
   standards:
@@ -65,33 +65,33 @@ claudeMd:
   autoInvoke:
     # JavaScript
     - context: Complex JavaScript runtime, closures, this, scope
-      action: INVOKE `/kyle-simpson`
+      action: INVOKE `/js-internals`
     - context: TypeScript types, generics, inference, utility types
-      action: INVOKE `/cherny`
+      action: INVOKE `/typescript`
     - context: JavaScript subset, safe patterns, avoiding pitfalls
-      action: INVOKE `/crockford`
+      action: INVOKE `/js-safety`
     - context: React testing, Testing Library, Testing Trophy
-      action: INVOKE `/dodds`
+      action: INVOKE `/react-test`
     - context: Redux, React state, composition patterns
-      action: INVOKE `/abramov`
+      action: INVOKE `/react-state`
     - context: Functional JavaScript, lodash patterns
-      action: INVOKE `/ashkenas`
+      action: INVOKE `/functional`
     - context: Svelte, reactive frameworks
-      action: INVOKE `/harris`
+      action: INVOKE `/reactivity`
     - context: JavaScript design patterns, module patterns
-      action: INVOKE `/osmani`
+      action: INVOKE `/js-perf`
     # UI/UX (always invoke for frontend work)
     - context: Building UI components, React components, frontend
-      action: INVOKE `/frost` then `/ive` then `/norman`
+      action: INVOKE `/components` then `/visual` then `/usability`
     - context: Forms, inputs, validation UI
-      action: INVOKE `/wroblewski` then `/norman`
+      action: INVOKE `/mobile` then `/usability`
     - context: Animations, transitions, motion
-      action: INVOKE `/duarte`
+      action: INVOKE `/motion`
     - context: Mobile design, responsive, touch
-      action: INVOKE `/wroblewski` then `/buxton`
+      action: INVOKE `/mobile` then `/interaction`
     - context: Design system, tokens, theming
-      action: INVOKE `/curtis`
+      action: INVOKE `/tokens`
     - context: Typography, text styling, fonts
-      action: INVOKE `/kruzeniski`
+      action: INVOKE `/typography`
     - context: CSS, styling, layouts
-      action: INVOKE `/rams`
+      action: INVOKE `/design`

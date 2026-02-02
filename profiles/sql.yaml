@@ -5,15 +5,15 @@ composable: true
 
 skills:
   canon:
-    - celko            # SQL patterns, set-based thinking
-    - winand           # SQL performance, indexing
-    - bloch            # API design (for stored procs/functions)
-    - schneier         # SQL injection prevention
+    - sql              # SQL patterns, set-based thinking
+    - sql-perf         # SQL performance, indexing
+    - java             # API design (for stored procs/functions)
+    - security-mindset # SQL injection prevention
 
 claudeMd:
   standards:
-    - "Think in sets, not loops (Celko)"
-    - "Index columns in WHERE clause (Winand)"
+    - "Think in sets, not loops"
+    - "Index columns in WHERE clause"
     - "Leftmost prefix rule for composite indexes"
     - "Equality columns before range columns in indexes"
     - "Use explicit JOIN syntax, never comma-separated tables"
@@ -37,8 +37,8 @@ claudeMd:
 
   autoInvoke:
     - context: Writing SQL queries, database operations
-      action: INVOKE `/celko` for set-based thinking
+      action: INVOKE `/sql` for set-based thinking
     - context: Query performance, slow queries, indexes
-      action: INVOKE `/winand` for optimization
+      action: INVOKE `/sql-perf` for optimization
     - context: User input in queries, dynamic SQL
-      action: INVOKE `/schneier` then `/owasp` for injection prevention
+      action: INVOKE `/security-mindset` then `/owasp` for injection prevention

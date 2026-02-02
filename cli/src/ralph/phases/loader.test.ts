@@ -106,8 +106,9 @@ ralph-sequence: [plan]
     it('returns experts for a phase', () => {
       const experts = getPhaseExperts(TEST_DIR, 'plan');
 
-      expect(experts).toContain('kernighan');
-      expect(experts).toContain('pike');
+      // Uses generic names now (not tribute names)
+      expect(experts).toContain('clarity');
+      expect(experts).toContain('simplicity');
     });
 
     it('returns empty array for unknown phase', () => {
@@ -197,11 +198,11 @@ rules:
     it('combines phase experts with keyword-detected experts', () => {
       const result = detectExperts(TEST_DIR, 'plan', 'Add JWT authentication');
 
-      // Should include phase experts (plan has kernighan, pike, etc.)
-      expect(result.experts).toContain('kernighan');
+      // Should include phase experts (uses generic names now)
+      expect(result.experts).toContain('clarity');
 
       // Should include keyword-detected experts (jwt/auth → security)
-      expect(result.experts).toContain('schneier');
+      expect(result.experts).toContain('security-mindset');
     });
 
     it('includes profile experts when provided', () => {
@@ -218,19 +219,18 @@ rules:
     });
 
     it('deduplicates experts from multiple sources', () => {
-      // kernighan appears in plan phase - should only appear once
+      // clarity appears in plan phase - should only appear once
       const result = detectExperts(TEST_DIR, 'plan', 'some task');
 
-      const kernighanCount = result.experts.filter(e => e === 'kernighan').length;
-      expect(kernighanCount).toBe(1);
+      const clarityCount = result.experts.filter(e => e === 'clarity').length;
+      expect(clarityCount).toBe(1);
     });
 
     it('tracks source of each expert', () => {
       const result = detectExperts(TEST_DIR, 'independent-review', 'check auth security');
 
-      // schneier is both in independent-review phase AND triggered by 'auth' keyword
-      // Should be marked as 'phase' since phase comes after profile in the logic
-      expect(result.sources['schneier']).toBeDefined();
+      // security-mindset is triggered by 'auth' keyword
+      expect(result.sources['security-mindset']).toBeDefined();
     });
   });
 

@@ -332,7 +332,8 @@ describe('Canon Completeness', () => {
 
 describe('Profile Deployment Validation', () => {
   it('base-tech profile deploys all base brain skills', () => {
-    const baseBrainSkills = ['kernighan', 'pike', 'mcilroy', 'linus', 'dijkstra', 'thompson', 'bill-joy'];
+    // Using generic names now (not tribute names)
+    const baseBrainSkills = ['clarity', 'simplicity', 'composition', 'data-first', 'correctness', 'pragmatism', 'distributed'];
     const missing: string[] = [];
 
     for (const skill of baseBrainSkills) {
@@ -413,7 +414,9 @@ describe('Auto-Invoke Coverage', () => {
   });
 
   it('base brain skills are auto-invoked', () => {
-    const baseBrainSkills = ['kernighan', 'pike', 'mcilroy', 'linus', 'dijkstra', 'thompson', 'bill-joy'];
+    // These are the 5 skills mentioned in the "Writing any code" auto-invoke rule
+    // The rule says: "Apply Base Brain lens (clarity, simplicity, composition, data-first, correctness)"
+    const baseBrainSkillsInRule = ['clarity', 'simplicity', 'composition', 'data-first', 'correctness'];
     const profile = loadProfile('base-tech');
 
     if (!profile?.claudeMd?.autoInvoke) {
@@ -429,7 +432,7 @@ describe('Auto-Invoke Coverage', () => {
     }
 
     const invokedSkills = extractSkillReferences(codeRule.action);
-    const missing = baseBrainSkills.filter(s => !invokedSkills.includes(s));
+    const missing = baseBrainSkillsInRule.filter(s => !invokedSkills.includes(s));
 
     expect(missing).toEqual([]);
   });
@@ -456,7 +459,8 @@ describe('Auto-Invoke Coverage', () => {
       extractSkillReferences(rule.action).forEach(s => invokedSkills.add(s));
     }
 
-    const expectedSecuritySkills = ['schneier', 'owasp', 'bruce-schneier', 'troy-hunt', 'tanya-janca', 'security-mindset'];
+    // Using generic names
+    const expectedSecuritySkills = ['security-mindset', 'owasp', 'threat-model', 'web-security', 'appsec'];
     const missing = expectedSecuritySkills.filter(s => !invokedSkills.has(s));
 
     // At least some security skills should be invoked
@@ -599,8 +603,8 @@ describe('deployAllSkills', () => {
   it('skill content matches source after deployment', () => {
     const skillsDir = path.join(testProjectPath, '.claude', 'skills');
 
-    // Check a few specific skills
-    const skillsToCheck = ['bloch', 'owasp', 'feathers'].filter(name => skillNames.has(name));
+    // Check a few specific skills (using generic names)
+    const skillsToCheck = ['java', 'owasp', 'legacy'].filter(name => skillNames.has(name));
     const contentMismatches: string[] = [];
 
     for (const skillName of skillsToCheck) {

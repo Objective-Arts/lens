@@ -5,48 +5,48 @@ composable: true
 ralph:
   skills:
     plan:
-      - cooper         # Interaction design
-      - norman         # Affordances
-      - tufte          # Information design
+      - personas       # Interaction design
+      - usability      # Affordances
+      - charts         # Information design
     build:
-      - frost          # Atomic design
-      - ive            # Visual minimalism
-      - norman         # UX principles
-      - wroblewski     # Mobile-first, forms
-      - duarte         # Motion design
-      - buxton         # Input design
-      - curtis         # Design systems
-      - kruzeniski     # Typography
-      - rams           # 10 principles
-      - mall           # Design-dev handoff
-      - tufte          # Information design
+      - components     # Atomic design
+      - visual         # Visual minimalism
+      - usability      # UX principles
+      - mobile         # Mobile-first, forms
+      - motion         # Motion design
+      - interaction    # Input design
+      - tokens         # Design systems
+      - typography     # Typography
+      - design         # 10 principles
+      - handoff        # Design-dev handoff
+      - charts         # Information design
     refactor:
-      - frost          # Component extraction
-      - rams           # Simplification
+      - components     # Component extraction
+      - design         # Simplification
     review:
-      - norman         # UX review
-      - cooper         # Interaction critique
+      - usability      # UX review
+      - personas       # Interaction critique
     doc:
-      - tufte          # Visual documentation
+      - charts         # Visual documentation
 
 skills:
   canon:
     # Philosophy & Psychology
-    - rams           # 10 Principles - less but better
-    - norman         # Affordances, feedback, mental models
-    - cooper         # Goal-directed design, eliminate excise
+    - design         # 10 Principles - less but better
+    - usability      # Affordances, feedback, mental models
+    - personas       # Goal-directed design, eliminate excise
     # Visual & Typography
-    - ive            # Minimalism, material honesty
-    - kruzeniski     # Type-first hierarchy
+    - visual         # Minimalism, material honesty
+    - typography     # Type-first hierarchy
     # Motion & Interaction
-    - duarte         # Material motion, meaningful transitions
-    - buxton         # Input fundamentals
+    - motion         # Material motion, meaningful transitions
+    - interaction    # Input fundamentals
     # Patterns & Components
-    - wroblewski     # Mobile-first, forms, thumb zones
-    - frost          # Atomic design, reusable systems
+    - mobile         # Mobile-first, forms, thumb zones
+    - components     # Atomic design, reusable systems
     # Governance & Collaboration
-    - curtis         # Versioning, documentation, tokens
-    - mall           # Designer-dev handoff
+    - tokens         # Versioning, documentation, tokens
+    - handoff        # Designer-dev handoff
 
 agents:
   - css-expert
@@ -55,14 +55,14 @@ agents:
 claudeMd:
   autoInvoke:
     - context: "Building UI component"
-      action: "INVOKE `/frost` then `/ive`"
+      action: "INVOKE `/components` then `/visual`"
     - context: "Designing forms"
-      action: "INVOKE `/wroblewski` then `/norman`"
+      action: "INVOKE `/mobile` then `/usability`"
     - context: "Adding animation"
-      action: "INVOKE `/duarte`"
+      action: "INVOKE `/motion`"
     - context: "Mobile design"
-      action: "INVOKE `/wroblewski` then `/buxton`"
+      action: "INVOKE `/mobile` then `/interaction`"
     - context: "CSS styling, layouts"
-      action: "INVOKE `/rams` for simplicity check"
+      action: "INVOKE `/design` for simplicity check"
     - context: "Modals, dialogs, confirmations"
-      action: "INVOKE `/cooper` for goal-directed design"
+      action: "INVOKE `/personas` for goal-directed design"
