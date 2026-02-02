@@ -1,5 +1,5 @@
 ---
-name: norman
+name: usability
 description: "Norman's design psychology - affordances, feedback, mental models"
 ---
 

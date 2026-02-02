@@ -1,5 +1,5 @@
 ---
-name: porter
+name: competition
 description: "Porter's Five Forces strategy"
 allowed-tools: []
 ---

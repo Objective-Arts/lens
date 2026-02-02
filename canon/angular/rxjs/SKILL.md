@@ -1,5 +1,5 @@
 ---
-name: ben-lesh
+name: rxjs
 description: "Lesh's RxJS patterns for Angular"
 allowed-tools: []
 ---

@@ -39,6 +39,7 @@ You MUST follow these constraints EXACTLY:
 2. **Check Structure** - Verify types/interfaces exist from `/structure-first`
 3. **Implement** - Write code following the plan EXACTLY
 4. **Verify** - Ensure code compiles/lints
+5. **Dead Code Cleanup** - Remove any dead code introduced (see below)
 
 ## REQUIRED Output Format
 
@@ -56,17 +57,46 @@ $ npx tsc --noEmit
 (no errors)
 ```
 
+### Dead Code Cleanup:
+TOOL_USED: [knip|qodana|vulture|deadcode|cargo-udeps]
+DEAD_CODE_FOUND: [N] items
+DEAD_CODE_REMOVED: [list or "none"]
+
 APPLIED:
 - [expert]: [decision]
 
 IMPLEMENT_COMPLETE
 ```
 
+## Dead Code Cleanup (MANDATORY)
+
+After implementation, detect language and remove dead code:
+
+| Language | Detection | Tool | Command |
+|----------|-----------|------|---------|
+| JS/TS | `package.json` | knip | `npx knip --reporter compact` |
+| Java | `pom.xml` or `build.gradle` | Qodana | Use `mcp__qodana__qodana_scan` |
+| Python | `pyproject.toml` or `*.py` | vulture | `uvx vulture . --min-confidence 80` |
+| Go | `go.mod` | deadcode | `go run golang.org/x/tools/cmd/deadcode@latest ./...` |
+| Rust | `Cargo.toml` | cargo-udeps | `cargo +nightly udeps` |
+| C# | `*.csproj` | Qodana | Use `mcp__qodana__qodana_scan` |
+
+**Process:**
+1. Run the appropriate tool for the detected language
+2. Parse output for unused exports, functions, imports, variables
+3. Remove dead code directly (no confirmation needed for code YOU just wrote)
+4. Re-run tool to verify cleanup
+
+<critical>Only remove dead code in files YOU modified during this implementation. Never touch unrelated files.</critical>
+
+Skip items marked with `@keep`, `// keep`, or `# keep`.
+
 ## Validation (Phase will FAIL if violated)
 
 - Any function > 30 lines
 - Vague variable names detected
 - Files not in plan created without justification
+- Dead code left behind in files you created/modified
 
 ## 🛑 MANDATORY STOP
 

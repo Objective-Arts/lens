@@ -1,5 +1,5 @@
 ---
-name: thompson-stratechery
+name: platforms
 description: "Ben Thompson's Aggregation Theory and tech strategy"
 allowed-tools: []
 ---

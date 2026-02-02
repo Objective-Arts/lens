@@ -1,5 +1,5 @@
 ---
-name: bloch
+name: java
 description: "Bloch's Effective Java patterns"
 allowed-tools: []
 ---

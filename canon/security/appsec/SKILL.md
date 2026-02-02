@@ -1,5 +1,5 @@
 ---
-name: tanya-janca
+name: appsec
 description: "AppSec integration, shift-left security, DevSecOps, security champions"
 ---
 
@@ -30,7 +30,7 @@ Tanya Janca's approach transforms security from blocker to enabler through:
 
 ```yaml
 # .github/workflows/security-baseline.yml
-name: Security Baseline
+name: appsec
 on: [push, pull_request]
 
 jobs:

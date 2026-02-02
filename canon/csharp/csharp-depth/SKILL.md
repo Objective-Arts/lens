@@ -1,5 +1,5 @@
 ---
-name: skeet
+name: csharp-depth
 description: "Jon Skeet's deep C# expertise from C# in Depth"
 ---
 

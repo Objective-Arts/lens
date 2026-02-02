@@ -1,5 +1,5 @@
 ---
-name: hejlsberg
+name: type-systems
 description: "Anders Hejlsberg's language design philosophy"
 ---
 

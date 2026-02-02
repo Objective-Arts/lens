@@ -1,5 +1,5 @@
 ---
-name: kruzeniski
+name: typography
 description: "Kruzeniski's typography-first design - type hierarchy, Fluent principles"
 ---
 

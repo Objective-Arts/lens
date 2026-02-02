@@ -41,7 +41,7 @@ export function readSettings(): ClaudeSettings {
 }
 
 /** Write settings.json with optional backup */
-export function writeSettings(
+function writeSettings(
   settings: ClaudeSettings,
   options: { backup?: boolean } = {}
 ): { success: boolean; backupPath?: string } {
@@ -97,7 +97,7 @@ export function hasWorkflowMarkerHook(settings: ClaudeSettings): boolean {
 }
 
 /** Setup the workflow marker hook */
-export function setupWorkflowMarkerHook(): HookSetupResult {
+function setupWorkflowMarkerHook(): HookSetupResult {
   const settings = readSettings();
 
   // Check if already installed
@@ -184,7 +184,7 @@ export function removeHook(hookId: string): HookSetupResult {
 }
 
 /** Remove workflow marker hook specifically */
-export function removeWorkflowMarkerHook(): HookSetupResult {
+function removeWorkflowMarkerHook(): HookSetupResult {
   const settings = readSettings();
 
   if (!hasWorkflowMarkerHook(settings)) {

@@ -1,5 +1,5 @@
 ---
-name: knaflic
+name: data-story
 description: "Knaflic's data storytelling"
 ---
 

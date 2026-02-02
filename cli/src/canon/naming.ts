@@ -66,7 +66,7 @@ function buildLookupMaps(): void {
 /**
  * Check if tribute names mode is enabled
  */
-export function isTributeNamesEnabled(): boolean {
+function isTributeNamesEnabled(): boolean {
   return process.env.CANON_TRIBUTE_NAMES === '1';
 }
 
@@ -90,7 +90,7 @@ export function resolveSkillName(name: string): string {
 /**
  * Get the tribute name for a generic skill name (for display when debugging)
  */
-export function getTributeName(genericName: string): string | null {
+function getTributeName(genericName: string): string | null {
   loadNamingConfig();
   if (!genericToTribute) return null;
   return genericToTribute.get(genericName) ?? null;
@@ -110,25 +110,3 @@ export function formatSkillName(genericName: string): string {
   return genericName;
 }
 
-/**
- * Get all tribute name aliases for a skill (for tab completion, etc.)
- */
-export function getSkillAliases(genericName: string): string[] {
-  if (!isTributeNamesEnabled()) return [];
-
-  const tribute = getTributeName(genericName);
-  return tribute ? [tribute] : [];
-}
-
-/**
- * List all available skill names (generic + tribute aliases if enabled)
- */
-export function getAllSkillNames(): { generic: string; tribute?: string }[] {
-  loadNamingConfig();
-  if (!namingConfig) return [];
-
-  return Object.entries(namingConfig.skills).map(([generic, info]) => ({
-    generic,
-    tribute: isTributeNamesEnabled() ? info.tribute : undefined
-  }));
-}

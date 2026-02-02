@@ -1,5 +1,5 @@
 ---
-name: fowler-refactoring
+name: refactoring
 description: Martin Fowler's refactoring patterns - improving code design without changing behavior
 ---
 

@@ -1,5 +1,5 @@
 ---
-name: bill-joy
+name: distributed
 description: "Joy's distributed systems principles"
 allowed-tools: []
 ---

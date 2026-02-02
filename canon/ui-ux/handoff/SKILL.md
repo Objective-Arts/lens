@@ -1,5 +1,5 @@
 ---
-name: mall
+name: handoff
 description: "Mall's design-dev collaboration - hot potato, handoff, shared language"
 ---
 

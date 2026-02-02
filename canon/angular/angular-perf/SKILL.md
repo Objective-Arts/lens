@@ -1,5 +1,5 @@
 ---
-name: minko-gechev
+name: angular-perf
 description: "Gechev's Angular performance and optimization patterns"
 allowed-tools: []
 ---

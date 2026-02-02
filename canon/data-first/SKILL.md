@@ -1,5 +1,5 @@
 ---
-name: linus
+name: data-first
 description: "Linus kernel style and good taste"
 allowed-tools: []
 ---

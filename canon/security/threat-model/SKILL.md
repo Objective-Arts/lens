@@ -1,5 +1,5 @@
 ---
-name: bruce-schneier
+name: threat-model
 description: Bruce Schneier's security mindset for threat modeling, security architecture, and thinking like an attacker. Use for reviewing auth flows, evaluating security controls, or when someone asks "is this secure?" Triggers on security review, threat model, attacker thinking, security architecture.
 ---
 

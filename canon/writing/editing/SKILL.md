@@ -1,5 +1,5 @@
 ---
-name: king
+name: editing
 description: "Stephen King's On Writing - kill your darlings, practical writing advice"
 ---
 

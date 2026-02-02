@@ -1,5 +1,5 @@
 ---
-name: gang-of-four
+name: design-patterns
 description: "GoF 23 design patterns"
 allowed-tools: []
 ---

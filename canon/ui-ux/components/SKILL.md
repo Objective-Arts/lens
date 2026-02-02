@@ -1,5 +1,5 @@
 ---
-name: frost
+name: components
 description: "Frost's Atomic Design - atoms, molecules, organisms, templates, pages"
 ---
 
@@ -172,7 +172,7 @@ Each component needs:
 
 ```yaml
 # button.yml
-name: Button
+name: components
 description: Primary action element
 category: atoms
 

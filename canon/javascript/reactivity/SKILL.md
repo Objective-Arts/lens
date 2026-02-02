@@ -1,5 +1,5 @@
 ---
-name: harris
+name: reactivity
 description: "Harris' compile-time JS philosophy"
 ---
 

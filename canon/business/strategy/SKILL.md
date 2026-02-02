@@ -1,5 +1,5 @@
 ---
-name: rumelt
+name: strategy
 description: "Rumelt's good strategy principles"
 allowed-tools: []
 ---

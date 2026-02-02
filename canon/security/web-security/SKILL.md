@@ -1,5 +1,5 @@
 ---
-name: troy-hunt
+name: web-security
 description: "Pragmatic web security, password handling, breach response, HTTPS"
 ---
 

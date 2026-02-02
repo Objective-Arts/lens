@@ -1,5 +1,5 @@
 ---
-name: kurata
+name: angular-arch
 description: "Kurata's Angular architecture and organization patterns"
 allowed-tools: []
 ---

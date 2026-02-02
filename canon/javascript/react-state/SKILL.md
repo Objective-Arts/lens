@@ -1,5 +1,5 @@
 ---
-name: abramov
+name: react-state
 description: "Abramov's React mental models"
 ---
 # Dan Abramov React Philosophy

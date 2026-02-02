@@ -1,5 +1,5 @@
 ---
-name: cleary
+name: async
 description: "Stephen Cleary's async/await and concurrency patterns"
 ---
 

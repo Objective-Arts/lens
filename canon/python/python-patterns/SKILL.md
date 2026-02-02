@@ -1,5 +1,5 @@
 ---
-name: slatkin
+name: python-patterns
 description: "Slatkin's Effective Python - 90 specific ways to write better Python code"
 ---
 

@@ -1,5 +1,5 @@
 ---
-name: horowitz
+name: leadership
 description: "Horowitz's crisis leadership"
 allowed-tools: []
 ---

@@ -1,5 +1,5 @@
 ---
-name: wroblewski
+name: mobile
 description: "Wroblewski's mobile-first patterns - forms, thumb zones, responsive"
 ---
 

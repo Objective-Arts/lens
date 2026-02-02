@@ -1,5 +1,5 @@
 ---
-name: dijkstra
+name: correctness
 description: "Dijkstra's formal methods"
 allowed-tools: []
 ---

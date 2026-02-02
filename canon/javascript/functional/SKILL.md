@@ -1,5 +1,5 @@
 ---
-name: ashkenas
+name: functional
 description: "Ashkenas' functional JS elegance"
 ---
 

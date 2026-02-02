@@ -37,15 +37,4 @@ registerToolsCommands(program);
 registerHooksCommands(program);
 registerTraceCommand(program);
 
-// UI command - kept here as it's a single simple command
-program
-  .command('ui')
-  .description('Launch local web UI for managing Claude Code configuration')
-  .option('--port <port>', 'Port to run on', '3847')
-  .action(async (options) => {
-    const port = parseInt(options.port, 10);
-    const { runUI } = await import('../ui/server.js');
-    runUI({ port });
-  });
-
 program.parse();

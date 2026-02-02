@@ -1,5 +1,5 @@
 ---
-name: dodds
+name: react-test
 description: "Dodds' React and testing patterns"
 ---
 

@@ -4,41 +4,24 @@
  * Provides server registry management for Claude Code.
  */
 
-// Types
+// Types - only export what's actually used
 export type {
-  MCPServerType,
-  MCPServerSource,
-  MCPServerCategory,
   MCPServerDefinition,
-  MCPServerConfig,
-  MCPRegistry,
-  EnvCheckResult,
-  MCPOperationResult,
-  MCPListFilters,
-  ProfileMCPConfig
+  MCPServerCategory
 } from './types.js';
 
-// Registry functions
+// Registry functions - only export what's actually used
 export {
-  loadRegistry,
   getServer,
   listServers,
   listCategories,
   checkRequiredEnv,
   addServerToRegistry,
-  removeServerFromRegistry,
-  getRegistryPath,
-  resolveEnvVars,
   ensureRegistryDir
 } from './registry.js';
 
-// Operations
+// Operations - only export what's actually used
 export {
-  loadMcpJson,
-  saveMcpJson,
-  loadSettings,
-  saveSettings,
-  getEnabledServers,
   isServerInstalled,
   isServerEnabled,
   installServer,

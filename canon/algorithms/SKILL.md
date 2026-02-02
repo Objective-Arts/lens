@@ -1,5 +1,5 @@
 ---
-name: knuth
+name: algorithms
 description: "Knuth's literate programming"
 allowed-tools: []
 ---

@@ -1,5 +1,5 @@
 ---
-name: procida
+name: docs
 description: "Procida's Diátaxis documentation framework - the right doc for the right need"
 ---
 

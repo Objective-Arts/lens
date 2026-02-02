@@ -1,5 +1,5 @@
 ---
-name: liskov
+name: abstraction
 description: "Liskov's abstraction and LSP"
 ---
 

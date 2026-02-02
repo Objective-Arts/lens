@@ -1,5 +1,5 @@
 ---
-name: meszaros
+name: test-doubles
 description: "xUnit test patterns, test doubles, and test smells"
 ---
 

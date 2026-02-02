@@ -1,5 +1,5 @@
 ---
-name: few
+name: dashboards
 description: "Few's dashboard design principles"
 ---
 

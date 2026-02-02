@@ -1,5 +1,5 @@
 ---
-name: cherny
+name: typescript
 description: "Cherny's advanced TypeScript"
 ---
 

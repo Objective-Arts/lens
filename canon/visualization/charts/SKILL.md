@@ -1,5 +1,5 @@
 ---
-name: tufte
+name: charts
 description: "Tufte's graphical integrity"
 ---
 

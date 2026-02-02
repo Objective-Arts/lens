@@ -1,5 +1,5 @@
 ---
-name: feathers
+name: legacy
 description: "Legacy code testing patterns from Working Effectively with Legacy Code"
 ---
 

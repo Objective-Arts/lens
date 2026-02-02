@@ -1,5 +1,5 @@
 ---
-name: cooper
+name: personas
 description: "Cooper's Goal-Directed Design - personas, polite software, eliminate excise"
 ---
 

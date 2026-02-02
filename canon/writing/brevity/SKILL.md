@@ -1,5 +1,5 @@
 ---
-name: strunk-white
+name: brevity
 description: "Strunk & White's Elements of Style - omit needless words, use active voice"
 ---
 

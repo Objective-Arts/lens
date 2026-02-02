@@ -1662,30 +1662,3 @@ export const exampleComposableProfile: ComposableProfile = {
   }
 };
 
-export const exampleProfile: Profile = {
-  name: 'D3 Development',
-  description: 'Full D3/visualization development environment',
-  skills: {
-    include: ['bostock', 'abramov', 'dodds', 'osmani', 'cherny'],
-    exclude: []
-  },
-  commands: {
-    include: ['viz/*', 'd3/*'],
-    exclude: []
-  },
-  agents: {
-    include: ['css-expert', 'accessibility-tester'],
-    exclude: []
-  },
-  claudeMd: {
-    autoInvoke: [
-      { context: 'D3.js or data visualization', action: 'INVOKE `/bostock`' },
-      { context: 'React/JSX/TSX files', action: 'INVOKE `/abramov`' },
-      { context: 'Writing or reviewing tests', action: 'INVOKE `/dodds`' }
-    ]
-  },
-  mcpServers: {
-    enable: ['linear'],
-    disable: []
-  }
-};

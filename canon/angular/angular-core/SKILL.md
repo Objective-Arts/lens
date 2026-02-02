@@ -1,5 +1,5 @@
 ---
-name: hevery
+name: angular-core
 description: "Hevery's Angular patterns and testable architecture"
 allowed-tools: []
 ---

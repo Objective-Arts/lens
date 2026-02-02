@@ -1,5 +1,5 @@
 ---
-name: google-style
+name: style
 description: "Google Coding Standards - universal style principles"
 allowed-tools: []
 ---

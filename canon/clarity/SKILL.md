@@ -1,5 +1,5 @@
 ---
-name: kernighan
+name: clarity
 description: "Kernighan's clarity and simplicity"
 allowed-tools: []
 ---

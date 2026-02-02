@@ -1,5 +1,5 @@
 ---
-name: ramalho
+name: python-protocols
 description: "Ramalho's Fluent Python - data model, protocols, dunder methods, Pythonic design"
 ---
 

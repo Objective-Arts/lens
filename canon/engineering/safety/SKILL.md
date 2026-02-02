@@ -1,5 +1,5 @@
 ---
-name: leveson
+name: safety
 description: "Leveson's system safety - STAMP/STPA, accidents as system failures, safety constraints"
 ---
 

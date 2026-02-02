@@ -1,5 +1,5 @@
 ---
-name: petroski
+name: failure
 description: "Petroski's engineering philosophy - form follows failure, learning from case studies"
 ---
 

@@ -1,5 +1,5 @@
 ---
-name: zinsser
+name: prose
 description: "Zinsser's On Writing Well - clarity, simplicity, and removing clutter"
 ---
 

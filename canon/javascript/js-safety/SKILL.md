@@ -1,5 +1,5 @@
 ---
-name: crockford
+name: js-safety
 description: "Crockford's JS Good Parts"
 ---
 

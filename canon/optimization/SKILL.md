@@ -1,5 +1,5 @@
 ---
-name: carmack
+name: optimization
 description: "Carmack's performance optimization"
 allowed-tools: []
 ---

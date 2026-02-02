@@ -1,5 +1,5 @@
 ---
-name: beazley
+name: python-advanced
 description: "Beazley's advanced Python - generators, coroutines, metaprogramming, execution model"
 ---
 

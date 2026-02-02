@@ -1,5 +1,5 @@
 ---
-name: celko
+name: sql
 description: Joe Celko's SQL patterns - thinking in sets, not procedures
 ---
 

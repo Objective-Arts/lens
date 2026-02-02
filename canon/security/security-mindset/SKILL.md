@@ -1,5 +1,5 @@
 ---
-name: schneier
+name: security-mindset
 description: Bruce Schneier's security mindset - think like an attacker
 ---
 

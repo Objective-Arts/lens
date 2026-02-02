@@ -1,5 +1,5 @@
 ---
-name: grove
+name: management
 description: "Grove's high-output management"
 allowed-tools: []
 ---

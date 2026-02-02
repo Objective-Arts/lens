@@ -1,5 +1,5 @@
 ---
-name: thompson
+name: pragmatism
 description: "Ken Thompson's pragmatic systems philosophy"
 allowed-tools: []
 ---

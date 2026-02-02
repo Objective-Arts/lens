@@ -1,5 +1,5 @@
 ---
-name: pike
+name: simplicity
 description: "Pike's Go proverbs and simplicity"
 allowed-tools: []
 ---
