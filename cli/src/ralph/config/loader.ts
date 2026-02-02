@@ -65,6 +65,6 @@ export function hasConfig(projectPath: string): boolean {
 /**
  * Get the path to ralph-config.yaml.
  */
-export function getConfigPath(projectPath: string): string {
+function getConfigPath(projectPath: string): string {
   return path.join(projectPath, '.claude', 'ralph-config.yaml');
 }

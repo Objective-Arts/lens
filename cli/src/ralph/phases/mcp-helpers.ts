@@ -18,7 +18,7 @@ export const NO_CODE_INDICATORS = ['no code', 'nothing to review', 'no files', '
 export const NO_ANALYSIS_INDICATORS = ['no code', 'nothing to analyze', 'no files', 'no implementation'] as const;
 
 /** Parse MCP tool status from output. */
-export function parseToolStatus(
+function parseToolStatus(
   output: string,
   statusKey: string,
   evidencePatterns: readonly string[]
@@ -42,7 +42,7 @@ export const GEMINI_EVIDENCE = ['gemini_review', 'mcp__gemini', 'gemini found', 
 export const QODANA_EVIDENCE = ['qodana_scan', 'qodana_problems', 'mcp__qodana', 'qodana found', 'qodana reported'] as const;
 
 /** Parse issue count from output (with markdown handling). */
-export function parseIssueCount(output: string, key: string, fallback: number): number {
+function parseIssueCount(output: string, key: string, fallback: number): number {
   const regex = new RegExp(`\\*?\\*?${key}:?\\*?\\*?\\s*(\\d+)`);
   const match = output.match(regex);
   return match ? parseInt(match[1], 10) : fallback;

@@ -11,7 +11,7 @@ const MANIFEST_FILENAME = 'canon-manifest.json';
 /**
  * Get the manifest file path for a project
  */
-export function getManifestPath(projectPath: string): string {
+function getManifestPath(projectPath: string): string {
   return path.join(projectPath, '.claude', MANIFEST_FILENAME);
 }
 
@@ -80,14 +80,14 @@ export function updateSkillInManifest(
 /**
  * Remove a skill from the manifest
  */
-export function removeSkillFromManifest(manifest: CanonManifest, skillName: string): void {
+function removeSkillFromManifest(manifest: CanonManifest, skillName: string): void {
   delete manifest.skills[skillName];
 }
 
 /**
  * Mark a skill as modified in the manifest
  */
-export function markSkillModified(manifest: CanonManifest, skillName: string): void {
+function markSkillModified(manifest: CanonManifest, skillName: string): void {
   if (manifest.skills[skillName]) {
     manifest.skills[skillName].modified = true;
   }

@@ -164,7 +164,7 @@ export function parseQodanaIssues(output: string): QodanaSummary {
 }
 
 /** Parse test results from output */
-export function parseTestResults(output: string): TestSummary {
+function parseTestResults(output: string): TestSummary {
   const passedMatch = output.match(/PASSED:\s*(\d+)/i);
   const failedMatch = output.match(/FAILED:\s*(\d+)/i);
   const writtenMatch = output.match(/WRITTEN:\s*(\d+)/i);

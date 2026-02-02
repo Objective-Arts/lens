@@ -14,7 +14,7 @@ import {
 } from '../summary/index.js';
 
 /** Phases that use MCP tools instead of Claude experts. */
-export const MCP_PHASES: readonly PhaseName[] = ['independent-review', 'static-analysis'];
+const MCP_PHASES: readonly PhaseName[] = ['independent-review', 'static-analysis'];
 
 /** Build phase execution context. */
 export function buildPhaseContext(
@@ -30,7 +30,7 @@ export function buildPhaseContext(
 }
 
 /** Get profile experts for a phase. */
-export function getProfileExpertsForPhase(config: RalphConfig, phaseName: PhaseName): string[] {
+function getProfileExpertsForPhase(config: RalphConfig, phaseName: PhaseName): string[] {
   if (phaseName === 'independent-review' || phaseName === 'static-analysis') return [];
   if (phaseName === 'production-readiness' || phaseName === 'security-review') return [];
 
@@ -42,7 +42,7 @@ export function getProfileExpertsForPhase(config: RalphConfig, phaseName: PhaseN
 }
 
 /** Parse independent-review metrics. Returns updated summary. */
-export function parseAdversarialMetrics(summary: StageSummary, logsDir: string, itemNum: number): StageSummary {
+function parseAdversarialMetrics(summary: StageSummary, logsDir: string, itemNum: number): StageSummary {
   const rawPath = path.join(logsDir, `item${itemNum}-independent-review.raw`);
   const qodanaPath = path.join(logsDir, `item${itemNum}-static-analysis-qodana.raw`);
   let result = { ...summary };

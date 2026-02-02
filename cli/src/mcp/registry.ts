@@ -169,7 +169,7 @@ export function removeServerFromRegistry(name: string): boolean {
 /**
  * Get the registry directory path
  */
-export function getRegistryPath(): string {
+function getRegistryPath(): string {
   return REGISTRY_DIR;
 }
 

@@ -168,7 +168,7 @@ export async function hasNewCommitsSince(projectPath: string, sinceHash: string)
 }
 
 /** Get commit count since a given hash. */
-export async function getCommitCountSince(projectPath: string, sinceHash: string): Promise<number> {
+async function getCommitCountSince(projectPath: string, sinceHash: string): Promise<number> {
   return new Promise((resolve) => {
     const child = spawn('git', ['rev-list', '--count', `${sinceHash}..HEAD`], { cwd: projectPath });
     let output = '';
@@ -186,7 +186,7 @@ export async function getCommitCountSince(projectPath: string, sinceHash: string
 }
 
 /** Get Claude version. */
-export async function getClaudeVersion(): Promise<string | null> {
+async function getClaudeVersion(): Promise<string | null> {
   return new Promise((resolve) => {
     const child = spawn('claude', ['--version']);
     let output = '';

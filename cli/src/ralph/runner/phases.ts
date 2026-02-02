@@ -173,7 +173,7 @@ async function executePhase(
 }
 
 /** Check if phase should be skipped. */
-export function shouldSkipPhase(phase: Phase, context: PhaseContext, skipReview?: boolean): string | null {
+function shouldSkipPhase(phase: Phase, context: PhaseContext, skipReview?: boolean): string | null {
   if (skipReview && (phase.name === 'independent-review' || phase.name === 'static-analysis')) {
     return 'review skipped';
   }
@@ -184,7 +184,7 @@ export function shouldSkipPhase(phase: Phase, context: PhaseContext, skipReview?
 }
 
 /** Run a single phase with spinner and tracing. */
-export async function runSinglePhase(
+async function runSinglePhase(
   phase: Phase, phaseIndex: number, phases: Phase[], context: PhaseContext,
   config: RalphConfig, item: PrdItem, projectPath: string,
   phaseStatus: Map<string, PhaseStatus>, collector: SummaryCollector, itemNum: number, trace?: boolean

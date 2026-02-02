@@ -69,7 +69,7 @@ export function validateProjectPath(projectPath: string, allowedRoot?: string): 
 /**
  * Validate that a path exists and is a directory
  */
-export function isValidDirectory(dirPath: string): boolean {
+function isValidDirectory(dirPath: string): boolean {
   try {
     const stats = fs.statSync(dirPath);
     return stats.isDirectory();

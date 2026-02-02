@@ -4,45 +4,14 @@
  * Following pike: simple exports, clear factory.
  */
 
-export { Phase, PhaseContext, PhaseResult, BasePhase, PhaseStatus } from './types.js';
-export { PlanPhase } from './plan.js';
-export { StructureFirstPhase } from './structure-first.js';
-export { ImplementPhase } from './implement.js';
-export { TestPhase } from './test.js';
-export { RefactorCheckPhase } from './refactor-check.js';
-export { IndependentReviewPhase } from './independent-review.js';
-export { StaticAnalysisPhase } from './static-analysis.js';
-export { DocCodePhase } from './doc-code.js';
-export { ProductionReadinessPhase } from './production-readiness.js';
-export { SecurityReviewPhase } from './security-review.js';
-export {
-  loadPhaseConfig,
-  getPhaseExperts,
-  getRalphSequence,
-  loadKeywordRules,
-  detectExperts,
-  clearPhaseLoaderCaches,
-  hasCustomPhaseConfig,
-  hasCustomKeywordRules,
-} from './loader.js';
+export { Phase, PhaseContext, PhaseResult, PhaseStatus } from './types.js';
+export { detectExperts } from './loader.js';
 
 import type { Phase } from './types.js';
 import type { PhaseName } from '../types.js';
-import { PlanPhase } from './plan.js';
-import { StructureFirstPhase } from './structure-first.js';
-import { ImplementPhase } from './implement.js';
-import { TestPhase } from './test.js';
-import { RefactorCheckPhase } from './refactor-check.js';
-import { IndependentReviewPhase } from './independent-review.js';
-import { StaticAnalysisPhase } from './static-analysis.js';
-import { DocCodePhase } from './doc-code.js';
-import { ProductionReadinessPhase } from './production-readiness.js';
-import { SecurityReviewPhase } from './security-review.js';
 
 /**
- * Phase execution order.
- * Same sequence used by standalone commands and Ralph loop.
- * Order: plan → structure → implement → refactor → review → scan → test → doc
+ * Phase execution order for tests.
  */
 export const PHASE_ORDER: readonly PhaseName[] = [
   'plan',
@@ -54,6 +23,16 @@ export const PHASE_ORDER: readonly PhaseName[] = [
   'test',
   'doc-code',
 ] as const;
+import { PlanPhase } from './plan.js';
+import { StructureFirstPhase } from './structure-first.js';
+import { ImplementPhase } from './implement.js';
+import { TestPhase } from './test.js';
+import { RefactorCheckPhase } from './refactor-check.js';
+import { IndependentReviewPhase } from './independent-review.js';
+import { StaticAnalysisPhase } from './static-analysis.js';
+import { DocCodePhase } from './doc-code.js';
+import { ProductionReadinessPhase } from './production-readiness.js';
+import { SecurityReviewPhase } from './security-review.js';
 
 /**
  * Create all phases in execution order.
@@ -109,20 +88,6 @@ export function getPhaseIcon(name: PhaseName): string {
   };
 
   return icons[name] ?? '▶️';
-}
-
-/**
- * Create the production-readiness phase (post-loop, not per-item).
- */
-export function createProductionReadinessPhase(): Phase {
-  return new ProductionReadinessPhase();
-}
-
-/**
- * Create the security-review phase (post-loop, not per-item).
- */
-export function createSecurityReviewPhase(): Phase {
-  return new SecurityReviewPhase();
 }
 
 /**

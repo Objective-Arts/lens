@@ -40,7 +40,7 @@ export function markItemComplete(prd: Prd, item: PrdItem): string {
  *
  * Pure function - does not write to disk.
  */
-export function markItemIncomplete(prd: Prd, item: PrdItem): string {
+function markItemIncomplete(prd: Prd, item: PrdItem): string {
   const lines = prd.raw.split('\n');
   const lineIndex = item.lineNumber - 1;
 

@@ -39,7 +39,7 @@ const WORKFLOW_PATHS = [
 /**
  * Get the workflow skills source path
  */
-export function getWorkflowSourcePath(): string {
+function getWorkflowSourcePath(): string {
   for (const p of WORKFLOW_PATHS) {
     if (fs.existsSync(p)) {
       return p;
@@ -139,7 +139,7 @@ export function listWorkflowSkills(): WorkflowSkillInfo[] {
 /**
  * Get the workflow manifest for a project
  */
-export function getWorkflowManifest(projectPath: string): WorkflowManifest | null {
+function getWorkflowManifest(projectPath: string): WorkflowManifest | null {
   const manifestPath = path.join(projectPath, '.claude', 'workflow-manifest.json');
 
   if (!fs.existsSync(manifestPath)) {
@@ -156,7 +156,7 @@ export function getWorkflowManifest(projectPath: string): WorkflowManifest | nul
 /**
  * Save the workflow manifest for a project
  */
-export function saveWorkflowManifest(projectPath: string, manifest: WorkflowManifest): void {
+function saveWorkflowManifest(projectPath: string, manifest: WorkflowManifest): void {
   const claudeDir = path.join(projectPath, '.claude');
   if (!fs.existsSync(claudeDir)) {
     fs.mkdirSync(claudeDir, { recursive: true });
@@ -169,7 +169,7 @@ export function saveWorkflowManifest(projectPath: string, manifest: WorkflowMani
 /**
  * Create initial workflow manifest
  */
-export function createWorkflowManifest(): WorkflowManifest {
+function createWorkflowManifest(): WorkflowManifest {
   const sourceInfo = getWorkflowSourceInfo();
 
   return {
@@ -452,7 +452,7 @@ export function upgradeWorkflowSkills(
 /**
  * Get installed workflow skills
  */
-export function getInstalledWorkflowSkills(projectPath: string): string[] {
+function getInstalledWorkflowSkills(projectPath: string): string[] {
   const manifest = getWorkflowManifest(projectPath);
   if (!manifest) {
     return [];
@@ -460,4 +460,4 @@ export function getInstalledWorkflowSkills(projectPath: string): string[] {
   return Object.keys(manifest.skills);
 }
 
-export type { WorkflowManifest, WorkflowSkillInfo, WorkflowStatusInfo };
+export type { WorkflowSkillInfo, WorkflowStatusInfo };

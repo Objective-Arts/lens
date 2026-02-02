@@ -10,7 +10,7 @@ const MD_PREFIX = '(?:#{1,3}\\s*)?\\*?\\*?';
 const MD_SUFFIX = ':?\\*?\\*?';
 
 /** Severity levels recognized by parsers */
-export const SEVERITY_PATTERN = '(CRITICAL|HIGH|MODERATE|MEDIUM|LOW|INFO)';
+const SEVERITY_PATTERN = '(CRITICAL|HIGH|MODERATE|MEDIUM|LOW|INFO)';
 
 /** Bullet prefix - dash, bullet, asterisk, or numbered list */
 const BULLET = '(?:[-•*]|\\d+\\.)?';

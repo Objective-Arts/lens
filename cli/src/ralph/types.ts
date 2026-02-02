@@ -48,7 +48,7 @@ export type PhaseName =
   | 'security-review';      // Post-loop phase
 
 /** Phase execution order - same for commands and Ralph loop */
-export const PHASE_ORDER: readonly PhaseName[] = [
+const PHASE_ORDER: readonly PhaseName[] = [
   'plan',
   'structure-first',
   'implement',

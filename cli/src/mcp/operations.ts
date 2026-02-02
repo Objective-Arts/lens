@@ -56,7 +56,7 @@ function resolvePaths(projectPath?: string): {
  * const projectServers = loadMcpJson('./myproject');
  * ```
  */
-export function loadMcpJson(projectPath?: string): Record<string, MCPServerConfig> {
+function loadMcpJson(projectPath?: string): Record<string, MCPServerConfig> {
   const { mcpJsonPath } = resolvePaths(projectPath);
 
   if (!fs.existsSync(mcpJsonPath)) {
@@ -76,7 +76,7 @@ export function loadMcpJson(projectPath?: string): Record<string, MCPServerConfi
 /**
  * Save mcp.json
  */
-export function saveMcpJson(servers: Record<string, MCPServerConfig>, projectPath?: string): void {
+function saveMcpJson(servers: Record<string, MCPServerConfig>, projectPath?: string): void {
   const { mcpJsonPath } = resolvePaths(projectPath);
 
   // Ensure directory exists for project-level config
@@ -93,7 +93,7 @@ export function saveMcpJson(servers: Record<string, MCPServerConfig>, projectPat
 /**
  * Load settings.json
  */
-export function loadSettings(projectPath?: string): Record<string, unknown> {
+function loadSettings(projectPath?: string): Record<string, unknown> {
   const { settingsJsonPath } = resolvePaths(projectPath);
 
   if (!fs.existsSync(settingsJsonPath)) {
@@ -111,7 +111,7 @@ export function loadSettings(projectPath?: string): Record<string, unknown> {
 /**
  * Save settings.json
  */
-export function saveSettings(settings: Record<string, unknown>, projectPath?: string): void {
+function saveSettings(settings: Record<string, unknown>, projectPath?: string): void {
   const { settingsJsonPath } = resolvePaths(projectPath);
 
   // Ensure directory exists
@@ -126,7 +126,7 @@ export function saveSettings(settings: Record<string, unknown>, projectPath?: st
 /**
  * Get list of enabled MCP servers from settings.json
  */
-export function getEnabledServers(projectPath?: string): string[] {
+function getEnabledServers(projectPath?: string): string[] {
   const settings = loadSettings(projectPath);
   return (settings.enabledMcpjsonServers as string[]) || [];
 }

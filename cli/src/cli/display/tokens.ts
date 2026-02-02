@@ -9,7 +9,7 @@ import type { ConfigScope, ScanResult } from '../../types.js';
 /**
  * Create a visual bar for progress/percentage
  */
-export function createBar(value: number, max: number, width: number): string {
+function createBar(value: number, max: number, width: number): string {
   const filled = Math.round((value / max) * width);
   const empty = width - filled;
   return chalk.magenta('█'.repeat(filled)) + chalk.gray('░'.repeat(empty));

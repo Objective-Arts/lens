@@ -12,7 +12,6 @@ import { SkillDetection, StageStatus } from '../types.js';
 import { parseAppliedSection } from './applied-parser.js';
 
 // Re-export for backward compatibility
-export { parseAppliedSection };
 
 /** Stage icons - matches PHASE_ORDER in phases/index.ts */
 const STAGE_ICONS: Record<string, string> = {
@@ -57,7 +56,7 @@ const STAGE_SHORT_NAMES: Record<string, string> = {
  * Print pipeline progress showing current position in stage sequence.
  * Following duarte: motion is meaning, progress shows movement.
  */
-export function printPipelineProgress(
+function printPipelineProgress(
   stageStatus: Map<string, StageStatus>,
   currentStage?: string
 ): void {
@@ -148,7 +147,7 @@ export function printAppliedSkills(rawOutput: string | undefined): void {
  * Legacy overload for backward compatibility.
  * @deprecated Use the SkillDetection overload instead
  */
-export function printStageHeaderLegacy(stage: string, skills: string[]): void {
+function printStageHeaderLegacy(stage: string, skills: string[]): void {
   printStageHeader(stage, { skills, keywords: [] });
 }
 

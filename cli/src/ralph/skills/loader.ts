@@ -20,7 +20,7 @@ import { resolveSkillName, formatSkillName } from '../../canon/naming.js';
  * @param skillName - Name of the skill to load (can be tribute or generic name)
  * @returns Skill object or null if not found
  */
-export function loadSkill(projectPath: string, skillName: string): Skill | null {
+function loadSkill(projectPath: string, skillName: string): Skill | null {
   // Resolve tribute names to generic names when flag is set
   const resolvedName = resolveSkillName(skillName);
   const skillPath = path.join(projectPath, '.claude', 'skills', resolvedName, 'SKILL.md');
@@ -73,7 +73,7 @@ export function loadSkills(projectPath: string, skillNames: string[], verbose: b
  * @param dynamicSkills - Skills detected from PRD content (can be tribute or generic names)
  * @returns Array of loaded skills with correct source attribution
  */
-export function loadSkillsWithSources(
+function loadSkillsWithSources(
   projectPath: string,
   profileSkills: string[],
   dynamicSkills: string[]
@@ -102,7 +102,7 @@ export function loadSkillsWithSources(
 /**
  * List all available skills in project.
  */
-export function listSkills(projectPath: string): string[] {
+function listSkills(projectPath: string): string[] {
   const skillsDir = path.join(projectPath, '.claude', 'skills');
 
   if (!fs.existsSync(skillsDir)) {
@@ -118,7 +118,7 @@ export function listSkills(projectPath: string): string[] {
 /**
  * Check if a skill exists in the project.
  */
-export function hasSkill(projectPath: string, skillName: string): boolean {
+function hasSkill(projectPath: string, skillName: string): boolean {
   const skillPath = path.join(projectPath, '.claude', 'skills', skillName, 'SKILL.md');
   return fs.existsSync(skillPath);
 }
@@ -127,7 +127,7 @@ export function hasSkill(projectPath: string, skillName: string): boolean {
  * Extract condensed guidance from skill content.
  * Takes the first N lines after frontmatter.
  */
-export function extractGuidance(skill: Skill, maxLines: number = 50): string {
+function extractGuidance(skill: Skill, maxLines: number = 50): string {
   const lines = skill.content.split('\n');
 
   // Skip frontmatter if present
@@ -147,7 +147,7 @@ export function extractGuidance(skill: Skill, maxLines: number = 50): string {
  * Build combined skill guidance for a stage prompt.
  * When CANON_TRIBUTE_NAMES=1, shows tribute names in section headers.
  */
-export function buildSkillGuidance(skills: Skill[]): string {
+function buildSkillGuidance(skills: Skill[]): string {
   if (skills.length === 0) {
     return '';
   }

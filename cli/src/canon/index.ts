@@ -318,7 +318,7 @@ export function findSkillSourcePath(skillName: string): string | null {
 /**
  * List skills installed in a project's .claude/skills/ directory
  */
-export function getInstalledSkills(projectPath: string): string[] {
+function getInstalledSkills(projectPath: string): string[] {
   const skillsDir = path.join(projectPath, '.claude', 'skills');
 
   if (!fs.existsSync(skillsDir)) {

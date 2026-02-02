@@ -8,7 +8,7 @@
 export { printScanSummary } from './scan.js';
 export { printItemList, printItemDetails } from './items.js';
 export { printAuditReport } from './audit.js';
-export { printTokenBreakdown, createBar } from './tokens.js';
+export { printTokenBreakdown } from './tokens.js';
 export { printDependencies } from './deps.js';
 export {
   printList,

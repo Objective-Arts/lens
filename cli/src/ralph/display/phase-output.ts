@@ -7,10 +7,8 @@
 
 import chalk from 'chalk';
 
-// Re-export types and parsing functions for backward compatibility
+// Re-export parsing functions for use by other modules
 export {
-  IssueSeverity,
-  PhaseIssue,
   PhaseOutput,
   parsePhaseOutput,
 } from './issue-parser.js';

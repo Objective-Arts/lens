@@ -108,7 +108,7 @@ function tryParseWithoutLocation(line: string, inIssuesFixed: boolean): PhaseIss
 }
 
 /** Parse a single issue line using strategy chain. Returns null if not an issue. */
-export function parseIssueLine(line: string, inIssuesFixed: boolean): PhaseIssue | null {
+function parseIssueLine(line: string, inIssuesFixed: boolean): PhaseIssue | null {
   const hasFixed = HAS_FIXED.test(line) || inIssuesFixed;
 
   // Try each parser in order (most specific first)
@@ -119,7 +119,7 @@ export function parseIssueLine(line: string, inIssuesFixed: boolean): PhaseIssue
 }
 
 /** Update section state based on line content */
-export function updateSectionState(line: string, state: SectionState): SectionState {
+function updateSectionState(line: string, state: SectionState): SectionState {
   if (SECTION_PATTERNS.issuesFound.test(line)) {
     return { inIssuesFound: true, inIssuesFixed: false, inSkipSection: false };
   }
@@ -136,13 +136,13 @@ export function updateSectionState(line: string, state: SectionState): SectionSt
 }
 
 /** Parse verified clean status from raw output */
-export function parseVerifiedClean(raw: string): boolean {
+function parseVerifiedClean(raw: string): boolean {
   const match = raw.match(SUMMARY_PATTERNS.verifiedClean);
   return match ? ['yes', 'true'].includes(match[1].toLowerCase()) : false;
 }
 
 /** Parse remaining/unfixed count from raw output */
-export function parseRemainingCount(raw: string, fallback: number): number {
+function parseRemainingCount(raw: string, fallback: number): number {
   const unfixedMatch = raw.match(SUMMARY_PATTERNS.unfixed);
   if (unfixedMatch) return parseInt(unfixedMatch[1], 10);
 

@@ -4,12 +4,6 @@
  * Provides server registry management for Claude Code.
  */
 
-// Types - only export what's actually used
-export type {
-  MCPServerDefinition,
-  MCPServerCategory
-} from './types.js';
-
 // Registry functions - only export what's actually used
 export {
   getServer,

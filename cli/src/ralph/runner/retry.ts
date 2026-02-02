@@ -41,7 +41,7 @@ export function isCorrectableFailure(error: string): boolean {
 }
 
 /** Sanitize error message to prevent prompt injection. */
-export function sanitizeErrorForPrompt(error: string): string {
+function sanitizeErrorForPrompt(error: string): string {
   return error
     .replace(/```[\s\S]*?```/g, '[code removed]')
     .replace(/\[([^\]]*)\]\([^)]*\)/g, '$1')
@@ -50,7 +50,7 @@ export function sanitizeErrorForPrompt(error: string): string {
 }
 
 /** Get phase-specific guidance for retry attempts. */
-export function getPhaseSpecificGuidance(phase: string, error: string): string {
+function getPhaseSpecificGuidance(phase: string, error: string): string {
   if (phase === 'test' && (error.includes('No tests') || error.includes('TEST_COUNT'))) {
     return `WHAT TO DO:
 1. Create test file(s) using Write tool

@@ -9,7 +9,7 @@ import * as path from 'path';
 /**
  * Hash a single file's contents
  */
-export function hashFile(filePath: string): string {
+function hashFile(filePath: string): string {
   const content = fs.readFileSync(filePath);
   return crypto.createHash('sha256').update(content).digest('hex');
 }
@@ -54,7 +54,7 @@ export function hashSkillDirectory(skillPath: string): string {
 /**
  * Check if a skill directory has been modified from its installed hash
  */
-export function isSkillModified(skillPath: string, originalHash: string): boolean {
+function isSkillModified(skillPath: string, originalHash: string): boolean {
   if (!fs.existsSync(skillPath)) {
     return true;
   }
