@@ -27,6 +27,7 @@ export interface RunnerOptions {
   skipReview?: boolean;
   verbose?: boolean;
   trace?: boolean;
+  postOnly?: boolean;  // Skip per-item phases, run only post-loop phases
 }
 
 interface RunContext {
@@ -145,7 +146,7 @@ async function runPostLoopPhases(ctx: RunContext): Promise<void> {
 
 /** Main entry point. */
 export async function run(options: RunnerOptions): Promise<void> {
-  const { prdPath, skipReview, verbose, trace } = options;
+  const { prdPath, skipReview, verbose, trace, postOnly } = options;
   const projectPath = validateProjectPath(options.projectPath);
   const config = loadConfig(projectPath);
   const prd = parsePrd(prdPath, fs.readFileSync(prdPath, 'utf-8'));
@@ -153,6 +154,18 @@ export async function run(options: RunnerOptions): Promise<void> {
   const collector = new SummaryCollector(session.id, prdPath, detectProjectType(projectPath), prd.items.length);
 
   printHeader(prdPath, countIncomplete(prd), detectProjectType(projectPath));
+
+  // Post-only mode: skip per-item phases, run only post-loop phases
+  if (postOnly) {
+    printInfo('Post-only mode: skipping per-item phases');
+    const ctx: RunContext = { prd, prdPath, projectPath, session, config, phases: createPhases(), collector, skipReview, verbose, trace };
+    try {
+      await runPostLoopPhases(ctx);
+    } finally {
+      await finalizeSummary(collector, session.logsDir);
+    }
+    return;
+  }
 
   if (isAllComplete(prd)) {
     await handleAlreadyComplete(prd, collector, session.logsDir);

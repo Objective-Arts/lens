@@ -85,6 +85,7 @@ for arg in "$@"; do
     --max=*) MAX="\${arg#*=}" ;;
     --create-baseline) CREATE_BASELINE=true ;;
     --skip-scan|--skip-qodana) SKIP_SCAN=true ;;
+    --post-only) POST_ONLY=true ;;
   esac
 done
 

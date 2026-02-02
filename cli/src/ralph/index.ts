@@ -55,6 +55,7 @@ async function main(): Promise<void> {
     projectPath: paths.projectPath,
     skipReview: options.skipReview,
     verbose: options.verbose,
+    postOnly: options.postOnly,
   });
 }
 
@@ -62,6 +63,7 @@ interface ParsedArgs {
   prdPath?: string;
   skipReview?: boolean;
   verbose?: boolean;
+  postOnly?: boolean;
   help?: boolean;
 }
 
@@ -77,6 +79,8 @@ function parseArgs(args: string[]): ParsedArgs {
       result.skipReview = true;
     } else if (arg === '--verbose' || arg === '-v') {
       result.verbose = true;
+    } else if (arg === '--post-only') {
+      result.postOnly = true;
     } else if (arg === '--yes' || arg === '-y') {
       // Accepted but ignored (always auto-approve)
     } else if (!arg.startsWith('-')) {
@@ -94,12 +98,14 @@ Ralph - PRD-driven autonomous implementation
 Usage: ralph <PRD.md> [options]
 
 Options:
+  --post-only       Skip per-item phases, run only post-loop (security + production)
   --skip-review     Skip Gemini + Qodana review
   --verbose, -v     Show detailed output
   --help, -h        Show this help
 
 Example:
   ralph PRD.md
+  ralph PRD.md --post-only    # Test post-loop phases only
   ralph PRD.md --skip-review
 
 Ralph processes each unchecked item in the PRD through 8 phases:
