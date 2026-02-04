@@ -1,3 +1,10 @@
+---
+**STRICTLY CONFIDENTIAL**
+
+This document contains proprietary and confidential information. Unauthorized reproduction, distribution, or disclosure is strictly prohibited. This material is intended solely for authorized recipients.
+
+---
+
 # Claude-Optimal Documentation
 
 > **Canon-Driven Development**: Quality built in from the start, not forced by review when it's too late.
@@ -10,7 +17,7 @@ Choose your path based on whether code exists:
 |---------------|------------------|
 | PRD / Feature Request | Existing Codebase |
 | `/plan` → `/structure-first` → `/build-from-plan` | `/plan` → `/structure-first` → `/refactor-check` |
-| Canon: Bloch, Pike, Schneier, Evans | Canon: Feathers, Fowler, Taleb, Liskov |
+| Skills: java, simplicity, security-mindset | Skills: legacy, test-strategy, resilience, abstraction |
 
 Both flows converge at shared review gates: `/test` → `/review-hard`
 
@@ -20,7 +27,7 @@ Both flows converge at shared review gates: `/test` → `/review-hard`
 
 ## Documentation Structure (Diátaxis Framework)
 
-This documentation follows Daniele Procida's Diátaxis framework, organizing content by purpose:
+This documentation follows the Diátaxis framework, organizing content by purpose:
 
 ```
                 PRACTICAL                      THEORETICAL
@@ -93,10 +100,10 @@ See [Installation Reference](reference/installation.md) for complete setup guide
 |-----------|-------------|
 | [Installation](reference/installation.md) | System requirements, API keys, troubleshooting |
 | [Profiles](reference/profiles.md) | All available profiles and composition |
-| [Canon Catalog](reference/canon-catalog.md) | Complete list of masters by domain |
+| [Canon Catalog](reference/canon-catalog.md) | Complete list of skills by domain |
 | [Canon Loading Strategy](reference/canon-loading-strategy.md) | How skills are detected and loaded |
 | [Quality Flags](reference/flags.md) | All flags with parameters |
-| [API Design Standards](reference/api-design-standards.md) | Bloch-style API design principles |
+| [API Design Standards](reference/api-design-standards.md) | API design principles from java skill |
 | [Framework Templates](reference/framework-templates.md) | D3, Angular, React, Node, Go, Java standards |
 | [Structural Standards](reference/structural-standards.md) | Universal code quality rules |
 | [Design Patterns](reference/patterns.md) | Canon Factory, Profile Builder, etc. |
@@ -120,7 +127,7 @@ See [Installation Reference](reference/installation.md) for complete setup guide
 
 | Topic | Description |
 |-------|-------------|
-| [Why Canon Masters?](explanation/why-canon-masters.md) | The philosophy behind expert lenses |
+| [Why Expert Skills?](explanation/why-expert-skills.md) | The philosophy behind expert lenses |
 | [Two-Tier Review Architecture](explanation/two-tier-review.md) | Self-review vs external validation |
 
 ---
@@ -129,6 +136,6 @@ See [Installation Reference](reference/installation.md) for complete setup guide
 
 - **New to Claude-Optimal?** Start with [Getting Started](tutorials/getting-started.md)
 - **Setting up a project?** See [Apply a Profile](how-to/apply-profile.md)
-- **Looking up a specific master?** Check [Canon Catalog](reference/canon-catalog.md)
+- **Looking up a specific skill?** Check [Canon Catalog](reference/canon-catalog.md)
 - **Building UI/UX?** Apply `frontend` profile for 12 UI/UX experts
-- **Want to understand the philosophy?** Read [Why Canon Masters?](explanation/why-canon-masters.md)
+- **Want to understand the philosophy?** Read [Why Expert Skills?](explanation/why-expert-skills.md)

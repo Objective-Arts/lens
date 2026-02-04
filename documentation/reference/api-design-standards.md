@@ -1,3 +1,10 @@
+---
+**STRICTLY CONFIDENTIAL**
+
+This document contains proprietary and confidential information. Unauthorized reproduction, distribution, or disclosure is strictly prohibited. This material is intended solely for authorized recipients.
+
+---
+
 # API Design Standards
 
 Design principles for creating APIs as clean as the Java Collections API. These complement STRUCTURAL-STANDARDS.md - structure is about implementation quality, this is about interface quality.

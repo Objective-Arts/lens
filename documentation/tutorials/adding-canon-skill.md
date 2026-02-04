@@ -1,3 +1,10 @@
+---
+**STRICTLY CONFIDENTIAL**
+
+This document contains proprietary and confidential information. Unauthorized reproduction, distribution, or disclosure is strictly prohibited. This material is intended solely for authorized recipients.
+
+---
+
 # Tutorial: Adding a Canon Skill
 
 *Learn how to encode expert perspectives by creating your own canon skill.*
@@ -205,5 +212,5 @@ You've successfully:
 
 ## Next Steps
 
-- [Canon Masters Reference](../reference/canon-catalog.md) - See existing masters
-- [Why Canon Masters?](../explanation/why-canon-masters.md) - Understand the philosophy
+- [Skills Reference](../reference/canon-catalog.md) - See existing skills
+- [Why Expert Skills?](../explanation/why-expert-skills.md) - Understand the philosophy

@@ -115,6 +115,7 @@ const MAX_RETRIES = 3;
 - Self-explanatory code
 - Changes to version control (that's what commits are for)
 - Commented-out code (delete it)
+- Source citations ("Bloch Item 24", "per Kernighan", "Liskov principle") — patterns should be self-evident
 
 ### 4. Formatting: Consistency Over Preference
 

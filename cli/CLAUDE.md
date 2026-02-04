@@ -11,7 +11,9 @@
 | `/structure-first [feature]` | Design data structures before implementation |
 | `/implement [target]` | Implement code from plan |
 | `/refactor-check [target]` | Systematic code cleanup |
+| `/code-scan [path...]` | Read-only quality scan (no edits) |
 | `/independent-review [path]` | Code review via Gemini (bugs, edge cases, quality) |
+| `/gemini-scan [path...]` | Read-only Gemini review (no fixes) |
 | `/static-analysis [path]` | Run Qodana and fix issues |
 | `/test [level]` | Write and run tests |
 | `/doc-code [path]` | Generate documentation |

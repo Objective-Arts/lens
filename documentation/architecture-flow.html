@@ -5,7 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Canon → Profile → Workflow → Quality Code</title>
   <style>
-    /* Few: Simplicity, every pixel earns its place */
+    /* dashboards: Simplicity, every pixel earns its place */
     * { box-sizing: border-box; margin: 0; padding: 0; }
 
     body {
@@ -28,14 +28,14 @@
       margin-bottom: 32px;
     }
 
-    /* Tufte: Data-ink ratio - every element serves a purpose */
+    /* charts: Data-ink ratio - every element serves a purpose */
     svg {
       display: block;
       max-width: 100%;
       height: auto;
     }
 
-    /* Few: Gray default, color only for meaning */
+    /* dashboards: Gray default, color only for meaning */
     .layer-box { fill: #f5f5f5; stroke: #ddd; stroke-width: 1; }
     .layer-box.canon { fill: #e8f4f8; stroke: #b8d4de; }
     .layer-box.profile { fill: #f0f4e8; stroke: #c8d4b8; }
@@ -53,7 +53,7 @@
       fill: #777;
     }
 
-    /* Knaflic: Direct labeling, no legends */
+    /* data-story: Direct labeling, no legends */
     .item-box { fill: white; stroke: #ccc; stroke-width: 1; rx: 4; }
     .item-box.highlight { stroke: #666; stroke-width: 1.5; }
 
@@ -68,7 +68,7 @@
       fill: #999;
     }
 
-    /* Bostock: Transitions serve understanding */
+    /* d3: Transitions serve understanding */
     .flow-arrow {
       fill: none;
       stroke: #999;
@@ -87,7 +87,7 @@
       font-style: italic;
     }
 
-    /* Legend - minimal, Tufte-approved */
+    /* Legend - minimal, charts-approved */
     .legend {
       margin-top: 24px;
       display: flex;
@@ -110,13 +110,13 @@
   </style>
 </head>
 <body>
-  <!-- Knaflic: Title states the insight -->
+  <!-- data-story: Title states the insight -->
   <h1>Expert Knowledge Flows Through Profiles and Workflows to Produce Quality Code</h1>
   <p class="subtitle">Canon skills embed author expertise → Profiles compose skills for domains → Workflows orchestrate quality gates</p>
 
   <svg viewBox="0 0 1000 600" preserveAspectRatio="xMidYMid meet">
     <defs>
-      <!-- Bostock: Clean, minimal arrow marker -->
+      <!-- d3: Clean, minimal arrow marker -->
       <marker id="arrowhead" markerWidth="8" markerHeight="6" refX="7" refY="3" orient="auto">
         <polygon points="0 0, 8 3, 0 6" fill="#888"/>
       </marker>
@@ -127,7 +127,7 @@
 
     <!-- ═══════════════════════════════════════════════════════════════════════
          LAYER 1: CANON (Expert Knowledge)
-         Tufte: Small multiples - same structure, easy scanning
+         charts: Small multiples - same structure, easy scanning
     ═══════════════════════════════════════════════════════════════════════ -->
     <g transform="translate(20, 20)">
       <rect class="layer-box canon" x="0" y="0" width="220" height="560" rx="8"/>
@@ -138,65 +138,65 @@
       <g transform="translate(12, 65)">
         <text class="item-category" x="0" y="0">visualization/</text>
         <rect class="item-box highlight" x="0" y="8" width="90" height="24"/>
-        <text class="item-label" x="8" y="24">tufte</text>
+        <text class="item-label" x="8" y="24">charts</text>
         <rect class="item-box" x="96" y="8" width="90" height="24"/>
-        <text class="item-label" x="104" y="24">few</text>
+        <text class="item-label" x="104" y="24">dashboards</text>
         <rect class="item-box" x="0" y="38" width="90" height="24"/>
-        <text class="item-label" x="8" y="54">bostock</text>
+        <text class="item-label" x="8" y="54">d3</text>
         <rect class="item-box" x="96" y="38" width="90" height="24"/>
-        <text class="item-label" x="104" y="54">knaflic</text>
+        <text class="item-label" x="104" y="54">data-story</text>
       </g>
 
       <!-- Category: JavaScript -->
       <g transform="translate(12, 145)">
         <text class="item-category" x="0" y="0">javascript/</text>
         <rect class="item-box highlight" x="0" y="8" width="90" height="24"/>
-        <text class="item-label" x="8" y="24">cherny</text>
+        <text class="item-label" x="8" y="24">typescript</text>
         <rect class="item-box" x="96" y="8" width="90" height="24"/>
-        <text class="item-label" x="104" y="24">crockford</text>
+        <text class="item-label" x="104" y="24">js-safety</text>
         <rect class="item-box" x="0" y="38" width="90" height="24"/>
-        <text class="item-label" x="8" y="54">kyle-simpson</text>
+        <text class="item-label" x="8" y="54">js-internals</text>
         <rect class="item-box" x="96" y="38" width="90" height="24"/>
-        <text class="item-label" x="104" y="54">dodds</text>
+        <text class="item-label" x="104" y="54">react-test</text>
         <rect class="item-box" x="0" y="68" width="90" height="24"/>
-        <text class="item-label" x="8" y="84">osmani</text>
+        <text class="item-label" x="8" y="84">js-perf</text>
         <rect class="item-box" x="96" y="68" width="90" height="24"/>
-        <text class="item-label" x="104" y="84">abramov</text>
+        <text class="item-label" x="104" y="84">react-state</text>
       </g>
 
       <!-- Category: Core -->
       <g transform="translate(12, 265)">
         <text class="item-category" x="0" y="0">core/</text>
         <rect class="item-box highlight" x="0" y="8" width="90" height="24"/>
-        <text class="item-label" x="8" y="24">kernighan</text>
+        <text class="item-label" x="8" y="24">clarity</text>
         <rect class="item-box" x="96" y="8" width="90" height="24"/>
-        <text class="item-label" x="104" y="24">pike</text>
+        <text class="item-label" x="104" y="24">simplicity</text>
         <rect class="item-box" x="0" y="38" width="90" height="24"/>
-        <text class="item-label" x="8" y="54">bloch</text>
+        <text class="item-label" x="8" y="54">java</text>
         <rect class="item-box" x="96" y="38" width="90" height="24"/>
-        <text class="item-label" x="104" y="54">liskov</text>
+        <text class="item-label" x="104" y="54">abstraction</text>
         <rect class="item-box" x="0" y="68" width="90" height="24"/>
-        <text class="item-label" x="8" y="84">dijkstra</text>
+        <text class="item-label" x="8" y="84">correctness</text>
         <rect class="item-box" x="96" y="68" width="90" height="24"/>
-        <text class="item-label" x="104" y="84">gang-of-four</text>
+        <text class="item-label" x="104" y="84">design-patterns</text>
       </g>
 
       <!-- Category: Testing -->
       <g transform="translate(12, 385)">
         <text class="item-category" x="0" y="0">testing/</text>
         <rect class="item-box" x="0" y="8" width="90" height="24"/>
-        <text class="item-label" x="8" y="24">meszaros</text>
+        <text class="item-label" x="8" y="24">test-doubles</text>
         <rect class="item-box" x="96" y="8" width="90" height="24"/>
-        <text class="item-label" x="104" y="24">feathers</text>
+        <text class="item-label" x="104" y="24">legacy</text>
         <rect class="item-box" x="0" y="38" width="90" height="24"/>
-        <text class="item-label" x="8" y="54">fowler-test</text>
+        <text class="item-label" x="8" y="54">test-strategy</text>
       </g>
 
       <!-- Category: Security -->
       <g transform="translate(12, 465)">
         <text class="item-category" x="0" y="0">security/</text>
         <rect class="item-box" x="0" y="8" width="90" height="24"/>
-        <text class="item-label" x="8" y="24">schneier</text>
+        <text class="item-label" x="8" y="24">security-mindset</text>
         <rect class="item-box" x="96" y="8" width="90" height="24"/>
         <text class="item-label" x="104" y="24">owasp</text>
       </g>
@@ -232,19 +232,19 @@
 
         <rect class="item-box" x="0" y="132" width="156" height="36"/>
         <text class="item-label" x="12" y="148">angular.yaml</text>
-        <text class="item-category" x="12" y="160">hevery, kurata, lesh</text>
+        <text class="item-category" x="12" y="160">angular-core, angular-arch</text>
 
         <rect class="item-box" x="0" y="176" width="156" height="36"/>
         <text class="item-label" x="12" y="192">python.yaml</text>
-        <text class="item-category" x="12" y="204">hettinger, ramalho, beazley</text>
+        <text class="item-category" x="12" y="204">python-idioms, python-protocols</text>
 
         <rect class="item-box" x="0" y="220" width="156" height="36"/>
         <text class="item-label" x="12" y="236">d3.yaml</text>
-        <text class="item-category" x="12" y="248">bostock, tufte, few</text>
+        <text class="item-category" x="12" y="248">d3, charts, dashboards</text>
 
         <rect class="item-box" x="0" y="264" width="156" height="36"/>
         <text class="item-label" x="12" y="280">security.yaml</text>
-        <text class="item-category" x="12" y="292">schneier, owasp, troy-hunt</text>
+        <text class="item-category" x="12" y="292">security-mindset, owasp</text>
       </g>
 
       <!-- What profiles define -->
@@ -358,18 +358,18 @@
     </g>
 
     <!-- ═══════════════════════════════════════════════════════════════════════
-         ANNOTATIONS: Key insights (Knaflic: Tell the story)
+         ANNOTATIONS: Key insights (data-story: Tell the story)
     ═══════════════════════════════════════════════════════════════════════ -->
 
     <!-- Annotation: Expert loading -->
     <g transform="translate(330, 545)">
-      <text class="annotation" x="0" y="0">Profile activates experts per-phase:</text>
-      <text class="annotation" x="0" y="14">plan: kyle-simpson → build: cherny, osmani → test: dodds</text>
+      <text class="annotation" x="0" y="0">Profile activates skills per-phase:</text>
+      <text class="annotation" x="0" y="14">plan: js-internals → build: typescript, js-perf → test: react-test</text>
     </g>
 
   </svg>
 
-  <!-- Few: Minimal legend, only if needed -->
+  <!-- dashboards: Minimal legend, only if needed -->
   <div class="legend">
     <div class="legend-item">
       <div class="legend-swatch" style="background: #e8f4f8; border: 1px solid #b8d4de;"></div>

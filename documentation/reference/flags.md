@@ -1,3 +1,10 @@
+---
+**STRICTLY CONFIDENTIAL**
+
+This document contains proprietary and confidential information. Unauthorized reproduction, distribution, or disclosure is strictly prohibited. This material is intended solely for authorized recipients.
+
+---
+
 # Quality Flags Reference
 
 Complete specification of all quality flags.
@@ -124,10 +131,10 @@ Build login form --test unit
 /test integration src/services/
 ```
 
-**Canon Applied**:
-- Dodds: Testing Trophy, behavior over implementation
-- Meszaros: Test doubles, setup patterns
-- Feathers: Characterization tests for legacy code
+**Skills Applied**:
+- react-test: Testing Trophy, behavior over implementation
+- test-doubles: Test doubles, setup patterns
+- legacy: Characterization tests for legacy code
 
 ---
 

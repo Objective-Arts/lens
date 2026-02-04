@@ -1,13 +1,20 @@
-# Canon Loading Strategy
+---
+**STRICTLY CONFIDENTIAL**
+
+This document contains proprietary and confidential information. Unauthorized reproduction, distribution, or disclosure is strictly prohibited. This material is intended solely for authorized recipients.
+
+---
+
+# Skill Loading Strategy
 
 ## Overview
 
-Canon skills are loaded through a 4-layer system:
+Skills are loaded through a 4-layer system:
 
-1. **Base Experts** - Core experts always loaded (kernighan, pike, etc.)
-2. **Profile Experts** - Language/framework specific experts from profile
-3. **Phase Experts** - Experts suited to current phase from `workflow-phases.yaml`
-4. **Keyword Experts** - Dynamically detected from task text via `keyword-detection.yaml`
+1. **Base Skills** - Core skills always loaded (clarity, simplicity, etc.)
+2. **Profile Skills** - Language/framework specific skills from profile
+3. **Phase Skills** - Skills suited to current phase from `workflow-phases.yaml`
+4. **Keyword Skills** - Dynamically detected from task text via `keyword-detection.yaml`
 
 ---
 
@@ -17,29 +24,29 @@ Canon skills are loaded through a 4-layer system:
 
 **Location**: `config/workflow-phases.yaml`
 
-Defines the 8-phase Ralph workflow and experts for each phase.
+Defines the 8-phase Ralph workflow and skills for each phase.
 
 ```yaml
 phases:
   plan:
     description: Understand requirements, design approach
-    experts:
-      - kernighan
-      - pike
-      - linus
-      - dijkstra
-      - taleb
-      - petroski
-      - leveson
+    skills:
+      - clarity
+      - simplicity
+      - data-first
+      - correctness
+      - resilience
+      - failure
+      - safety
 
   implement:
     description: Write the code
-    experts:
-      - thompson
-      - kernighan
-      - pike
-      - mcilroy
-      - bill-joy
+    skills:
+      - pragmatism
+      - clarity
+      - simplicity
+      - composition
+      - distributed
 
 ralph-sequence:
   - plan
@@ -56,7 +63,7 @@ ralph-sequence:
 
 **Location**: `config/keyword-detection.yaml`
 
-Adds experts dynamically based on keywords in task text.
+Adds skills dynamically based on keywords in task text.
 
 ```yaml
 rules:
@@ -66,59 +73,58 @@ rules:
       - password
       - token
       - jwt
-    experts:
-      - schneier
-      - owasp
+    skills:
       - security-mindset
+      - owasp
 
   database:
     patterns:
       - sql
       - query
       - migration
-    experts:
-      - bloch
-      - schneier
+    skills:
+      - java
+      - security-mindset
 ```
 
 ---
 
-## How Experts Are Selected
+## How Skills Are Selected
 
 ```
-Profile Experts    +    Phase Experts    +    Keyword Experts
-───────────────         ──────────────        ────────────────
-From profile.yaml       From phase config     From task text
-  - cherny                - kernighan         Task: "Add JWT auth"
-  - crockford             - pike              Matches: security
-                          - thompson          Adds: schneier, owasp
+Profile Skills     +    Phase Skills       +    Keyword Skills
+──────────────          ────────────           ────────────────
+From profile.yaml       From phase config      From task text
+  - typescript            - clarity            Task: "Add JWT auth"
+  - js-safety             - simplicity         Matches: security
+                          - pragmatism         Adds: security-mindset, owasp
 
-                    = Final: cherny, crockford, kernighan, pike, thompson, schneier, owasp
+                    = Final: typescript, js-safety, clarity, simplicity, pragmatism, security-mindset, owasp
 ```
 
 ---
 
 ## The 8-Phase Workflow
 
-| Phase | Description | Key Experts |
-|-------|-------------|-------------|
-| plan | Understand requirements | kernighan, pike, dijkstra, taleb, leveson |
-| structure-first | Design types and data structures | linus, cherny, bloch, gang-of-four |
-| implement | Write the code | thompson, kernighan, pike, mcilroy |
-| build-tests | Write tests | meszaros, fowler-test, dodds, hevery |
-| refactor-check | Simplify and clean | kernighan, thompson, feathers |
-| adversarial-review | Attack your code | schneier, owasp, petroski, leveson |
-| static-analysis | Run analyzers | bloch, liskov, owasp |
-| doc-code | Document the work | procida, strunk-white, zinsser |
+| Phase | Description | Key Skills |
+|-------|-------------|------------|
+| plan | Understand requirements | clarity, simplicity, correctness, resilience, safety |
+| structure-first | Design types and data structures | data-first, typescript, java, design-patterns |
+| implement | Write the code | pragmatism, clarity, simplicity, composition |
+| build-tests | Write tests | test-doubles, test-strategy, react-test, legacy |
+| refactor-check | Simplify and clean | clarity, pragmatism, legacy |
+| adversarial-review | Attack your code | security-mindset, owasp, failure, safety |
+| static-analysis | Run analyzers | java, abstraction, owasp |
+| doc-code | Document the work | docs, brevity, prose |
 
 ---
 
-## Tiered Canon Loading
+## Tiered Skill Loading
 
-Each canon skill has two files:
+Each skill has two files:
 
 ```
-canon/bloch/
+canon/java/
 ├── SKILL.md          # Full content (~2000 tokens)
 └── SUMMARY.md        # Essential items (~300 tokens)
 ```
@@ -127,7 +133,7 @@ canon/bloch/
 
 **Phase 1: Load Summaries First** (~1,000-1,500 tokens)
 - Summaries provide essential items and trigger conditions
-- Always loaded for relevant canons
+- Always loaded for relevant skills
 
 **Phase 2: Load Full When Needed**
 - When applying specific item not in summary
@@ -148,18 +154,18 @@ canon/bloch/
 
 ## API Reference
 
-### detectExperts
+### detectSkills
 
 ```typescript
-function detectExperts(
+function detectSkills(
   projectPath: string,
   phase: PhaseName,
   taskText: string,
-  profileExperts: readonly string[]
-): ExpertDetection
+  profileSkills: readonly string[]
+): SkillDetection
 ```
 
-Main function for expert detection. Combines all 4 layers.
+Main function for skill detection. Combines all 4 layers.
 
 ### loadPhaseConfig
 

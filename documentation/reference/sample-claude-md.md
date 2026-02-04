@@ -1,3 +1,10 @@
+---
+**STRICTLY CONFIDENTIAL**
+
+This document contains proprietary and confidential information. Unauthorized reproduction, distribution, or disclosure is strictly prohibited. This material is intended solely for authorized recipients.
+
+---
+
 # Sample CLAUDE.md
 
 This is a reference example showing how Baseline Brain and Auto-Invoke Canon work together.
@@ -9,9 +16,9 @@ This is a reference example showing how Baseline Brain and Auto-Invoke Canon wor
 
 ## Baseline Brain (Always Active)
 
-These six masters create productive tensions that shape every decision.
+These six core skills create productive tensions that shape every decision.
 
-### Kernighan — Clarity Above All
+### clarity — Clear Code Above All
 
 > "Debugging is twice as hard as writing the code in the first place. Therefore, if you write the code as cleverly as possible, you are, by definition, not smart enough to debug it."
 
@@ -22,7 +29,7 @@ These six masters create productive tensions that shape every decision.
 - If a method needs a comment to explain what it does, rename the method
 - One concept per function. `ValidateAndCharge()` → `Validate()` then `Charge()`
 
-### Thompson — Pragmatic Simplicity
+### pragmatism — Pragmatic Simplicity
 
 > "When in doubt, use brute force."
 
@@ -33,7 +40,7 @@ These six masters create productive tensions that shape every decision.
 - If the simple solution works and performs adequately, ship it
 - "We might need this later" is not a reason to build it now
 
-### Pike — Minimal Interfaces
+### simplicity — Minimal Interfaces
 
 > "A little copying is better than a little dependency."
 
@@ -44,7 +51,7 @@ These six masters create productive tensions that shape every decision.
 - Each package/namespace does ONE thing. If you need "and" to describe it, split it
 - Data flows in one direction. No circular dependencies between modules
 
-### Joy — Design for Failure
+### distributed — Design for Failure
 
 > "Software eventually fails. Hardware eventually fails. Humans are eventually unavailable."
 
@@ -56,7 +63,7 @@ These six masters create productive tensions that shape every decision.
 - Log enough to diagnose failures without exposing sensitive data
 - Every error path is tested. If you haven't tested the failure case, it doesn't work
 
-### Linus — Data Structures First
+### data-first — Data Structures First
 
 > "Bad programmers worry about the code. Good programmers worry about data structures and their relationships."
 
@@ -67,7 +74,7 @@ These six masters create productive tensions that shape every decision.
 - If you have special cases, your data structure is wrong. Redesign until edge cases disappear
 - Immutable by default. Mutation is a code smell requiring justification
 
-### Dijkstra — Correctness by Construction
+### correctness — Correctness by Construction
 
 > "Program testing can be used to show the presence of bugs, but never to show their absence."
 
@@ -80,19 +87,19 @@ These six masters create productive tensions that shape every decision.
 
 ### Productive Tensions
 
-These masters sometimes disagree. Resolve tensions explicitly:
+These skills sometimes disagree. Resolve tensions explicitly:
 
 | Tension | Resolution for This Project |
 |---------|----------------------------|
-| Thompson (simple) vs Dijkstra (correct) | For payment logic: Dijkstra wins. Correctness over simplicity. For internal tooling: Thompson wins. |
-| Pike (minimal) vs Joy (resilient) | Resilience is part of the minimal interface. A payment API that doesn't handle failures isn't minimal—it's incomplete. |
-| Kernighan (clear) vs Linus (data-first) | They agree. Good data structures make code clearer. If your data structure requires complex code, redesign the structure. |
+| pragmatism (simple) vs correctness (correct) | For payment logic: correctness wins. For internal tooling: pragmatism wins. |
+| simplicity (minimal) vs distributed (resilient) | Resilience is part of the minimal interface. A payment API that doesn't handle failures isn't minimal—it's incomplete. |
+| clarity (clear) vs data-first | They agree. Good data structures make code clearer. If your data structure requires complex code, redesign the structure. |
 
 ---
 
 ## Base Practices (Always Active)
 
-### Security — Think Like an Attacker (Schneier + OWASP)
+### Security — Think Like an Attacker (security-mindset + owasp)
 
 > "Security is a process, not a product."
 
@@ -113,14 +120,14 @@ These masters sometimes disagree. Resolve tensions explicitly:
 - Different keys for dev/staging/prod
 - Log when secrets are accessed (audit trail)
 
-### Testing — The Testing Trophy (Dodds + Meszaros)
+### Testing — The Testing Trophy (react-test + test-doubles)
 
 > "Write tests. Not too many. Mostly integration."
 
 **Test distribution for this project:**
 ```
         ┌───────────┐
-        │   E2E     │  Few: Critical payment flows only
+        │   E2E     │  Few critical payment flows only
         │   (10%)   │  - Successful charge end-to-end
         ├───────────┤  - Refund end-to-end
         │           │
@@ -134,7 +141,7 @@ These masters sometimes disagree. Resolve tensions explicitly:
         └───────────┘  - Validation rules
 ```
 
-**Meszaros test patterns:**
+**test-doubles patterns:**
 - Arrange-Act-Assert structure for every test
 - One assertion per test (conceptually—multiple asserts on same object OK)
 - Test doubles: Use fakes for Stripe (test mode), stubs for config, mocks sparingly
@@ -146,37 +153,37 @@ These masters sometimes disagree. Resolve tensions explicitly:
 - Edge cases (zero amount, maximum amount, currency with 0 decimal places like JPY)
 - Idempotency (same request twice returns same result)
 
-### Engineering Discipline — Learn from Failure (Petroski + Leveson + Taleb)
+### Engineering Discipline — Learn from Failure (failure + safety + resilience)
 
 > "The most important engineering insights come from failure analysis."
 
-**From Petroski (failure as teacher):**
+**From failure skill (failure as teacher):**
 - Every payment failure gets a post-mortem if it affected customers
 - Near-misses are documented, not ignored
 - "It worked" is not success criteria. "It worked AND we understand why" is
 
-**From Leveson (systems thinking):**
+**From safety skill (systems thinking):**
 - Payment failures are rarely single-cause. Look for contributing factors
 - Human error is a symptom, not a root cause. What allowed the error?
 - Defense in depth: Validation → Rate limiting → Idempotency → Monitoring → Alerting
 
-**From Taleb (antifragility):**
+**From resilience skill (antifragility):**
 - Small failures improve the system. Catch them in staging
 - Chaos engineering: Randomly fail Stripe calls in test environment
 - Don't just handle errors—benefit from them. Each failure improves retry logic, alerting, documentation
 
 ## Auto-Invoke Canon
 
-Load these experts when context matches:
+Load these skills when context matches:
 
 | Context | Action |
 |---------|--------|
-| C# generics, covariance, language edge cases | INVOKE `/skeet` |
-| async/await, Task, CancellationToken, threading | INVOKE `/cleary` |
-| API design, immutability, builders, factories | INVOKE `/bloch` |
-| Domain modeling, aggregates, value objects | INVOKE `/evans` |
-| Refactoring existing code, finding seams | INVOKE `/feathers` |
-| Test doubles, fixtures, test organization | INVOKE `/meszaros` |
+| C# generics, covariance, language edge cases | INVOKE `/csharp-depth` |
+| async/await, Task, CancellationToken, threading | INVOKE `/async` |
+| API design, immutability, builders, factories | INVOKE `/java` |
+| Domain modeling, aggregates, value objects | INVOKE `/design-patterns` |
+| Refactoring existing code, finding seams | INVOKE `/legacy` |
+| Test doubles, fixtures, test organization | INVOKE `/test-doubles` |
 
 ## Workflow
 
@@ -211,12 +218,12 @@ When Claude writes code, it automatically asks:
 
 ```
 Writing a method...
-├── Kernighan: Is `ProcessPayment` clearer than `DoPayment`? ✓
-├── Pike: Do I need this abstraction or is it premature?
-├── Linus: Can my PaymentResult eliminate null checks?
-├── Joy: What if Stripe is down? → Add fallback
-├── Thompson: Is the simple approach good enough?
-└── Dijkstra: What invariants must hold? Amount > 0, Currency valid
+├── clarity: Is `ProcessPayment` clearer than `DoPayment`? ✓
+├── simplicity: Do I need this abstraction or is it premature?
+├── data-first: Can my PaymentResult eliminate null checks?
+├── distributed: What if Stripe is down? → Add fallback
+├── pragmatism: Is the simple approach good enough?
+└── correctness: What invariants must hold? Amount > 0, Currency valid
 ```
 
 ### Auto-Invoke Canon (explicit, on demand)
@@ -227,9 +234,9 @@ When Claude detects context:
 Task: "Add retry logic to the payment client"
 
 Context detected: async/await, Task, CancellationToken
-→ Auto-invoke /cleary
+→ Auto-invoke /async
 
-Now Claude applies Stephen Cleary's patterns:
+Now Claude applies async patterns:
 - Use ConfigureAwait(false) in library code
 - Pass CancellationToken through the call chain
 - Use Polly for retry policies
@@ -242,16 +249,16 @@ Now Claude applies Stephen Cleary's patterns:
 New payment method request
 │
 ├── Baseline Brain (always active)
-│   └── Joy asks: "What if this fails?"
-│   └── Dijkstra asks: "What must always be true?"
+│   └── distributed asks: "What if this fails?"
+│   └── correctness asks: "What must always be true?"
 │
 ├── Auto-invoke triggered
-│   └── /cleary loaded (async patterns)
-│   └── /bloch loaded (API design)
+│   └── /async loaded (async patterns)
+│   └── /java loaded (API design)
 │
 └── Code written with:
-    - Cleary's async best practices
-    - Bloch's API design principles
-    - Joy's failure handling
-    - Dijkstra's invariants
+    - async best practices
+    - java API design principles
+    - distributed failure handling
+    - correctness invariants
 ```

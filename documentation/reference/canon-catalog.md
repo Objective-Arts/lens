@@ -1,32 +1,39 @@
-# Canon Masters Reference
+---
+**STRICTLY CONFIDENTIAL**
 
-Complete catalog of all canon masters organized by layer and domain.
+This document contains proprietary and confidential information. Unauthorized reproduction, distribution, or disclosure is strictly prohibited. This material is intended solely for authorized recipients.
+
+---
+
+# Skills Reference
+
+Complete catalog of all skills organized by layer and domain.
 
 ---
 
 ## Baseline Brain (Always Active)
 
-Six masters that shape HOW you think about code:
+Six core skills that shape HOW you think about code:
 
-| Master | Works | Key Principle | Invoke |
-|--------|-------|---------------|--------|
-| **Kernighan** | Practice of Programming, Elements of Style | Simplicity, clarity, generality | `/kernighan` |
-| **Thompson** | Unix, UTF-8, Go | "When in doubt, use brute force" | `/thompson` |
-| **Pike** | Notes on Programming in C, Go Proverbs | "A little copying is better than a little dependency" | `/pike` |
-| **Joy** | BSD, vi, NFS | "Design for failure from the start" | `/joy` |
-| **Linus** | Linux kernel, Git | "Good programmers worry about data structures" | `/linus` |
-| **Dijkstra** | EWDs, A Discipline of Programming | Correctness by construction | `/dijkstra` |
+| Skill | Source | Key Principle | Invoke |
+|-------|--------|---------------|--------|
+| **clarity** | Practice of Programming, Elements of Style | Simplicity, clarity, generality | `/clarity` |
+| **pragmatism** | Unix, UTF-8, Go | "When in doubt, use brute force" | `/pragmatism` |
+| **simplicity** | Notes on Programming in C, Go Proverbs | "A little copying is better than a little dependency" | `/simplicity` |
+| **distributed** | BSD, vi, NFS | "Design for failure from the start" | `/distributed` |
+| **data-first** | Linux kernel, Git | "Good programmers worry about data structures" | `/data-first` |
+| **correctness** | EWDs, A Discipline of Programming | Correctness by construction | `/correctness` |
 
 ### Productive Tensions
 
 ```
-Thompson ←——————→ Dijkstra
-(pragmatism)      (rigor)
+pragmatism ←——————→ correctness
+(get it working)    (rigor)
 
-Linus ←——————→ Pike
-(direct)          (abstract)
+data-first ←——————→ simplicity
+(direct)            (abstract)
 
-Kernighan ←——————→ Thompson
+clarity ←——————→ pragmatism
 (clarity first)    (working first)
 ```
 
@@ -36,191 +43,191 @@ Kernighan ←——————→ Thompson
 
 ### Security
 
-| Master | Works | Key Principles | Invoke |
-|--------|-------|----------------|--------|
-| **Schneier** | Security Engineering | Threat modeling, defense in depth, think like an attacker | `/schneier` |
-| **OWASP** | Top 10, Guidelines | Injection, XSS, CSRF, auth failures | `/owasp` |
+| Skill | Source | Key Principles | Invoke |
+|-------|--------|----------------|--------|
+| **security-mindset** | Security Engineering | Threat modeling, defense in depth, think like an attacker | `/security-mindset` |
+| **owasp** | Top 10, Guidelines | Injection, XSS, CSRF, auth failures | `/owasp` |
 
 ### Testing
 
-| Master | Works | Key Principles | Invoke |
-|--------|-------|----------------|--------|
-| **Dodds** | Testing Library, Testing Trophy | Integration > Unit > E2E, test behavior not implementation | `/dodds` |
-| **Meszaros** | xUnit Test Patterns | Test doubles (stub, spy, mock, fake), setup patterns | `/meszaros` |
-| **Feathers** | Working Effectively with Legacy Code | Characterization tests, seams, safe refactoring | `/feathers` |
+| Skill | Source | Key Principles | Invoke |
+|-------|--------|----------------|--------|
+| **react-test** | Testing Library, Testing Trophy | Integration > Unit > E2E, test behavior not implementation | `/react-test` |
+| **test-doubles** | xUnit Test Patterns | Test doubles (stub, spy, mock, fake), setup patterns | `/test-doubles` |
+| **legacy** | Working Effectively with Legacy Code | Characterization tests, seams, safe refactoring | `/legacy` |
 
 ### Documentation
 
-| Master | Works | Key Principles | Invoke |
-|--------|-------|----------------|--------|
-| **Procida** | Diátaxis | Tutorials, how-tos, reference, explanation | `/procida` |
+| Skill | Source | Key Principles | Invoke |
+|-------|--------|----------------|--------|
+| **docs** | Diátaxis | Tutorials, how-tos, reference, explanation | `/docs` |
 
 ### Writing
 
-| Master | Works | Key Principles | Invoke |
-|--------|-------|----------------|--------|
-| **Zinsser** | On Writing Well | Clarity, simplicity, remove clutter | `/zinsser` |
-| **Strunk & White** | Elements of Style | Omit needless words, active voice, be specific | `/strunk-white` |
-| **King** | On Writing | Kill your darlings, cut 10%, honest writing | `/king` |
+| Skill | Source | Key Principles | Invoke |
+|-------|--------|----------------|--------|
+| **prose** | On Writing Well | Clarity, simplicity, remove clutter | `/prose` |
+| **brevity** | Elements of Style | Omit needless words, active voice, be specific | `/brevity` |
+| **editing** | On Writing | Kill your darlings, cut 10%, honest writing | `/editing` |
 
 ### Engineering Philosophy
 
-Five masters forming a complete philosophy of building:
+Five skills forming a complete philosophy of building:
 
-| Master | Works | Key Principles | Invoke |
-|--------|-------|----------------|--------|
-| **Petroski** | To Engineer Is Human, Design Paradigms | Form follows failure, case study methodology, constraints drive innovation | `/petroski` |
-| **Leveson** | Engineering a Safer World, Safeware | System accidents, STAMP/STPA, safety constraints, humans not the problem | `/leveson` |
-| **Taleb** | Antifragile, Black Swan, Skin in the Game | Antifragility, via negativa, optionality, bounded downside | `/taleb` |
-| **McIlroy** | Unix Philosophy | Do one thing well, pipelines, composition | `/mcilroy` |
-| **Carmack** | .plan files, Game Engines | Performance discipline, ship it, pragmatic optimization | `/carmack` |
+| Skill | Source | Key Principles | Invoke |
+|-------|--------|----------------|--------|
+| **failure** | To Engineer Is Human, Design Paradigms | Form follows failure, case study methodology, constraints drive innovation | `/failure` |
+| **safety** | Engineering a Safer World, Safeware | System accidents, STAMP/STPA, safety constraints, humans not the problem | `/safety` |
+| **resilience** | Antifragile, Black Swan, Skin in the Game | Antifragility, via negativa, optionality, bounded downside | `/resilience` |
+| **composition** | Unix Philosophy | Do one thing well, pipelines, composition | `/composition` |
+| **optimization** | .plan files, Game Engines | Performance discipline, ship it, pragmatic optimization | `/optimization` |
 
 **The Engineering Pillars**:
-- Petroski: Learn from past failures (historical lens)
-- Leveson: Prevent future failures systematically (safety lens)
-- Taleb: Design systems that gain from failure (antifragility lens)
-- McIlroy: Compose small, focused tools (Unix philosophy)
-- Carmack: Ship working software, measure before optimizing (pragmatism)
+- failure: Learn from past failures (historical lens)
+- safety: Prevent future failures systematically (safety lens)
+- resilience: Design systems that gain from failure (antifragility lens)
+- composition: Compose small, focused tools (Unix philosophy)
+- optimization: Ship working software, measure before optimizing (pragmatism)
 
 ---
 
-## Domain Canon
+## Domain Skills
 
 ### Python
 
-| Master | Works | Key Principles | Invoke |
-|--------|-------|----------------|--------|
-| **Hettinger** | Transformative Python Talks | Pythonic idioms, generators, decorators | `/hettinger` |
-| **Beazley** | Python Essential Reference | Deep internals, concurrency, metaprogramming | `/beazley` |
-| **Ramalho** | Fluent Python | Data model, protocols, type hints | `/ramalho` |
-| **Slatkin** | Effective Python | 90 specific ways, practical patterns | `/slatkin` |
+| Skill | Source | Key Principles | Invoke |
+|-------|--------|----------------|--------|
+| **python-idioms** | Transformative Python Talks | Pythonic idioms, generators, decorators | `/python-idioms` |
+| **python-advanced** | Python Essential Reference | Deep internals, concurrency, metaprogramming | `/python-advanced` |
+| **python-protocols** | Fluent Python | Data model, protocols, type hints | `/python-protocols` |
+| **python-patterns** | Effective Python | 90 specific ways, practical patterns | `/python-patterns` |
 
 ### Java
 
-| Master | Works | Key Principles | Invoke |
-|--------|-------|----------------|--------|
-| **Bloch** | Effective Java | Static factories, immutability, defensive copies, ThreadLocal | `/bloch` |
+| Skill | Source | Key Principles | Invoke |
+|-------|--------|----------------|--------|
+| **java** | Effective Java | Static factories, immutability, defensive copies, ThreadLocal | `/java` |
 
 ### JavaScript
 
-| Master | Works | Key Principles | Invoke |
-|--------|-------|----------------|--------|
-| **Simpson** | You Don't Know JS | Closures, this binding, async patterns, event loop | `/simpson` |
-| **Cherny** | Programming TypeScript | Type-level programming, generics, inference | `/cherny` |
-| **Crockford** | JavaScript: The Good Parts | Avoiding bad parts, disciplined subset | `/crockford` |
+| Skill | Source | Key Principles | Invoke |
+|-------|--------|----------------|--------|
+| **js-internals** | You Don't Know JS | Closures, this binding, async patterns, event loop | `/js-internals` |
+| **typescript** | Programming TypeScript | Type-level programming, generics, inference | `/typescript` |
+| **js-safety** | JavaScript: The Good Parts | Avoiding bad parts, disciplined subset | `/js-safety` |
 
 ### C#
 
-| Master | Works | Key Principles | Invoke |
-|--------|-------|----------------|--------|
-| **Skeet** | C# in Depth | Value vs reference, nullable types, pattern matching, LINQ | `/skeet` |
-| **Cleary** | Concurrency in C# | Async all the way, CancellationToken, ConfigureAwait | `/cleary` |
-| **Hejlsberg** | C# Language Design | Progressive disclosure, language philosophy | `/hejlsberg` |
+| Skill | Source | Key Principles | Invoke |
+|-------|--------|----------------|--------|
+| **csharp-depth** | C# in Depth | Value vs reference, nullable types, pattern matching, LINQ | `/csharp-depth` |
+| **async** | Concurrency in C# | Async all the way, CancellationToken, ConfigureAwait | `/async` |
+| **type-systems** | C# Language Design | Progressive disclosure, language philosophy | `/type-systems` |
 
 ### React
 
-| Master | Works | Key Principles | Invoke |
-|--------|-------|----------------|--------|
-| **Abramov** | Redux, React Blog | Composition, hooks, unidirectional flow, mental models | `/abramov` |
+| Skill | Source | Key Principles | Invoke |
+|-------|--------|----------------|--------|
+| **react-state** | Redux, React Blog | Composition, hooks, unidirectional flow, mental models | `/react-state` |
 
 ### Angular
 
-| Master | Works | Key Principles | Invoke |
-|--------|-------|----------------|--------|
-| **Hevery** | Angular | Dependency injection, change detection, signals | `/hevery` |
-| **Papa** | Style Guide | File structure, naming, patterns | `/papa` |
+| Skill | Source | Key Principles | Invoke |
+|-------|--------|----------------|--------|
+| **angular-core** | Angular | Dependency injection, change detection, signals | `/angular-core` |
+| **angular-arch** | Style Guide | File structure, naming, patterns | `/angular-arch` |
 
 ### D3/Visualization
 
-| Master | Works | Key Principles | Invoke |
-|--------|-------|----------------|--------|
-| **Bostock** | D3.js, Observable | Selections, data-joins, scales, transitions | `/bostock` |
-| **Tufte** | Visual Display | Data-ink ratio, chartjunk, small multiples | `/tufte` |
-| **Few** | Dashboard Design | Clarity, context, comparison | `/few` |
-| **Knaflic** | Storytelling with Data | Data narrative, visual hierarchy | `/knaflic` |
+| Skill | Source | Key Principles | Invoke |
+|-------|--------|----------------|--------|
+| **d3** | D3.js, Observable | Selections, data-joins, scales, transitions | `/d3` |
+| **charts** | Visual Display | Data-ink ratio, chartjunk, small multiples | `/charts` |
+| **dashboards** | Dashboard Design | Clarity, context, comparison | `/dashboards` |
+| **data-story** | Storytelling with Data | Data narrative, visual hierarchy | `/data-story` |
 
 ### Go
 
-| Master | Works | Key Principles | Invoke |
-|--------|-------|----------------|--------|
-| **Pike** | Go Proverbs | Applied to Go idioms (also in Baseline Brain) | `/pike` |
+| Skill | Source | Key Principles | Invoke |
+|-------|--------|----------------|--------|
+| **simplicity** | Go Proverbs | Applied to Go idioms (also in Baseline Brain) | `/simplicity` |
 
 ---
 
-## Business Canon
+## Business Skills
 
 ### Base
 
-| Master | Works | Key Principles | Invoke |
-|--------|-------|----------------|--------|
-| **Strunk & White** | Elements of Style | Brevity, clarity, omit needless words | `/strunk` |
-| **Zinsser** | On Writing Well | Simplicity, humanity | `/zinsser` |
-| **Grove** | High Output Management | Leverage, output orientation | `/grove` |
+| Skill | Source | Key Principles | Invoke |
+|-------|--------|----------------|--------|
+| **brevity** | Elements of Style | Brevity, clarity, omit needless words | `/brevity` |
+| **prose** | On Writing Well | Simplicity, humanity | `/prose` |
+| **management** | High Output Management | Leverage, output orientation | `/management` |
 
 ### Strategy
 
-| Master | Works | Key Principles | Invoke |
-|--------|-------|----------------|--------|
-| **Porter** | Competitive Advantage | Five Forces, value chains | `/porter` |
-| **Rumelt** | Good Strategy Bad Strategy | Kernel of strategy, coherent actions | `/rumelt` |
-| **Helmer** | 7 Powers | Scale, network effects, switching costs | `/helmer` |
-| **Thompson** | Stratechery | Aggregation theory, platform dynamics | `/thompson-stratechery` |
-| **Horowitz** | Hard Thing About Hard Things | Peacetime/wartime CEO | `/horowitz` |
+| Skill | Source | Key Principles | Invoke |
+|-------|--------|----------------|--------|
+| **competition** | Competitive Advantage | Five Forces, value chains | `/competition` |
+| **strategy** | Good Strategy Bad Strategy | Kernel of strategy, coherent actions | `/strategy` |
+| **moats** | 7 Powers | Scale, network effects, switching costs | `/moats` |
+| **platforms** | Stratechery | Aggregation theory, platform dynamics | `/platforms` |
+| **leadership** | Hard Thing About Hard Things | Peacetime/wartime CEO | `/leadership` |
 
-### Shared from Engineering Canon
+### Shared from Engineering
 
-| Master | Works | Business Application | Invoke |
-|--------|-------|---------------------|--------|
-| **Taleb** | Antifragile, Black Swan, Skin in the Game | Risk management, optionality, antifragile orgs | `/taleb` |
-| **Petroski** | To Engineer Is Human, Design Paradigms | Learning from failures, constraints drive innovation | `/petroski` |
+| Skill | Source | Business Application | Invoke |
+|-------|--------|---------------------|--------|
+| **resilience** | Antifragile, Black Swan, Skin in the Game | Risk management, optionality, antifragile orgs | `/resilience` |
+| **failure** | To Engineer Is Human, Design Paradigms | Learning from failures, constraints drive innovation | `/failure` |
 
 ---
 
-## UI/UX Canon
+## UI/UX Skills
 
-12 experts for building beautiful interfaces without being a designer.
+12 skills for building beautiful interfaces without being a designer.
 
 ### Philosophy & Psychology
 
-| Master | Works | Key Principles | Invoke |
-|--------|-------|----------------|--------|
-| **Rams** | 10 Principles of Good Design | Less but better, 3 colors max, 4px grid | `/rams` |
-| **Norman** | Design of Everyday Things | Affordances, feedback, mental models | `/norman` |
-| **Cooper** | About Face | Goal-directed design, eliminate excise, undo over confirmation | `/cooper` |
+| Skill | Source | Key Principles | Invoke |
+|-------|--------|----------------|--------|
+| **design** | 10 Principles of Good Design | Less but better, 3 colors max, 4px grid | `/design` |
+| **usability** | Design of Everyday Things | Affordances, feedback, mental models | `/usability` |
+| **personas** | About Face | Goal-directed design, eliminate excise, undo over confirmation | `/personas` |
 
 ### Visual & Typography
 
-| Master | Works | Key Principles | Invoke |
-|--------|-------|----------------|--------|
-| **Ive** | Apple Design Language | Minimalism, material honesty, 4-level shadows | `/ive` |
-| **Kruzeniski** | Microsoft Fluent | Type-first hierarchy, content over chrome | `/kruzeniski` |
+| Skill | Source | Key Principles | Invoke |
+|-------|--------|----------------|--------|
+| **visual** | Apple Design Language | Minimalism, material honesty, 4-level shadows | `/visual` |
+| **typography** | Microsoft Fluent | Type-first hierarchy, content over chrome | `/typography` |
 
 ### Motion & Interaction
 
-| Master | Works | Key Principles | Invoke |
-|--------|-------|----------------|--------|
-| **Duarte** | Material Design | Meaningful transitions, ease-out enter, 300ms max | `/duarte` |
-| **Buxton** | Sketching User Experiences | Input fundamentals, chunking, two-handed input | `/buxton` |
+| Skill | Source | Key Principles | Invoke |
+|-------|--------|----------------|--------|
+| **motion** | Material Design | Meaningful transitions, ease-out enter, 300ms max | `/motion` |
+| **interaction** | Sketching User Experiences | Input fundamentals, chunking, two-handed input | `/interaction` |
 
 ### Patterns & Components
 
-| Master | Works | Key Principles | Invoke |
-|--------|-------|----------------|--------|
-| **Wroblewski** | Mobile First, Web Form Design | Thumb zones, 44px touch targets, inline validation | `/wroblewski` |
-| **Frost** | Atomic Design | Atoms → Molecules → Organisms, design tokens | `/frost` |
+| Skill | Source | Key Principles | Invoke |
+|-------|--------|----------------|--------|
+| **mobile** | Mobile First, Web Form Design | Thumb zones, 44px touch targets, inline validation | `/mobile` |
+| **components** | Atomic Design | Atoms → Molecules → Organisms, design tokens | `/components` |
 
 ### Governance & Handoff
 
-| Master | Works | Key Principles | Invoke |
-|--------|-------|----------------|--------|
-| **Curtis** | Modular Web Design | Versioning, documentation, design tokens | `/curtis` |
-| **Mall** | Design System Handbook | Hot potato handoff, designer-dev collaboration | `/mall` |
+| Skill | Source | Key Principles | Invoke |
+|-------|--------|----------------|--------|
+| **tokens** | Modular Web Design | Versioning, documentation, design tokens | `/tokens` |
+| **handoff** | Design System Handbook | Hot potato handoff, designer-dev collaboration | `/handoff` |
 
-### Data Visualization (shared with Visualization Canon)
+### Data Visualization (shared with Visualization)
 
-| Master | Works | Key Principles | Invoke |
-|--------|-------|----------------|--------|
-| **Tufte** | Visual Display of Quantitative Information | Data-ink ratio, no chartjunk | `/tufte` |
+| Skill | Source | Key Principles | Invoke |
+|-------|--------|----------------|--------|
+| **charts** | Visual Display of Quantitative Information | Data-ink ratio, no chartjunk | `/charts` |
 
 ---
 
@@ -228,8 +235,8 @@ Five masters forming a complete philosophy of building:
 
 Available as reference for deeper work:
 
-| Master | Works | Contribution | Invoke |
-|--------|-------|--------------|--------|
-| **Knuth** | TAOCP | Algorithms, literate programming | `/knuth` |
-| **Liskov** | CLU, LSP | Abstraction, substitution | `/liskov` |
-| **Gang of Four** | Design Patterns | Classic OOP patterns | `/gang-of-four` |
+| Skill | Source | Contribution | Invoke |
+|-------|--------|--------------|--------|
+| **algorithms** | TAOCP | Algorithms, literate programming | `/algorithms` |
+| **abstraction** | CLU, LSP | Abstraction, substitution | `/abstraction` |
+| **design-patterns** | Design Patterns | Classic OOP patterns | `/design-patterns` |

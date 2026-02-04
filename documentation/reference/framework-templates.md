@@ -1,3 +1,10 @@
+---
+**STRICTLY CONFIDENTIAL**
+
+This document contains proprietary and confidential information. Unauthorized reproduction, distribution, or disclosure is strictly prohibited. This material is intended solely for authorized recipients.
+
+---
+
 # Framework-Specific Standards Templates
 
 Copy the relevant section to your project's CLAUDE.md. These extend the universal STRUCTURAL-STANDARDS.md with framework-specific rules.

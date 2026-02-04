@@ -1,3 +1,10 @@
+---
+**STRICTLY CONFIDENTIAL**
+
+This document contains proprietary and confidential information. Unauthorized reproduction, distribution, or disclosure is strictly prohibited. This material is intended solely for authorized recipients.
+
+---
+
 # How to Apply a Profile
 
 ## Prerequisites
@@ -65,14 +72,14 @@ cc-config profile apply java+frontend -p .
 cc-config profile apply javascript+react+frontend -p .
 ```
 
-This adds experts for:
-- Visual design (Rams, Ive)
-- Interaction (Norman, Cooper, Buxton)
-- Typography (Kruzeniski)
-- Motion (Duarte)
-- Components (Frost, Wroblewski)
-- Governance (Curtis, Mall)
-- Data visualization (Tufte)
+This adds skills for:
+- Visual design (design, visual)
+- Interaction (usability, personas, interaction)
+- Typography (typography)
+- Motion (motion)
+- Components (components, mobile)
+- Governance (tokens, handoff)
+- Data visualization (charts)
 
 ## Dry Run Mode
 

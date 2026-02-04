@@ -9,6 +9,7 @@ ralph:
       - usability      # Affordances
       - charts         # Information design
     build:
+      - frontend-design # Anthropic's bold aesthetic direction
       - components     # Atomic design
       - visual         # Visual minimalism
       - usability      # UX principles
@@ -31,6 +32,8 @@ ralph:
 
 skills:
   canon:
+    # Anthropic Official
+    - frontend-design  # Bold aesthetics, avoid AI slop
     # Philosophy & Psychology
     - design         # 10 Principles - less but better
     - usability      # Affordances, feedback, mental models
@@ -55,7 +58,7 @@ agents:
 claudeMd:
   autoInvoke:
     - context: "Building UI component"
-      action: "INVOKE `/components` then `/visual`"
+      action: "INVOKE `/frontend-design` then `/components` then `/visual`"
     - context: "Designing forms"
       action: "INVOKE `/mobile` then `/usability`"
     - context: "Adding animation"

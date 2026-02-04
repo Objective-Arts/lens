@@ -1,3 +1,10 @@
+---
+**STRICTLY CONFIDENTIAL**
+
+This document contains proprietary and confidential information. Unauthorized reproduction, distribution, or disclosure is strictly prohibited. This material is intended solely for authorized recipients.
+
+---
+
 # Claude-Optimal: Hooks
 
 Hooks enforce quality gates automatically. Unlike flags (which are advisory), hooks block actions until requirements are met.

@@ -1,4 +1,11 @@
-# Why Canon Masters?
+---
+**STRICTLY CONFIDENTIAL**
+
+This document contains proprietary and confidential information. Unauthorized reproduction, distribution, or disclosure is strictly prohibited. This material is intended solely for authorized recipients.
+
+---
+
+# Why Expert Skills?
 
 *Understanding the philosophy behind expert lenses.*
 
@@ -28,7 +35,7 @@ Consider two developers who have both read Effective Java:
 
 **Developer A** read it once, remembers some items, applies them when consciously thinking about it.
 
-**Developer B** has internalized Bloch's perspective. When they see code, they automatically think: "Would this survive Bloch's review? What items apply here?"
+**Developer B** has internalized that perspective. When they see code, they automatically think: "Would this survive a rigorous API review? What best practices apply here?"
 
 Developer B produces better Java—not because they know more, but because they've adopted a **lens** that filters all their decisions.
 
@@ -44,7 +51,7 @@ A lens does three things:
 
 You see what the lens reveals, not everything equally.
 
-With the Bloch lens active, Claude sees:
+With the java skill active, Claude sees:
 - Opportunities for static factories
 - The need for ThreadLocal with SimpleDateFormat
 - The wrongness of mutable return values
@@ -55,38 +62,38 @@ Without it, these patterns exist in Claude's knowledge but don't surface.
 
 The same code looks different through different lenses.
 
-A constructor through Bloch's lens: "Should this be a static factory instead?"
-A data structure through Linus's lens: "Is this the right data representation?"
-An API through Pike's lens: "Is this interface minimal and composable?"
+A constructor through the java lens: "Should this be a static factory instead?"
+A data structure through the data-first lens: "Is this the right data representation?"
+An API through the simplicity lens: "Is this interface minimal and composable?"
 
 ### 3. Guides Decisions
 
 When choices arise, the lens provides criteria.
 
 Without a lens: "Both approaches work, I'll pick one."
-With Bloch's lens: "Item 17 says prefer ThreadLocal—I'll use that."
+With the java lens: "Best practice says prefer ThreadLocal—I'll use that."
 
 ---
 
-## Why Masters, Not "Best Practices"?
+## Why Skills, Not "Best Practices"?
 
-"Best practices" are generic and context-free. Masters embody **judgment**—knowing when and how to apply principles, and when to break them.
+"Best practices" are generic and context-free. Skills embody **judgment**—knowing when and how to apply principles, and when to break them.
 
-Bloch doesn't just say "prefer immutability." He explains:
+The java skill doesn't just say "prefer immutability." It explains:
 - When (value types, thread-shared objects)
 - Why (simpler reasoning, thread safety)
 - How (defensive copies, unmodifiable wrappers)
 - And when to break the rule (performance-critical inner loops)
 
-He provides **items**—concrete, numbered, actionable principles with examples and rationale.
+Skills provide **concrete, actionable principles** with examples and rationale.
 
-### What Makes Someone Canon?
+### What Makes a Good Skill?
 
-Masters must meet criteria:
+Skills must meet criteria:
 
 | Criterion | Why It Matters |
 |-----------|----------------|
-| **Published, citable principles** | We encode what they wrote, not our interpretation |
+| **Published, citable principles** | We encode what experts wrote, not interpretation |
 | **Demonstrated impact** | Validated by widespread adoption |
 | **Specific techniques** | Not just philosophy—implementation patterns |
 | **Clear scope** | Known domain of expertise |
@@ -96,43 +103,43 @@ Masters must meet criteria:
 
 ## The Three-Layer Stack
 
-Canon organizes into three layers:
+Skills organize into three layers:
 
 ### Baseline Brain (Always Active)
 
-Six masters that shape HOW you think:
+Six core skills that shape HOW you think:
 
-- **Kernighan**: Clarity above all
-- **Thompson**: Pragmatism, get it working
-- **Pike**: Small interfaces, composition
-- **Joy**: Design for failure
-- **Linus**: Data structures first
-- **Dijkstra**: Correctness by construction
+- **clarity**: Clear code above all
+- **pragmatism**: Get it working first
+- **simplicity**: Small interfaces, composition
+- **distributed**: Design for failure
+- **data-first**: Data structures first
+- **correctness**: Correctness by construction
 
 These provide **productive tensions**:
-- Thompson (pragmatism) vs. Dijkstra (rigor)
-- Linus (direct) vs. Pike (abstract)
+- pragmatism (get it working) vs. correctness (rigor)
+- data-first (direct) vs. simplicity (abstract)
 
-Claude must choose based on context. Prototyping? Lean Thompson. Production auth? Lean Dijkstra.
+Claude must choose based on context. Prototyping? Lean pragmatism. Production auth? Lean correctness.
 
 ### Base Practices (Always Active)
 
 WHAT you check for, regardless of domain:
 
-- **Security**: Schneier, OWASP
-- **Testing**: Dodds, Meszaros, Feathers
-- **Documentation**: Procida
-- **Engineering Philosophy**: Petroski, Leveson, Taleb (the failure trilogy)
+- **Security**: security-mindset, owasp
+- **Testing**: react-test, test-doubles, legacy
+- **Documentation**: docs
+- **Engineering Philosophy**: failure, safety, resilience
 
-### Domain Canon (Per Project)
+### Domain Skills (Per Project)
 
 WHERE-specific expertise:
 
-- Java? Bloch
-- React? Abramov
-- C#? Skeet, Cleary, Hejlsberg
-- D3? Bostock, Tufte
-- UI/UX? Rams, Norman, Cooper, Ive, Frost (12 experts total)
+- Java? java skill
+- React? react-state skill
+- C#? csharp-depth, async skills
+- D3? d3, charts skills
+- UI/UX? components, usability, design, visual (12 skills total)
 
 ---
 
@@ -143,25 +150,25 @@ When you apply a profile like `javascript+react`, Claude's perspective shifts:
 ```
 WITHOUT LENS           WITH LENS
 ─────────────         ─────────────
-General React     →   React through Abramov's eyes
+General React     →   React through react-state lens
 "Components work"     "Composition over inheritance"
 
-General async     →   Async through Simpson's eyes
+General async     →   Async through js-internals lens
 "Promise resolves"    "Event loop, microtask queue"
 
-General security  →   Security through Schneier's eyes
+General security  →   Security through security-mindset lens
 "Input validated"     "What could an attacker do here?"
 
-General dialog    →   Dialog through Cooper's eyes
+General dialog    →   Dialog through personas lens
 "Shows message"       "Undo over confirmation, eliminate excise"
 
-General CSS       →   CSS through Rams's eyes
+General CSS       →   CSS through design lens
 "Looks fine"          "3 colors max, 4px grid, less but better"
 
-General design    →   Design through Petroski's eyes
+General design    →   Design through failure lens
 "This works"          "What failures shaped this? What will fail?"
 
-General arch      →   Architecture through Taleb's eyes
+General arch      →   Architecture through resilience lens
 "Efficient"           "Fragile. Where's the redundancy? The optionality?"
 ```
 
@@ -179,10 +186,10 @@ You get:
 
 > "This follows established patterns consistently."
 
-That's the value of canon masters: transforming Claude's vast knowledge into applied expertise.
+That's the value of expert skills: transforming Claude's vast knowledge into applied expertise.
 
 ---
 
 ## Further Reading
 
-- [Canon Masters Reference](../reference/canon-catalog.md) - Complete catalog
+- [Skills Reference](../reference/canon-catalog.md) - Complete catalog

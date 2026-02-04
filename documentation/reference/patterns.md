@@ -1,3 +1,10 @@
+---
+**STRICTLY CONFIDENTIAL**
+
+This document contains proprietary and confidential information. Unauthorized reproduction, distribution, or disclosure is strictly prohibited. This material is intended solely for authorized recipients.
+
+---
+
 # Claude Code Design Patterns
 
 *A Pattern Language in the Style of the Gang of Four*
@@ -12,7 +19,7 @@ These patterns implement **Canon-Driven Development**: quality built in from the
 
 The dual workflow model uses these patterns:
 - **New Code Flow**: Canon Factory → Profile Builder → Quality Template
-- **Legacy Code Flow**: Canon Factory → Skill Decorator (Feathers) → Quality Template
+- **Legacy Code Flow**: Canon Factory → Skill Decorator (legacy) → Quality Template
 
 ---
 
@@ -93,8 +100,8 @@ Consider a developer working on multiple projects: a D3 visualization, a Java ba
 WITHOUT FACTORY               WITH FACTORY
 ───────────────               ───────────────
 "Write D3 code"               CanonFactory.create("D3")
-Generic, correct code         → loads bostock skill
-                              → Mike Bostock's mental model
+Generic, correct code         → loads d3 skill
+                              → Mike d3's mental model
                               → idiomatic D3 patterns
 ```
 
@@ -132,7 +139,7 @@ Use Canon Factory when:
          △                    △                    △
          │                    │                    │
     ┌────┴────┐          ┌────┴────┐          ┌────┴────┐
-    │ Bostock │          │  Bloch  │          │ Abramov │
+    │ d3 │          │  java  │          │ react-state │
     │  (D3)   │          │ (Java)  │          │ (React) │
     └─────────┘          └─────────┘          └─────────┘
 ```
@@ -141,7 +148,7 @@ Use Canon Factory when:
 
 - **CanonFactory**: Declares factory method returning CanonSkill
 - **CanonSkill**: Interface for domain expertise
-- **ConcreteCanon** (Bostock, Bloch, Abramov): Implements specific expertise
+- **ConcreteCanon** (d3, java, react-state): Implements specific expertise
 
 **Collaborations**
 
@@ -173,23 +180,23 @@ Liabilities:
 domains:
   d3:
     signals: [d3.js, d3-*, "selection", "data join"]
-    expert: bostock
+    expert: d3
     tokens: 1200
   java:
     signals: [.java, pom.xml, build.gradle]
-    expert: bloch
+    expert: java
     tokens: 1500
   react:
     signals: [.jsx, .tsx, react, useState, useEffect]
-    expert: abramov
+    expert: react-state
     tokens: 890
 ```
 
 **Known Uses**
 
-- D3-SMR project using Bostock for visualization code
-- Enterprise Java using Bloch for API design
-- React projects using Abramov for component patterns
+- D3-SMR project using d3 for visualization code
+- Enterprise Java using java for API design
+- React projects using react-state for component patterns
 
 **Related Patterns**
 
@@ -211,7 +218,7 @@ Configuration Builder, Setup Builder
 **Motivation**
 
 A D3 visualization project needs:
-- Canon skills: bostock, abramov, tufte
+- Canon skills: d3, react-state, tufte
 - Security: owasp (XSS)
 - Agents: css-expert, accessibility-tester
 - Commands: viz/*, d3/*
@@ -227,12 +234,12 @@ The Profile Builder separates construction from representation:
 
 ```
 ProfileBuilder()
-  .canon("bostock", "primary")
-  .canon("abramov", "secondary")
+  .canon("d3", "primary")
+  .canon("react-state", "secondary")
   .canon("owasp", "security")
   .agents(["css-expert", "accessibility-tester"])
   .commands(["viz/*", "d3/*"])
-  .autoInvoke("D3.js", "/bostock")
+  .autoInvoke("D3.js", "/d3")
   .build()
 ```
 
@@ -298,7 +305,7 @@ Liabilities:
 name: D3 Development
 description: Full D3/visualization development environment
 skills:
-  include: [bostock, abramov, dodds, osmani, cherny]
+  include: [d3, react-state, react-test, osmani, cherny]
 commands:
   include: [viz/*, d3/*]
 agents:
@@ -306,9 +313,9 @@ agents:
 claudeMd:
   autoInvoke:
     - context: D3.js or data visualization
-      action: INVOKE `/bostock`
+      action: INVOKE `/d3`
     - context: React/JSX/TSX files
-      action: INVOKE `/abramov`
+      action: INVOKE `/react-state`
 mcpServers:
   enable: [linear]
 ```
@@ -334,12 +341,12 @@ Skill Wrapper, Lens Stack
 
 **Motivation**
 
-Consider a canon skill like `bostock` (D3 expertise). Sometimes you need additional perspectives:
-- Performance considerations (Carmack)
+Consider a canon skill like `d3` (D3 expertise). Sometimes you need additional perspectives:
+- Performance considerations (optimization)
 - Accessibility requirements (WCAG)
 - Security review (OWASP)
 
-Rather than creating `bostock-with-performance` and `bostock-with-accessibility` and `bostock-with-security` (combinatorial explosion), decorators layer concerns:
+Rather than creating `d3-with-performance` and `d3-with-accessibility` and `d3-with-security` (combinatorial explosion), decorators layer concerns:
 
 ```
 ┌─────────────────────────────────────┐
@@ -347,7 +354,7 @@ Rather than creating `bostock-with-performance` and `bostock-with-accessibility`
 │  ┌───────────────────────────────┐  │
 │  │     PerformanceDecorator      │  │
 │  │  ┌─────────────────────────┐  │  │
-│  │  │        Bostock          │  │  │
+│  │  │        d3          │  │  │
 │  │  │    (core D3 skill)      │  │  │
 │  │  └─────────────────────────┘  │  │
 │  └───────────────────────────────┘  │
@@ -374,7 +381,7 @@ Use Skill Decorator when:
          │                              │
 ┌────────┴────────┐           ┌────────┴────────┐
 │  ConcreteSkill  │           │  SkillDecorator │
-│    (bostock)    │           │                 │
+│    (d3)    │           │                 │
 └─────────────────┘           └────────┬────────┘
                                        │
                               ┌────────┴────────┐
@@ -387,7 +394,7 @@ Use Skill Decorator when:
 **Participants**
 
 - **Skill**: Interface for skills that can be decorated
-- **ConcreteSkill**: Skill being decorated (bostock, bloch, etc.)
+- **ConcreteSkill**: Skill being decorated (d3, java, etc.)
 - **SkillDecorator**: Maintains reference to Skill, forwards requests
 - **ConcreteDecorator**: Adds responsibilities (security, performance)
 
@@ -409,9 +416,9 @@ Liabilities:
 ## In CLAUDE.md
 
 When touching DOM manipulation in D3:
-1. INVOKE /bostock (core expertise)
+1. INVOKE /d3 (core expertise)
 2. THEN INVOKE /owasp (XSS prevention)
-3. IF performance-critical, INVOKE /carmack
+3. IF performance-critical, INVOKE /optimization
 
 The skills layer their guidance, with more specific winning.
 ```
@@ -728,8 +735,8 @@ CONTEXT CHANGE                OBSERVER REACTION
 ──────────────                ─────────────────
 Open auth.js          ────►   Invoke /security-mindset
                               Invoke /owasp
-Edit UserProfile.tsx  ────►   Invoke /abramov
-Write test file       ────►   Invoke /dodds
+Edit UserProfile.tsx  ────►   Invoke /react-state
+Write test file       ────►   Invoke /react-test
 ```
 
 **Applicability**
@@ -766,7 +773,7 @@ Use Skill Observer when:
          ┌─────────────────┼─────────────────┐
          │                 │                 │
     ┌────┴────┐       ┌────┴────┐       ┌────┴────┐
-    │ Bostock │       │  OWASP  │       │ Abramov │
+    │ d3 │       │  OWASP  │       │ react-state │
     │Observer │       │Observer │       │Observer │
     └─────────┘       └─────────┘       └─────────┘
 ```
@@ -796,10 +803,10 @@ Liabilities:
 
 | Context | Action |
 |---------|--------|
-| React/JSX/TSX files | INVOKE `/abramov` |
+| React/JSX/TSX files | INVOKE `/react-state` |
 | Auth, login, passwords | INVOKE `/security-mindset` |
-| D3.js or visualization | INVOKE `/bostock` |
-| Writing tests | INVOKE `/dodds` |
+| D3.js or visualization | INVOKE `/d3` |
+| Writing tests | INVOKE `/react-test` |
 ```
 
 Triggers can use:
@@ -946,8 +953,8 @@ The Canon-Driven Development model uses two parallel pipelines that converge at 
 │   NEW CODE FLOW          LEGACY CODE FLOW               │               │
 │   ─────────────          ───────────────                │               │
 │   PROFILE BUILDER        SKILL DECORATOR                │               │
-│   (Bloch, Pike,          (Feathers, Fowler,             │               │
-│    Schneier, Evans)       Taleb, Liskov)                │               │
+│   (java, simplicity,          (legacy, test-strategy,             │               │
+│    security-mindset, design-patterns)       resilience, abstraction)                │               │
 │         │                      │                        │               │
 │         ▼                      ▼                        │               │
 │   /build-from-plan       /refactor-check                │               │
@@ -959,8 +966,8 @@ The Canon-Driven Development model uses two parallel pipelines that converge at 
 │         ───────────────────                             │               │
 │         QUALITY TEMPLATE                                │               │
 │                │                                        │               │
-│                ├── /test (Dodds, Meszaros)              │               │
-│                ├── /review-hard (Dijkstra, Schneier)    │               │
+│                ├── /test (react-test, test-doubles)              │               │
+│                ├── /review-hard (correctness, security-mindset)    │               │
 │                └── External (Gemini, Qodana)            │               │
 │                │                                        │               │
 │                ▼                                        │               │
@@ -993,7 +1000,7 @@ The Canon-Driven Development model uses two parallel pipelines that converge at 
               ▼                               ▼
        PROFILE BUILDER                 SKILL DECORATOR
        (New Code Flow)                 (Legacy Code Flow)
-       Bloch, Pike, Evans              Feathers, Fowler, Liskov
+       java, simplicity, design-patterns              legacy, test-strategy, abstraction
               │                               │
               ▼                               ▼
        /build-from-plan                /refactor-check

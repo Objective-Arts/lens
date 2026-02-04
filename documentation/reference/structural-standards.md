@@ -1,3 +1,10 @@
+---
+**STRICTLY CONFIDENTIAL**
+
+This document contains proprietary and confidential information. Unauthorized reproduction, distribution, or disclosure is strictly prohibited. This material is intended solely for authorized recipients.
+
+---
+
 # Structural Standards
 
 Universal code quality rules that apply to ALL Claude-generated code. These are not framework-specific; they're structural principles that prevent the most common review findings.

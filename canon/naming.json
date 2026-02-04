@@ -75,6 +75,7 @@
     "usability": { "tribute": "norman", "category": "ui-ux" },
     "design": { "tribute": "rams", "category": "ui-ux" },
     "mobile": { "tribute": "wroblewski", "category": "ui-ux" },
+    "frontend-design": { "tribute": "anthropic-applied-ai", "category": "ui-ux", "note": "Anthropic official skill" },
 
     "d3": { "tribute": "bostock", "category": "visualization" },
     "dashboards": { "tribute": "few", "category": "visualization" },

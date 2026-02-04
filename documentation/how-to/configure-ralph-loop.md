@@ -1,3 +1,10 @@
+---
+**STRICTLY CONFIDENTIAL**
+
+This document contains proprietary and confidential information. Unauthorized reproduction, distribution, or disclosure is strictly prohibited. This material is intended solely for authorized recipients.
+
+---
+
 # How to Configure Ralph Loop
 
 ## Prerequisites
@@ -15,21 +22,21 @@ Stack with your base profile:
 cc-config profile apply javascript+ralph-integration -p .
 ```
 
-### 2. Configure phase experts (optional)
+### 2. Configure phase skills (optional)
 
-Edit `config/workflow-phases.yaml` to customize which canon experts are invoked per phase:
+Edit `config/workflow-phases.yaml` to customize which skills are invoked per phase:
 
 ```yaml
 phases:
   plan:
     description: Understand requirements, design approach
-    experts: [kernighan, pike, linus, dijkstra, taleb, petroski, leveson]
+    skills: [clarity, simplicity, data-first, correctness, resilience, failure, safety]
   implement:
     description: Write the code
-    experts: [thompson, kernighan, pike, mcilroy, bill-joy]
+    skills: [pragmatism, clarity, simplicity, composition, distributed]
   adversarial-review:
     description: Attack your own code
-    experts: [schneier, owasp, petroski, leveson]
+    skills: [security-mindset, owasp, failure, safety]
 
 ralph-sequence:
   - plan
@@ -44,13 +51,13 @@ ralph-sequence:
 
 ### 3. Configure keyword detection (optional)
 
-Edit `config/keyword-detection.yaml` to add experts based on task keywords:
+Edit `config/keyword-detection.yaml` to add skills based on task keywords:
 
 ```yaml
 rules:
   security:
     patterns: [auth, password, jwt, token]
-    experts: [schneier, owasp, security-mindset]
+    skills: [security-mindset, owasp]
 ```
 
 ### 4. Configure iteration limits
@@ -110,10 +117,10 @@ plan → structure-first → implement → build-tests → refactor-check → ad
 ```
 
 At each phase:
-1. Profile experts are loaded (static)
-2. Phase experts from `workflow-phases.yaml` are added
-3. Keyword detection adds experts based on PRD item text (dynamic)
-4. Phase executes with combined experts
+1. Profile skills are loaded (static)
+2. Phase skills from `workflow-phases.yaml` are added
+3. Keyword detection adds skills based on PRD item text (dynamic)
+4. Phase executes with combined skills
 
 ## Troubleshooting
 
@@ -129,10 +136,10 @@ Increase `exit_on_idle_commits`.
 
 Change `review_threshold` from "clean" to "no_critical".
 
-### Wrong experts being loaded
+### Wrong skills being loaded
 
 Check your configuration:
-- `config/workflow-phases.yaml` - Are experts correct for each phase?
+- `config/workflow-phases.yaml` - Are skills correct for each phase?
 - `config/keyword-detection.yaml` - Are patterns matching your task text?
 
 ### Gemini/Qodana not running

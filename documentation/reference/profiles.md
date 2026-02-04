@@ -1,3 +1,10 @@
+---
+**STRICTLY CONFIDENTIAL**
+
+This document contains proprietary and confidential information. Unauthorized reproduction, distribution, or disclosure is strictly prohibited. This material is intended solely for authorized recipients.
+
+---
+
 # Profile Reference
 
 Complete catalog of available profiles.
@@ -20,8 +27,8 @@ Profiles provide **static** skill assignments. Dynamic detection via `config/key
 Profile (static)              +    Detection (dynamic)
 ────────────────────────           ────────────────────
 ralph.skills.build:                Task mentions "auth":
-  - cherny                         + schneier
-  - crockford                      + owasp
+  - typescript                     + security-mindset
+  - js-safety                      + owasp
 
                                    = Final skills for build stage
 ```
@@ -48,13 +55,13 @@ cc-config profile show javascript+react
 
 Foundation for all software projects.
 
-**Canon Stack**:
-- Baseline Brain: kernighan, thompson, pike, joy, linus, dijkstra
+**Skill Stack**:
+- Baseline Brain: clarity, pragmatism, simplicity, distributed, data-first, correctness
 - Base Practices:
-  - Security: schneier, owasp
-  - Testing: dodds, meszaros, feathers
-  - Documentation: procida
-  - Engineering Philosophy: petroski, leveson, taleb
+  - Security: security-mindset, owasp
+  - Testing: react-test, test-doubles, legacy
+  - Documentation: docs
+  - Engineering Philosophy: failure, safety, resilience
 
 **Use When**: Any software project (usually extended by language profiles)
 
@@ -66,10 +73,10 @@ Foundation for all software projects.
 
 **Extends**: software-base
 
-**Domain Canon**:
-- Simpson (You Don't Know JS)
-- Cherny (Programming TypeScript)
-- Crockford (JavaScript: The Good Parts)
+**Domain Skills**:
+- js-internals (You Don't Know JS)
+- typescript (Programming TypeScript)
+- js-safety (JavaScript: The Good Parts)
 
 **Standards**: ES6+, async patterns, type annotations
 
@@ -81,8 +88,8 @@ Foundation for all software projects.
 
 **Extends**: software-base
 
-**Domain Canon**:
-- Bloch (Effective Java)
+**Domain Skills**:
+- java (Effective Java patterns)
 
 **Standards**: Immutability, static factories, defensive copies
 
@@ -94,11 +101,11 @@ Foundation for all software projects.
 
 **Extends**: software-base
 
-**Domain Canon**:
-- Skeet (C# in Depth)
-- Cleary (Concurrency in C#)
-- Hejlsberg (Language design)
-- Bloch (API design principles)
+**Domain Skills**:
+- csharp-depth (C# in Depth)
+- async (Concurrency patterns)
+- type-systems (Language design)
+- java (API design principles)
 
 **Standards**: Async/await, nullable reference types, records
 
@@ -110,8 +117,8 @@ Foundation for all software projects.
 
 **Extends**: software-base
 
-**Domain Canon**:
-- Pike (Go Proverbs)
+**Domain Skills**:
+- simplicity (Go Proverbs)
 
 **Standards**: Error handling, goroutines, interfaces
 
@@ -125,8 +132,8 @@ Foundation for all software projects.
 
 **Extends**: javascript
 
-**Additional Canon**:
-- Abramov (React patterns)
+**Additional Skills**:
+- react-state (React patterns)
 
 **Standards**: Hooks, composition, container/presenter split
 
@@ -138,9 +145,9 @@ Foundation for all software projects.
 
 **Extends**: javascript
 
-**Additional Canon**:
-- Hevery (Angular architecture)
-- Papa (Angular style guide)
+**Additional Skills**:
+- angular-core (Angular architecture)
+- angular-arch (Angular style guide)
 
 **Standards**: RxJS, change detection, OnPush
 
@@ -152,11 +159,11 @@ Foundation for all software projects.
 
 **Extends**: javascript
 
-**Additional Canon**:
-- Bostock (D3 patterns)
-- Tufte (Information design)
-- Few (Dashboard design)
-- Knaflic (Data storytelling)
+**Additional Skills**:
+- d3 (D3 patterns)
+- charts (Information design)
+- dashboards (Dashboard design)
+- data-story (Data storytelling)
 
 **Standards**: Data-join, selections, scales
 
@@ -168,14 +175,14 @@ Foundation for all software projects.
 
 **Composable**: Yes (use with any language profile)
 
-**UI/UX Canon** (12 experts):
-- **Philosophy**: Rams (10 Principles), Norman (Affordances), Cooper (Goal-directed)
-- **Visual**: Ive (Minimalism), Kruzeniski (Typography)
-- **Motion**: Duarte (Material motion)
-- **Interaction**: Buxton (Input fundamentals)
-- **Patterns**: Wroblewski (Mobile-first), Frost (Atomic design)
-- **Governance**: Curtis (Documentation), Mall (Handoff)
-- **Data**: Tufte (Information design)
+**UI/UX Skills** (12 skills):
+- **Philosophy**: design (10 Principles), usability (Affordances), personas (Goal-directed)
+- **Visual**: visual (Minimalism), typography (Type hierarchy)
+- **Motion**: motion (Material motion)
+- **Interaction**: interaction (Input fundamentals)
+- **Patterns**: mobile (Mobile-first), components (Atomic design)
+- **Governance**: tokens (Documentation), handoff (Handoff)
+- **Data**: charts (Information design)
 
 **Auto-Invoke Rules**:
 ```yaml

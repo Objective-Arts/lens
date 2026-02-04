@@ -1,3 +1,10 @@
+---
+**STRICTLY CONFIDENTIAL**
+
+This document contains proprietary and confidential information. Unauthorized reproduction, distribution, or disclosure is strictly prohibited. This material is intended solely for authorized recipients.
+
+---
+
 # Tutorial: Running Your First Ralph Loop
 
 *Learn autonomous development by completing a PRD with Ralph Loop.*
@@ -123,14 +130,14 @@ During each iteration, Claude will:
 ```
 Iteration 1: Fix async methods
   → Read current code
-  → Apply Simpson canon (async patterns)
+  → Apply js-internals skill (async patterns)
   → Implement fix
   → Self-review: Check standards
   → Commit: "Fix async methods to return values"
 
 Iteration 2: Add error handling
   → Read updated code
-  → Apply Schneier canon (defensive thinking)
+  → Apply security-mindset skill (defensive thinking)
   → Add try/catch
   → Self-review: Check error patterns
   → Commit: "Add error handling to API calls"

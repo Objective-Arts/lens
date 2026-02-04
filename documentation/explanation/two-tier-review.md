@@ -1,3 +1,10 @@
+---
+**STRICTLY CONFIDENTIAL**
+
+This document contains proprietary and confidential information. Unauthorized reproduction, distribution, or disclosure is strictly prohibited. This material is intended solely for authorized recipients.
+
+---
+
 # Two-Tier Review Architecture
 
 *Understanding the separation between fast self-review and thorough external validation.*
@@ -34,7 +41,7 @@ This is **fast** because it requires no external calls. Claude already has the s
 - Framework anti-patterns
 - Inconsistent patterns
 - Missing error handling
-- Security basics (from Schneier/OWASP canon)
+- Security basics (from security-mindset/owasp skills)
 
 ### Tier 2: External Validation (Post-Loop)
 

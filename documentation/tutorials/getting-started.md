@@ -1,3 +1,10 @@
+---
+**STRICTLY CONFIDENTIAL**
+
+This document contains proprietary and confidential information. Unauthorized reproduction, distribution, or disclosure is strictly prohibited. This material is intended solely for authorized recipients.
+
+---
+
 # Tutorial: Getting Started with Claude-Optimal
 
 *Learn the fundamentals by setting up your first project with quality standards.*
@@ -7,7 +14,7 @@
 - How to install the Claude-Optimal CLI
 - How to configure required API keys
 - How to apply a profile to a project
-- How canon masters shape code quality
+- How expert skills shape code quality
 - How to verify the setup is working
 
 ## Prerequisites
@@ -96,7 +103,7 @@ git init
 
 ## Step 4: Apply a Profile
 
-Profiles bundle together the right canon masters, standards, and auto-invoke rules. Apply the JavaScript + React profile:
+Profiles bundle together the right expert skills, standards, and auto-invoke rules. Apply the JavaScript + React profile:
 
 ```bash
 cc-config profile apply javascript+react -p .
@@ -115,7 +122,7 @@ Linked:
   → skills/simpson
   → skills/cherny
   → skills/crockford
-  → skills/abramov
+  → skills/react-state
 
 Profile applied successfully!
 ```
@@ -193,8 +200,8 @@ Build a simple counter component --structure-first
 Notice how Claude:
 1. Plans the structure before implementing
 2. Separates concerns (state hook vs presentation)
-3. Follows React patterns (Abramov canon)
-4. Keeps functions focused (Kernighan clarity)
+3. Follows React patterns (react-state skill)
+4. Keeps functions focused (clarity skill)
 
 ## Step 9: Run an Audit
 
@@ -223,4 +230,4 @@ You've successfully:
 - [Adding a Canon Skill](adding-canon-skill.md) - Create your own expert lens
 - [Running Ralph Loop](ralph-loop-basics.md) - Autonomous development with PRDs
 - [How to Use Quality Flags](../how-to/use-quality-flags.md) - Enforce quality at key moments
-- [Why Canon Masters?](../explanation/why-canon-masters.md) - Understand the philosophy
+- [Why Expert Skills?](../explanation/why-expert-skills.md) - Understand the philosophy
