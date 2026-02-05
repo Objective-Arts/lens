@@ -9,7 +9,7 @@ This document contains proprietary and confidential information. Unauthorized re
 
 ## Prerequisites
 
-- cc-config CLI installed (`npm install -g @claude-optimal/cli`)
+- lens CLI installed (see [Installation](../reference/installation.md))
 - A project directory
 
 ## Steps
@@ -19,7 +19,7 @@ This document contains proprietary and confidential information. Unauthorized re
 See what a profile includes before applying:
 
 ```bash
-cc-config profile show javascript+react
+lens profile show javascript+react
 ```
 
 Output shows canon stack, standards, and auto-invoke rules.
@@ -29,13 +29,13 @@ Output shows canon stack, standards, and auto-invoke rules.
 Apply to your project:
 
 ```bash
-cc-config profile apply javascript+react -p /path/to/project
+lens profile apply javascript+react -p /path/to/project
 ```
 
 Or from within the project:
 
 ```bash
-cc-config profile apply javascript+react -p .
+lens profile apply javascript+react -p .
 ```
 
 ### 3. Verify the configuration
@@ -67,9 +67,9 @@ claude
 For projects with user interfaces, add the `frontend` profile to get 12 UI/UX experts:
 
 ```bash
-cc-config profile apply java+frontend -p .
+lens profile apply java+frontend -p .
 # or
-cc-config profile apply javascript+react+frontend -p .
+lens profile apply javascript+react+frontend -p .
 ```
 
 This adds skills for:
@@ -86,7 +86,7 @@ This adds skills for:
 Preview changes without applying:
 
 ```bash
-cc-config profile apply javascript+react --dry-run -p .
+lens profile apply javascript+react --dry-run -p .
 ```
 
 ## Overwriting Existing Configuration
@@ -94,7 +94,7 @@ cc-config profile apply javascript+react --dry-run -p .
 By default, existing files are preserved. To overwrite:
 
 ```bash
-cc-config profile apply javascript+react --force -p .
+lens profile apply javascript+react --force -p .
 ```
 
 ## Troubleshooting
@@ -104,7 +104,7 @@ cc-config profile apply javascript+react --force -p .
 Check available profiles:
 
 ```bash
-cc-config profile list
+lens profile list
 ```
 
 ### "Permission denied"

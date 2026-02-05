@@ -37,7 +37,7 @@ For this tutorial, we'll create a simplified skill for a fictional master.
 Navigate to your canon directory and create the skill structure:
 
 ```bash
-cd ~/.claude-optimal/canon
+cd /path/to/lens/canon
 mkdir -p mymaster
 ```
 
@@ -177,7 +177,7 @@ canon:
 Or symlink to a project:
 
 ```bash
-ln -sf ~/.claude-optimal/canon/mymaster /path/to/project/.claude/skills/
+ln -sf /path/to/lens/canon/mymaster /path/to/project/.claude/skills/
 ```
 
 ## Step 6: Add Auto-Invoke Rules

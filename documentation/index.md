@@ -5,7 +5,7 @@ This document contains proprietary and confidential information. Unauthorized re
 
 ---
 
-# Claude-Optimal Documentation
+# Lens Documentation
 
 > **Canon-Driven Development**: Quality built in from the start, not forced by review when it's too late.
 
@@ -16,12 +16,10 @@ Choose your path based on whether code exists:
 | New Code Flow | Legacy Code Flow |
 |---------------|------------------|
 | PRD / Feature Request | Existing Codebase |
-| `/plan` → `/structure-first` → `/build-from-plan` | `/plan` → `/structure-first` → `/refactor-check` |
+| `/create-plan` → `/structure-first` → `/implement-plan` | `/create-plan` → `/structure-first` → `/refactor-check-fix` |
 | Skills: java, simplicity, security-mindset | Skills: legacy, test-strategy, resilience, abstraction |
 
-Both flows converge at shared review gates: `/test` → `/review-hard`
-
-**[Interactive Diagram](flow-guide.html)**
+Both flows converge at shared review gates: `/write-tests-run` → `/gemini-fix`
 
 ---
 
@@ -53,9 +51,9 @@ WORKING   │                             │                             │
 
 **Quick Start**:
 ```bash
-npm install -g ./cc-config-0.1.0.tgz
+npm install -g @objective-arts/lens
 export GEMINI_API_KEY="your-key"
-cc-config profile apply javascript+react -p /path/to/project
+lens profile apply javascript+react -p /path/to/project
 ```
 
 See [Installation Reference](reference/installation.md) for complete setup guide.
@@ -68,7 +66,7 @@ See [Installation Reference](reference/installation.md) for complete setup guide
 
 | Tutorial | Description |
 |----------|-------------|
-| [Getting Started](tutorials/getting-started.md) | Your first Claude-Optimal project |
+| [Getting Started](tutorials/getting-started.md) | Your first Lens project |
 | [Adding a Canon Skill](tutorials/adding-canon-skill.md) | Create your first expert lens |
 | [Running Ralph Loop](tutorials/ralph-loop-basics.md) | Autonomous development with PRDs |
 
@@ -134,8 +132,8 @@ See [Installation Reference](reference/installation.md) for complete setup guide
 
 ## Quick Links
 
-- **New to Claude-Optimal?** Start with [Getting Started](tutorials/getting-started.md)
+- **New to Lens?** Start with [Getting Started](tutorials/getting-started.md)
 - **Setting up a project?** See [Apply a Profile](how-to/apply-profile.md)
 - **Looking up a specific skill?** Check [Canon Catalog](reference/canon-catalog.md)
 - **Building UI/UX?** Apply `frontend` profile for 12 UI/UX experts
-- **Want to understand the philosophy?** Read [Why Expert Skills?](explanation/why-expert-skills.md)
+- **Want to understand the philosophy?** Read [Why Expert Skills?](explanation/why-expert-skills.md)Let

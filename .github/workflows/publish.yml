@@ -1,0 +1,45 @@
+name: Publish to GitHub Packages
+
+on:
+  release:
+    types: [published]
+
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      packages: write
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          registry-url: 'https://npm.pkg.github.com'
+          scope: '@objective-arts'
+
+      - name: Install dependencies
+        working-directory: ./cli
+        run: npm ci
+
+      - name: Build
+        working-directory: ./cli
+        run: npm run build
+
+      - name: Run tests
+        working-directory: ./cli
+        run: npm test
+
+      - name: Update version from release tag
+        working-directory: ./cli
+        run: |
+          VERSION=${GITHUB_REF#refs/tags/v}
+          npm version $VERSION --no-git-tag-version --allow-same-version
+
+      - name: Publish
+        working-directory: ./cli
+        run: npm publish
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.GITHUB_TOKEN }}

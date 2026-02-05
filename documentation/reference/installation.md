@@ -7,7 +7,7 @@ This document contains proprietary and confidential information. Unauthorized re
 
 # Installation Reference
 
-Complete installation and configuration reference for Claude-Optimal.
+Complete installation and configuration reference for Lens.
 
 ---
 
@@ -50,15 +50,17 @@ docker run hello-world
 
 ---
 
-## cc-config CLI Installation
+## lens CLI Installation
 
-### Method 1: From Tarball (Recommended for Distribution)
+### Method 1: From GitHub Packages (Recommended)
 
-You received a `cc-config-X.X.X.tgz` file:
+See [Install from GitHub Packages](../how-to/install-from-github-packages.md) for full setup.
+
+Quick version (after configuring npm auth):
 
 ```bash
-npm install -g ./cc-config-0.1.0.tgz
-cc-config --version
+npm install -g @objective-arts/lens
+lens --version
 ```
 
 ### Method 2: From Source Repository
@@ -66,12 +68,12 @@ cc-config --version
 If you have repository access:
 
 ```bash
-git clone <repository-url> claude-optimal
-cd claude-optimal/cli
+git clone <repository-url> lens
+cd lens/cli
 npm install
 npm run build
 npm link
-cc-config --version
+lens --version
 ```
 
 ### Method 3: Direct Execution (No Install)
@@ -79,7 +81,7 @@ cc-config --version
 Run without global install:
 
 ```bash
-cd claude-optimal/cli
+cd lens/cli
 npm install
 npm run build
 node dist/cli/index.js --version
@@ -145,31 +147,31 @@ MCP (Model Context Protocol) servers provide Claude with external tools.
 ### List Available Servers
 
 ```bash
-cc-config mcp list
+lens mcp list
 ```
 
 ### Install Gemini Reviewer
 
 ```bash
-cc-config mcp install gemini-reviewer -p /path/to/project
-cc-config mcp enable gemini-reviewer -p /path/to/project
+lens mcp install gemini-reviewer -p /path/to/project
+lens mcp enable gemini-reviewer -p /path/to/project
 ```
 
 ### Install Qodana Scanner
 
 ```bash
-cc-config mcp install qodana -p /path/to/project
-cc-config mcp enable qodana -p /path/to/project
+lens mcp install qodana -p /path/to/project
+lens mcp enable qodana -p /path/to/project
 ```
 
 ### Verify Configuration
 
 ```bash
 # Check all installed servers
-cc-config mcp check --all -p /path/to/project
+lens mcp check --all -p /path/to/project
 
 # Check specific server
-cc-config mcp check gemini-reviewer
+lens mcp check gemini-reviewer
 ```
 
 ### Pull Qodana Docker Images
@@ -205,8 +207,8 @@ After installation, your system will have:
 ├── settings.json                   # Global settings
 └── profiles/                       # Custom profiles (optional)
 
-/path/to/claude-optimal/            # Source repository
-├── cli/                            # cc-config CLI source
+/path/to/lens/                   # Source repository
+├── cli/                            # lens CLI source
 │   ├── dist/                       # Compiled CLI
 │   └── src/                        # Source code
 ├── canon/                          # Canon skill definitions
@@ -228,8 +230,8 @@ After installation, your system will have:
 Run these commands to verify your installation:
 
 ```bash
-# 1. cc-config CLI
-cc-config --version
+# 1. lens CLI
+lens --version
 # Expected: 0.1.0 (or current version)
 
 # 2. Claude Code
@@ -247,7 +249,7 @@ docker --version
 [ -n "$QODANA_TOKEN" ] && echo "✓ QODANA_TOKEN set" || echo "○ QODANA_TOKEN not set (optional)"
 
 # 6. Profile listing
-cc-config profile list
+lens profile list
 # Expected: List of available profiles
 ```
 
@@ -255,11 +257,11 @@ cc-config profile list
 
 ## Troubleshooting
 
-### "cc-config: command not found"
+### "lens: command not found"
 
 ```bash
 # Re-link the CLI
-cd /path/to/claude-optimal/cli
+cd /path/to/lens/cli
 npm run build
 npm link
 
@@ -317,14 +319,14 @@ curl -s "https://generativelanguage.googleapis.com/v1/models?key=$GEMINI_API_KEY
 
 ## Updating
 
-### Update cc-config
+### Update lens
 
 ```bash
 # If installed from tarball
-npm install -g ./cc-config-X.X.X.tgz  # new version
+npm install -g ./lens-X.X.X.tgz  # new version
 
 # If installed from source
-cd claude-optimal/cli
+cd lens/cli
 git pull
 npm install
 npm run build
@@ -335,10 +337,10 @@ npm link
 
 ```bash
 # Check for outdated skills
-cc-config canon status -p /path/to/project
+lens canon status -p /path/to/project
 
 # Upgrade all
-cc-config canon upgrade -p /path/to/project
+lens canon upgrade -p /path/to/project
 ```
 
 ---
@@ -347,7 +349,7 @@ cc-config canon upgrade -p /path/to/project
 
 ```bash
 # Remove global CLI
-npm uninstall -g cc-config
+npm uninstall -g lens
 
 # Remove project configuration
 rm -rf /path/to/project/.claude

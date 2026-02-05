@@ -3,8 +3,13 @@
 
 # Build artifacts
 *.tgz
+*.tar.gz
 dist/
 node_modules/
+
+# Generated docs
+*.epub
+*.mobi
 
 # IDE
 .idea/
@@ -22,5 +27,4 @@ node_modules/
 .mcp.json
 
 # Generated/installed skills (source is in canon/ and workflow-skills/)
-cli/.claude/skills/
-cli/.claude/ralph-logs/
+.claude/skills/

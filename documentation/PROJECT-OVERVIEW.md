@@ -5,7 +5,7 @@ This document contains proprietary and confidential information. Unauthorized re
 
 ---
 
-# Claude Optimal
+# Lens
 
 > Embed domain expertise into Claude Code workflows.
 
@@ -15,7 +15,7 @@ Claude Code is powerful but generic. It lacks the specialized knowledge that exp
 
 ## The Solution
 
-Claude Optimal distills expertise from renowned engineers into composable "skills" that Claude applies during development. Instead of generic guidance, you get expert wisdom from:
+Lens distills expertise from renowned engineers into composable "skills" that Claude applies during development. Instead of generic guidance, you get expert wisdom from:
 
 - **clarity** — clear, simple code
 - **security-mindset** — think like an attacker
@@ -49,7 +49,7 @@ Skills install directly into projects (`.claude/skills/`). No symlinks, no remot
 Profiles compose skills for project types:
 
 ```bash
-cc-config profile apply javascript+react+security
+lens profile apply javascript+react+security
 ```
 
 | Profile | What You Get |
@@ -100,20 +100,25 @@ Each phase loads relevant skills. Keywords in requirements trigger additional ex
 
 ### 5. Workflow Skills (Freestanding)
 
-Eight interactive skills for manual quality control:
+Interactive skills for quality control:
 
-| Skill | Purpose |
-|-------|---------|
-| `/plan` | Create implementation plan before coding |
-| `/structure-first` | Design data structures and interfaces first |
-| `/implement` | Implement code from plan with expert context |
-| `/refactor-check` | Systematic code cleanup with verification |
-| `/code-scan` | Read-only quality scan (no fixes) |
-| `/gemini-scan` | Read-only Gemini review (no fixes) |
-| `/independent-review` | Hard-ass code review via Gemini |
-| `/static-analysis` | Run Qodana and fix issues |
-| `/test` | Write tests at appropriate level |
-| `/doc-code` | Generate Diátaxis documentation |
+| Skill | Purpose | Modifies Code |
+|-------|---------|---------------|
+| `/create-plan` | Design approach before coding | No |
+| `/structure-first` | Map architecture or create types | Yes |
+| `/implement-plan` | Implement code from plan | Yes |
+| `/refactor-check-fix` | Systematic code cleanup | Yes |
+| `/ai-smell-fix` | Remove AI-generated code patterns | Yes |
+| `/dedupe-fix` | Consolidate duplicated code | Yes |
+| `/gemini-scan` | Read-only Gemini review | No |
+| `/gemini-fix` | Gemini review with fixes | Yes |
+| `/qodana-scan` | Read-only static analysis | No |
+| `/qodana-fix` | Static analysis with fixes | Yes |
+| `/ai-smell-scan` | Detect AI code smells | No |
+| `/write-tests-run` | Write and run tests | Yes |
+| `/generate-docs` | Generate Diátaxis documentation | Yes |
+| `/phase-loop` | Run 9 quality phases with rollback | Yes |
+| `/final-polish` | Final refinement for senior review | Yes |
 
 Use individually or let Ralph Loop orchestrate them automatically.
 
@@ -122,13 +127,13 @@ Use individually or let Ralph Loop orchestrate them automatically.
 ## Project Structure
 
 ```
-claude-optimal/
+lens/
 ├── canon/              # 73 expert skills in 27 categories
 ├── profiles/           # 16 composable project profiles
-├── cli/                # cc-config CLI implementation
+├── cli/                # lens CLI implementation
 │   └── src/
 │       ├── cli/        # Commands (profile, canon, mcp)
-│       ├── ralph/      # 8-phase workflow loop
+│       ├── ralph/      # 10-phase workflow loop
 │       ├── canon/      # Skill loading
 │       └── profiles/   # Profile composition
 ├── documentation/      # Diátaxis-organized docs
@@ -139,19 +144,19 @@ claude-optimal/
 
 ```bash
 # Profiles
-cc-config profile list              # Show available profiles
-cc-config profile apply python+sql  # Configure project
+lens profile list              # Show available profiles
+lens profile apply python+sql  # Configure project
 
 # Canon
-cc-config canon list                # Show all skills
-cc-config canon deploy clarity      # Install single skill
-cc-config canon status              # Compare versions
+lens canon list                # Show all skills
+lens canon deploy clarity      # Install single skill
+lens canon status              # Compare versions
 
 # Workflow
-cc-config workflow install          # Install workflow skills
+lens workflow install          # Install workflow skills
 
 # Scan
-cc-config scan                      # Discover all configuration
+lens scan                      # Discover all configuration
 ```
 
 ---
@@ -193,14 +198,14 @@ cc-config scan                      # Discover all configuration
 
 ```bash
 # Install globally
-npm install -g cc-config
+npm install -g lens
 
 # Configure a project
 cd /your/project
-cc-config profile apply javascript+security
+lens profile apply javascript+security
 
 # Check what's installed
-cc-config scan
+lens scan
 
 # Use skills directly
 # (in Claude Code session)

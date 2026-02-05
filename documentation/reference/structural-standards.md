@@ -280,7 +280,7 @@ Add to project CLAUDE.md:
 ```markdown
 ## Structural Standards
 
-See claude-optimal/STRUCTURAL-STANDARDS.md (always active).
+See lens/STRUCTURAL-STANDARDS.md (always active).
 
 Project-specific additions:
 - [Any framework-specific rules]

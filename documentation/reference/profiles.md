@@ -38,13 +38,13 @@ See [Canon Loading Strategy](canon-loading-strategy.md) for details.
 ## Listing Profiles
 
 ```bash
-cc-config profile list
+lens profile list
 ```
 
 ## Showing Profile Details
 
 ```bash
-cc-config profile show javascript+react
+lens profile show javascript+react
 ```
 
 ---
@@ -238,7 +238,7 @@ ralph:
 Stack profiles with `+`:
 
 ```bash
-cc-config profile apply javascript+react+d3 -p .
+lens profile apply javascript+react+d3 -p .
 ```
 
 ### Common Combinations

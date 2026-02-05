@@ -11,7 +11,7 @@ This document contains proprietary and confidential information. Unauthorized re
 
 ## Why External Validation?
 
-Claude-Optimal uses a two-tier review architecture:
+Lens uses a two-tier review architecture:
 
 1. **Self-Review** (Tier 1): Claude reviews its own code using canon standards
 2. **External Validation** (Tier 2): Different tools catch blind spots
@@ -22,7 +22,7 @@ External validation uses:
 
 ## Prerequisites
 
-- cc-config CLI installed
+- lens CLI installed
 - Docker running (for Qodana)
 - Gemini API key
 
@@ -69,7 +69,7 @@ export QODANA_TOKEN="your-token-here"
 When using `ralph-integration` profile, the CLI automatically creates `.mcp.json`:
 
 ```bash
-cc-config profile apply "javascript+ralph-integration" -p .
+lens profile apply "javascript+ralph-integration" -p .
 ```
 
 This creates `.mcp.json` with Gemini and Qodana server configs.
@@ -82,17 +82,17 @@ If not using ralph-integration, install servers manually:
 
 ```bash
 # Gemini reviewer
-cc-config mcp install gemini-reviewer -p .
+lens mcp install gemini-reviewer -p .
 
 # Qodana scanner
-cc-config mcp install qodana -p .
+lens mcp install qodana -p .
 ```
 
 Enable them:
 
 ```bash
-cc-config mcp enable gemini-reviewer -p .
-cc-config mcp enable qodana -p .
+lens mcp enable gemini-reviewer -p .
+lens mcp enable qodana -p .
 ```
 
 ---
@@ -102,7 +102,7 @@ cc-config mcp enable qodana -p .
 Check that everything is configured:
 
 ```bash
-cc-config mcp check --all -p .
+lens mcp check --all -p .
 ```
 
 Expected output:
@@ -188,7 +188,7 @@ This runs Gemini + Qodana as post-loop validation after all PRD items complete.
 │                 RALPH LOOP                       │
 │                                                  │
 │  Per PRD item:                                   │
-│      implement → test → /review-hard → commit    │
+│      implement → test → /gemini-fix → commit     │
 │                                                  │
 │  Self-review catches:                            │
 │      - Pattern violations                        │
@@ -285,10 +285,10 @@ If you see authentication errors, generate a new key.
 
 ```bash
 # Check they're installed
-cc-config mcp list --installed -p .
+lens mcp list --installed -p .
 
 # Check they're enabled
-cc-config mcp list --enabled -p .
+lens mcp list --enabled -p .
 
 # Restart Claude Code after enabling
 ```

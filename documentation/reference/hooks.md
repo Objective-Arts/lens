@@ -5,7 +5,7 @@ This document contains proprietary and confidential information. Unauthorized re
 
 ---
 
-# Claude-Optimal: Hooks
+# Lens: Hooks
 
 Hooks enforce quality gates automatically. Unlike flags (which are advisory), hooks block actions until requirements are met.
 
@@ -39,7 +39,7 @@ Add to `.claude/settings.local.json`:
       {
         "name": "test-verification",
         "description": "Verify tests exist for changed code",
-        "command": "bash -c 'claude-optimal-test-check.sh'",
+        "command": "bash -c 'lens-test-check.sh'",
         "failureMessage": "Missing tests for modified files. Run with --test-complete flag."
       }
     ]
@@ -53,7 +53,7 @@ Create `~/.claude/hooks/test-check.sh`:
 
 ```bash
 #!/bin/bash
-# Claude-Optimal Test Verification Hook
+# Lens Test Verification Hook
 # Checks that modified source files have corresponding test files
 
 set -e

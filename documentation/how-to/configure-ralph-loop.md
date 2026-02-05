@@ -19,7 +19,7 @@ This document contains proprietary and confidential information. Unauthorized re
 Stack with your base profile:
 
 ```bash
-cc-config profile apply javascript+ralph-integration -p .
+lens profile apply javascript+ralph-integration -p .
 ```
 
 ### 2. Configure phase skills (optional)
@@ -39,14 +39,16 @@ phases:
     skills: [security-mindset, owasp, failure, safety]
 
 ralph-sequence:
-  - plan
+  - create-plan
   - structure-first
-  - implement
-  - build-tests
-  - refactor-check
-  - adversarial-review
-  - static-analysis
-  - doc-code
+  - implement-plan
+  - refactor-check-fix
+  - dedupe-fix
+  - gemini-fix
+  - qodana-fix
+  - adversarial-security-review
+  - write-tests-run
+  - generate-docs
 ```
 
 ### 3. Configure keyword detection (optional)
@@ -110,10 +112,10 @@ With options:
 
 ## Understanding the Pipeline
 
-Ralph runs this 8-phase pipeline for each PRD item:
+Ralph runs this pipeline for each PRD item:
 
 ```
-plan → structure-first → implement → build-tests → refactor-check → adversarial-review → static-analysis → doc-code
+create-plan → structure-first → implement-plan → refactor-check-fix → dedupe-fix → gemini-fix → qodana-fix → adversarial-security-review → write-tests-run → generate-docs
 ```
 
 At each phase:

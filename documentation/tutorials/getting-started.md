@@ -5,13 +5,13 @@ This document contains proprietary and confidential information. Unauthorized re
 
 ---
 
-# Tutorial: Getting Started with Claude-Optimal
+# Tutorial: Getting Started with Lens
 
 *Learn the fundamentals by setting up your first project with quality standards.*
 
 ## What You'll Learn
 
-- How to install the Claude-Optimal CLI
+- How to install the Lens CLI
 - How to configure required API keys
 - How to apply a profile to a project
 - How expert skills shape code quality
@@ -21,26 +21,28 @@ This document contains proprietary and confidential information. Unauthorized re
 
 | Requirement | Purpose |
 |-------------|---------|
-| Node.js 18+ | Run cc-config CLI |
+| Node.js 18+ | Run lens CLI |
 | Claude Code CLI | AI coding assistant |
 | Docker | Run Qodana static analysis |
 | Gemini API Key | External code review |
 
 ## Step 1: Install the CLI
 
-You should have received a `cc-config-X.X.X.tgz` file or access to the source repository.
+You need access to the Objective Arts GitHub organization.
 
-### Option A: From Tarball
+### Option A: From GitHub Packages (Recommended)
+
+First, configure npm authentication (see [Install from GitHub Packages](../how-to/install-from-github-packages.md)):
 
 ```bash
-npm install -g ./cc-config-0.1.0.tgz
+npm install -g @objective-arts/lens
 ```
 
 ### Option B: From Source
 
 ```bash
-git clone <provided-repository-url> claude-optimal
-cd claude-optimal/cli
+git clone <provided-repository-url> lens
+cd lens/cli
 npm install
 npm run build
 npm link
@@ -49,7 +51,7 @@ npm link
 Verify the installation:
 
 ```bash
-cc-config --version
+lens --version
 ```
 
 You should see a version number displayed.
@@ -106,7 +108,7 @@ git init
 Profiles bundle together the right expert skills, standards, and auto-invoke rules. Apply the JavaScript + React profile:
 
 ```bash
-cc-config profile apply javascript+react -p .
+lens profile apply javascript+react -p .
 ```
 
 You'll see output confirming what was configured:
@@ -162,15 +164,15 @@ If you want external validation with Gemini and Qodana:
 
 ```bash
 # Install MCP servers
-cc-config mcp install gemini-reviewer -p .
-cc-config mcp install qodana -p .
+lens mcp install gemini-reviewer -p .
+lens mcp install qodana -p .
 
 # Enable them
-cc-config mcp enable gemini-reviewer -p .
-cc-config mcp enable qodana -p .
+lens mcp enable gemini-reviewer -p .
+lens mcp enable qodana -p .
 
 # Verify environment variables are set
-cc-config mcp check --all -p .
+lens mcp check --all -p .
 ```
 
 ## Step 7: Verify with Claude
@@ -208,7 +210,7 @@ Notice how Claude:
 Check your project's configuration:
 
 ```bash
-cc-config audit -p .
+lens audit -p .
 ```
 
 This shows:
@@ -219,7 +221,7 @@ This shows:
 ## What You've Accomplished
 
 You've successfully:
-- Installed the Claude-Optimal CLI
+- Installed the Lens CLI
 - Configured API keys for external validation
 - Applied a profile that loads the right canon
 - Configured standards that enforce quality

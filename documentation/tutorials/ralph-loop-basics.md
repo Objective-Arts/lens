@@ -18,7 +18,7 @@ This document contains proprietary and confidential information. Unauthorized re
 
 ## Prerequisites
 
-- Claude-Optimal CLI installed
+- Lens CLI installed
 - Claude Code CLI installed and authenticated
 - A configured project (completed Getting Started tutorial)
 
@@ -86,7 +86,7 @@ EOF
 Stack the Ralph integration profile with your base profile:
 
 ```bash
-cc-config profile apply javascript+ralph-integration -p .
+lens profile apply javascript+ralph-integration -p .
 ```
 
 This adds:
