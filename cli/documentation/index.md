@@ -12,6 +12,7 @@
 | Run ralph on a PRD | [First Ralph Run Tutorial](./tutorials/first-ralph-run.md) |
 | Apply a profile | [How to Apply Profiles](./how-to/apply-profiles.md) |
 | Look up a command | [Command Reference](./reference/commands.md) |
+| Browse all skills | [Skills Catalog](./reference/skills.md) |
 | Understand the architecture | [Architecture Explanation](./explanation/architecture.md) |
 | Learn to code in this codebase | [Developer Guide](./DEVELOPER-GUIDE.md) |
 
@@ -43,6 +44,8 @@ Practical steps to accomplish specific goals. Use when you know what you want to
 Technical descriptions. Look up specific details.
 
 - [Commands](./reference/commands.md) — All CLI commands and flags
+- [Skills](./reference/skills.md) — Complete catalog of available skills
+- [Installation Map](./reference/installation-map.md) — Where everything gets installed
 - [Profile Format](./reference/profiles.md) — YAML profile specification
 - [Configuration Files](./reference/configuration.md) — File formats and locations
 - [Types](./reference/types.md) — TypeScript type definitions
