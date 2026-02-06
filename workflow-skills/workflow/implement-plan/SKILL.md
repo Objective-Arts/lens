@@ -117,6 +117,15 @@ If a file doesn't exist, skip it and continue.
 4. **Verify** - Ensure code compiles/lints
 5. **Dead Code Cleanup** - Remove any dead code introduced (see below)
 
+## WORK_ITEMS Tracking (MANDATORY)
+
+If the plan has a WORK_ITEMS section, you MUST:
+
+1. **Read all WORK_ITEMS** from the plan before starting
+2. **Work through every item** — do not skip or triage
+3. **Report status of each item** in your output
+4. **If you run out of context**, report remaining items so the orchestrator can re-run you
+
 ## REQUIRED Output Format
 
 ```markdown
@@ -138,11 +147,21 @@ TOOL_USED: [knip|qodana|vulture|deadcode|cargo-udeps]
 DEAD_CODE_FOUND: [N] items
 DEAD_CODE_REMOVED: [list or "none"]
 
+### Work Items:
+COMPLETED:
+- WI-1: [what was done]
+- WI-2: [what was done]
+
+REMAINING:
+- WI-5: [not started — reason]
+
 APPLIED:
 - [expert]: [decision]
 
 IMPLEMENT_COMPLETE
 ```
+
+**REMAINING must be empty for IMPLEMENT_COMPLETE.** If items remain, output IMPLEMENT_PARTIAL instead and list what's left.
 
 ## Dead Code Cleanup (MANDATORY)
 

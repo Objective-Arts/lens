@@ -122,11 +122,29 @@ If a file doesn't exist, skip it and continue.
 - Specific test case: [what it verifies]
 - Another test case: [what it verifies]
 
+## WORK_ITEMS:
+- [ ] WI-1: [verb] [specific thing] in [file(s)] [S/M/L]
+- [ ] WI-2: [verb] [specific thing] in [file(s)] [S/M/L]
+- [ ] WI-3: [verb] [specific thing] in [file(s)] [S/M/L]
+
 ## APPLIED:
 - [expert-name]: [specific planning decision based on their guidance]
 
 PLAN_COMPLETE
 ```
+
+## WORK_ITEMS Rules
+
+WORK_ITEMS is the **implementation checklist**. Phases 3 and 4 iterate through it. Every item must be:
+
+1. **Discrete** — one item = one independently verifiable change
+2. **Specific** — names exact files and what changes
+3. **Verifiable** — you can check if it's done by reading the file
+4. **Sized** — S (< 20 lines changed), M (20-100), L (100+)
+
+**Group related changes into one item.** "Add destroy() to all 24 modules" is one L item, not 24 S items.
+
+**Every planned change must appear as a WORK_ITEM.** If it's in FILES/FUNCTIONS but not in WORK_ITEMS, it won't get implemented.
 
 ## DO NOT:
 - Be vague ("consider adding tests")
@@ -135,10 +153,13 @@ PLAN_COMPLETE
 - Use "TBD" or "to be determined"
 - Make suggestions instead of decisions
 - Proceed without all sections complete
+- Put work in FILES/FUNCTIONS that isn't tracked in WORK_ITEMS
 
 ## Validation (Phase will FAIL if violated)
 
-- Missing any of: FILES, FUNCTIONS, TYPES, INVARIANTS, SECURITY, TESTS
+- Missing any of: FILES, FUNCTIONS, TYPES, INVARIANTS, SECURITY, TESTS, WORK_ITEMS
+- WORK_ITEMS is empty or has zero items
+- WORK_ITEMS contains items without size tags (S/M/L)
 - Contains "as needed", "if applicable", "TBD", "to be determined"
 - Contains "consider" without specific action
 
