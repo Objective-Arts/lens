@@ -1,7 +1,7 @@
 /**
  * Implement phase - write the code.
  *
- * Experts: thompson, kernighan, pike, mcilroy, bill-joy, carmack
+ * Experts: pragmatism, clarity, simplicity, composition, distributed, optimization
  */
 
 import * as fs from 'fs';
@@ -80,11 +80,12 @@ export class ImplementPhase extends BasePhase {
     const slug = createSlug(item.text);
     const planPath = path.join(projectPath, '.claude', 'plans', `${slug}.md`);
 
-    if (!fs.existsSync(planPath)) {
+    let planContent: string;
+    try {
+      planContent = fs.readFileSync(planPath, 'utf-8');
+    } catch {
       return this.failed(`Plan not found: ${planPath}`);
     }
-
-    const planContent = fs.readFileSync(planPath, 'utf-8');
     const expertGuidance = this.buildExpertGuidance(experts);
 
     let prompt = IMPLEMENT_PROMPT

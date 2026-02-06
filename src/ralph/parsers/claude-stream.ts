@@ -4,8 +4,8 @@
  * Claude outputs newline-delimited JSON objects.
  * This parses that stream format and extracts results.
  *
- * Following kernighan: handle the messy reality of streamed output.
- * Following hevery: single source of truth for markers.
+ * Following clarity: handle the messy reality of streamed output.
+ * Following testability: single source of truth for markers.
  */
 
 import * as fs from 'fs';

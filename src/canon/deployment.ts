@@ -69,11 +69,12 @@ function compareSkillToSource(
   const sourceFile = path.join(skill.path, 'SKILL.md');
   const targetFile = path.join(skillsDir, skill.name, 'SKILL.md');
 
-  if (!fs.existsSync(sourceFile)) return 'match'; // Skip if no source
-  if (!fs.existsSync(targetFile)) return 'missing';
-
-  const sourceContent = fs.readFileSync(sourceFile, 'utf-8');
-  const targetContent = fs.readFileSync(targetFile, 'utf-8');
+  let sourceContent: string;
+  let targetContent: string;
+  try { sourceContent = fs.readFileSync(sourceFile, 'utf-8'); }
+  catch { return 'match'; } // Skip if no source
+  try { targetContent = fs.readFileSync(targetFile, 'utf-8'); }
+  catch { return 'missing'; }
   return sourceContent === targetContent ? 'match' : 'differs';
 }
 

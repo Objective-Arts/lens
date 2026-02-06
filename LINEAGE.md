@@ -63,8 +63,8 @@ This document maps generic skill names to their intellectual sources. For demo/r
 
 | Skill | Source |
 |-------|--------|
-| `security-mindset` | Bruce Schneier - Applied Cryptography, security essays |
-| `threat-model` | Bruce Schneier - Threat Modeling |
+| `security-mindset` | Security mindset - think like an attacker |
+| `threat-model` | Threat modeling - systematic security analysis |
 | `owasp` | OWASP Foundation - Top 10, Security Guidelines |
 | `appsec` | Tanya Janca - Alice and Bob Learn Application Security |
 | `web-security` | Troy Hunt - Have I Been Pwned, security blog |

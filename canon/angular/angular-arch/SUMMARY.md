@@ -1,4 +1,4 @@
-# /kurata Summary
+# /angular-arch Summary
 
 > "Organize by feature, not by type."
 

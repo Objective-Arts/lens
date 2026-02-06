@@ -25,83 +25,28 @@ export interface ScanOptions {
 
 /**
  * Scan and discover all Claude Code configuration across global and project scopes.
- *
- * Discovers skills, commands, agents, settings, and CLAUDE.md files.
- * Builds a dependency graph and generates a summary with token counts.
- *
- * @param options - Scan configuration options
- * @returns Scan result with all discovered items, parsed files, and summary
- *
- * @example
- * ```typescript
- * // Scan global config only
- * const globalResult = await scan();
- *
- * // Scan project and global config
- * const projectResult = await scan({ projectPath: './myproject' });
- *
- * // Access results
- * console.log(`Found ${projectResult.items.length} items`);
- * console.log(`Total tokens: ${projectResult.summary.totalTokens}`);
- * console.log(`Conflicts: ${projectResult.summary.conflicts.length}`);
- * ```
  */
 export async function scan(options: ScanOptions = {}): Promise<ScanResult> {
   const { projectPath, includePlugins = true } = options;
 
-  const items: ConfigItem[] = [];
+  const items: ConfigItem[] = [
+    ...scanGlobalItems(),
+    ...scanProjectItems(projectPath),
+    ...(includePlugins ? await scanPlugins() : []),
+  ];
 
-  // Scan global config
-  const globalItems = await scanScope(GLOBAL_CLAUDE_PATH, 'global');
-  items.push(...globalItems);
-
-  // Scan project config if provided
-  let projectClaudePath: string | undefined;
-  if (projectPath) {
-    projectClaudePath = path.join(projectPath, '.claude');
-    if (fs.existsSync(projectClaudePath)) {
-      const projectItems = await scanScope(projectClaudePath, 'project');
-      items.push(...projectItems);
-    }
-
-    // Also check for CLAUDE.md at project root
-    const rootClaudeMd = path.join(projectPath, 'CLAUDE.md');
-    if (fs.existsSync(rootClaudeMd)) {
-      const item = await scanFile(rootClaudeMd, 'project', 'memory');
-      if (item) items.push(item);
-    }
-
-    const rootClaudeLocalMd = path.join(projectPath, 'CLAUDE.local.md');
-    if (fs.existsSync(rootClaudeLocalMd)) {
-      const item = await scanFile(rootClaudeLocalMd, 'project', 'memory');
-      if (item) items.push(item);
-    }
-  }
-
-  // Scan plugins if enabled
-  if (includePlugins) {
-    const pluginItems = await scanPlugins();
-    items.push(...pluginItems);
-  }
-
-  // Parse CLAUDE.md files
   const claudeMds = await Promise.all(
     items
       .filter(item => item.type === 'memory' && item.name.toLowerCase().includes('claude'))
       .map(item => parseClaudeMd(item.path, item.scope))
   );
 
-  // Parse settings files
-  const settingsItems = items.filter(item => item.type === 'settings');
   const settings = await Promise.all(
-    settingsItems.map(item => parseSettings(item.path, item.scope))
+    items.filter(item => item.type === 'settings')
+      .map(item => parseSettings(item.path, item.scope))
   );
 
-  // Build dependency graph
   buildDependencies(items, claudeMds);
-
-  // Generate summary
-  const summary = generateSummary(items, claudeMds);
 
   return {
     timestamp: new Date(),
@@ -110,65 +55,69 @@ export async function scan(options: ScanOptions = {}): Promise<ScanResult> {
     items,
     claudeMds: claudeMds.filter((c): c is ClaudeMdParsed => c !== null),
     settings: settings.filter((s): s is SettingsParsed => s !== null),
-    summary
+    summary: generateSummary(items, claudeMds),
   };
 }
 
-async function scanScope(basePath: string, scope: ConfigScope): Promise<ConfigItem[]> {
+/** Scan global ~/.claude config. */
+function scanGlobalItems(): ConfigItem[] {
+  return scanScope(GLOBAL_CLAUDE_PATH, 'global');
+}
+
+/** Scan project .claude/ dir and root CLAUDE.md files. */
+function scanProjectItems(projectPath?: string): ConfigItem[] {
+  if (!projectPath) return [];
+
   const items: ConfigItem[] = [];
+  const projectClaudePath = path.join(projectPath, '.claude');
 
-  if (!fs.existsSync(basePath)) {
-    return items;
+  if (fs.existsSync(projectClaudePath)) {
+    items.push(...scanScope(projectClaudePath, 'project'));
   }
 
-  // Scan skills
-  const skillsPath = path.join(basePath, 'skills');
-  if (fs.existsSync(skillsPath)) {
-    const skillItems = await scanDirectory(skillsPath, scope, 'skill');
-    items.push(...skillItems);
-  }
-
-  // Scan commands
-  const commandsPath = path.join(basePath, 'commands');
-  if (fs.existsSync(commandsPath)) {
-    const commandItems = await scanDirectory(commandsPath, scope, 'command');
-    items.push(...commandItems);
-  }
-
-  // Scan agents
-  const agentsPath = path.join(basePath, 'agents');
-  if (fs.existsSync(agentsPath)) {
-    const agentItems = await scanDirectory(agentsPath, scope, 'agent');
-    items.push(...agentItems);
-  }
-
-  // Scan settings
-  const settingsFiles = ['settings.json', 'settings.local.json'];
-  for (const settingsFile of settingsFiles) {
-    const settingsPath = path.join(basePath, settingsFile);
-    if (fs.existsSync(settingsPath)) {
-      const item = await scanFile(settingsPath, scope, 'settings');
-      if (item) items.push(item);
-    }
-  }
-
-  // Scan CLAUDE.md in .claude directory
-  const claudeMdPath = path.join(basePath, 'CLAUDE.md');
-  if (fs.existsSync(claudeMdPath)) {
-    const item = await scanFile(claudeMdPath, scope, 'memory');
+  for (const filename of ['CLAUDE.md', 'CLAUDE.local.md']) {
+    const item = scanFile(path.join(projectPath, filename), 'project', 'memory');
     if (item) items.push(item);
   }
 
   return items;
 }
 
-async function scanDirectory(dirPath: string, scope: ConfigScope, type: ConfigItemType): Promise<ConfigItem[]> {
+/** Scan a .claude/ directory for skills, commands, agents, settings, and CLAUDE.md. */
+function scanScope(basePath: string, scope: ConfigScope): ConfigItem[] {
+  if (!fs.existsSync(basePath)) return [];
+
   const items: ConfigItem[] = [];
 
-  if (!fs.existsSync(dirPath)) {
-    return items;
+  const subdirs: Array<[string, ConfigItemType]> = [
+    ['skills', 'skill'],
+    ['commands', 'command'],
+    ['agents', 'agent'],
+  ];
+
+  for (const [dir, type] of subdirs) {
+    const dirPath = path.join(basePath, dir);
+    if (fs.existsSync(dirPath)) {
+      items.push(...scanDirectory(dirPath, scope, type));
+    }
   }
 
+  for (const settingsFile of ['settings.json', 'settings.local.json']) {
+    const item = scanFile(path.join(basePath, settingsFile), scope, 'settings');
+    if (item) items.push(item);
+  }
+
+  const claudeItem = scanFile(path.join(basePath, 'CLAUDE.md'), scope, 'memory');
+  if (claudeItem) items.push(claudeItem);
+
+  return items;
+}
+
+/** Scan a directory for skill/command/agent entries. */
+function scanDirectory(dirPath: string, scope: ConfigScope, type: ConfigItemType): ConfigItem[] {
+  if (!fs.existsSync(dirPath)) return [];
+
+  const items: ConfigItem[] = [];
   const entries = fs.readdirSync(dirPath, { withFileTypes: true });
 
   for (const entry of entries) {
@@ -177,10 +126,10 @@ async function scanDirectory(dirPath: string, scope: ConfigScope, type: ConfigIt
     const fullPath = path.join(dirPath, entry.name);
 
     if (entry.isDirectory() || entry.isSymbolicLink()) {
-      const item = await scanSkillOrCommandDir(fullPath, scope, type);
+      const item = scanSkillOrCommandDir(fullPath, scope, type);
       if (item) items.push(item);
     } else if (entry.isFile() && entry.name.endsWith('.md')) {
-      const item = await scanFile(fullPath, scope, type);
+      const item = scanFile(fullPath, scope, type);
       if (item) items.push(item);
     }
   }
@@ -205,30 +154,32 @@ function resolveSymlink(dirPath: string): { isSymlink: boolean; realPath: string
   }
 }
 
-/** Find content file in skill/command directory. */
+/** Find content file in skill/command directory. TOCTOU-safe: try-catch, no existsSync. */
 function findContentFile(realPath: string): { path?: string; content: string } {
-  const possibleFiles = ['SKILL.md', 'skill.md', 'index.md', 'README.md'];
-
-  for (const file of possibleFiles) {
+  for (const file of ['SKILL.md', 'skill.md', 'index.md', 'README.md']) {
     const filePath = path.join(realPath, file);
-    if (fs.existsSync(filePath)) {
+    try {
       return { path: filePath, content: fs.readFileSync(filePath, 'utf-8') };
+    } catch {
+      // File doesn't exist, try next
     }
   }
 
   // Fallback: first .md file in directory
-  const realStats = fs.statSync(realPath);
-  if (realStats.isDirectory()) {
+  try {
     const mdFiles = fs.readdirSync(realPath).filter(f => f.endsWith('.md'));
     if (mdFiles.length > 0) {
       const filePath = path.join(realPath, mdFiles[0]);
       return { path: filePath, content: fs.readFileSync(filePath, 'utf-8') };
     }
+  } catch {
+    // Directory not readable
   }
   return { content: '' };
 }
 
-async function scanSkillOrCommandDir(dirPath: string, scope: ConfigScope, type: ConfigItemType): Promise<ConfigItem | null> {
+/** Scan a skill or command directory. */
+function scanSkillOrCommandDir(dirPath: string, scope: ConfigScope, type: ConfigItemType): ConfigItem | null {
   const resolved = resolveSymlink(dirPath);
   if (!resolved) return null;
 
@@ -249,53 +200,55 @@ async function scanSkillOrCommandDir(dirPath: string, scope: ConfigScope, type: 
   };
 }
 
-async function scanFile(filePath: string, scope: ConfigScope, type: ConfigItemType): Promise<ConfigItem | null> {
-  if (!fs.existsSync(filePath)) {
+/** Scan a single file. TOCTOU-safe: try-catch, no existsSync+readFileSync pair. */
+function scanFile(filePath: string, scope: ConfigScope, type: ConfigItemType): ConfigItem | null {
+  try {
+    const content = fs.readFileSync(filePath, 'utf-8');
+    return {
+      type,
+      name: path.basename(filePath),
+      scope,
+      path: filePath,
+      isSymlink: false,
+      tokens: estimateTokens(content),
+      content,
+      dependencies: [],
+      referencedBy: [],
+      metadata: {
+        description: type === 'settings' ? 'Settings file' : extractDescription(content)
+      }
+    };
+  } catch {
     return null;
   }
-
-  const content = fs.readFileSync(filePath, 'utf-8');
-  const name = path.basename(filePath);
-  const tokens = estimateTokens(content);
-
-  return {
-    type,
-    name,
-    scope,
-    path: filePath,
-    isSymlink: false,
-    tokens,
-    content,
-    dependencies: [],
-    referencedBy: [],
-    metadata: {
-      description: type === 'settings' ? 'Settings file' : extractDescription(content)
-    }
-  };
 }
 
+/** Scan plugin directories (async — glob is async). */
 async function scanPlugins(): Promise<ConfigItem[]> {
-  const items: ConfigItem[] = [];
   const pluginsPath = path.join(GLOBAL_CLAUDE_PATH, 'plugins');
+  if (!fs.existsSync(pluginsPath)) return [];
 
-  if (!fs.existsSync(pluginsPath)) {
-    return items;
-  }
+  const items: ConfigItem[] = [];
 
-  // Scan plugin marketplaces and cache
-  const pluginDirs = ['marketplaces', 'cache'];
-
-  for (const pluginDir of pluginDirs) {
+  for (const pluginDir of ['marketplaces', 'cache']) {
     const dirPath = path.join(pluginsPath, pluginDir);
     if (!fs.existsSync(dirPath)) continue;
 
-    // Find all skill directories within plugins
-    const skillPaths = await glob('**/skills/*', { cwd: dirPath, absolute: true });
+    let skillPaths: string[];
+    try {
+      skillPaths = await glob('**/skills/*', { cwd: dirPath, absolute: true });
+    } catch {
+      continue;
+    }
 
     for (const skillPath of skillPaths) {
-      if (fs.statSync(skillPath).isDirectory()) {
-        const item = await scanSkillOrCommandDir(skillPath, 'plugin', 'skill');
-        if (item) items.push(item);
+      try {
+        if (fs.statSync(skillPath).isDirectory()) {
+          const item = scanSkillOrCommandDir(skillPath, 'plugin', 'skill');
+          if (item) items.push(item);
+        }
+      } catch {
+        // Path no longer valid, skip
       }
     }
   }
@@ -304,32 +257,30 @@ async function scanPlugins(): Promise<ConfigItem[]> {
 }
 
 function buildDependencies(items: ConfigItem[], claudeMds: (Awaited<ReturnType<typeof parseClaudeMd>> | null)[]): void {
-  // Build a map of item names to items
-  const itemMap = new Map<string, ConfigItem>();
+  const itemByName = new Map<string, ConfigItem>();
+  const itemByPath = new Map<string, ConfigItem>();
   for (const item of items) {
-    itemMap.set(item.name, item);
+    itemByName.set(item.name, item);
+    itemByPath.set(item.path, item);
   }
 
-  // Extract references from CLAUDE.md files
   for (const claudeMd of claudeMds) {
     if (!claudeMd) continue;
 
-    const claudeMdItem = items.find(i => i.path === claudeMd.path);
+    const claudeMdItem = itemByPath.get(claudeMd.path);
     if (!claudeMdItem) continue;
 
-    // Add skill references as dependencies
     for (const skillRef of claudeMd.skillReferences) {
       claudeMdItem.dependencies.push(skillRef);
-      const skillItem = itemMap.get(skillRef);
+      const skillItem = itemByName.get(skillRef);
       if (skillItem) {
         skillItem.referencedBy.push(claudeMdItem.name);
       }
     }
 
-    // Add command references
     for (const cmdRef of claudeMd.commandReferences) {
       claudeMdItem.dependencies.push(cmdRef);
-      const cmdItem = itemMap.get(cmdRef);
+      const cmdItem = itemByName.get(cmdRef);
       if (cmdItem) {
         cmdItem.referencedBy.push(claudeMdItem.name);
       }
@@ -409,10 +360,8 @@ function generateSummary(items: ConfigItem[], claudeMds: (Awaited<ReturnType<typ
 }
 
 function extractDescription(content: string): string | undefined {
-  // Try to extract description from frontmatter or first paragraph
   const lines = content.split('\n');
 
-  // Check for YAML frontmatter description
   if (lines[0] === '---') {
     const endIndex = lines.slice(1).findIndex(l => l === '---');
     if (endIndex > 0) {
@@ -424,7 +373,6 @@ function extractDescription(content: string): string | undefined {
     }
   }
 
-  // Fall back to first non-empty, non-heading line
   for (const line of lines) {
     const trimmed = line.trim();
     if (trimmed && !trimmed.startsWith('#') && !trimmed.startsWith('---')) {

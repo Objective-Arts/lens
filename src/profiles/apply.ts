@@ -91,12 +91,21 @@ async function findSkillPathAsync(skillName: string, category: SkillCategory): P
   }
 }
 
+/** Reject skill names with path traversal characters */
+function isValidSkillName(name: string): boolean {
+  return !name.includes('/') && !name.includes('\\') && !name.includes('..');
+}
+
 /** Copy a single skill to the project */
 async function copySkillToProject(
   skillName: string,
   category: SkillCategory,
   skillsDir: string
 ): Promise<SkillCopyResult> {
+  if (!isValidSkillName(skillName)) {
+    return { skillName, status: 'error', message: `Invalid skill name (path traversal): ${skillName}` };
+  }
+
   let sourcePath = findSkillSourcePath(skillName);
   if (!sourcePath) {
     sourcePath = await findSkillPathAsync(skillName, category);
@@ -120,6 +129,47 @@ async function copySkillToProject(
   }
 }
 
+/** Get or create canon manifest for project */
+function getOrCreateManifest(projectPath: string, canonPath: string) {
+  const manifest = readManifest(projectPath);
+  if (manifest) return manifest;
+  return createManifest({
+    type: 'local',
+    path: canonPath,
+    gitRemote: getGitRemote(canonPath),
+    version: MANIFEST_VERSION
+  });
+}
+
+/** Record copy results in manifest and apply result */
+function recordCopyResults(
+  copyResults: SkillCopyResult[],
+  manifest: ReturnType<typeof createManifest>,
+  skillsDir: string,
+  canonPath: string,
+  sourceCommit: string | undefined,
+  result: ApplyResult
+): void {
+  for (const cr of copyResults) {
+    if (cr.status === 'copied') {
+      result.linked.push(cr.message);
+      if (cr.sourcePath) {
+        updateSkillInManifest(manifest, cr.skillName, {
+          installedCommit: sourceCommit,
+          installedAt: new Date().toISOString(),
+          sourceFile: path.relative(canonPath, cr.sourcePath) || cr.skillName,
+          hash: hashSkillDirectory(path.join(skillsDir, cr.skillName)),
+          modified: false
+        });
+      }
+    } else if (cr.status === 'skipped') {
+      result.skipped.push(cr.message);
+    } else {
+      result.errors.push(cr.message);
+    }
+  }
+}
+
 /** Apply skills from profile to project */
 async function applySkillsToProject(
   profile: ComposableProfile,
@@ -132,15 +182,7 @@ async function applySkillsToProject(
   await fsPromises.mkdir(skillsDir, { recursive: true });
 
   const canonPath = getCanonSourcePath();
-  let manifest = readManifest(projectPath);
-  if (!manifest) {
-    manifest = createManifest({
-      type: 'local',
-      path: canonPath,
-      gitRemote: getGitRemote(canonPath),
-      version: MANIFEST_VERSION
-    });
-  }
+  const manifest = getOrCreateManifest(projectPath, canonPath);
 
   const copyPromises: Promise<SkillCopyResult>[] = [];
   for (const category of SKILL_CATEGORIES) {
@@ -151,32 +193,7 @@ async function applySkillsToProject(
   }
 
   const copyResults = await Promise.all(copyPromises);
-  const sourceCommit = getGitCommit(canonPath);
-
-  for (const copyResult of copyResults) {
-    switch (copyResult.status) {
-      case 'copied':
-        result.linked.push(copyResult.message);
-        if (copyResult.sourcePath) {
-          const targetPath = path.join(skillsDir, copyResult.skillName);
-          updateSkillInManifest(manifest, copyResult.skillName, {
-            installedCommit: sourceCommit,
-            installedAt: new Date().toISOString(),
-            sourceFile: path.relative(canonPath, copyResult.sourcePath) || copyResult.skillName,
-            hash: hashSkillDirectory(targetPath),
-            modified: false
-          });
-        }
-        break;
-      case 'skipped':
-        result.skipped.push(copyResult.message);
-        break;
-      case 'error':
-        result.errors.push(copyResult.message);
-        break;
-    }
-  }
-
+  recordCopyResults(copyResults, manifest, skillsDir, canonPath, getGitCommit(canonPath), result);
   writeManifest(projectPath, manifest);
   result.created.push(`${CLAUDE_DIR_NAME}/canon-manifest.json`);
 }
@@ -225,6 +242,37 @@ async function applyCommandsToProject(
   }
 }
 
+/** Enable or install a single MCP server, recording results */
+function enableMcpServer(
+  serverName: string,
+  requireAll: boolean,
+  result: { created: string[]; skipped: string[]; errors: string[] }
+): void {
+  const serverDef = getServer(serverName);
+  if (!serverDef) {
+    const msg = `MCP server ${serverName} not in registry`;
+    result[requireAll ? 'errors' : 'skipped'].push(requireAll ? msg : `${msg} (skipping)`);
+    return;
+  }
+
+  if (serverDef.requiredEnv?.length) {
+    const envCheck = checkRequiredEnv(serverDef);
+    if (!envCheck.ok) {
+      const msg = `MCP server ${serverName} requires: ${envCheck.missing.join(', ')}`;
+      result[requireAll ? 'errors' : 'skipped'].push(requireAll ? msg : `${msg} - set env vars to enable`);
+      return;
+    }
+  }
+
+  if (isServerInstalled(serverName)) {
+    const r = enableServer(serverName);
+    result[r.success ? 'created' : 'skipped'].push(`MCP server ${serverName}: ${r.success ? 'enabled' : r.message}`);
+  } else {
+    const r = installAndEnableServer(serverName);
+    result[r.success ? 'created' : 'errors'].push(`MCP server ${serverName}: ${r.success ? 'installed and enabled' : r.message}`);
+  }
+}
+
 /** Apply MCP servers */
 async function applyMcpServers(mcpConfig: {
   enable?: string[];
@@ -237,88 +285,48 @@ async function applyMcpServers(mcpConfig: {
 
   if (mcpConfig.categories) {
     for (const category of mcpConfig.categories) {
-      const categoryServers = listServers({ category });
-      for (const server of categoryServers) serversToEnable.add(server.name);
+      for (const server of listServers({ category })) serversToEnable.add(server.name);
     }
   }
 
   for (const server of mcpConfig.disable ?? []) serversToEnable.delete(server);
-
-  for (const serverName of serversToEnable) {
-    const serverDef = getServer(serverName);
-    if (!serverDef) {
-      const msg = `MCP server ${serverName} not in registry`;
-      mcpConfig.requireAll ? result.errors.push(msg) : result.skipped.push(`${msg} (skipping)`);
-      continue;
-    }
-
-    if (serverDef.requiredEnv?.length) {
-      const envCheck = checkRequiredEnv(serverDef);
-      if (!envCheck.ok) {
-        const msg = `MCP server ${serverName} requires: ${envCheck.missing.join(', ')}`;
-        mcpConfig.requireAll ? result.errors.push(msg) : result.skipped.push(`${msg} - set env vars to enable`);
-        continue;
-      }
-    }
-
-    if (isServerInstalled(serverName)) {
-      const enableResult = enableServer(serverName);
-      result[enableResult.success ? 'created' : 'skipped'].push(`MCP server ${serverName}: ${enableResult.success ? 'enabled' : enableResult.message}`);
-    } else {
-      const installResult = installAndEnableServer(serverName);
-      result[installResult.success ? 'created' : 'errors'].push(`MCP server ${serverName}: ${installResult.success ? 'installed and enabled' : installResult.message}`);
-    }
-  }
+  for (const serverName of serversToEnable) enableMcpServer(serverName, mcpConfig.requireAll ?? false, result);
 
   for (const serverName of mcpConfig.disable ?? []) {
-    const disableResult = disableServer(serverName);
-    if (disableResult.success && !disableResult.warnings?.length) {
-      result.created.push(`MCP server ${serverName}: disabled`);
-    }
+    const r = disableServer(serverName);
+    if (r.success && !r.warnings?.length) result.created.push(`MCP server ${serverName}: disabled`);
   }
 
   return result;
+}
+
+type McpJsonConfig = { mcpServers: Record<string, { type: string; command: string; args: string[]; env?: Record<string, string> }> };
+
+/** Add an MCP server to config if not already present */
+async function addMcpServerIfMissing(config: McpJsonConfig, name: string, serverPath: string, added: string[]): Promise<void> {
+  if (config.mcpServers[name]) return;
+  try {
+    await fsPromises.access(serverPath);
+    config.mcpServers[name] = { type: 'stdio', command: 'node', args: [serverPath] };
+    added.push(name);
+  } catch { /* server not found, skip */ }
 }
 
 /** Create or update project-level .mcp.json with required MCP servers */
 async function createProjectMcpJson(projectPath: string): Promise<{ status: 'created' | 'skipped' | 'error'; warning?: string; error?: string; added?: string[] }> {
   const targetPath = path.join(projectPath, '.mcp.json');
 
-  // Read existing config or start fresh
-  let mcpConfig: { mcpServers: Record<string, { type: string; command: string; args: string[]; env?: Record<string, string> }> } = { mcpServers: {} };
+  let mcpConfig: McpJsonConfig = { mcpServers: {} };
   try {
-    const existing = await fsPromises.readFile(targetPath, 'utf-8');
-    mcpConfig = JSON.parse(existing);
+    mcpConfig = JSON.parse(await fsPromises.readFile(targetPath, 'utf-8'));
     if (!mcpConfig.mcpServers) mcpConfig.mcpServers = {};
   } catch { /* file doesn't exist, use empty config */ }
 
-  const geminiServer = path.join(MCP_SERVERS_DIR, 'gemini-reviewer', 'index.js');
-  const qodanaServer = path.join(MCP_SERVERS_DIR, 'qodana', 'dist', 'index.js');
-
   const added: string[] = [];
+  await addMcpServerIfMissing(mcpConfig, 'gemini-reviewer', path.join(MCP_SERVERS_DIR, 'gemini-reviewer', 'index.js'), added);
+  await addMcpServerIfMissing(mcpConfig, 'qodana', path.join(MCP_SERVERS_DIR, 'qodana', 'dist', 'index.js'), added);
 
-  // Add gemini-reviewer if missing
-  if (!mcpConfig.mcpServers['gemini-reviewer']) {
-    try {
-      await fsPromises.access(geminiServer);
-      mcpConfig.mcpServers['gemini-reviewer'] = { type: 'stdio', command: 'node', args: [geminiServer] };
-      added.push('gemini-reviewer');
-    } catch { /* server not found, skip */ }
-  }
-
-  // Add qodana if missing
-  if (!mcpConfig.mcpServers['qodana']) {
-    try {
-      await fsPromises.access(qodanaServer);
-      mcpConfig.mcpServers['qodana'] = { type: 'stdio', command: 'node', args: [qodanaServer] };
-      added.push('qodana');
-    } catch { /* server not found, skip */ }
-  }
-
-  // Nothing to add
-  if (added.length === 0) {
-    return { status: 'skipped' };
-  }
+  if (added.length === 0) return { status: 'skipped' };
 
   const warning = Object.keys(mcpConfig.mcpServers).length === 0 ? 'No MCP servers found' : undefined;
   try {
@@ -363,10 +371,8 @@ async function applyHooksToProject(profile: ComposableProfile, projectPath: stri
   const settingsPath = path.join(projectPath, CLAUDE_DIR_NAME, 'settings.json');
   let settings: Record<string, unknown> = {};
 
-  if (fs.existsSync(settingsPath)) {
-    try { settings = JSON.parse(fs.readFileSync(settingsPath, 'utf-8')); }
-    catch { result.warnings.push('Could not parse existing settings.json, creating new'); }
-  }
+  try { settings = JSON.parse(fs.readFileSync(settingsPath, 'utf-8')); }
+  catch { /* file missing or invalid JSON — start fresh */ }
 
   const existingHooks = (settings.hooks as Record<string, unknown[]>) || {};
   for (const [eventType, hookItems] of Object.entries(profile.hooks as Record<string, unknown[]>)) {
@@ -473,30 +479,33 @@ ${installed.map(s => `| \`${s.cmd}\` | ${s.desc} |`).join('\n')}
 `;
 }
 
-/** Update CLAUDE.md with profile info */
-async function updateClaudeMdWithProfile(claudeMdPath: string, profile: ComposableProfile, projectPath?: string): Promise<void> {
-  let content = '';
-  try { content = await fsPromises.readFile(claudeMdPath, 'utf-8'); } catch { /* new file */ }
+/** Build markdown sections from profile config */
+function buildProfileSections(profile: ComposableProfile, projectPath?: string): string {
+  let sections = `## Profiles Applied\n\n\`${profile.name}\`\n`;
 
-  let newSections = `## Profiles Applied\n\n\`${profile.name}\`\n`;
   if (projectPath) {
     const cmdDocs = getWorkflowCommandsDocs(projectPath);
-    if (cmdDocs) newSections += cmdDocs;
+    if (cmdDocs) sections += cmdDocs;
   }
 
   const standards = profile.claudeMd?.standards ?? [];
-  if (standards.length > 0) newSections += `\n## Standards\n\n${standards.map(s => `- ${s}`).join('\n')}\n`;
+  if (standards.length > 0) sections += `\n## Standards\n\n${standards.map(s => `- ${s}`).join('\n')}\n`;
 
   const antiPatterns = profile.claudeMd?.antiPatterns ?? [];
-  if (antiPatterns.length > 0) newSections += `\n## Anti-Patterns (Avoid)\n\n${antiPatterns.map(p => `- ${p}`).join('\n')}\n`;
+  if (antiPatterns.length > 0) sections += `\n## Anti-Patterns (Avoid)\n\n${antiPatterns.map(p => `- ${p}`).join('\n')}\n`;
 
   const autoInvoke = profile.claudeMd?.autoInvoke ?? [];
   if (autoInvoke.length > 0) {
     const table = autoInvoke.map(ai => `| ${ai.context} | ${ai.action} |`).join('\n');
-    newSections += `\n## Auto-Invoke Skills\n\n| Context | Action |\n|---------|--------|\n${table}\n`;
+    sections += `\n## Auto-Invoke Skills\n\n| Context | Action |\n|---------|--------|\n${table}\n`;
   }
 
-  content = content
+  return sections;
+}
+
+/** Strip existing profile sections from CLAUDE.md content */
+function stripProfileSections(content: string): string {
+  return content
     .replace(/## Profiles Applied[\s\S]*?(?=\n## [^A]|\n# |$)/g, '')
     .replace(/## Available Commands[\s\S]*?(?=\n## |\n# |$)/g, '')
     .replace(/## Standards[\s\S]*?(?=\n## |\n# |$)/g, '')
@@ -504,6 +513,15 @@ async function updateClaudeMdWithProfile(claudeMdPath: string, profile: Composab
     .replace(/## Auto-Invoke[\s\S]*?(?=\n## |\n# |$)/g, '')
     .replace(/\n{3,}/g, '\n\n')
     .trim();
+}
+
+/** Update CLAUDE.md with profile info */
+async function updateClaudeMdWithProfile(claudeMdPath: string, profile: ComposableProfile, projectPath?: string): Promise<void> {
+  let content = '';
+  try { content = await fsPromises.readFile(claudeMdPath, 'utf-8'); } catch { /* new file */ }
+
+  const newSections = buildProfileSections(profile, projectPath);
+  content = stripProfileSections(content);
 
   const firstHeadingMatch = content.match(/^#[^#].*\n/m);
   if (firstHeadingMatch) {

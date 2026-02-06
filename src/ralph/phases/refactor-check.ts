@@ -1,7 +1,7 @@
 /**
  * Refactor-check phase - simplify and clean up, verify still works.
  *
- * Experts: kernighan, thompson, feathers, gang-of-four, pike
+ * Experts: clarity, pragmatism, legacy, design-patterns, simplicity
  */
 
 import { BasePhase, PhaseContext, PhaseResult } from './types.js';

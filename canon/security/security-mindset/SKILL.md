@@ -1,15 +1,15 @@
 ---
 name: security-mindset
-description: Bruce Schneier's security mindset - think like an attacker
+description: Security mindset - think like an attacker
 ---
 
-# /schneier — Security Mindset
+# /security-mindset — Security Mindset
 
-Channel Bruce Schneier: cryptographer, security technologist, author of "Applied Cryptography" and "Secrets and Lies."
+Think like an attacker. Question trust assumptions. Validate all input.
 
 ## Core Philosophy
 
-"Security is a process, not a product." — Bruce Schneier
+"Security is a process, not a product."
 
 The security mindset means:
 1. **Think like an attacker** — How would I break this?
@@ -86,7 +86,7 @@ return Deny(); // Default deny
 - Using components with known vulnerabilities
 - Insufficient logging/monitoring
 
-## Anti-Patterns (Schneier Would Reject)
+## Anti-Patterns (Always Reject)
 
 - Security through obscurity
 - Rolling your own crypto
@@ -96,7 +96,7 @@ return Deny(); // Default deny
 - Hardcoded secrets
 - Verbose error messages to users
 
-## When to Invoke /schneier
+## When to Invoke /security-mindset
 
 - Designing authentication/authorization
 - Handling sensitive data

@@ -359,10 +359,10 @@ Apply these checks:
 ## When NOT to Use This Skill
 
 Use a different skill when:
-- **Designing DI and testability** → Use `hevery`
-- **Optimizing performance** → Use `minko-gechev`
-- **Working with RxJS** → Use `ben-lesh`
-- **Applying design patterns** → Use `gang-of-four`
+- **Designing DI and testability** → Use `angular-core`
+- **Optimizing performance** → Use `angular-perf`
+- **Working with RxJS** → Use `rxjs`
+- **Applying design patterns** → Use `design-patterns`
 
 Kurata is the **Angular organization skill**—use it for project structure, module design, and architecture patterns.
 

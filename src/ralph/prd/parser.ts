@@ -1,8 +1,8 @@
 /**
  * PRD file parser.
  *
- * Following kernighan: small functions, clear names.
- * Following hevery: pure functions, no side effects, easily testable.
+ * Following clarity: small functions, clear names.
+ * Following testability: pure functions, no side effects, easily testable.
  */
 
 import { Prd, PrdItem, ItemStatus } from '../types.js';

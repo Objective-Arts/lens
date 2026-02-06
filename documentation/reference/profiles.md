@@ -188,17 +188,17 @@ Foundation for all software projects.
 ```yaml
 autoInvoke:
   - context: Building UI component
-    action: INVOKE `/frost` then `/ive`
+    action: INVOKE `/components` then `/visual`
   - context: Designing forms
-    action: INVOKE `/wroblewski` then `/norman`
+    action: INVOKE `/mobile` then `/usability`
   - context: Modals, dialogs, confirmations
-    action: INVOKE `/cooper` for goal-directed design
+    action: INVOKE `/personas` for goal-directed design
   - context: Adding animation
-    action: INVOKE `/duarte`
+    action: INVOKE `/motion`
   - context: Data visualization
-    action: INVOKE `/tufte`
+    action: INVOKE `/charts`
   - context: Mobile design
-    action: INVOKE `/wroblewski` then `/buxton`
+    action: INVOKE `/mobile` then `/interaction`
 ```
 
 **Use When**: Any frontend project with UI components

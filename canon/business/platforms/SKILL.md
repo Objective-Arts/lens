@@ -234,10 +234,10 @@ Use Thompson/Stratechery when:
 - Assessing competitive moats in digital markets
 
 Use a different skill when:
-- **Competitive positioning** → Use `porter` (Five Forces, generic strategies)
-- **Strategy coherence** → Use `rumelt` (diagnosis-policy-action)
-- **Power/moat analysis** → Use `helmer` (7 Powers)
-- **Growth strategy** → Use `grove` (OKRs, leverage)
+- **Competitive positioning** → Use `competition` (Five Forces, generic strategies)
+- **Strategy coherence** → Use `strategy` (diagnosis-policy-action)
+- **Power/moat analysis** → Use `moats` (7 Powers)
+- **Growth strategy** → Use `management` (OKRs, leverage)
 
 ---
 

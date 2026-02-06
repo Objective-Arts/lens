@@ -233,6 +233,6 @@ p + p {
 ## Integration
 
 Combine with:
-- `/ive` - Visual system that type lives within
-- `/rams` - Philosophy of "less but better" applies to fonts too
-- `/frost` - Components built on this type system
+- `/visual` - Visual system that type lives within
+- `/design` - Philosophy of "less but better" applies to fonts too
+- `/components` - Components built on this type system

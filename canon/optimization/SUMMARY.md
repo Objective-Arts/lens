@@ -1,4 +1,4 @@
-# /carmack Summary
+# /optimization Summary
 
 > "If you want to do something really well, you have to understand it deeply."
 

@@ -34,7 +34,7 @@ function extractAutoInvokes(content: string): ClaudeMdAutoInvoke[] {
 
   // Pattern 1: Markdown table format
   // | Context | Action |
-  // | React/JSX/TSX files | INVOKE `/abramov` |
+  // | React/JSX/TSX files | INVOKE `/react-state` |
   const tablePattern = /\|([^|]+)\|([^|]*(?:invoke|INVOKE)[^|]*)\|/gi;
   let match;
 
@@ -59,8 +59,8 @@ function extractAutoInvokes(content: string): ClaudeMdAutoInvoke[] {
   }
 
   // Pattern 2: Prose format
-  // "Before writing React code, invoke /abramov"
-  // "When working with D3, use the bostock skill"
+  // "Before writing React code, invoke /react-state"
+  // "When working with D3, use the d3 skill"
   const prosePatterns = [
     /(?:before|when|for|if)\s+(?:writing|working|editing|creating)?\s*(?:with|on)?\s*([^,]+),?\s*(?:invoke|use|activate|load)\s+[`\/]?(\w+(?:[-:]\w+)?)/gi,
     /invoke\s+[`\/](\w+(?:[-:]\w+)?)\s+(?:for|when|before)\s+([^.]+)/gi

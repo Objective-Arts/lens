@@ -1,16 +1,16 @@
 /**
  * Phase interface and types.
  *
- * Following bloch: design for extension.
- * Following gang-of-four: Strategy pattern for phases.
- * Following liskov: substitutable phase implementations.
+ * Following java: design for extension.
+ * Following design-patterns: Strategy pattern for phases.
+ * Following abstraction: substitutable phase implementations.
  */
 
 import type { Session, PhaseName, Skill, PrdItem } from '../types.js';
 
 /**
  * Result of phase execution.
- * Following cherny: discriminated union for exhaustive handling.
+ * Following typescript: discriminated union for exhaustive handling.
  */
 export type PhaseResult =
   | { readonly status: 'success'; readonly message: string; readonly metrics?: Readonly<Record<string, number>>; readonly rawOutput?: string }
@@ -19,7 +19,7 @@ export type PhaseResult =
 
 /**
  * Context passed to each phase.
- * Following pike: minimal interface, only what's needed.
+ * Following simplicity: minimal interface, only what's needed.
  */
 export interface PhaseContext {
   readonly session: Session;
@@ -34,7 +34,7 @@ export interface PhaseContext {
 /**
  * Phase interface - implemented by each phase.
  * Following Strategy pattern: uniform interface, different implementations.
- * Following liskov: any Phase can be substituted for another.
+ * Following abstraction: any Phase can be substituted for another.
  */
 export interface Phase {
   /** Phase name matching PhaseName type */
@@ -63,7 +63,7 @@ export interface Phase {
 
 /**
  * Base class for phases with common functionality.
- * Following gang-of-four: Template Method pattern.
+ * Following design-patterns: Template Method pattern.
  */
 export abstract class BasePhase implements Phase {
   abstract readonly name: PhaseName;

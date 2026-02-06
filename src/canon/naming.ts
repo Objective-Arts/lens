@@ -2,7 +2,7 @@
  * Skill naming utilities for tribute ↔ generic name mapping.
  *
  * When CANON_TRIBUTE_NAMES=1 is set:
- * - Tribute names (kernighan, dijkstra) resolve to generic names (clarity, correctness)
+ * - Tribute names (e.g. legacy tribute IDs) resolve to generic names (clarity, correctness)
  * - Display shows tribute names for debugging
  */
 
@@ -34,13 +34,8 @@ function loadNamingConfig(): NamingConfig | null {
   const canonPath = getCanonSourcePath();
   const namingPath = path.join(canonPath, 'naming.json');
 
-  if (!fs.existsSync(namingPath)) {
-    return null;
-  }
-
   try {
-    const content = fs.readFileSync(namingPath, 'utf-8');
-    namingConfig = JSON.parse(content) as NamingConfig;
+    namingConfig = JSON.parse(fs.readFileSync(namingPath, 'utf-8')) as NamingConfig;
     buildLookupMaps();
     return namingConfig;
   } catch {

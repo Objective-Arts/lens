@@ -1,4 +1,4 @@
-# /liskov Summary
+# /abstraction Summary
 
 > "Subtypes must be substitutable for their base types without breaking program correctness."
 

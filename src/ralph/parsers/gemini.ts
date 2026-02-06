@@ -1,8 +1,8 @@
 /**
  * Gemini review output parser.
  *
- * Following kernighan: handle edge cases explicitly.
- * Following hevery: pure function, all inputs explicit.
+ * Following clarity: handle edge cases explicitly.
+ * Following testability: pure function, all inputs explicit.
  */
 
 import { GeminiResult } from '../types.js';

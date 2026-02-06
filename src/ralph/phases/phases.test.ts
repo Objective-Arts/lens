@@ -1,8 +1,8 @@
 /**
  * Phases Factory Tests
  *
- * Following meszaros: clear tests for phase creation.
- * Following hevery: verify contracts are honored.
+ * Following test-doubles: clear tests for phase creation.
+ * Following testability: verify contracts are honored.
  */
 
 import { describe, it, expect } from 'vitest';

@@ -5,7 +5,7 @@ React and testing patterns from Kent C. Dodds (Testing Library creator, Epic Rea
 ## Files
 
 ```
-kent-c-dodds/
+react-test/
 ├── SKILL.md                      <- Main skill (auto-invoked)
 ├── README.md                     <- This file
 └── references/

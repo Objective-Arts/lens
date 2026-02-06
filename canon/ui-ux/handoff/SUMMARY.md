@@ -1,4 +1,4 @@
-# /mall Summary
+# /handoff Summary
 
 > "Hot potato, not waterfall."
 

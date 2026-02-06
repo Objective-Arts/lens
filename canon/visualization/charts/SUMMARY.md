@@ -1,4 +1,4 @@
-# /tufte Summary
+# /charts Summary
 
 > "Every drop of ink should have a reason." - Edward Tufte
 

@@ -269,10 +269,10 @@ Apply these checks:
 ## When NOT to Use This Skill
 
 Use a different skill when:
-- **Designing APIs/classes** -> Use `bloch` (defensive design patterns)
-- **Writing idiomatic language code** -> Use language-specific skill (`cherny`, `slatkin`, etc.)
-- **Performance optimization** -> Use `carmack` (measurement-first optimization)
-- **Complex algorithm design** -> Use `knuth` (literate programming)
+- **Designing APIs/classes** -> Use `java` (defensive design patterns)
+- **Writing idiomatic language code** -> Use language-specific skill (`typescript`, `python-patterns`, etc.)
+- **Performance optimization** -> Use `optimization` (measurement-first optimization)
+- **Complex algorithm design** -> Use `algorithms` (literate programming)
 
 Google Style is the **universal formatting/clarity skill**—use it alongside language-specific skills for consistent, readable code.
 

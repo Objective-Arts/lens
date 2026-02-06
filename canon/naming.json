@@ -54,9 +54,9 @@
     "python-protocols": { "tribute": "ramalho", "category": "python" },
     "python-patterns": { "tribute": "slatkin", "category": "python" },
 
-    "threat-model": { "tribute": "bruce-schneier", "category": "security" },
+    "threat-model": { "tribute": "threat-model", "category": "security" },
     "owasp": { "tribute": "owasp", "category": "security", "note": "not a person - acronym" },
-    "security-mindset": { "tribute": "schneier", "category": "security" },
+    "security-mindset": { "tribute": "security-mindset", "category": "security" },
     "appsec": { "tribute": "tanya-janca", "category": "security" },
     "web-security": { "tribute": "troy-hunt", "category": "security" },
 

@@ -1,7 +1,7 @@
 /**
  * Issue parsing patterns - centralized regex definitions.
  *
- * Following kernighan: each pattern has ONE purpose, clearly documented.
+ * Following clarity: each pattern has ONE purpose, clearly documented.
  * All patterns handle markdown formatting (##, **bold**).
  */
 

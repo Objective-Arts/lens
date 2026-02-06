@@ -5,7 +5,7 @@
  * Checks for operational concerns that slip through other phases.
  * Fixes what it finds and updates documentation.
  *
- * Experts: bill-joy (handle failure), leveson (system safety), petroski (learn from failures)
+ * Experts: distributed (handle failure), safety (system safety), failure (learn from failures)
  */
 
 import { BasePhase, PhaseContext, PhaseResult } from './types.js';
@@ -19,25 +19,25 @@ You are performing a final production readiness review. Focus on OPERATIONAL con
 that other phases miss (security-review handles security, static-analysis handles code quality).
 
 Experts guiding this review:
-- Bill Joy: "Handle failure explicitly" - every failure path must be covered
-- Nancy Leveson: System safety - what failure modes exist? What constraints prevent accidents?
-- Henry Petroski: Learn from failures - what has gone wrong before? What could go wrong?
+- distributed: "Handle failure explicitly" - every failure path must be covered
+- safety: System safety - what failure modes exist? What constraints prevent accidents?
+- failure: Learn from failures - what has gone wrong before? What could go wrong?
 
 ## CHECKS TO PERFORM (operational focus)
 
-### 1. Resilience (Bill Joy)
+### 1. Resilience (distributed)
 - External API calls have timeouts (find fetch/axios without timeout)
 - Retries with exponential backoff for transient failures
 - Graceful degradation when dependencies fail
 - No unbounded queues or memory growth
 
-### 2. Error Recovery (Leveson)
+### 2. Error Recovery (safety)
 - No swallowed errors (empty catch blocks)
 - Errors logged with context before re-throwing
 - Graceful shutdown handlers exist
 - Partial failure doesn't corrupt state
 
-### 3. Observability (Petroski - learn from failures)
+### 3. Observability (failure - learn from failures)
 - Logging at appropriate levels
 - Health check endpoints exist
 - Key operations have timing/metrics

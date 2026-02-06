@@ -1,4 +1,4 @@
-# /porter Summary
+# /competition Summary
 
 > "The essence of strategy is choosing what NOT to do."
 

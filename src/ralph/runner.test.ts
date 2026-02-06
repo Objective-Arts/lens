@@ -1,8 +1,8 @@
 /**
  * Runner Integration Tests
  *
- * Following Hevery: Testing at module boundaries with mocked dependencies.
- * Following Dodds: Integration tests (highest value), test behavior not implementation.
+ * Following testability: Testing at module boundaries with mocked dependencies.
+ * Following react-test: Integration tests (highest value), test behavior not implementation.
  *
  * Tests the runner orchestration with mocked stage execution.
  */

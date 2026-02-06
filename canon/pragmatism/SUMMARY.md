@@ -1,4 +1,4 @@
-# /thompson Summary
+# /pragmatism Summary
 
 > "When in doubt, use brute force."
 

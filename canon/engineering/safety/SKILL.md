@@ -274,6 +274,6 @@ Before shipping safety-critical code:
 ## Integration
 
 Combine with:
-- `/petroski` - Historical failure analysis
-- `/taleb` - Antifragile design
-- `/schneier` - Security threat modeling (similar structure to STPA)
+- `/failure` - Historical failure analysis
+- `/resilience` - Antifragile design
+- `/security-mindset` - Security threat modeling (similar structure to STPA)

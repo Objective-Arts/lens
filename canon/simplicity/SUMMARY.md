@@ -1,4 +1,4 @@
-# /pike Summary
+# /simplicity Summary
 
 > "Simplicity is complicated, but the clarity it provides is worth the effort."
 

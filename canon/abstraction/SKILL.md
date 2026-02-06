@@ -321,8 +321,8 @@ When reviewing type hierarchies:
 | Defining interfaces/contracts | Yes - specify behavior |
 | Reviewing OO design | Yes - check substitutability |
 | Creating ADTs | Yes - information hiding |
-| Performance optimization | No - see carmack |
-| Implementation patterns | Partially - see gang-of-four |
+| Performance optimization | No - see optimization |
+| Implementation patterns | Partially - see design-patterns |
 
 ---
 

@@ -162,6 +162,6 @@ Every non-data pixel costs attention.
 This skill works with:
 - **d3-expert** — Implementation patterns for bullet graphs, sparklines
 - **stakeholder-adaptation** — Adjust dashboard for executive vs. analyst audience
-- **tufte-visualization-review** — Complementary principles (data-ink ratio, lie factor)
+- **charts-visualization-review** — Complementary principles (data-ink ratio, lie factor)
 - **behavioral-health-viz-patterns** — Domain-specific dashboard patterns
 </integration>

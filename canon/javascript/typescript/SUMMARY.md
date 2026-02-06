@@ -1,4 +1,4 @@
-# /cherny Summary
+# /typescript Summary
 
 > "The goal isn't to annotate everything—it's to annotate the minimum necessary and let TypeScript infer the rest."
 

@@ -194,10 +194,10 @@ Apply these checks:
 ## When NOT to Use This Skill
 
 Use a different skill when:
-- **Managing routine operations** → Use `grove` (OKRs, one-on-ones, leverage)
-- **Analyzing competitive moats** → Use `helmer` (7 Powers framework)
-- **Analyzing industry structure** → Use `porter` (Five Forces, positioning)
-- **Evaluating strategy quality** → Use `rumelt` (diagnosis-policy-action)
+- **Managing routine operations** → Use `management` (OKRs, one-on-ones, leverage)
+- **Analyzing competitive moats** → Use `moats` (7 Powers framework)
+- **Analyzing industry structure** → Use `competition` (Five Forces, positioning)
+- **Evaluating strategy quality** → Use `strategy` (diagnosis-policy-action)
 
 Horowitz is the **crisis leadership skill**—use it when facing existential threats, hard personnel decisions, or wartime conditions.
 

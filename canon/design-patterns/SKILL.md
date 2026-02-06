@@ -277,7 +277,7 @@ The GoF patterns were written for C++ and Smalltalk in 1994. Modern adjustments:
 
 **Strategy**: Lambdas and first-class functions often replace the need for Strategy classes.
 
-**Factory**: Consider static factory methods (Bloch) as lighter alternative.
+**Factory**: Consider static factory methods (java) as lighter alternative.
 
 **Command**: Consider functional approaches for simple cases.
 
@@ -299,11 +299,11 @@ Apply these checks:
 ## When NOT to Use This Skill
 
 Use a different skill when:
-- **Writing Java/Kotlin idioms** → Use `bloch` (Effective Java patterns)
-- **Designing algorithms** → Use `knuth` (algorithmic rigor, complexity)
-- **Proving correctness** → Use `dijkstra` (formal methods, invariants)
-- **Writing functional code** → Use `carmack` (functional core, purity)
-- **General code clarity** → Use `kernighan` (readability, simplicity)
+- **Writing Java/Kotlin idioms** → Use `java` (Effective Java patterns)
+- **Designing algorithms** → Use `algorithms` (algorithmic rigor, complexity)
+- **Proving correctness** → Use `correctness` (formal methods, invariants)
+- **Writing functional code** → Use `optimization` (functional core, purity)
+- **General code clarity** → Use `clarity` (readability, simplicity)
 
 Gang of Four is the **OO design patterns skill**—use it when you need a specific pattern from the classic 23.
 

@@ -24,7 +24,7 @@ Search the current session or `.claude/` logs for skill invocations:
 
 ```bash
 # Patterns to find:
-# - "SKILLS INVOKED: /frost, /dodds, ..."
+# - "SKILLS INVOKED: /components, /react-test, ..."
 # - "Invoking /skillname"
 # - "/skillname" mentions in context
 ```
@@ -35,11 +35,11 @@ Map each skill to its domain:
 
 | Domain | Skills |
 |--------|--------|
-| **UI/UX Design** | /frost, /ive, /norman, /wroblewski, /duarte, /buxton, /curtis, /kruzeniski, /rams |
-| **Testing & Quality** | /dodds, /crockford, /simpson, /bloch, /pike, /cleary |
-| **Architecture** | /taleb, /petroski |
-| **Code Quality** | /abramov, /cherny |
-| **Documentation** | /procida |
+| **UI/UX Design** | /components, /visual, /usability, /mobile, /motion, /interaction, /tokens, /typography, /design |
+| **Testing & Quality** | /react-test, /js-safety, /js-internals, /java, /simplicity, /async |
+| **Architecture** | /resilience, /failure |
+| **Code Quality** | /react-state, /typescript |
+| **Documentation** | /docs |
 | **Workflow** | /plan, /review-hard |
 
 ### Step 3: Generate Report Files
@@ -54,11 +54,11 @@ Create two files in `.claude/`:
     "source": "manual-session"
   },
   "skills": [
-    {"name": "/frost", "count": 3, "domain": "ui-ux"},
-    {"name": "/dodds", "count": 2, "domain": "testing-quality"}
+    {"name": "/components", "count": 3, "domain": "ui-ux"},
+    {"name": "/react-test", "count": 2, "domain": "testing-quality"}
   ],
   "connections": [
-    {"source": "/frost", "target": "/ive", "weight": 2}
+    {"source": "/components", "target": "/visual", "weight": 2}
   ]
 }
 ```
@@ -150,15 +150,15 @@ Session: 2024-01-15 Development Session
 Duration: 2 hours
 
 Skills by Domain:
-  UI/UX Design:     /frost (3), /ive (2), /norman (1)
-  Testing:          /dodds (4), /crockford (1)
-  Architecture:     /taleb (2)
-  Documentation:    /procida (2)
+  UI/UX Design:     /components (3), /visual (2), /usability (1)
+  Testing:          /react-test (4), /js-safety (1)
+  Architecture:     /resilience (2)
+  Documentation:    /docs (2)
 
 Co-occurrence Patterns:
-  /frost + /ive: 2 times (component styling)
-  /dodds + /procida: 2 times (test documentation)
-  /taleb + /petroski: 1 time (system design)
+  /components + /visual: 2 times (component styling)
+  /react-test + /docs: 2 times (test documentation)
+  /resilience + /failure: 1 time (system design)
 
 Report saved to: .claude/skill-usage-report.html
 ```

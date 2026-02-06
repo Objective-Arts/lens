@@ -1,4 +1,4 @@
-# /hevery Summary
+# /angular-core Summary
 
 > "If it's hard to test, it's hard to use."
 

@@ -277,10 +277,10 @@ Apply these checks:
 ## When NOT to Use This Skill
 
 Use a different skill when:
-- **Applying design patterns** → Use `gang-of-four`
-- **Writing Java code** → Use `bloch` (similar DI principles, different idioms)
-- **General code clarity** → Use `kernighan`
-- **Performance optimization** → Use `minko-gechev`
+- **Applying design patterns** → Use `design-patterns`
+- **Writing Java code** → Use `java` (similar DI principles, different idioms)
+- **General code clarity** → Use `clarity`
+- **Performance optimization** → Use `angular-perf`
 
 Hevery is the **Angular architecture skill**—use it for DI, testability, and component design.
 

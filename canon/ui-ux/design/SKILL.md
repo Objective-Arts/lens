@@ -129,6 +129,6 @@ Rate any design 0-10:
 ## Integration
 
 This skill sets the philosophical foundation. Combine with:
-- `/norman` - Psychology of how users perceive this design
-- `/frost` - Component structure that embodies these principles
-- `/tufte` - Data visualization aligned with "less but better"
+- `/usability` - Psychology of how users perceive this design
+- `/components` - Component structure that embodies these principles
+- `/charts` - Data visualization aligned with "less but better"

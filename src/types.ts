@@ -128,7 +128,7 @@ export interface ComposableProfile {
   skills?: {
     security?: string[];  // Security skills (owasp, security-mindset, etc.)
     tech?: string[];      // Tech workflow skills (ceremony, etc.)
-    canon?: string[];     // Domain experts (abramov, bostock, etc.)
+    canon?: string[];     // Domain experts (react-state, d3, etc.)
     global?: string[];    // Productivity workflows, meta skills
   };
   agents?: string[];

@@ -218,7 +218,7 @@ Configuration Builder, Setup Builder
 **Motivation**
 
 A D3 visualization project needs:
-- Canon skills: d3, react-state, tufte
+- Canon skills: d3, react-state, charts
 - Security: owasp (XSS)
 - Agents: css-expert, accessibility-tester
 - Commands: viz/*, d3/*
@@ -305,7 +305,7 @@ Liabilities:
 name: D3 Development
 description: Full D3/visualization development environment
 skills:
-  include: [d3, react-state, react-test, osmani, cherny]
+  include: [d3, react-state, react-test, js-perf, typescript]
 commands:
   include: [viz/*, d3/*]
 agents:

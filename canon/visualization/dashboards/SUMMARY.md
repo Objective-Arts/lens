@@ -1,4 +1,4 @@
-# /few Summary
+# /dashboards Summary
 
 > "A dashboard must fit on a single screen without scrolling."
 

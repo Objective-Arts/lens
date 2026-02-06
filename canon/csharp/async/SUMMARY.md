@@ -1,4 +1,4 @@
-# /cleary Summary
+# /async Summary
 
 > "Async all the way down. Don't block on async code."
 

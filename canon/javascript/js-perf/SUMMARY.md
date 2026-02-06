@@ -1,4 +1,4 @@
-# /osmani Summary
+# /js-perf Summary
 
 > "The fastest code is the code you don't ship."
 

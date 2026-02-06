@@ -1,14 +1,14 @@
 /**
  * Profile display helpers
  *
- * Extracted from cli/index.ts for single responsibility (Pike)
- * Pure display functions - no side effects except console output (Dijkstra)
+ * Extracted from cli/index.ts for single responsibility (simplicity)
+ * Pure display functions - no side effects except console output (correctness)
  */
 
 import chalk from 'chalk';
 import type { ComposableProfile } from '../../types.js';
 
-/** Print a labeled list of items (Kernighan: reusable helper) */
+/** Print a labeled list of items (clarity: reusable helper) */
 export function printList(
   title: string,
   items: string[],

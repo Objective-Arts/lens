@@ -1,4 +1,4 @@
-# /duarte Summary
+# /motion Summary
 
 > "Animation is not decoration. Motion communicates."
 

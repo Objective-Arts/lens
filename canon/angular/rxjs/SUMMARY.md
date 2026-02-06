@@ -1,4 +1,4 @@
-# /ben-lesh Summary
+# /rxjs Summary
 
 > "RxJS is for streams, not single values."
 

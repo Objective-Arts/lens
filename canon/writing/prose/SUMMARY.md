@@ -1,4 +1,4 @@
-# /zinsser Summary
+# /prose Summary
 
 > "Clutter is the disease of American writing."
 

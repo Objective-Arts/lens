@@ -248,10 +248,10 @@ Apply these checks:
 ## When NOT to Use This Skill
 
 Use a different skill when:
-- **Writing Linux kernel code** → Use `linus` (kernel style, data structures, taste)
-- **Writing Go code** → Use `pike` (Go Proverbs, interface design)
-- **Writing application code** → Use `kernighan` (general clarity, readability)
-- **Building distributed systems** → Use `bill-joy` (statelessness, fault tolerance)
+- **Writing Linux kernel code** → Use `data-first` (kernel style, data structures, taste)
+- **Writing Go code** → Use `simplicity` (Go Proverbs, interface design)
+- **Writing application code** → Use `clarity` (general clarity, readability)
+- **Building distributed systems** → Use `distributed` (statelessness, fault tolerance)
 - **Performance isn't measured yet** → Measure first. Carmack says: "Don't optimize without data."
 
 Carmack is the **performance-critical skill**—use it when profiling has identified bottlenecks or you're writing game/graphics/real-time code.

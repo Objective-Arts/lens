@@ -348,8 +348,8 @@ save(item: Item) {
 ## When NOT to Use This Skill
 
 Use a different skill when:
-- **Designing component architecture** → Use `hevery`
-- **Optimizing bundle size** → Use `minko-gechev`
+- **Designing component architecture** → Use `angular-core`
+- **Optimizing bundle size** → Use `angular-perf`
 - **Single async values** → Use Promises
 - **Synchronous state** → Use Signals
 

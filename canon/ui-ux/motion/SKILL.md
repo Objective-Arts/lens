@@ -260,6 +260,6 @@ items.forEach((item, i) => {
 ## Integration
 
 Combine with:
-- `/ive` - Material properties that motion must respect
-- `/norman` - Feedback timing requirements
-- `/buxton` - Input response expectations
+- `/visual` - Material properties that motion must respect
+- `/usability` - Feedback timing requirements
+- `/interaction` - Input response expectations

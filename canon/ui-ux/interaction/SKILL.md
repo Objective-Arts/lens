@@ -246,6 +246,6 @@ Input diversity includes assistive technology.
 ## Integration
 
 Combine with:
-- `/norman` - Affordances that signal input methods
-- `/wroblewski` - Mobile-first input patterns
-- `/duarte` - Feedback motion for input acknowledgment
+- `/usability` - Affordances that signal input methods
+- `/mobile` - Mobile-first input patterns
+- `/motion` - Feedback motion for input acknowledgment

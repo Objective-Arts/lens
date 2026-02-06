@@ -338,6 +338,6 @@ Track system health:
 ## Integration
 
 Combine with:
-- `/frost` - Component structure this governs
-- `/mall` - Handoff process this documents
+- `/components` - Component structure this governs
+- `/handoff` - Handoff process this documents
 - All other UI skills - This governs their output

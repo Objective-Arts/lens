@@ -142,6 +142,11 @@ export function checkSkillStatus(projectPath: string): SkillStatusInfo[] {
   }).sort((a, b) => a.name.localeCompare(b.name));
 }
 
+/** Reject skill names with path traversal characters */
+function isValidSkillName(name: string): boolean {
+  return !name.includes('/') && !name.includes('\\') && !name.includes('..');
+}
+
 /**
  * Copy a skill from source to project.
  */
@@ -150,6 +155,9 @@ export function copySkill(
   projectPath: string,
   options: { force?: boolean } = {}
 ): { success: boolean; message: string } {
+  if (!isValidSkillName(skillName)) {
+    return { success: false, message: `Invalid skill name (path traversal): ${skillName}` };
+  }
   const targetPath = path.join(projectPath, '.claude', 'skills', skillName);
   const validation = validateSkillCopy(skillName, targetPath, options.force ?? false);
 
@@ -196,6 +204,9 @@ export function upgradeSkills(
  * Show diff between installed and source skill.
  */
 export function diffSkill(skillName: string, projectPath: string): string | null {
+  if (!isValidSkillName(skillName)) {
+    return `Invalid skill name (path traversal): ${skillName}`;
+  }
   const installedPath = path.join(projectPath, '.claude', 'skills', skillName);
   const validation = validateDiffPaths(skillName, installedPath);
 
@@ -204,12 +215,12 @@ export function diffSkill(skillName: string, projectPath: string): string | null
   const installedMd = path.join(installedPath, 'SKILL.md');
   const sourceMd = path.join(validation.sourcePath, 'SKILL.md');
 
-  if (!fs.existsSync(installedMd) || !fs.existsSync(sourceMd)) {
-    return 'Cannot compare: SKILL.md missing';
-  }
-
-  const installedContent = fs.readFileSync(installedMd, 'utf-8');
-  const sourceContent = fs.readFileSync(sourceMd, 'utf-8');
+  let installedContent: string;
+  let sourceContent: string;
+  try { installedContent = fs.readFileSync(installedMd, 'utf-8'); }
+  catch { return 'Cannot compare: installed SKILL.md missing'; }
+  try { sourceContent = fs.readFileSync(sourceMd, 'utf-8'); }
+  catch { return 'Cannot compare: source SKILL.md missing'; }
 
   if (installedContent === sourceContent) return 'No differences in SKILL.md';
 

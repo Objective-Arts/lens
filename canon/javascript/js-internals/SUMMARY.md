@@ -1,4 +1,4 @@
-# /kyle-simpson Summary
+# /js-internals Summary
 
 > "Know the language, not just the patterns."
 

@@ -1,4 +1,4 @@
-# /ive Summary
+# /visual Summary
 
 > "The best designs feel inevitable - like there's no other way it could have been."
 

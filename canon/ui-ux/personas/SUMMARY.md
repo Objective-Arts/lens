@@ -1,4 +1,4 @@
-# /cooper Summary
+# /personas Summary
 
 > "Users don't want to use software - they want to accomplish goals."
 

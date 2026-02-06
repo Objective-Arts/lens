@@ -1,4 +1,4 @@
-# /minko-gechev Summary
+# /angular-perf Summary
 
 > "The fastest code is code that doesn't run."
 

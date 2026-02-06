@@ -1,15 +1,15 @@
 /**
  * Test mocks for external dependencies.
  *
- * Following Hevery: Injectable interfaces, testable seams.
- * Following Dodds: Mock at boundaries only, use realistic responses.
+ * Following testability: Injectable interfaces, testable seams.
+ * Following react-test: Mock at boundaries only, use realistic responses.
  */
 
 import { ClaudeOutput } from '../types.js';
 
 /**
  * Interface for Claude runner - enables dependency injection.
- * Following Hevery: Explicit interface for external dependency.
+ * Following testability: Explicit interface for external dependency.
  */
 export interface ClaudeRunner {
   run(options: {
@@ -23,7 +23,7 @@ export interface ClaudeRunner {
 
 /**
  * Create a mock Claude runner for testing.
- * Following Dodds: Returns realistic responses, not minimal stubs.
+ * Following react-test: Returns realistic responses, not minimal stubs.
  */
 export function createMockClaudeRunner(
   responses: Map<string, ClaudeOutput> | ClaudeOutput

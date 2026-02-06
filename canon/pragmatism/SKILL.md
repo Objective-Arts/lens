@@ -270,10 +270,10 @@ Use **Pike** when: building production systems, designing APIs, writing Go.
 ## When NOT to Use This Skill
 
 Use a different skill when:
-- **Designing public APIs** → Use `pike` or `bloch` (API design needs more upfront thought)
-- **Performance-critical code** → Use `carmack` (brute force won't cut it)
-- **Writing production Go** → Use `pike` (Go idioms and proverbs)
-- **Security-sensitive code** → Use `schneier` (security needs paranoid thinking)
+- **Designing public APIs** → Use `simplicity` or `java` (API design needs more upfront thought)
+- **Performance-critical code** → Use `optimization` (brute force won't cut it)
+- **Writing production Go** → Use `simplicity` (Go idioms and proverbs)
+- **Security-sensitive code** → Use `security-mindset` (security needs paranoid thinking)
 
 Thompson is the **pragmatist's skill**—for getting things working, prototyping, and cutting through complexity.
 

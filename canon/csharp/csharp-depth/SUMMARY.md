@@ -1,4 +1,4 @@
-# /skeet Summary
+# /csharp-depth Summary
 
 > "The more you understand C#, the simpler your code can be."
 

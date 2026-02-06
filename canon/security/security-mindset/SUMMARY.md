@@ -1,4 +1,4 @@
-# /schneier Summary
+# /security-mindset Summary
 
 > "Security is a process, not a product."
 

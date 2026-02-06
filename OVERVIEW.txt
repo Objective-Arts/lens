@@ -1,36 +1,36 @@
 Claude Optimal: Embedded Expert Knowledge for AI-Assisted Development
 
 When developers use Claude Code, they get a capable assistant. But that
-assistant lacks specialized knowledge--the accumulated wisdom of Kernighan on
-clarity, Schneier on security, Abramov on React state, Tufte on visualization.
+assistant lacks specialized knowledge--the accumulated wisdom of clarity in code,
+security thinking, React state management, and data visualization.
 Claude Optimal embeds this expertise directly into coding sessions.
 
 The system works through "canon skills"--distilled principles from domain
 masters. Each skill is a SKILL.md file containing philosophy, patterns,
-anti-patterns, and examples. When a developer invokes /kernighan, Claude
-receives Kernighan's principles: clarity over cleverness, small functions,
-explicit control flow. When they invoke /schneier, Claude thinks like an
+anti-patterns, and examples. When a developer invokes /clarity, Claude
+receives clarity principles: clarity over cleverness, small functions,
+explicit control flow. When they invoke /security-mindset, Claude thinks like an
 attacker, questions trust assumptions, validates all input.
 
 
 Skills in Practice
 
 A developer writes authentication code. Their CLAUDE.md contains an auto-invoke
-rule: "Security-sensitive code → INVOKE /schneier then /owasp." Claude loads
-both skills before generating code. The result reflects Schneier's threat
+rule: "Security-sensitive code → INVOKE /security-mindset then /owasp." Claude loads
+both skills before generating code. The result reflects security-mindset's threat
 modeling and OWASP's input validation patterns.
 
 Another developer builds React components. Their auto-invoke rule triggers
-/abramov for state management and /dodds for testing. Claude structures
+/react-state for state management and /react-test for testing. Claude structures
 components with proper state lifting and writes tests using Testing Library
 idioms.
 
-A third developer refactors legacy code. They invoke /feathers directly for
+A third developer refactors legacy code. They invoke /legacy directly for
 guidance on characterization tests and seams. No auto-invoke needed--they
 chose the expert.
 
 Skills work three ways:
-  - Direct invocation: /kernighan, /schneier, /abramov
+  - Direct invocation: /clarity, /security-mindset, /react-state
   - Auto-invoke rules: Context patterns in CLAUDE.md trigger skills
   - Workflow phases: Automated pipelines load skills per stage
 
@@ -40,78 +40,78 @@ The Canon
 Seventy-five skills span twelve categories:
 
   Computing Fundamentals
-    kernighan    - clarity over cleverness
-    pike         - small composable interfaces
-    linus        - data structures first
-    dijkstra     - correctness by construction
-    thompson     - make it work first
-    mcilroy      - do one thing well
-    knuth        - algorithmic rigor
-    carmack      - measure before optimizing
-    liskov       - substitution principle
-    bloch        - API design
-    gang-of-four - design patterns
-    bill-joy     - handle failure explicitly
+    clarity      - clarity over cleverness
+    simplicity   - small composable interfaces
+    data-first   - data structures first
+    correctness  - correctness by construction
+    pragmatism   - make it work first
+    composition  - do one thing well
+    algorithms   - algorithmic rigor
+    optimization - measure before optimizing
+    abstraction  - substitution principle
+    java         - API design
+    design-patterns - design patterns
+    distributed  - handle failure explicitly
 
   JavaScript
-    abramov      - React state, composition
-    dodds        - Testing Library, Testing Trophy
-    cherny       - TypeScript types, generics
-    crockford    - safe subset, avoiding pitfalls
-    kyle-simpson - closures, scope, this
-    ashkenas     - functional patterns
-    osmani       - module patterns
-    harris       - Svelte, reactive frameworks
+    react-state  - React state, composition
+    react-test   - Testing Library, Testing Trophy
+    typescript   - TypeScript types, generics
+    js-safety    - safe subset, avoiding pitfalls
+    js-internals - closures, scope, this
+    functional   - functional patterns
+    js-perf      - module patterns
+    reactivity   - Svelte, reactive frameworks
 
   Security
-    schneier     - think like an attacker
+    security-mindset - think like an attacker
     owasp        - input validation, output encoding
-    troy-hunt    - authentication, sessions
-    tanya-janca  - secure development lifecycle
+    web-security - authentication, sessions
+    appsec       - secure development lifecycle
     threat-model - systematic threat analysis
 
   Testing
-    feathers     - legacy code, characterization tests
-    fowler-test  - test pyramid, test strategy
-    meszaros     - test patterns, fixtures
+    legacy       - legacy code, characterization tests
+    test-strategy - test pyramid, test strategy
+    test-doubles - test patterns, fixtures
 
   UI/UX
-    frost        - atomic design, component systems
-    ive          - visual design principles
-    norman       - usability, affordances
-    rams         - less but better
-    cooper       - interaction design
+    components   - atomic design, component systems
+    visual       - visual design principles
+    usability    - usability, affordances
+    design       - less but better
+    personas     - interaction design
 
   Visualization
-    bostock      - D3, data-driven documents
-    tufte        - information density, clarity
-    few          - dashboard design
-    knaflic      - storytelling with data
+    d3           - D3, data-driven documents
+    charts       - information density, clarity
+    dashboards   - dashboard design
+    data-story   - storytelling with data
 
   Engineering
-    leveson      - system safety
-    petroski     - learning from failure
-    taleb        - antifragility, uncertainty
+    safety       - system safety
+    failure      - learning from failure
+    resilience   - antifragility, uncertainty
 
   Writing
-    zinsser      - clarity, removing clutter
-    strunk-white - omit needless words
-    king         - kill your darlings
+    prose        - clarity, removing clutter
+    brevity      - omit needless words
+    editing      - kill your darlings
 
   Patterns
     ceremony     - checkpoints for critical operations
     escalate     - simple fix first, investigate if needed
     evans        - domain-driven design
 
-Each category includes more skills. Python has Beazley, Hettinger, Ramalho,
-Slatkin. Angular has Hevery, Gechev, Lesh. C# has Skeet, Cleary, Hejlsberg.
+Each category includes more skills. Python has python-advanced, python-idioms, python-protocols,
+python-patterns. Angular has angular-core, angular-perf, rxjs. C# has csharp-depth, async, type-systems.
 
 
 Profiles
 
-Projects need different expert combinations. A React project needs Abramov,
-Dodds, and Cherny. A Python data pipeline needs Hettinger, Ramalho, and
-Beazley. A security-critical system needs Schneier, OWASP, and Leveson.
+Projects need different expert combinations. A React project needs react-state,
+react-test, and typescript. A Python data pipeline needs python-idioms, python-protocols, and
+python-advanced. A security-critical system needs security-mindset, OWASP, and safety.
 
 Profiles compose these combinations. A profile defines:
   - Which skills to install
@@ -125,8 +125,8 @@ Profiles combine with + syntax:
   cc-config profile apply python+security ./myproject
   cc-config profile apply angular+testing ./myproject
 
-The first installs Abramov, Dodds, Cherny, Osmani. The second installs
-Schneier, OWASP, Hettinger, Ramalho. Each profile adds its auto-invoke rules.
+The first installs react-state, react-test, typescript, js-perf. The second installs
+security-mindset, OWASP, python-idioms, python-protocols. Each profile adds its auto-invoke rules.
 
 
 Portability
@@ -165,12 +165,12 @@ table mapping contexts to actions:
 
   | Context                        | Action                    |
   |--------------------------------|---------------------------|
-  | Writing any code               | INVOKE /kernighan /pike   |
-  | Security-sensitive code        | INVOKE /schneier /owasp   |
-  | React components               | INVOKE /abramov           |
-  | Writing tests                  | INVOKE /dodds /meszaros   |
-  | Performance-critical code      | INVOKE /carmack           |
-  | Working with legacy code       | INVOKE /feathers          |
+  | Writing any code               | INVOKE /clarity /simplicity |
+  | Security-sensitive code        | INVOKE /security-mindset /owasp |
+  | React components               | INVOKE /react-state       |
+  | Writing tests                  | INVOKE /react-test /test-doubles |
+  | Performance-critical code      | INVOKE /optimization      |
+  | Working with legacy code       | INVOKE /legacy            |
 
 When Claude detects matching context, it loads the specified skills. The
 developer gets expert guidance without invoking skills manually.
@@ -183,7 +183,7 @@ writes a PRD with checkbox items. The Ralph runner processes each item through
 eight phases:
 
   1. Plan       - design approach, load planning experts
-  2. Structure  - design types before algorithms (Linus)
+  2. Structure  - design types before algorithms (data-first)
   3. Implement  - write code with implementation experts
   4. Test       - write tests with testing experts
   5. Refactor   - simplify with refactoring experts
@@ -192,8 +192,8 @@ eight phases:
   8. Document   - record what was built
 
 Each phase loads relevant skills from the profile. The Plan phase might load
-Bloch and Evans. The Test phase loads Dodds and Meszaros. Keyword detection
-adds more--an item mentioning "auth" triggers Schneier and OWASP.
+clarity and correctness. The Test phase loads react-test and test-doubles. Keyword detection
+adds more--an item mentioning "auth" triggers security-mindset and OWASP.
 
 The runner spawns Claude CLI, passes the accumulated context and expert
 guidance, captures output, and advances. Success marks the PRD item complete.
@@ -208,16 +208,16 @@ What This Solves
 
 Claude Code is powerful but generic. It lacks the specialized knowledge that
 experienced developers carry. A senior engineer knows to think about failure
-modes (Leveson), design data structures first (Linus), and distrust user input
-(Schneier). Claude doesn't--unless you tell it.
+modes (safety), design data structures first (data-first), and distrust user input
+(security-mindset). Claude doesn't--unless you tell it.
 
 Claude Optimal tells it systematically. Expert knowledge enters at write-time,
 not review-time. The developer chooses their experts through profiles and
 auto-invoke rules. The result: code that reflects accumulated wisdom from the
 start.
 
-Skills work standalone. Invoke /kernighan while writing a function. Invoke
-/feathers before touching legacy code. Invoke /tufte before building a chart.
+Skills work standalone. Invoke /clarity while writing a function. Invoke
+/legacy before touching legacy code. Invoke /charts before building a chart.
 No automation required.
 
 Profiles scale this to projects. Apply a profile once, get auto-invoke rules

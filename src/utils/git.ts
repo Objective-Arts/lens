@@ -12,30 +12,17 @@ import * as path from 'path';
  * Reads .git/HEAD directly instead of spawning `git rev-parse`.
  */
 export function getGitCommit(repoPath: string): string | undefined {
-  const gitHeadPath = path.join(repoPath, '.git', 'HEAD');
-
-  if (!fs.existsSync(gitHeadPath)) {
-    return undefined;
-  }
-
   try {
-    const headContent = fs.readFileSync(gitHeadPath, 'utf-8').trim();
+    const headContent = fs.readFileSync(path.join(repoPath, '.git', 'HEAD'), 'utf-8').trim();
 
-    // Check if it's a direct ref or a symbolic ref
     if (headContent.startsWith('ref: ')) {
       const refPath = headContent.slice(5);
-      const refFilePath = path.join(repoPath, '.git', refPath);
-      if (fs.existsSync(refFilePath)) {
-        return fs.readFileSync(refFilePath, 'utf-8').trim().slice(0, 7);
-      }
-    } else {
-      return headContent.slice(0, 7);
+      return fs.readFileSync(path.join(repoPath, '.git', refPath), 'utf-8').trim().slice(0, 7);
     }
+    return headContent.slice(0, 7);
   } catch {
     return undefined;
   }
-
-  return undefined;
 }
 
 /**

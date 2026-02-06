@@ -1,4 +1,4 @@
-# /abramov Summary
+# /react-state Summary
 
 > "UI = f(state)" - Dan Abramov
 

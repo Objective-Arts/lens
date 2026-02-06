@@ -1,4 +1,4 @@
-# /feathers Summary
+# /legacy Summary
 
 > "Legacy code is code without tests. To put tests in place, we often have to change code."
 

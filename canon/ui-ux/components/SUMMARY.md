@@ -1,4 +1,4 @@
-# /frost Summary
+# /components Summary
 
 > "Design the components, not the pages. Pages are just assemblies."
 

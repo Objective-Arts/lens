@@ -1,8 +1,8 @@
 /**
  * Issue parsing logic - pure functions for parsing phase output.
  *
- * Following kernighan: small functions, single responsibility.
- * Following feathers: seams for testing each parser independently.
+ * Following clarity: small functions, single responsibility.
+ * Following legacy: seams for testing each parser independently.
  */
 
 import {

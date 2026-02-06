@@ -1,4 +1,4 @@
-# /knaflic Summary
+# /data-story Summary
 
 > "Every element should earn its place."
 

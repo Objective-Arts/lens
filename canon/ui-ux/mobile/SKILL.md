@@ -299,6 +299,6 @@ a.touch-target {
 ## Integration
 
 Combine with:
-- `/buxton` - Input fundamentals these patterns build on
-- `/norman` - Psychology of form completion
-- `/frost` - Components that implement these patterns
+- `/interaction` - Input fundamentals these patterns build on
+- `/usability` - Psychology of form completion
+- `/components` - Components that implement these patterns

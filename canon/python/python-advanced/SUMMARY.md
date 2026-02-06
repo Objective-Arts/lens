@@ -1,4 +1,4 @@
-# /beazley Summary
+# /python-advanced Summary
 
 > "Python's power comes from understanding its execution model."
 

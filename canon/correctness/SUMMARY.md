@@ -1,4 +1,4 @@
-# /dijkstra Summary
+# /correctness Summary
 
 > "Testing shows the presence of bugs, not their absence."
 

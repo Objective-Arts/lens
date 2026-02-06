@@ -1,4 +1,4 @@
-# /dodds Summary
+# /react-test Summary
 
 > "Write tests. Not too many. Mostly integration."
 

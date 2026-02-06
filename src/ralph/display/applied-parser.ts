@@ -1,7 +1,7 @@
 /**
  * Parser for APPLIED section in Claude's output.
  *
- * Following kernighan: single responsibility - parsing only.
+ * Following clarity: single responsibility - parsing only.
  */
 
 /** Pattern to match APPLIED section with markdown formatting */

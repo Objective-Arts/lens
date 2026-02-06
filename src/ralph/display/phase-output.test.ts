@@ -1,8 +1,8 @@
 /**
  * Tests for phase-output parsing and display.
  *
- * Following dodds: test behavior, not implementation.
- * Following meszaros: clear test names, AAA pattern.
+ * Following react-test: test behavior, not implementation.
+ * Following test-doubles: clear test names, AAA pattern.
  */
 
 import { describe, it, expect } from 'vitest';

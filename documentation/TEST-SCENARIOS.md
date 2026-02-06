@@ -51,8 +51,8 @@ End-to-end test scenarios for cc-config and ralph.
 - [ ] Shows source path for each skill
 
 ### Canon Copy
-- [ ] `cc-config canon copy abramov -p /path` copies skill to project
-- [ ] Creates .claude/skills/abramov/ directory structure
+- [ ] `cc-config canon copy react-state -p /path` copies skill to project
+- [ ] Creates .claude/skills/react-state/ directory structure
 - [ ] Copies SKILL.md and SUMMARY.md
 - [ ] Updates canon manifest with hash and timestamp
 - [ ] `cc-config canon copy nonexistent` shows error
@@ -70,7 +70,7 @@ End-to-end test scenarios for cc-config and ralph.
 - [ ] Skips locally modified skills (without --force)
 - [ ] With --force, overwrites modified skills
 - [ ] Updates manifest after upgrade
-- [ ] `cc-config canon upgrade abramov -p /path` upgrades specific skill
+- [ ] `cc-config canon upgrade react-state -p /path` upgrades specific skill
 
 ### Canon Verify
 - [ ] `cc-config canon verify -p /path` compares installed vs source
@@ -200,13 +200,13 @@ End-to-end test scenarios for cc-config and ralph.
 - [ ] Skills displayed in stage header
 
 ### Dynamic Skill Detection
-- [ ] Detects UI keywords → adds frost, ive, norman, etc.
-- [ ] Detects API keywords → adds bloch
-- [ ] Detects security keywords → adds schneier, owasp, tanya-janca, troy-hunt
+- [ ] Detects UI keywords → adds components, visual, usability, etc.
+- [ ] Detects API keywords → adds java
+- [ ] Detects security keywords → adds security-mindset, owasp, appsec, web-security
 - [ ] Detects database keywords → adds security skills for review
-- [ ] Detects testing keywords → adds meszaros, fowler-test
-- [ ] Detects performance keywords → adds carmack, knuth
-- [ ] Detects CLI keywords → adds mcilroy, pike, kernighan
+- [ ] Detects testing keywords → adds test-doubles, test-strategy
+- [ ] Detects performance keywords → adds optimization, algorithms
+- [ ] Detects CLI keywords → adds composition, simplicity, clarity
 - [ ] Dynamic skills merge with profile skills (no duplicates)
 
 ### Skill Content Loading
@@ -326,7 +326,7 @@ End-to-end test scenarios for cc-config and ralph.
 1. [ ] Apply security-hardened profile
 2. [ ] PRD has auth/password items
 3. [ ] Ralph detects security keywords
-4. [ ] Loads schneier, owasp, tanya-janca, troy-hunt dynamically
+4. [ ] Loads security-mindset, owasp, appsec, web-security dynamically
 5. [ ] Gemini review runs with security focus
 6. [ ] Critical issues fixed before completion
 

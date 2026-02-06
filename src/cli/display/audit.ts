@@ -1,7 +1,7 @@
 /**
  * Audit report display
  *
- * Decomposed from 141-line function into single-responsibility helpers (Pike)
+ * Decomposed from 141-line function into single-responsibility helpers (simplicity)
  */
 
 import * as fs from 'fs';
@@ -9,13 +9,13 @@ import chalk from 'chalk';
 import type { ScanResult } from '../../types.js';
 
 // Skill category definitions
-const BASE_CANON = ['kernighan', 'owasp', 'dodds'];
+const BASE_CANON = ['clarity', 'owasp', 'react-test'];
 const SECURITY_SKILLS = ['security-mindset', 'owasp', 'threat-model', 'web-security'];
 const WORKFLOW_SKILLS: string[] = []; // Workflow patterns removed - use 8 phases instead
 const CANON_SKILLS = [
-  'kernighan', 'bloch', 'cherny', 'gang-of-four', 'liskov', 'hevery', 'kurata',
-  'minko-gechev', 'ben-lesh', 'kyle-simpson', 'dodds', 'owasp', 'security-mindset',
-  'threat-model', 'web-security', 'abramov', 'osmani'
+  'clarity', 'java', 'typescript', 'design-patterns', 'abstraction', 'testability', 'angular',
+  'angular-perf', 'rxjs', 'js-internals', 'react-test', 'owasp', 'security-mindset',
+  'threat-model', 'web-security', 'react-state', 'web-perf'
 ];
 
 /**
@@ -39,7 +39,7 @@ function printPatternChecks(result: ScanResult, projectSkills: string[]): void {
   // Check for base canon skills
   const missingBaseCanon = BASE_CANON.filter(s => !projectSkills.includes(s));
   if (missingBaseCanon.length === 0) {
-    console.log(chalk.green('  ✓ Base canon complete (kernighan, owasp, dodds)'));
+    console.log(chalk.green('  ✓ Base canon complete (clarity, owasp, react-test)'));
   } else {
     console.log(chalk.yellow(`  ○ Base canon missing: ${missingBaseCanon.join(', ')}`));
   }
@@ -171,7 +171,7 @@ function printClaudeMdAnalysis(result: ScanResult): void {
 /**
  * Print full audit report
  *
- * Orchestrates decomposed helpers for single-responsibility display (Pike)
+ * Orchestrates decomposed helpers for single-responsibility display (simplicity)
  */
 export function printAuditReport(result: ScanResult): void {
   console.log(chalk.bold('\nConfiguration Audit Report'));

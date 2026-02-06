@@ -1,4 +1,4 @@
-# /mcilroy Summary
+# /composition Summary
 
 > "Write programs that do one thing well. Write programs to work together."
 

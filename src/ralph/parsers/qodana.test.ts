@@ -1,8 +1,8 @@
 /**
  * Qodana Parser Tests
  *
- * Following Hevery: Testing pure functions directly.
- * Following Dodds: Test behavior (parsed SARIF), not implementation.
+ * Following testability: Testing pure functions directly.
+ * Following react-test: Test behavior (parsed SARIF), not implementation.
  */
 
 import { describe, it, expect } from 'vitest';

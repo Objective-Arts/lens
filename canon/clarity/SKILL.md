@@ -127,11 +127,11 @@ Apply these checks:
 ## When NOT to Use This Skill
 
 Use a different skill when:
-- **Writing C/systems code** → Use `linus` (kernel style) or `pike` (Go/systems)
-- **Performance is critical** → Use `carmack` (optimization, data-oriented design)
-- **Designing class hierarchies** → Use `gang-of-four` (design patterns) or `bloch` (defensive OO)
-- **Building CLI tools** → Use `mcilroy` (Unix philosophy, composition)
-- **Proving correctness matters** → Use `dijkstra` (formal reasoning)
+- **Writing C/systems code** → Use `data-first` (kernel style) or `simplicity` (Go/systems)
+- **Performance is critical** → Use `optimization` (optimization, data-oriented design)
+- **Designing class hierarchies** → Use `design-patterns` (design patterns) or `java` (defensive OO)
+- **Building CLI tools** → Use `composition` (Unix philosophy, composition)
+- **Proving correctness matters** → Use `correctness` (formal reasoning)
 
 Kernighan is for **general application code clarity**—not specialized domains.
 

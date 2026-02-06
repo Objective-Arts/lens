@@ -256,11 +256,11 @@ Apply these checks:
 ## When NOT to Use This Skill
 
 Use a different skill when:
-- **Writing Go code** → Use `pike` (Go Proverbs, small interfaces)
-- **Applying classic design patterns** → Use `gang-of-four` (23 patterns catalog)
-- **Proving formal correctness** → Use `dijkstra` (invariants, weakest preconditions)
-- **General code clarity** → Use `kernighan` (readability, naming)
-- **Performance optimization** → Use `carmack` (cache behavior, profiling)
+- **Writing Go code** → Use `simplicity` (Go Proverbs, small interfaces)
+- **Applying classic design patterns** → Use `design-patterns` (23 patterns catalog)
+- **Proving formal correctness** → Use `correctness` (invariants, weakest preconditions)
+- **General code clarity** → Use `clarity` (readability, naming)
+- **Performance optimization** → Use `optimization` (cache behavior, profiling)
 
 Bloch is the **Java/Kotlin skill**—use it for defensive API design and robust object-oriented code.
 

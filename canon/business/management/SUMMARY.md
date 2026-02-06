@@ -1,4 +1,4 @@
-# /grove Summary
+# /management Summary
 
 > "A manager's output is the output of their team."
 

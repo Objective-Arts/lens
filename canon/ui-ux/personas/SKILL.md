@@ -181,6 +181,6 @@ Before shipping any interaction:
 ## Integration
 
 Combine with:
-- `/norman` - Psychology of why Cooper's patterns work
-- `/rams` - Visual simplicity that supports goal-directed design
-- `/wroblewski` - Form design that eliminates input excise
+- `/usability` - Psychology of why Cooper's patterns work
+- `/design` - Visual simplicity that supports goal-directed design
+- `/mobile` - Form design that eliminates input excise

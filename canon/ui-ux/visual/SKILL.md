@@ -181,6 +181,6 @@ Bold (700): Hero text only, use very sparingly
 ## Integration
 
 Combine with:
-- `/rams` - The "why" behind minimalism
-- `/kruzeniski` - Typography that complements this visual system
-- `/duarte` - Motion that respects material properties
+- `/design` - The "why" behind minimalism
+- `/typography` - Typography that complements this visual system
+- `/motion` - Motion that respects material properties

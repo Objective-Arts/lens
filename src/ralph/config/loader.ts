@@ -1,8 +1,8 @@
 /**
  * Ralph configuration loader.
  *
- * Following hevery: dependency injection for file system access.
- * Following kernighan: fail fast with clear errors.
+ * Following testability: dependency injection for file system access.
+ * Following clarity: fail fast with clear errors.
  */
 
 import * as fs from 'fs';
@@ -28,14 +28,15 @@ const DEFAULTS: Required<RalphConfig['settings']> = {
 export function loadConfig(projectPath: string): RalphConfig {
   const configPath = path.join(projectPath, '.claude', 'ralph-config.yaml');
 
-  if (!fs.existsSync(configPath)) {
+  let content: string;
+  try {
+    content = fs.readFileSync(configPath, 'utf-8');
+  } catch {
     throw new Error(
       `Ralph config not found: ${configPath}\n` +
       `Run 'cc-config profile apply <profile>+ralph-integration' to set up.`
     );
   }
-
-  const content = fs.readFileSync(configPath, 'utf-8');
   const parsed = yaml.load(content) as Partial<RalphConfig>;
 
   return {
@@ -62,9 +63,3 @@ export function hasConfig(projectPath: string): boolean {
   return fs.existsSync(configPath);
 }
 
-/**
- * Get the path to ralph-config.yaml.
- */
-function getConfigPath(projectPath: string): string {
-  return path.join(projectPath, '.claude', 'ralph-config.yaml');
-}

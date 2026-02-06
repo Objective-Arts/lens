@@ -1,48 +1,48 @@
 # Python Canon
 
-4 masters providing idiomatic Python expertise.
+4 skills providing idiomatic Python expertise.
 
 ## The Experts
 
-| Master | Works | Focus | Skill |
-|--------|-------|-------|-------|
-| **Raymond Hettinger** | Core Python talks, itertools | Pythonic idioms, "There must be a better way" | `/hettinger` |
-| **David Beazley** | Python Cookbook, Essential Reference | Generators, coroutines, metaprogramming | `/beazley` |
-| **Luciano Ramalho** | Fluent Python | Data model, protocols, advanced features | `/ramalho` |
-| **Brett Slatkin** | Effective Python | 90 specific best practices | `/slatkin` |
+| Skill | Focus | Command |
+|-------|-------|---------|
+| **python-idioms** | Pythonic idioms, "There must be a better way" | `/python-idioms` |
+| **python-advanced** | Generators, coroutines, metaprogramming | `/python-advanced` |
+| **python-protocols** | Data model, protocols, advanced features | `/python-protocols` |
+| **python-patterns** | 90 specific best practices | `/python-patterns` |
 
 ## When to Apply
 
-| Context | Primary Expert |
-|---------|----------------|
-| Iterators, generators | Hettinger, Beazley |
-| Decorators, descriptors | Hettinger |
-| Concurrency, async | Beazley |
-| Data model, protocols | Ramalho |
-| Best practices checklist | Slatkin |
-| Metaprogramming | Beazley, Ramalho |
+| Context | Primary Skill |
+|---------|---------------|
+| Iterators, generators | python-idioms, python-advanced |
+| Decorators, descriptors | python-idioms |
+| Concurrency, async | python-advanced |
+| Data model, protocols | python-protocols |
+| Best practices checklist | python-patterns |
+| Metaprogramming | python-advanced, python-protocols |
 
 ## Core Principles
 
-### From Hettinger
+### From python-idioms
 - "There must be a better way"
 - Use itertools for iteration patterns
 - Descriptors over boilerplate
 - Named tuples for data classes
 
-### From Beazley
+### From python-advanced
 - Generators are the foundation of async
 - Understand the execution model
 - Context managers for resource safety
 - Metaprogramming for DRY
 
-### From Ramalho
+### From python-protocols
 - Python's data model is the key
 - Protocols over inheritance
 - Dunder methods define behavior
 - "Pythonic" means using the data model
 
-### From Slatkin
+### From python-patterns
 - Know the difference between bytes and str
 - Prefer enumerate over range(len())
 - Use generators instead of returning lists
@@ -53,8 +53,8 @@
 ```
 canon/python/
 ├── README.md           (this file)
-├── hettinger/SKILL.md
-├── beazley/SKILL.md
-├── ramalho/SKILL.md
-└── slatkin/SKILL.md
+├── python-idioms/SKILL.md
+├── python-advanced/SKILL.md
+├── python-protocols/SKILL.md
+└── python-patterns/SKILL.md
 ```

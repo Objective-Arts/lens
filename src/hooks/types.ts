@@ -1,7 +1,7 @@
 /**
  * Hook types for Claude Code settings.json
  *
- * Following cherny: strict types match the actual schema.
+ * Following typescript: strict types match the actual schema.
  */
 
 /** Hook trigger events */

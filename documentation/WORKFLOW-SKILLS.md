@@ -370,7 +370,7 @@ workflow-skills/
 
 ### `/naming-review [path]`
 
-**Purpose:** Review names for clarity using Kernighan principles.
+**Purpose:** Review names for clarity using clarity principles.
 
 **What it checks:**
 - Vague names (processData, handle, doStuff)

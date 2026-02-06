@@ -1,4 +1,4 @@
-# /king Summary
+# /editing Summary
 
 > "Kill your darlings, even when it breaks your egocentric little scribbler's heart."
 

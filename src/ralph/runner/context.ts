@@ -1,7 +1,7 @@
 /**
  * Context and session helpers for runner.
  *
- * Following McIlroy: do one thing well.
+ * Following composition: do one thing well.
  */
 
 import * as fs from 'fs';

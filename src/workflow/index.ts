@@ -66,51 +66,31 @@ export function getWorkflowSourceInfo(): WorkflowSource & { commit?: string; rem
   };
 }
 
-/**
- * List all available workflow skills from source.
- *
- * Workflow skills are universal patterns like ralph-loop, implement,
- * adversarial-review that apply across all projects.
- *
- * @returns Array of available workflow skills with name, path, and description
- *
- * @example
- * ```typescript
- * const skills = listWorkflowSkills();
- * skills.forEach(skill => {
- *   console.log(`${skill.name}: ${skill.description}`);
- * });
- * ```
- */
+/** Try to read SKILL.md and extract description. Returns null if file missing. */
+function readSkillDescription(skillFile: string): { exists: true; description?: string } | null {
+  try {
+    const content = fs.readFileSync(skillFile, 'utf-8');
+    const descMatch = content.match(/^---[\s\S]*?description:\s*(.+?)[\r\n]/m);
+    return { exists: true, description: descMatch?.[1]?.trim() };
+  } catch {
+    return null;
+  }
+}
+
 export function listWorkflowSkills(): WorkflowSkillInfo[] {
   const sourcePath = getWorkflowSourcePath();
-  const skills: WorkflowSkillInfo[] = [];
-
-  if (!fs.existsSync(sourcePath)) {
-    return skills;
-  }
+  if (!fs.existsSync(sourcePath)) return [];
 
   const entries = fs.readdirSync(sourcePath, { withFileTypes: true });
+  const skills: WorkflowSkillInfo[] = [];
 
   for (const entry of entries) {
-    if (!entry.isDirectory()) continue;
-    if (entry.name.startsWith('.')) continue;
-    if (entry.name === 'node_modules') continue;
+    if (!entry.isDirectory() || entry.name.startsWith('.') || entry.name === 'node_modules') continue;
 
     const skillPath = path.join(sourcePath, entry.name);
-    const skillFile = path.join(skillPath, 'SKILL.md');
-
-    if (fs.existsSync(skillFile)) {
-      // Extract description from frontmatter
-      const content = fs.readFileSync(skillFile, 'utf-8');
-      const descMatch = content.match(/^---[\s\S]*?description:\s*(.+?)[\r\n]/m);
-      const description = descMatch?.[1]?.trim();
-
-      skills.push({
-        name: entry.name,
-        path: skillPath,
-        description
-      });
+    const result = readSkillDescription(path.join(skillPath, 'SKILL.md'));
+    if (result) {
+      skills.push({ name: entry.name, path: skillPath, description: result.description });
     }
   }
 
@@ -122,11 +102,6 @@ export function listWorkflowSkills(): WorkflowSkillInfo[] {
  */
 function getWorkflowManifest(projectPath: string): WorkflowManifest | null {
   const manifestPath = path.join(projectPath, '.claude', 'workflow-manifest.json');
-
-  if (!fs.existsSync(manifestPath)) {
-    return null;
-  }
-
   try {
     return JSON.parse(fs.readFileSync(manifestPath, 'utf-8'));
   } catch {
@@ -165,6 +140,49 @@ function createWorkflowManifest(): WorkflowManifest {
   };
 }
 
+/** Reject skill names with path traversal characters */
+function isValidSkillName(name: string): boolean {
+  return !name.includes('/') && !name.includes('\\') && !name.includes('..');
+}
+
+/** Validate skill source exists and has SKILL.md */
+function validateSkillSource(
+  skillName: string,
+  sourcePath: string
+): { valid: true; skillSourcePath: string } | { valid: false; message: string } {
+  const skillSourcePath = path.join(sourcePath, skillName);
+  if (!fs.existsSync(skillSourcePath)) {
+    return { valid: false, message: `Workflow skill not found: ${skillName}` };
+  }
+  if (!fs.existsSync(path.join(skillSourcePath, 'SKILL.md'))) {
+    return { valid: false, message: `Invalid workflow skill (no SKILL.md): ${skillName}` };
+  }
+  return { valid: true, skillSourcePath };
+}
+
+/** Record skill installation in manifest */
+function recordSkillInstall(
+  projectPath: string,
+  skillName: string,
+  targetPath: string
+): void {
+  let manifest = getWorkflowManifest(projectPath);
+  if (!manifest) {
+    manifest = createWorkflowManifest();
+  }
+
+  const sourceInfo = getWorkflowSourceInfo();
+  manifest.skills[skillName] = {
+    installedAt: new Date().toISOString(),
+    sourceFile: path.join(skillName, 'SKILL.md'),
+    hash: hashDirectoryContents(targetPath),
+    modified: false,
+    installedCommit: sourceInfo.commit
+  };
+
+  saveWorkflowManifest(projectPath, manifest);
+}
+
 /**
  * Install a workflow skill to a project
  */
@@ -173,48 +191,24 @@ export function installWorkflowSkill(
   projectPath: string,
   options: { force?: boolean } = {}
 ): { success: boolean; message: string } {
+  if (!isValidSkillName(skillName)) {
+    return { success: false, message: `Invalid skill name (path traversal): ${skillName}` };
+  }
+
   const sourcePath = getWorkflowSourcePath();
-  const skillSourcePath = path.join(sourcePath, skillName);
-
-  if (!fs.existsSync(skillSourcePath)) {
-    return { success: false, message: `Workflow skill not found: ${skillName}` };
-  }
-
-  const skillFile = path.join(skillSourcePath, 'SKILL.md');
-  if (!fs.existsSync(skillFile)) {
-    return { success: false, message: `Invalid workflow skill (no SKILL.md): ${skillName}` };
-  }
+  const validation = validateSkillSource(skillName, sourcePath);
+  if (!validation.valid) return { success: false, message: validation.message };
 
   const targetPath = path.join(projectPath, '.claude', 'skills', skillName);
-
   if (fs.existsSync(targetPath) && !options.force) {
     return { success: false, message: `Skill already installed: ${skillName}. Use --force to overwrite.` };
   }
 
-  // Copy skill directory
   if (fs.existsSync(targetPath)) {
     fs.rmSync(targetPath, { recursive: true });
   }
-  copyDirectorySync(skillSourcePath, targetPath);
-
-  // Update manifest
-  let manifest = getWorkflowManifest(projectPath);
-  if (!manifest) {
-    manifest = createWorkflowManifest();
-  }
-
-  const sourceInfo = getWorkflowSourceInfo();
-  const hash = hashDirectoryContents(targetPath);
-
-  manifest.skills[skillName] = {
-    installedAt: new Date().toISOString(),
-    sourceFile: path.relative(sourcePath, skillFile),
-    hash,
-    modified: false,
-    installedCommit: sourceInfo.commit
-  };
-
-  saveWorkflowManifest(projectPath, manifest);
+  copyDirectorySync(validation.skillSourcePath, targetPath);
+  recordSkillInstall(projectPath, skillName, targetPath);
 
   return { success: true, message: `Installed workflow skill: ${skillName}` };
 }
@@ -250,7 +244,7 @@ export function installAllWorkflowSkills(
     const result = installWorkflowSkill(skill.name, projectPath, options);
     if (result.success) {
       results.installed.push(skill.name);
-    } else if (result.message.includes('already installed')) {
+    } else if (!options.force && fs.existsSync(path.join(projectPath, '.claude', 'skills', skill.name))) {
       results.skipped.push(`${skill.name}: already installed`);
     } else {
       results.errors.push(`${skill.name}: ${result.message}`);
@@ -260,76 +254,73 @@ export function installAllWorkflowSkills(
   return results;
 }
 
+/** Determine status of a single installed workflow skill */
+function determineSkillStatus(
+  info: { hash: string; installedCommit?: string },
+  installedPath: string,
+  sourceSkillPath: string,
+  sourceCommit?: string
+): WorkflowStatusInfo & { name: string } {
+  const base = { name: '', installedCommit: info.installedCommit };
+
+  if (!fs.existsSync(installedPath)) {
+    return { ...base, status: 'missing' };
+  }
+
+  const currentHash = hashDirectoryContents(installedPath);
+  const modified = currentHash !== info.hash;
+
+  if (!fs.existsSync(sourceSkillPath)) {
+    return { ...base, status: 'unknown', modified };
+  }
+
+  const sourceHash = hashDirectoryContents(sourceSkillPath);
+  let status: WorkflowSkillStatus;
+
+  if (modified) {
+    status = 'modified';
+  } else if (info.installedCommit !== sourceCommit && currentHash !== sourceHash) {
+    status = 'outdated';
+  } else {
+    status = 'current';
+  }
+
+  return { ...base, status, sourceCommit, modified };
+}
+
 /**
  * Check the status of installed workflow skills
  */
 export function checkWorkflowStatus(projectPath: string): WorkflowStatusInfo[] {
   const manifest = getWorkflowManifest(projectPath);
-  if (!manifest) {
-    return [];
-  }
+  if (!manifest) return [];
 
   const sourcePath = getWorkflowSourcePath();
   const sourceInfo = getWorkflowSourceInfo();
-  const statuses: WorkflowStatusInfo[] = [];
 
-  for (const [skillName, info] of Object.entries(manifest.skills)) {
+  return Object.entries(manifest.skills).map(([skillName, info]) => {
     const installedPath = path.join(projectPath, '.claude', 'skills', skillName);
     const sourceSkillPath = path.join(sourcePath, skillName);
-
-    if (!fs.existsSync(installedPath)) {
-      statuses.push({
-        name: skillName,
-        status: 'missing',
-        installedCommit: info.installedCommit
-      });
-      continue;
-    }
-
-    const currentHash = hashDirectoryContents(installedPath);
-    const modified = currentHash !== info.hash;
-
-    if (!fs.existsSync(sourceSkillPath)) {
-      statuses.push({
-        name: skillName,
-        status: 'unknown',
-        installedCommit: info.installedCommit,
-        modified
-      });
-      continue;
-    }
-
-    const sourceHash = hashDirectoryContents(sourceSkillPath);
-
-    let status: WorkflowSkillStatus;
-    if (modified) {
-      status = 'modified';
-    } else if (info.installedCommit !== sourceInfo.commit) {
-      // Check if source content actually changed
-      if (currentHash !== sourceHash) {
-        status = 'outdated';
-      } else {
-        status = 'current';
-      }
-    } else {
-      status = 'current';
-    }
-
-    statuses.push({
-      name: skillName,
-      status,
-      installedCommit: info.installedCommit,
-      sourceCommit: sourceInfo.commit,
-      modified
-    });
-  }
-
-  return statuses;
+    const status = determineSkillStatus(info, installedPath, sourceSkillPath, sourceInfo.commit);
+    return { ...status, name: skillName };
+  });
 }
 
-/**
- * Upgrade workflow skills
- */
+/** Categorize a skill status for upgrade decision */
+function categorizeForUpgrade(
+  status: WorkflowStatusInfo,
+  force: boolean
+): 'upgrade' | { skip: string } {
+  if (status.status === 'current') return { skip: `${status.name}: already current` };
+  if (status.status === 'modified' && !force) {
+    return { skip: `${status.name}: locally modified (use --force to overwrite)` };
+  }
+  if (status.status === 'missing' || status.status === 'unknown') {
+    return { skip: `${status.name}: ${status.status}` };
+  }
+  return 'upgrade';
+}
+
 export function upgradeWorkflowSkills(
   projectPath: string,
   options: { force?: boolean; skills?: string[] } = {}
@@ -343,47 +334,21 @@ export function upgradeWorkflowSkills(
   const results = { upgraded: [] as string[], skipped: [] as string[], errors: [] as string[] };
 
   for (const status of statuses) {
-    // Skip if specific skills requested and this isn't one
-    if (options.skills && !options.skills.includes(status.name)) {
+    if (options.skills && !options.skills.includes(status.name)) continue;
+
+    const category = categorizeForUpgrade(status, options.force ?? false);
+    if (category !== 'upgrade') {
+      results.skipped.push(category.skip);
       continue;
     }
 
-    if (status.status === 'current') {
-      results.skipped.push(`${status.name}: already current`);
-      continue;
-    }
-
-    if (status.status === 'modified' && !options.force) {
-      results.skipped.push(`${status.name}: locally modified (use --force to overwrite)`);
-      continue;
-    }
-
-    if (status.status === 'missing' || status.status === 'unknown') {
-      results.skipped.push(`${status.name}: ${status.status}`);
-      continue;
-    }
-
-    // Upgrade the skill
     const result = installWorkflowSkill(status.name, projectPath, { force: true });
-    if (result.success) {
-      results.upgraded.push(status.name);
-    } else {
-      results.errors.push(`${status.name}: ${result.message}`);
-    }
+    result.success
+      ? results.upgraded.push(status.name)
+      : results.errors.push(`${status.name}: ${result.message}`);
   }
 
   return results;
-}
-
-/**
- * Get installed workflow skills
- */
-function getInstalledWorkflowSkills(projectPath: string): string[] {
-  const manifest = getWorkflowManifest(projectPath);
-  if (!manifest) {
-    return [];
-  }
-  return Object.keys(manifest.skills);
 }
 
 export type { WorkflowSkillInfo, WorkflowStatusInfo };

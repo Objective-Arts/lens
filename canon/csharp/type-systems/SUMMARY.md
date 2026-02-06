@@ -1,4 +1,4 @@
-# /hejlsberg Summary
+# /type-systems Summary
 
 > "Make the easy things easy, and the hard things possible."
 

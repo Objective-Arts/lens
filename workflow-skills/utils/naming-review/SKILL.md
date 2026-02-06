@@ -1,17 +1,17 @@
 ---
 name: naming-review
-description: Review names for clarity using Kernighan principles. Find jargon, ambiguity, inconsistency.
+description: Review names for clarity principles. Find jargon, ambiguity, inconsistency.
 ---
 
 # /naming-review [path]
 
 Review names in code or configuration for clarity, consistency, and intent.
 
-*"Say what you mean, simply and directly." — Kernighan*
+*"Say what you mean, simply and directly."*
 
 ## Also Detect: AI-Generated Naming Antipatterns
 
-In addition to Kernighan-style clarity issues, flag these AI naming smells:
+In addition to clarity-style naming issues, flag these AI naming smells:
 
 | Antipattern | Example | Problem |
 |-------------|---------|---------|
@@ -44,7 +44,7 @@ Review each name against these criteria:
 
 ## Naming Principles
 
-### 1. Say What It Does (Kernighan)
+### 1. Say What It Does (Clarity)
 
 Names should describe behavior, not implementation.
 

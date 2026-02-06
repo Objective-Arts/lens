@@ -271,11 +271,11 @@ cat files.txt | xargs -P4 -I{} process {}
 ## When NOT to Use This Skill
 
 Use a different skill when:
-- **Building distributed systems** → Use `bill-joy` (statelessness, idempotency, failure handling)
-- **Optimizing performance** → Use `carmack` (profiling, cache behavior, data-oriented)
-- **Writing kernel code** → Use `linus` (kernel style, data structures)
-- **Writing Go code** → Use `pike` (Go Proverbs, interfaces)
-- **General application clarity** → Use `kernighan` (readability, naming)
+- **Building distributed systems** → Use `distributed` (statelessness, idempotency, failure handling)
+- **Optimizing performance** → Use `optimization` (profiling, cache behavior, data-oriented)
+- **Writing kernel code** → Use `data-first` (kernel style, data structures)
+- **Writing Go code** → Use `simplicity` (Go Proverbs, interfaces)
+- **General application clarity** → Use `clarity` (readability, naming)
 - **Building GUIs or web apps** → McIlroy's philosophy is for CLI tools, not interactive applications
 
 McIlroy is the **CLI/Unix tool skill**—use it when building filters, utilities, and pipeable commands.

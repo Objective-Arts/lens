@@ -250,10 +250,10 @@ Apply the hallmarks:
 ## When NOT to Use This Skill
 
 Use a different skill when:
-- **Analyzing industry forces** → Use `porter` (Five Forces, positioning)
-- **Analyzing competitive moats** → Use `helmer` (7 Powers framework)
-- **Navigating crisis** → Use `horowitz` (wartime leadership)
-- **Managing team operations** → Use `grove` (OKRs, leverage)
+- **Analyzing industry forces** → Use `competition` (Five Forces, positioning)
+- **Analyzing competitive moats** → Use `moats` (7 Powers framework)
+- **Navigating crisis** → Use `leadership` (wartime leadership)
+- **Managing team operations** → Use `management` (OKRs, leverage)
 
 Rumelt is the **strategy quality skill**—use it to distinguish good strategy from bad and ensure diagnosis-policy-action coherence.
 

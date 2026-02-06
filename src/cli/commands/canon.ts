@@ -1,6 +1,6 @@
 /**
  * Canon commands - manage canon skills
- * Following kernighan: single responsibility module
+ * Following clarity: single responsibility module
  */
 
 import { Command } from 'commander';

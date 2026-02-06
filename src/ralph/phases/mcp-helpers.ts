@@ -1,8 +1,8 @@
 /**
  * Shared helpers for MCP-based phases (independent-review, static-analysis, security-review).
  *
- * Following kernighan: single-responsibility, no duplication.
- * Following gang-of-four: Template Method pattern via composition.
+ * Following clarity: single-responsibility, no duplication.
+ * Following design-patterns: Template Method pattern via composition.
  */
 
 import { parsePhaseOutput, getPhaseResultSummary, PhaseOutput } from '../display/phase-output.js';

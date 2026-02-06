@@ -1,10 +1,10 @@
 /**
  * Terminal display utilities.
  *
- * Following rams: less but better, minimal decoration.
- * Following ive: depth through position, not visual noise.
- * Following kruzeniski: type as interface, hierarchy through text weight/color.
- * Following norman: feedback and mental models, show system state clearly.
+ * Following minimalism: less but better, minimal decoration.
+ * Following aesthetics: depth through position, not visual noise.
+ * Following typography: type as interface, hierarchy through text weight/color.
+ * Following usability: feedback and mental models, show system state clearly.
  */
 
 import chalk from 'chalk';
@@ -54,7 +54,7 @@ const STAGE_SHORT_NAMES: Record<string, string> = {
 
 /**
  * Print pipeline progress showing current position in stage sequence.
- * Following duarte: motion is meaning, progress shows movement.
+ * Following motion: motion is meaning, progress shows movement.
  */
 function printPipelineProgress(
   stageStatus: Map<string, StageStatus>,
@@ -75,7 +75,7 @@ function printPipelineProgress(
 
 /**
  * Print the item header (primary visual hierarchy).
- * Following kruzeniski: type hierarchy through weight and color alone.
+ * Following typography: type hierarchy through weight and color alone.
  */
 export function printItemHeader(
   itemNum: number,
@@ -141,14 +141,6 @@ export function printAppliedSkills(rawOutput: string | undefined): void {
   for (const line of applied) {
     console.log(`        ${chalk.yellow('•')} ${line}`);
   }
-}
-
-/**
- * Legacy overload for backward compatibility.
- * @deprecated Use the SkillDetection overload instead
- */
-function printStageHeaderLegacy(stage: string, skills: string[]): void {
-  printStageHeader(stage, { skills, keywords: [] });
 }
 
 /**
@@ -282,7 +274,7 @@ export class Spinner {
 
 /**
  * Print summary link at end of run.
- * Following norman: feedback, show what user can do next.
+ * Following usability: feedback, show what user can do next.
  */
 export function printSummaryLink(summaryPath: string): void {
   console.log('');

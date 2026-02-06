@@ -6,36 +6,36 @@
 
 | Layer | Expert | Focus | Skill |
 |-------|--------|-------|-------|
-| **Philosophy** | Dieter Rams | 10 Principles - less but better | `/rams` |
-| **Psychology** | Don Norman | Affordances, feedback, mental models | `/norman` |
-| **Goal Design** | Alan Cooper | Goal-directed design, eliminate excise | `/cooper` |
-| **Information** | Edward Tufte | Data-ink ratio, clarity, no chartjunk | `/tufte` |
-| **Visual** | Jony Ive | Minimalism, material honesty, depth | `/ive` |
-| **Typography** | Mike Kruzeniski | Type-first hierarchy, Fluent | `/kruzeniski` |
-| **Motion** | Matías Duarte | Material motion, meaningful transitions | `/duarte` |
-| **Interaction** | Bill Buxton | Input fundamentals, sketching UX | `/buxton` |
-| **Patterns** | Luke Wroblewski | Mobile-first, forms, thumb zones | `/wroblewski` |
-| **Components** | Brad Frost | Atomic design, reusable systems | `/frost` |
-| **Governance** | Nathan Curtis | Versioning, documentation, tokens | `/curtis` |
-| **Collaboration** | Dan Mall | Designer-dev handoff, hot potato | `/mall` |
+| **Philosophy** | Dieter Rams | 10 Principles - less but better | `/design` |
+| **Psychology** | Don Norman | Affordances, feedback, mental models | `/usability` |
+| **Goal Design** | Alan Cooper | Goal-directed design, eliminate excise | `/personas` |
+| **Information** | Edward Tufte | Data-ink ratio, clarity, no chartjunk | `/charts` |
+| **Visual** | Jony Ive | Minimalism, material honesty, depth | `/visual` |
+| **Typography** | Mike Kruzeniski | Type-first hierarchy, Fluent | `/typography` |
+| **Motion** | Matías Duarte | Material motion, meaningful transitions | `/motion` |
+| **Interaction** | Bill Buxton | Input fundamentals, sketching UX | `/interaction` |
+| **Patterns** | Luke Wroblewski | Mobile-first, forms, thumb zones | `/mobile` |
+| **Components** | Brad Frost | Atomic design, reusable systems | `/components` |
+| **Governance** | Nathan Curtis | Versioning, documentation, tokens | `/tokens` |
+| **Collaboration** | Dan Mall | Designer-dev handoff, hot potato | `/handoff` |
 
 ## Design Workflow
 
 Apply experts in this order:
 
 ```
-1. PHILOSOPHY   → /rams       "What can we remove?"
-2. PSYCHOLOGY   → /norman     "How will users understand this?"
-3. GOALS        → /cooper     "What goal does this serve? Eliminate excise."
-4. STRUCTURE    → /frost      "What components do we need?"
-5. VISUAL       → /ive        "How should it look?"
-6. TYPOGRAPHY   → /kruzeniski "How does type create hierarchy?"
-7. INTERACTION  → /buxton     "How do users interact?"
-8. PATTERNS     → /wroblewski "How does mobile work?"
-9. MOTION       → /duarte     "How do things move?"
-10. DATA VIZ    → /tufte      "How do we show data?"
-11. GOVERNANCE  → /curtis     "How do we document this?"
-12. HANDOFF     → /mall       "How do we ship this?"
+1. PHILOSOPHY   → /design      "What can we remove?"
+2. PSYCHOLOGY   → /usability   "How will users understand this?"
+3. GOALS        → /personas    "What goal does this serve? Eliminate excise."
+4. STRUCTURE    → /components  "What components do we need?"
+5. VISUAL       → /visual      "How should it look?"
+6. TYPOGRAPHY   → /typography  "How does type create hierarchy?"
+7. INTERACTION  → /interaction "How do users interact?"
+8. PATTERNS     → /mobile      "How does mobile work?"
+9. MOTION       → /motion      "How do things move?"
+10. DATA VIZ    → /charts      "How do we show data?"
+11. GOVERNANCE  → /tokens      "How do we document this?"
+12. HANDOFF     → /handoff     "How do we ship this?"
 ```
 
 ## Quick Reference
@@ -93,28 +93,28 @@ These experts don't give vague guidance like "make it intuitive." They give conc
 ```yaml
 autoInvoke:
   - context: Building UI component
-    action: INVOKE `/frost` then `/ive`
+    action: INVOKE `/components` then `/visual`
 
   - context: Designing forms
-    action: INVOKE `/wroblewski` then `/norman`
+    action: INVOKE `/mobile` then `/usability`
 
   - context: Modals, dialogs, confirmations
-    action: INVOKE `/cooper` for goal-directed design
+    action: INVOKE `/personas` for goal-directed design
 
   - context: Adding animation
-    action: INVOKE `/duarte`
+    action: INVOKE `/motion`
 
   - context: Data visualization
-    action: INVOKE `/tufte`
+    action: INVOKE `/charts`
 
   - context: Mobile design
-    action: INVOKE `/wroblewski` then `/buxton`
+    action: INVOKE `/mobile` then `/interaction`
 
   - context: Design system documentation
-    action: INVOKE `/curtis`
+    action: INVOKE `/tokens`
 
   - context: Handoff to development
-    action: INVOKE `/mall`
+    action: INVOKE `/handoff`
 ```
 
 ## Combined Score
@@ -123,18 +123,18 @@ Rate any UI against all 12 experts:
 
 | Expert | Score (0-10) | Weight |
 |--------|--------------|--------|
-| Rams (simplicity) | | 12% |
-| Norman (usability) | | 12% |
-| Cooper (goal-directed) | | 12% |
-| Ive (visual) | | 10% |
-| Kruzeniski (typography) | | 8% |
-| Duarte (motion) | | 5% |
-| Buxton (interaction) | | 8% |
-| Wroblewski (mobile) | | 10% |
-| Frost (components) | | 10% |
-| Curtis (documentation) | | 5% |
-| Mall (collaboration) | | 4% |
-| Tufte (data viz) | | 4% |
+| design (simplicity) | | 12% |
+| usability (affordances) | | 12% |
+| personas (goal-directed) | | 12% |
+| visual (minimalism) | | 10% |
+| typography (hierarchy) | | 8% |
+| motion (transitions) | | 5% |
+| interaction (input) | | 8% |
+| mobile (responsive) | | 10% |
+| components (atomic) | | 10% |
+| tokens (documentation) | | 5% |
+| handoff (collaboration) | | 4% |
+| charts (data viz) | | 4% |
 | **Total** | | **100%** |
 
 **Passing score: 70+**
@@ -143,7 +143,7 @@ Rate any UI against all 12 experts:
 
 The UI/UX canon integrates with:
 
-- **Visualization canon** (`/tufte`, `/few`, `/bostock`, `/knaflic`) - For data-heavy interfaces
+- **Visualization canon** (`/charts`, `/dashboards`, `/d3`, `/data-story`) - For data-heavy interfaces
 - **Testing canon** - Accessibility testing, visual regression
 - **Security canon** - Form security, input validation
 
@@ -152,21 +152,21 @@ The UI/UX canon integrates with:
 ```
 canon/ui-ux/
 ├── README.md         (this file)
-├── rams/SKILL.md
-├── norman/SKILL.md
-├── cooper/SKILL.md
-├── ive/SKILL.md
-├── kruzeniski/SKILL.md
-├── duarte/SKILL.md
-├── buxton/SKILL.md
-├── wroblewski/SKILL.md
-├── frost/SKILL.md
-├── curtis/SKILL.md
-└── mall/SKILL.md
+├── design/SKILL.md
+├── usability/SKILL.md
+├── personas/SKILL.md
+├── visual/SKILL.md
+├── typography/SKILL.md
+├── motion/SKILL.md
+├── interaction/SKILL.md
+├── mobile/SKILL.md
+├── components/SKILL.md
+├── tokens/SKILL.md
+└── handoff/SKILL.md
 
 canon/visualization/
-├── tufte/SKILL.md    (shared with UI/UX)
-├── few/SKILL.md
-├── bostock/SKILL.md
-└── knaflic/SKILL.md
+├── charts/SKILL.md    (shared with UI/UX)
+├── dashboards/SKILL.md
+├── d3/SKILL.md
+└── data-story/SKILL.md
 ```

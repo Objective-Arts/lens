@@ -131,3 +131,128 @@ describe('scan options', () => {
     );
   });
 });
+
+describe('description extraction', () => {
+  const testDir = path.join(tmpdir(), 'cc-desc-test');
+
+  beforeEach(() => {
+    fs.mkdirSync(path.join(testDir, '.claude', 'skills'), { recursive: true });
+  });
+
+  afterEach(() => {
+    fs.rmSync(testDir, { recursive: true, force: true });
+  });
+
+  it('extracts description from YAML frontmatter', async () => {
+    const skillDir = path.join(testDir, '.claude', 'skills', 'fm-skill');
+    fs.mkdirSync(skillDir, { recursive: true });
+    fs.writeFileSync(path.join(skillDir, 'SKILL.md'),
+      '---\nname: test\ndescription: "A frontmatter description"\n---\n# Title\nBody text.');
+
+    const result = await scan({ projectPath: testDir, includePlugins: false });
+    const skill = result.items.find(i => i.name === 'fm-skill');
+    expect(skill?.metadata.description).toBe('A frontmatter description');
+  });
+
+  it('falls back to first non-heading line when no frontmatter', async () => {
+    const skillDir = path.join(testDir, '.claude', 'skills', 'nofm-skill');
+    fs.mkdirSync(skillDir, { recursive: true });
+    fs.writeFileSync(path.join(skillDir, 'SKILL.md'),
+      '# Title\n\nFirst paragraph line.');
+
+    const result = await scan({ projectPath: testDir, includePlugins: false });
+    const skill = result.items.find(i => i.name === 'nofm-skill');
+    expect(skill?.metadata.description).toBe('First paragraph line.');
+  });
+
+  it('returns undefined for empty content', async () => {
+    const skillDir = path.join(testDir, '.claude', 'skills', 'empty-skill');
+    fs.mkdirSync(skillDir, { recursive: true });
+    fs.writeFileSync(path.join(skillDir, 'SKILL.md'), '');
+
+    const result = await scan({ projectPath: testDir, includePlugins: false });
+    const skill = result.items.find(i => i.name === 'empty-skill');
+    expect(skill?.metadata.description).toBeUndefined();
+  });
+
+  it('truncates long descriptions to 100 chars', async () => {
+    const skillDir = path.join(testDir, '.claude', 'skills', 'long-skill');
+    fs.mkdirSync(skillDir, { recursive: true });
+    const longLine = 'A'.repeat(200);
+    fs.writeFileSync(path.join(skillDir, 'SKILL.md'), longLine);
+
+    const result = await scan({ projectPath: testDir, includePlugins: false });
+    const skill = result.items.find(i => i.name === 'long-skill');
+    expect(skill?.metadata.description).toHaveLength(100);
+  });
+
+  it('skips heading-only content', async () => {
+    const skillDir = path.join(testDir, '.claude', 'skills', 'headonly-skill');
+    fs.mkdirSync(skillDir, { recursive: true });
+    fs.writeFileSync(path.join(skillDir, 'SKILL.md'), '# Title\n## Subtitle\n### Sub-sub');
+
+    const result = await scan({ projectPath: testDir, includePlugins: false });
+    const skill = result.items.find(i => i.name === 'headonly-skill');
+    expect(skill?.metadata.description).toBeUndefined();
+  });
+});
+
+describe('scan with nonexistent project', () => {
+  it('returns empty project items for missing path', async () => {
+    const result = await scan({ projectPath: '/tmp/nonexistent-project-xyz', includePlugins: false });
+    const projectItems = result.items.filter(i => i.scope === 'project');
+    expect(projectItems).toHaveLength(0);
+  });
+});
+
+describe('scan with symlinked skills', () => {
+  const testDir = path.join(tmpdir(), 'cc-symlink-test');
+  const realSkillDir = path.join(tmpdir(), 'cc-real-skill');
+
+  beforeEach(() => {
+    fs.mkdirSync(path.join(testDir, '.claude', 'skills'), { recursive: true });
+    fs.mkdirSync(realSkillDir, { recursive: true });
+    fs.writeFileSync(path.join(realSkillDir, 'SKILL.md'), '# Real Skill\n\nLinked skill content.');
+    fs.symlinkSync(realSkillDir, path.join(testDir, '.claude', 'skills', 'linked-skill'));
+  });
+
+  afterEach(() => {
+    fs.rmSync(testDir, { recursive: true, force: true });
+    fs.rmSync(realSkillDir, { recursive: true, force: true });
+  });
+
+  it('follows symlinks and reads content', async () => {
+    const result = await scan({ projectPath: testDir, includePlugins: false });
+    const skill = result.items.find(i => i.name === 'linked-skill');
+    expect(skill).toBeDefined();
+    expect(skill?.isSymlink).toBe(true);
+    expect(skill?.content).toContain('Linked skill content.');
+  });
+
+  it('reports symlink target path', async () => {
+    const result = await scan({ projectPath: testDir, includePlugins: false });
+    const skill = result.items.find(i => i.name === 'linked-skill');
+    expect(skill?.symlinkTarget).toBe(realSkillDir);
+  });
+});
+
+describe('scan settings files', () => {
+  const testDir = path.join(tmpdir(), 'cc-settings-test');
+
+  beforeEach(() => {
+    fs.mkdirSync(path.join(testDir, '.claude'), { recursive: true });
+    fs.writeFileSync(path.join(testDir, '.claude', 'settings.json'), '{"model": "opus"}');
+  });
+
+  afterEach(() => {
+    fs.rmSync(testDir, { recursive: true, force: true });
+  });
+
+  it('finds settings files with Settings file description', async () => {
+    const result = await scan({ projectPath: testDir, includePlugins: false });
+    const settings = result.items.find(i => i.name === 'settings.json' && i.scope === 'project');
+    expect(settings).toBeDefined();
+    expect(settings?.type).toBe('settings');
+    expect(settings?.metadata.description).toBe('Settings file');
+  });
+});

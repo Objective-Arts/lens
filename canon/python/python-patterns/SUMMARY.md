@@ -1,4 +1,4 @@
-# /slatkin Summary
+# /python-patterns Summary
 
 > "Python has a right way and a wrong way to do most things."
 

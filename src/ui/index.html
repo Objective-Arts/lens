@@ -6,11 +6,11 @@
   <title>cc-config</title>
   <style>
     /* ═══════════════════════════════════════════════════════════════════════
-       DESIGN TOKENS (Curtis)
+       DESIGN TOKENS (tokens)
        Semantic naming, single source of truth
     ═══════════════════════════════════════════════════════════════════════ */
     :root {
-      /* Color - Gray scale (Ive: 90% of UI) */
+      /* Color - Gray scale (visual: 90% of UI) */
       --gray-950: #0a0a0f;
       --gray-900: #12121a;
       --gray-800: #1e1e2a;
@@ -22,7 +22,7 @@
       --gray-200: #d0d0e0;
       --gray-100: #e8e8f0;
 
-      /* Color - Accent (Ive: ONE color, used sparingly) */
+      /* Color - Accent (visual: ONE color, used sparingly) */
       --accent: #00d9ff;
       --accent-dim: rgba(0, 217, 255, 0.15);
       --accent-hover: #00f0ff;
@@ -32,7 +32,7 @@
       --warning: #ffb020;
       --error: #ff4757;
 
-      /* Typography (Kruzeniski) */
+      /* Typography (typography) */
       --font-sans: -apple-system, BlinkMacSystemFont, 'Segoe UI', system-ui, sans-serif;
       --font-mono: 'SF Mono', 'Fira Code', 'Consolas', monospace;
 
@@ -47,7 +47,7 @@
       --font-medium: 500;
       --font-semibold: 600;
 
-      /* Spacing (Rams: 4px base) */
+      /* Spacing (design: 4px base) */
       --space-1: 4px;
       --space-2: 8px;
       --space-3: 12px;
@@ -58,19 +58,19 @@
       --space-10: 40px;
       --space-12: 48px;
 
-      /* Border radius (Ive: consistent scale) */
+      /* Border radius (visual: consistent scale) */
       --radius-sm: 4px;
       --radius-md: 8px;
       --radius-lg: 12px;
       --radius-full: 9999px;
 
-      /* Shadows (Ive: 4 levels max) */
+      /* Shadows (visual: 4 levels max) */
       --shadow-1: 0 1px 2px rgba(0, 0, 0, 0.2);
       --shadow-2: 0 4px 8px rgba(0, 0, 0, 0.25);
       --shadow-3: 0 8px 16px rgba(0, 0, 0, 0.3);
       --shadow-glow: 0 0 20px rgba(0, 217, 255, 0.15);
 
-      /* Motion (Duarte) */
+      /* Motion (motion) */
       --duration-instant: 50ms;
       --duration-fast: 150ms;
       --duration-normal: 250ms;
@@ -79,7 +79,7 @@
     }
 
     /* ═══════════════════════════════════════════════════════════════════════
-       RESET & BASE (Rams: nothing arbitrary)
+       RESET & BASE (design: nothing arbitrary)
     ═══════════════════════════════════════════════════════════════════════ */
     *, *::before, *::after {
       box-sizing: border-box;
@@ -98,7 +98,7 @@
     }
 
     /* ═══════════════════════════════════════════════════════════════════════
-       ATOMS (Frost)
+       ATOMS (components)
     ═══════════════════════════════════════════════════════════════════════ */
 
     /* Button atom */
@@ -107,7 +107,7 @@
       align-items: center;
       justify-content: center;
       gap: var(--space-2);
-      min-height: 44px; /* Norman: touch target */
+      min-height: 44px; /* usability: touch target */
       padding: var(--space-3) var(--space-4);
       font-size: var(--text-sm);
       font-weight: var(--font-medium);
@@ -126,7 +126,7 @@
     }
 
     .btn:active {
-      transform: scale(0.98); /* Duarte: physical feedback */
+      transform: scale(0.98); /* motion: physical feedback */
     }
 
     .btn:focus-visible {
@@ -239,7 +239,7 @@
     }
 
     /* ═══════════════════════════════════════════════════════════════════════
-       MOLECULES (Frost)
+       MOLECULES (components)
     ═══════════════════════════════════════════════════════════════════════ */
 
     /* Card molecule */
@@ -348,7 +348,7 @@
     }
 
     /* ═══════════════════════════════════════════════════════════════════════
-       ORGANISMS (Frost)
+       ORGANISMS (components)
     ═══════════════════════════════════════════════════════════════════════ */
 
     /* Header organism */
@@ -416,7 +416,7 @@
     }
 
     /* ═══════════════════════════════════════════════════════════════════════
-       TEMPLATE (Frost)
+       TEMPLATE (components)
     ═══════════════════════════════════════════════════════════════════════ */
 
     .dashboard {
@@ -430,7 +430,7 @@
     }
 
     /* ═══════════════════════════════════════════════════════════════════════
-       FEEDBACK & STATES (Norman, Duarte)
+       FEEDBACK & STATES (usability, motion)
     ═══════════════════════════════════════════════════════════════════════ */
 
     /* Toast feedback */
@@ -486,7 +486,7 @@
     }
 
     /* ═══════════════════════════════════════════════════════════════════════
-       RESPONSIVE (Wroblewski: mobile-first)
+       RESPONSIVE (mobile: mobile-first)
     ═══════════════════════════════════════════════════════════════════════ */
 
     @media (max-width: 640px) {
@@ -516,7 +516,7 @@
     }
 
     /* ═══════════════════════════════════════════════════════════════════════
-       ACCESSIBILITY (Buxton, Norman)
+       ACCESSIBILITY (interaction, usability)
     ═══════════════════════════════════════════════════════════════════════ */
 
     @media (prefers-reduced-motion: reduce) {
@@ -611,7 +611,7 @@
 
   </main>
 
-  <!-- Toast for feedback (Norman: every action needs response) -->
+  <!-- Toast for feedback (usability: every action needs response) -->
   <div class="toast" id="toast" role="status" aria-live="polite"></div>
 
   <script>
@@ -656,7 +656,7 @@
     }
 
     // ═══════════════════════════════════════════════════════════════════════
-    // COMPONENTS (Frost: atoms compose into molecules)
+    // COMPONENTS (components: atoms compose into molecules)
     // ═══════════════════════════════════════════════════════════════════════
 
     function renderToggle(isOn, onChange) {
@@ -694,7 +694,7 @@
         const result = await postData(`/mcp-servers/${server.name}/toggle`, { enabled: newState });
         if (result) {
           showToast(`${server.name} ${newState ? 'enabled' : 'disabled'}`, 'success');
-          // Update badge (Cooper: immediate feedback)
+          // Update badge (personas: immediate feedback)
           const badge = card.querySelector('.badge');
           badge.className = `badge ${newState ? 'badge--success' : 'badge--muted'}`;
           badge.textContent = newState ? 'Enabled' : 'Disabled';
@@ -863,7 +863,7 @@
     function switchTab(tab) {
       state.activeTab = tab;
 
-      // Update nav (Norman: clear feedback)
+      // Update nav (usability: clear feedback)
       document.querySelectorAll('.nav__item').forEach(item => {
         item.classList.toggle('is-active', item.dataset.tab === tab);
       });

@@ -214,6 +214,6 @@ Before shipping:
 ## Integration
 
 Combine with:
-- `/leveson` - Systematic failure prevention
-- `/taleb` - Designing for antifragility
-- `/schneier` - Security as failure anticipation
+- `/safety` - Systematic failure prevention
+- `/resilience` - Designing for antifragility
+- `/security-mindset` - Security as failure anticipation

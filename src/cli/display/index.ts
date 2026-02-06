@@ -1,8 +1,8 @@
 /**
  * CLI Display Module
  *
- * Extracted from cli/index.ts for single responsibility (Pike)
- * Pure display functions - no side effects except console output (Dijkstra)
+ * Extracted from cli/index.ts for single responsibility (simplicity)
+ * Pure display functions - no side effects except console output (correctness)
  */
 
 export { printScanSummary } from './scan.js';

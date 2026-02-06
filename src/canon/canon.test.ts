@@ -15,7 +15,7 @@ import * as path from 'path';
 import { homedir } from 'os';
 import matter from 'gray-matter';
 import YAML from 'yaml';
-import { listCanonSkills, getCanonSourcePath, deployAllSkills } from './index.js';
+import { listCanonSkills, getCanonSourcePath, deployAllSkills, copySkill, diffSkill } from './index.js';
 
 // Paths
 const CANON_PATH = getCanonSourcePath();
@@ -629,5 +629,43 @@ describe('deployAllSkills', () => {
     }
 
     expect(contentMismatches).toEqual([]);
+  });
+});
+
+describe('path traversal protection', () => {
+  const testDir = path.join(homedir(), '.canon-security-test-' + Date.now());
+
+  afterAll(() => {
+    if (fs.existsSync(testDir)) {
+      fs.rmSync(testDir, { recursive: true });
+    }
+  });
+
+  it('copySkill rejects names with forward slash', () => {
+    const result = copySkill('../../etc/passwd', testDir);
+    expect(result.success).toBe(false);
+    expect(result.message).toContain('path traversal');
+  });
+
+  it('copySkill rejects names with dot-dot traversal', () => {
+    const result = copySkill('..', testDir);
+    expect(result.success).toBe(false);
+    expect(result.message).toContain('path traversal');
+  });
+
+  it('copySkill rejects names with backslash', () => {
+    const result = copySkill('..\\..\\etc', testDir);
+    expect(result.success).toBe(false);
+    expect(result.message).toContain('path traversal');
+  });
+
+  it('diffSkill rejects names with path traversal', () => {
+    const result = diffSkill('../../etc/passwd', testDir);
+    expect(result).toContain('path traversal');
+  });
+
+  it('diffSkill rejects names with dot-dot traversal', () => {
+    const result = diffSkill('..', testDir);
+    expect(result).toContain('path traversal');
   });
 });

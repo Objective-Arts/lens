@@ -80,8 +80,8 @@ Old tribute names → New generic names
 ## Security
 | Old (Tribute) | New (Generic) |
 |---------------|---------------|
-| bruce-schneier | threat-model |
-| schneier | security-mindset |
+| threat-model | threat-model |
+| security-mindset | security-mindset |
 | tanya-janca | appsec |
 | troy-hunt | web-security |
 

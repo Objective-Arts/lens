@@ -1,7 +1,7 @@
 /**
  * Structure-first phase - design data structures and types before code.
  *
- * Experts: linus, cherny, dijkstra, liskov, bloch, gang-of-four
+ * Experts: data-first, typescript, correctness, abstraction, java, design-patterns
  */
 
 import * as fs from 'fs';
@@ -70,11 +70,12 @@ export class StructureFirstPhase extends BasePhase {
     const slug = createSlug(item.text);
     const planPath = path.join(projectPath, '.claude', 'plans', `${slug}.md`);
 
-    if (!fs.existsSync(planPath)) {
+    let planContent: string;
+    try {
+      planContent = fs.readFileSync(planPath, 'utf-8');
+    } catch {
       return this.failed(`Plan not found: ${planPath}`);
     }
-
-    const planContent = fs.readFileSync(planPath, 'utf-8');
     const expertGuidance = this.buildExpertGuidance(experts);
 
     let prompt = STRUCTURE_PROMPT

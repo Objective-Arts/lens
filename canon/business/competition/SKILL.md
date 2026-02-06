@@ -281,10 +281,10 @@ Apply these checks:
 ## When NOT to Use This Skill
 
 Use a different skill when:
-- **Analyzing moat durability** → Use `helmer` (7 Powers, barrier analysis)
-- **Evaluating strategy coherence** → Use `rumelt` (diagnosis-policy-action)
-- **Navigating crisis** → Use `horowitz` (wartime leadership)
-- **Managing team operations** → Use `grove` (OKRs, leverage)
+- **Analyzing moat durability** → Use `moats` (7 Powers, barrier analysis)
+- **Evaluating strategy coherence** → Use `strategy` (diagnosis-policy-action)
+- **Navigating crisis** → Use `leadership` (wartime leadership)
+- **Managing team operations** → Use `management` (OKRs, leverage)
 
 Porter is the **industry analysis skill**—use it for Five Forces, generic strategies (cost/differentiation/focus), and value chain mapping.
 

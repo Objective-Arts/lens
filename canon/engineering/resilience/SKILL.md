@@ -267,6 +267,6 @@ Before shipping:
 ## Integration
 
 Combine with:
-- `/petroski` - Understanding how past failures shape design
-- `/leveson` - Systematic safety for the "safe" end of barbell
-- `/schneier` - Security as bounded-downside thinking
+- `/failure` - Understanding how past failures shape design
+- `/safety` - Systematic safety for the "safe" end of barbell
+- `/security-mindset` - Security as bounded-downside thinking

@@ -347,7 +347,7 @@ Before committing C# code, ask:
 | Generics, variance, type inference | Yes |
 | LINQ behavior and optimization | Yes |
 | Nullable reference types | Yes |
-| Async/await behavior | Partially - see cleary |
+| Async/await behavior | Partially - see async |
 | Performance optimization | Partially - see performance-specific resources |
 
 ---

@@ -13,8 +13,8 @@ import { BasePhase, PhaseContext, PhaseResult } from './types.js';
 import { runClaude, StreamCallbacks } from '../process/claude.js';
 import { extractError } from '../parsers/claude-stream.js';
 import {
-  hasNoCode, NO_CODE_INDICATORS, parseMcpPhaseOutput, buildPhaseMetrics,
-  formatSuccessMessage, GEMINI_EVIDENCE,
+  hasNoCode, NO_CODE_INDICATORS, parseMcpPhaseOutput,
+  GEMINI_EVIDENCE,
 } from './mcp-helpers.js';
 import chalk from 'chalk';
 
@@ -147,8 +147,6 @@ export class IndependentReviewPhase extends BasePhase {
   }
 
   async execute(context: PhaseContext): Promise<PhaseResult> {
-    const { item, projectPath, logsDir } = context;
-
     // Step 1: Identify issues
     process.stdout.write(`      ${chalk.magenta('○')} ${chalk.dim('Step 1: Identifying issues...')}\n`);
     const identifyResult = await this.runIdentifyStep(context);

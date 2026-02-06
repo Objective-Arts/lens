@@ -1,4 +1,4 @@
-# /procida Summary
+# /docs Summary
 
 > "Documentation needs to include and be structured around its four different functions."
 

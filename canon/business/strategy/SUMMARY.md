@@ -1,4 +1,4 @@
-# /rumelt Summary
+# /strategy Summary
 
 > "Most strategy is bad strategy."
 

@@ -1,8 +1,8 @@
 /**
  * Claude CLI process spawning.
  *
- * Following hevery: injectable, testable interface.
- * Following kernighan: simple wrapper, clear errors.
+ * Following testability: injectable, testable interface.
+ * Following clarity: simple wrapper, clear errors.
  */
 
 import { spawn } from 'child_process';
@@ -167,31 +167,3 @@ export async function hasNewCommitsSince(projectPath: string, sinceHash: string)
   return currentHash !== null && currentHash !== sinceHash;
 }
 
-/** Get commit count since a given hash. */
-async function getCommitCountSince(projectPath: string, sinceHash: string): Promise<number> {
-  return new Promise((resolve) => {
-    const child = spawn('git', ['rev-list', '--count', `${sinceHash}..HEAD`], { cwd: projectPath });
-    let output = '';
-    child.stdout?.on('data', (data: Buffer) => { output += data.toString(); });
-    child.on('close', (code) => {
-      if (code === 0) {
-        const count = parseInt(output.trim(), 10);
-        resolve(isNaN(count) ? 0 : count);
-      } else {
-        resolve(0);
-      }
-    });
-    child.on('error', () => resolve(0));
-  });
-}
-
-/** Get Claude version. */
-async function getClaudeVersion(): Promise<string | null> {
-  return new Promise((resolve) => {
-    const child = spawn('claude', ['--version']);
-    let output = '';
-    child.stdout?.on('data', (data: Buffer) => { output += data.toString(); });
-    child.on('close', (code) => resolve(code === 0 ? output.trim() : null));
-    child.on('error', () => resolve(null));
-  });
-}

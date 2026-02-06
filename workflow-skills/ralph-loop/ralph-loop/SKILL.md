@@ -137,32 +137,32 @@ During implement phase, detect context and invoke domain skills:
 
 | Pattern | Invoke | Why |
 |---------|--------|-----|
-| `*.tsx`, `*.jsx`, `*.vue` | `/frost`, `/ive`, `/norman` | UI components |
-| `*.css`, `*.scss`, `*.styled.*` | `/rams` | Styling |
-| `*.ts` (non-UI) | `/cherny` | TypeScript patterns |
-| React files | `/abramov` | React mental models |
+| `*.tsx`, `*.jsx`, `*.vue` | `/components`, `/visual`, `/usability` | UI components |
+| `*.css`, `*.scss`, `*.styled.*` | `/design` | Styling |
+| `*.ts` (non-UI) | `/typescript` | TypeScript patterns |
+| React files | `/react-state` | React mental models |
 
 ### By PRD Keywords
 
 | Keywords | Invoke | Why |
 |----------|--------|-----|
-| form, input, validation | `/wroblewski`, `/norman` | Forms expertise |
-| animation, transition, motion | `/duarte` | Meaningful motion |
-| mobile, responsive, touch | `/wroblewski`, `/buxton` | Mobile patterns |
+| form, input, validation | `/mobile`, `/usability` | Forms expertise |
+| animation, transition, motion | `/motion` | Meaningful motion |
+| mobile, responsive, touch | `/mobile`, `/interaction` | Mobile patterns |
 | auth, login, password, session | `/security-mindset`, `/owasp` | Security |
-| test, spec | `/dodds` | Testing patterns |
-| data visualization, chart, graph | `/bostock` | D3/viz patterns |
+| test, spec | `/react-test` | Testing patterns |
+| data visualization, chart, graph | `/d3` | D3/viz patterns |
 
 ### By Architecture
 
 | Context | Invoke | Why |
 |---------|--------|-----|
-| System design, new architecture | `/taleb`, `/petroski` | Resilience, failure modes |
-| Major refactoring | `/petroski`, `/taleb` | Learn from failures |
-| Design system work | `/curtis` | Token governance |
-| Typography decisions | `/kruzeniski` | Type hierarchy |
+| System design, new architecture | `/resilience`, `/failure` | Resilience, failure modes |
+| Major refactoring | `/failure`, `/resilience` | Learn from failures |
+| Design system work | `/tokens` | Token governance |
+| Typography decisions | `/typography` | Type hierarchy |
 
-**Output when invoking:** `"🎨 UI detected → Invoking /frost, /ive, /norman"`
+**Output when invoking:** `"🎨 UI detected → Invoking /components, /visual, /usability"`
 
 ## Required Docstring Formats (MUST USE)
 

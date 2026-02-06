@@ -345,11 +345,11 @@ Apply these checks:
 ## When NOT to Use This Skill
 
 Use a different skill when:
-- **Writing Linux kernel code** → Use `linus` (kernel coding style, 8-char tabs, specific conventions)
-- **Optimizing for performance** → Use `carmack` (profiling, cache behavior, data-oriented design)
-- **Writing high-level application code** → Use `kernighan` (general clarity principles)
-- **Building distributed systems** → Use `bill-joy` (statelessness, idempotency, failure handling)
-- **Designing CLI pipelines** → Use `mcilroy` (Unix philosophy, stdin/stdout composition)
+- **Writing Linux kernel code** → Use `data-first` (kernel coding style, 8-char tabs, specific conventions)
+- **Optimizing for performance** → Use `optimization` (profiling, cache behavior, data-oriented design)
+- **Writing high-level application code** → Use `clarity` (general clarity principles)
+- **Building distributed systems** → Use `distributed` (statelessness, idempotency, failure handling)
+- **Designing CLI pipelines** → Use `composition` (Unix philosophy, stdin/stdout composition)
 
 Pike is the **Go-first skill** and for systems code emphasizing small interfaces and composition.
 

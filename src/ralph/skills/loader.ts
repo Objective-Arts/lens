@@ -13,7 +13,7 @@ import { resolveSkillName, formatSkillName } from '../../canon/naming.js';
 /**
  * Load a skill from the project's .claude/skills directory.
  *
- * When CANON_TRIBUTE_NAMES=1 is set, tribute names (kernighan, dijkstra)
+ * When CANON_TRIBUTE_NAMES=1 is set, tribute names (legacy IDs)
  * are resolved to their generic equivalents (clarity, correctness).
  *
  * @param projectPath - Project root path
@@ -21,20 +21,15 @@ import { resolveSkillName, formatSkillName } from '../../canon/naming.js';
  * @returns Skill object or null if not found
  */
 function loadSkill(projectPath: string, skillName: string): Skill | null {
-  // Resolve tribute names to generic names when flag is set
   const resolvedName = resolveSkillName(skillName);
   const skillPath = path.join(projectPath, '.claude', 'skills', resolvedName, 'SKILL.md');
 
-  if (!fs.existsSync(skillPath)) {
+  try {
+    const content = fs.readFileSync(skillPath, 'utf-8');
+    return { name: resolvedName, content, source: 'profile' };
+  } catch {
     return null;
   }
-
-  const content = fs.readFileSync(skillPath, 'utf-8');
-  return {
-    name: resolvedName,
-    content,
-    source: 'profile',
-  };
 }
 
 /**
@@ -65,98 +60,3 @@ export function loadSkills(projectPath: string, skillNames: string[], verbose: b
   return skills;
 }
 
-/**
- * Load skills with source tracking (profile vs dynamic).
- *
- * @param projectPath - Project root path
- * @param profileSkills - Skills from profile configuration (can be tribute or generic names)
- * @param dynamicSkills - Skills detected from PRD content (can be tribute or generic names)
- * @returns Array of loaded skills with correct source attribution
- */
-function loadSkillsWithSources(
-  projectPath: string,
-  profileSkills: string[],
-  dynamicSkills: string[]
-): Skill[] {
-  const skills: Skill[] = [];
-  // Resolve names for the profile set check
-  const profileSet = new Set(profileSkills.map(resolveSkillName));
-
-  // Merge unique skill names (resolve all to generic)
-  const allSkills = new Set([
-    ...profileSkills.map(resolveSkillName),
-    ...dynamicSkills.map(resolveSkillName)
-  ]);
-
-  for (const name of allSkills) {
-    const skill = loadSkill(projectPath, name);
-    if (skill) {
-      skill.source = profileSet.has(skill.name) ? 'profile' : 'dynamic';
-      skills.push(skill);
-    }
-  }
-
-  return skills;
-}
-
-/**
- * List all available skills in project.
- */
-function listSkills(projectPath: string): string[] {
-  const skillsDir = path.join(projectPath, '.claude', 'skills');
-
-  if (!fs.existsSync(skillsDir)) {
-    return [];
-  }
-
-  return fs.readdirSync(skillsDir).filter(name => {
-    const skillPath = path.join(skillsDir, name, 'SKILL.md');
-    return fs.existsSync(skillPath);
-  });
-}
-
-/**
- * Check if a skill exists in the project.
- */
-function hasSkill(projectPath: string, skillName: string): boolean {
-  const skillPath = path.join(projectPath, '.claude', 'skills', skillName, 'SKILL.md');
-  return fs.existsSync(skillPath);
-}
-
-/**
- * Extract condensed guidance from skill content.
- * Takes the first N lines after frontmatter.
- */
-function extractGuidance(skill: Skill, maxLines: number = 50): string {
-  const lines = skill.content.split('\n');
-
-  // Skip frontmatter if present
-  let start = 0;
-  if (lines[0]?.trim() === '---') {
-    const endIndex = lines.findIndex((line, i) => i > 0 && line.trim() === '---');
-    if (endIndex > 0) {
-      start = endIndex + 1;
-    }
-  }
-
-  // Take maxLines after frontmatter
-  return lines.slice(start, start + maxLines).join('\n').trim();
-}
-
-/**
- * Build combined skill guidance for a stage prompt.
- * When CANON_TRIBUTE_NAMES=1, shows tribute names in section headers.
- */
-function buildSkillGuidance(skills: Skill[]): string {
-  if (skills.length === 0) {
-    return '';
-  }
-
-  const sections = skills.map(skill => {
-    const guidance = extractGuidance(skill);
-    const displayName = formatSkillName(skill.name);
-    return `## ${displayName}\n\n${guidance}`;
-  });
-
-  return sections.join('\n\n---\n\n');
-}

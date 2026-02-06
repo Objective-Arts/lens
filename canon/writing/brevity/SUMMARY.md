@@ -1,4 +1,4 @@
-# /strunk-white Summary
+# /brevity Summary
 
 > "Omit needless words."
 

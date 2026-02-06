@@ -1,4 +1,4 @@
-# /knuth Summary
+# /algorithms Summary
 
 > "Premature optimization is the root of all evil."
 

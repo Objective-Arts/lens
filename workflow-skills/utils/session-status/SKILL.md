@@ -72,16 +72,16 @@ When invoked, analyze and report the current session state.
 │ Profile: d3-development                                  │
 │                                                          │
 │ SKILLS AVAILABLE                                         │
-│   ⚡ bostock (1.2k) - project/.claude/skills             │
-│   ⚡ abramov (890) - project/.claude/skills              │
-│   ⚡ cherny (1.1k) - project/.claude/skills              │
+│   ⚡ d3 (1.2k) - project/.claude/skills                   │
+│   ⚡ react-state (890) - project/.claude/skills           │
+│   ⚡ typescript (1.1k) - project/.claude/skills           │
 │   🔒 security-mindset (1.4k) - ~/.claude/skills         │
 │   🔒 owasp (1.6k) - ~/.claude/skills                    │
 │   📐 devlens (3.8k) - ~/.claude/skills                  │
 │                                                          │
 │ AUTO-INVOKE RULES                                        │
-│   D3.js or visualization → /bostock                      │
-│   React/JSX/TSX files → /abramov                         │
+│   D3.js or visualization → /d3                           │
+│   React/JSX/TSX files → /react-state                     │
 │   Auth, login, passwords → /security-mindset             │
 │   SQL, user input, APIs → /owasp                         │
 │                                                          │

@@ -6,7 +6,6 @@
  */
 
 import * as path from 'path';
-import * as fs from 'fs';
 
 /** Valid name pattern: alphanumeric, hyphens, underscores */
 const VALID_NAME_PATTERN = /^[a-zA-Z0-9_-]+$/;
@@ -41,41 +40,22 @@ export function validateProjectPath(projectPath: string, allowedRoot?: string): 
     return null;
   }
 
-  // Resolve to absolute path
+  // Reject null bytes unconditionally (path truncation attack)
+  if (projectPath.includes('\0')) {
+    return null;
+  }
+
   const absolutePath = path.resolve(projectPath);
 
-  // If allowedRoot specified, ensure path is within it
   if (allowedRoot) {
     const absoluteRoot = path.resolve(allowedRoot);
-    if (!absolutePath.startsWith(absoluteRoot)) {
+    const rootPrefix = absoluteRoot.endsWith(path.sep) ? absoluteRoot : absoluteRoot + path.sep;
+    if (absolutePath !== absoluteRoot && !absolutePath.startsWith(rootPrefix)) {
       return null;
     }
   }
 
-  // Check path doesn't contain suspicious patterns
-  if (projectPath.includes('\0') || projectPath.includes('..')) {
-    // Allow ".." only if it resolves within allowed root
-    if (allowedRoot) {
-      const absoluteRoot = path.resolve(allowedRoot);
-      if (!absolutePath.startsWith(absoluteRoot)) {
-        return null;
-      }
-    }
-  }
-
   return absolutePath;
-}
-
-/**
- * Validate that a path exists and is a directory
- */
-function isValidDirectory(dirPath: string): boolean {
-  try {
-    const stats = fs.statSync(dirPath);
-    return stats.isDirectory();
-  } catch {
-    return false;
-  }
 }
 
 /**
@@ -101,8 +81,8 @@ export function getPathValidationError(projectPath: string): string {
     return 'Project path is required';
   }
 
-  if (projectPath.includes('..')) {
-    return 'Project path cannot contain path traversal (..)';
+  if (projectPath.includes('\0')) {
+    return 'Project path contains invalid characters';
   }
 
   return 'Invalid project path';

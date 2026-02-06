@@ -1,4 +1,4 @@
-# /petroski Summary
+# /failure Summary
 
 > "Form follows failure, not function."
 

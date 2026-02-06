@@ -1,7 +1,7 @@
 /**
  * Doc-code phase - document the completed work.
  *
- * Experts: procida, strunk-white, zinsser, king
+ * Experts: docs, prose, writing, storytelling
  */
 
 import { BasePhase, PhaseContext, PhaseResult } from './types.js';

@@ -1,7 +1,7 @@
 /**
  * Plan phase - understand requirements, design approach.
  *
- * Experts: kernighan, pike, linus, dijkstra, liskov
+ * Experts: clarity, simplicity, data-first, correctness, abstraction
  */
 
 import * as fs from 'fs';

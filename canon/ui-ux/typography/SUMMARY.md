@@ -1,4 +1,4 @@
-# /kruzeniski Summary
+# /typography Summary
 
 > "Typography IS the interface."
 

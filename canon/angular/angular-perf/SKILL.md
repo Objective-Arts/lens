@@ -322,10 +322,10 @@ constructor(private ngZone: NgZone) {
 ## When NOT to Use This Skill
 
 Use a different skill when:
-- **Designing component architecture** → Use `hevery` (DI, testability)
-- **Applying design patterns** → Use `gang-of-four`
-- **General code clarity** → Use `kernighan`
-- **Type system design** → Use `cherny` (TypeScript)
+- **Designing component architecture** → Use `angular-core` (DI, testability)
+- **Applying design patterns** → Use `design-patterns`
+- **General code clarity** → Use `clarity`
+- **Type system design** → Use `typescript` (TypeScript)
 
 Minko Gechev is the **Angular performance skill**—use it for optimization, lazy loading, and runtime efficiency.
 

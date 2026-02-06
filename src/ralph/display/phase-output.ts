@@ -1,8 +1,8 @@
 /**
  * Phase output display - formatting and printing phase results.
  *
- * Following kernighan: display logic separate from parsing.
- * Following feathers: parsing extracted to issue-parser.ts for testability.
+ * Following clarity: display logic separate from parsing.
+ * Following legacy: parsing extracted to issue-parser.ts for testability.
  */
 
 import chalk from 'chalk';

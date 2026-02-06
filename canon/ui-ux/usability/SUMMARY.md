@@ -1,4 +1,4 @@
-# /norman Summary
+# /usability Summary
 
 > "Users don't read manuals - the interface must teach itself."
 
@@ -39,7 +39,7 @@ Rules: Say what's wrong + how to fix it + place near problem + use icon (colorbl
 
 ## Load Full Skill When
 
-- Designing forms (combine with /wroblewski)
+- Designing forms (combine with /mobile)
 - Complex interaction patterns
 - Accessibility audits
 

@@ -121,9 +121,9 @@ Created:
   + .claude/settings.json
 
 Linked:
-  → skills/simpson
-  → skills/cherny
-  → skills/crockford
+  → skills/js-internals
+  → skills/typescript
+  → skills/js-safety
   → skills/react-state
 
 Profile applied successfully!

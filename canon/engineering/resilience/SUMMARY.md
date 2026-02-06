@@ -1,4 +1,4 @@
-# /taleb Summary
+# /resilience Summary
 
 > "Don't aim for robust. Aim for antifragile."
 

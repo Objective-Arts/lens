@@ -246,10 +246,10 @@ Apply these checks:
 ## When NOT to Use This Skill
 
 Use a different skill when:
-- **Analyzing industry forces** → Use `porter` (Five Forces, supplier/buyer power)
-- **Evaluating strategy coherence** → Use `rumelt` (diagnosis-policy-action)
-- **Navigating crisis** → Use `horowitz` (wartime leadership)
-- **Managing team operations** → Use `grove` (OKRs, leverage)
+- **Analyzing industry forces** → Use `competition` (Five Forces, supplier/buyer power)
+- **Evaluating strategy coherence** → Use `strategy` (diagnosis-policy-action)
+- **Navigating crisis** → Use `leadership` (wartime leadership)
+- **Managing team operations** → Use `management` (OKRs, leverage)
 
 Helmer is the **moat analysis skill**—use it when evaluating whether competitive advantage is durable and which of the 7 Powers applies.
 

@@ -1,4 +1,4 @@
-# /rams Summary
+# /design Summary
 
 > "Less, but better." - Dieter Rams
 

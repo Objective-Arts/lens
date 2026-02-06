@@ -278,12 +278,12 @@ Apply these checks:
 ## When NOT to Use This Skill
 
 Use a different skill when:
-- **Writing Go code** → Use `pike` (Go Proverbs, Go idioms, small interfaces)
-- **Writing game/graphics code** → Use `carmack` (functional core, cache optimization, profiling)
-- **Writing Python/JS/Ruby** → Use `kernighan` (general clarity, language-agnostic principles)
-- **Building distributed systems** → Use `bill-joy` (NFS principles, statelessness, scale)
-- **Designing CLI tools** → Use `mcilroy` (Unix philosophy, pipes, composition)
-- **Proving algorithm correctness** → Use `dijkstra` (formal methods, invariants)
+- **Writing Go code** → Use `simplicity` (Go Proverbs, Go idioms, small interfaces)
+- **Writing game/graphics code** → Use `optimization` (functional core, cache optimization, profiling)
+- **Writing Python/JS/Ruby** → Use `clarity` (general clarity, language-agnostic principles)
+- **Building distributed systems** → Use `distributed` (NFS principles, statelessness, scale)
+- **Designing CLI tools** → Use `composition` (Unix philosophy, pipes, composition)
+- **Proving algorithm correctness** → Use `correctness` (formal methods, invariants)
 
 Linus is the **Linux kernel skill**—use it for kernel-style C, data structure design, and eliminating special cases.
 

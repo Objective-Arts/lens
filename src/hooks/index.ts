@@ -1,8 +1,8 @@
 /**
  * Hook management for Claude Code settings.json
  *
- * Following kernighan: clear, explicit operations.
- * Following bloch: defensive programming with backups.
+ * Following clarity: clear, explicit operations.
+ * Following java: defensive programming with backups.
  */
 
 import * as fs from "fs";

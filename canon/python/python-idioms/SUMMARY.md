@@ -1,4 +1,4 @@
-# /hettinger Summary
+# /python-idioms Summary
 
 > "There must be a better way."
 

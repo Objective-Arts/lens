@@ -321,7 +321,7 @@ Before designing new:
 ## Integration
 
 Combine with:
-- `/ive` - Visual design language components implement
-- `/kruzeniski` - Typography system within components
-- `/curtis` - Governance for component maintenance
-- `/mall` - Handoff of components to developers
+- `/visual` - Visual design language components implement
+- `/typography` - Typography system within components
+- `/tokens` - Governance for component maintenance
+- `/handoff` - Handoff of components to developers

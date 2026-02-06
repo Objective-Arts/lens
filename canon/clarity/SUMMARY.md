@@ -1,4 +1,4 @@
-# /kernighan Summary
+# /clarity Summary
 
 > "Debugging is twice as hard as writing the code. If you write code as cleverly as possible, you are, by definition, not smart enough to debug it."
 
@@ -33,9 +33,9 @@ Before committing, ask:
 
 ## Load Full Skill When
 
-- Writing C/systems code (use linus or pike instead)
-- Performance-critical code (use carmack)
-- Building CLI tools (use mcilroy)
+- Writing C/systems code (use data-first or simplicity instead)
+- Performance-critical code (use optimization)
+- Building CLI tools (use composition)
 
 ## Checklist
 

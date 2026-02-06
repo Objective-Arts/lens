@@ -1,4 +1,4 @@
-# /curtis Summary
+# /tokens Summary
 
 > "Design systems die without governance."
 

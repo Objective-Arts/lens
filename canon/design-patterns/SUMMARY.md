@@ -1,4 +1,4 @@
-# /gang-of-four Summary
+# /design-patterns Summary
 
 > "Favor composition over inheritance. Design to interfaces. Encapsulate what varies."
 

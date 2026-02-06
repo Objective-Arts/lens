@@ -1,8 +1,8 @@
 /**
  * Claude Stream Parser Tests
  *
- * Following Hevery: Testing pure functions directly.
- * Following Dodds: Test behavior (extraction results), not implementation.
+ * Following testability: Testing pure functions directly.
+ * Following react-test: Test behavior (extraction results), not implementation.
  */
 
 import { describe, it, expect } from 'vitest';
@@ -80,13 +80,13 @@ describe('Claude Stream Parser', () => {
     });
 
     it('preserves APPLIED section across multiple text blocks', () => {
-      const content = `{"text":"APPLIED:\\n- kernighan: Simplified the code\\n- pike: Reduced API surface"}
+      const content = `{"text":"APPLIED:\\n- clarity: Simplified the code\\n- simplicity: Reduced API surface"}
 {"text":"\\nSome more work done..."}
 {"text":"IMPLEMENT_COMPLETE"}`;
 
       const result = extractResultFromContent(content);
       expect(result).toContain('APPLIED:');
-      expect(result).toContain('kernighan: Simplified the code');
+      expect(result).toContain('clarity: Simplified the code');
       expect(result).toContain('IMPLEMENT_COMPLETE');
     });
 

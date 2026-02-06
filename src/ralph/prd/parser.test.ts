@@ -1,8 +1,8 @@
 /**
  * PRD Parser Tests
  *
- * Following Hevery: Testing pure functions directly, no mocks needed.
- * Following Dodds: Test behavior, not implementation details.
+ * Following testability: Testing pure functions directly, no mocks needed.
+ * Following react-test: Test behavior, not implementation details.
  */
 
 import { describe, it, expect } from 'vitest';

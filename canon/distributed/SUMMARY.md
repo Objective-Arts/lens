@@ -1,4 +1,4 @@
-# /bill-joy Summary
+# /distributed Summary
 
 > "No matter who you are, most of the smartest people work for someone else."
 

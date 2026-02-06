@@ -24,16 +24,10 @@ function getManifestPath(projectPath: string): string {
  */
 export function readManifest(projectPath: string): CanonManifest | null {
   const manifestPath = getManifestPath(projectPath);
-
-  if (!fs.existsSync(manifestPath)) {
-    return null;
-  }
-
   try {
     const content = fs.readFileSync(manifestPath, 'utf-8');
     return JSON.parse(content) as CanonManifest;
-  } catch (error) {
-    console.error(`Failed to read manifest: ${error}`);
+  } catch {
     return null;
   }
 }
@@ -80,19 +74,5 @@ export function updateSkillInManifest(
   manifest.skills[skillName] = info;
 }
 
-/**
- * Remove a skill from the manifest
- */
-function removeSkillFromManifest(manifest: CanonManifest, skillName: string): void {
-  delete manifest.skills[skillName];
-}
 
-/**
- * Mark a skill as modified in the manifest
- */
-function markSkillModified(manifest: CanonManifest, skillName: string): void {
-  if (manifest.skills[skillName]) {
-    manifest.skills[skillName].modified = true;
-  }
-}
 

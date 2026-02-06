@@ -515,7 +515,7 @@ describe('CLI version and help', () => {
 });
 
 // ============================================================================
-// Error path tests (Dodds: always test error states)
+// Error path tests (react-test: always test error states)
 // ============================================================================
 
 describe('error handling', () => {

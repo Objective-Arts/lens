@@ -3,7 +3,7 @@ name: refactoring
 description: Martin Fowler's refactoring patterns - improving code design without changing behavior
 ---
 
-# /fowler-refactoring — Refactoring Patterns
+# /refactoring — Refactoring Patterns
 
 Channel Martin Fowler: author of "Refactoring: Improving the Design of Existing Code."
 
@@ -149,7 +149,7 @@ function amountOverdue(dateRange) { ... }
 - Code is broken (fix bugs first)
 - Deadline is imminent (but schedule refactoring after)
 - Complete rewrite is needed
-- No tests exist (write characterization tests first - see `/feathers`)
+- No tests exist (write characterization tests first - see `/legacy`)
 
 ## References
 

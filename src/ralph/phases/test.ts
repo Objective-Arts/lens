@@ -1,7 +1,7 @@
 /**
  * Test phase - write and run tests for implemented code.
  *
- * Experts: meszaros, fowler-test, dodds, hevery, feathers
+ * Experts: test-doubles, test-strategy, react-test, testability, legacy
  */
 
 import { execSync } from 'child_process';

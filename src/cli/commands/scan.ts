@@ -1,6 +1,6 @@
 /**
  * Scan commands - discover Claude Code configuration
- * Following kernighan: single responsibility module
+ * Following clarity: single responsibility module
  */
 
 import { Command } from 'commander';

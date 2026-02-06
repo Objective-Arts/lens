@@ -1,11 +1,11 @@
 ---
 name: threat-model
-description: Bruce Schneier's security mindset for threat modeling, security architecture, and thinking like an attacker. Use for reviewing auth flows, evaluating security controls, or when someone asks "is this secure?" Triggers on security review, threat model, attacker thinking, security architecture.
+description: Threat modeling, security architecture, and thinking like an attacker. Use for reviewing auth flows, evaluating security controls, or when someone asks "is this secure?" Triggers on security review, threat model, attacker thinking, security architecture.
 ---
 
-# Bruce Schneier Security Philosophy
+# Threat Modeling
 
-Applying Bruce Schneier's security mindset to code reviews, architecture decisions, and threat modeling. Use when reviewing authentication flows, evaluating security controls, designing defense strategies, or when someone asks "is this secure?" This skill is NOT for compliance checklists, penetration testing execution, or vulnerability scanning - it's for thinking about security.
+Security mindset applied to code reviews, architecture decisions, and threat modeling. Use when reviewing authentication flows, evaluating security controls, designing defense strategies, or when someone asks "is this secure?" This skill is NOT for compliance checklists, penetration testing execution, or vulnerability scanning - it's for thinking about security.
 
 ---
 
@@ -23,7 +23,7 @@ DEFENDER THINKING          ATTACKER THINKING
 "Users won't do that"  →   "Some user definitely will"
 ```
 
-**Schneier's Law**: Anyone can design a security system that they themselves cannot break. The real test is whether someone smarter than you can break it.
+Anyone can design a security system that they themselves cannot break. The real test is whether someone smarter than you can break it.
 
 ### Security Economics
 
@@ -63,7 +63,7 @@ Who wants your assets? What are their capabilities?
 | Nation-state | Strategic | Unlimited | High | Extreme |
 | Insider | Revenge/money | High access | Varies | Medium |
 
-**Schneier's Rule**: Design for the adversary you have, not the one you wish you had.
+Design for the adversary you have, not the one you wish you had.
 
 ### Step 3: Attack Trees
 
@@ -221,7 +221,7 @@ For every control, ask:
 
 Draw boxes around trust zones. Every arrow crossing a boundary needs validation.
 
-### The Schneier Questions
+### Key Security Questions
 
 Before signing off on any security decision:
 
@@ -266,8 +266,5 @@ Controls that look good but don't work:
 
 ## References
 
-- "Secrets and Lies" - Bruce Schneier
-- "Beyond Fear" - Bruce Schneier
-- "Schneier on Security" blog
 - STRIDE threat modeling
 - OWASP Top 10

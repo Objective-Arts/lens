@@ -1,4 +1,4 @@
-# /horowitz Summary
+# /leadership Summary
 
 > "There are no silver bullets, only lead bullets."
 

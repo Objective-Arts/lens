@@ -1,8 +1,8 @@
 /**
  * Phase Loader Tests
  *
- * Following meszaros: clear arrange-act-assert.
- * Following dodds: realistic scenarios, test behavior not implementation.
+ * Following test-doubles: clear arrange-act-assert.
+ * Following react-test: realistic scenarios, test behavior not implementation.
  */
 
 import { describe, it, expect, beforeEach, afterEach } from 'vitest';
@@ -56,12 +56,12 @@ phases:
   plan:
     description: Test plan
     experts:
-      - kernighan
-      - pike
+      - clarity
+      - simplicity
   structure-first:
     description: Test structure
     experts:
-      - linus
+      - data-first
 ralph-sequence:
   - plan
   - structure-first
@@ -70,9 +70,9 @@ ralph-sequence:
 
       const config = loadPhaseConfig(TEST_DIR);
 
-      expect(config.phases.plan.experts).toContain('kernighan');
-      expect(config.phases.plan.experts).toContain('pike');
-      expect(config.phases['structure-first'].experts).toContain('linus');
+      expect(config.phases.plan.experts).toContain('clarity');
+      expect(config.phases.plan.experts).toContain('simplicity');
+      expect(config.phases['structure-first'].experts).toContain('data-first');
     });
 
     it('uses defaults for invalid YAML', () => {
@@ -165,7 +165,7 @@ rules:
       - binary search
       - linked list
     experts:
-      - knuth
+      - algorithms
 `;
       fs.writeFileSync(KEYWORDS_FILE, yamlContent);
 

@@ -1,8 +1,8 @@
 /**
  * Test fixtures helpers.
  *
- * Following Hevery: Explicit dependencies, clear factory functions.
- * Following Dodds: Realistic test data, not minimal stubs.
+ * Following testability: Explicit dependencies, clear factory functions.
+ * Following react-test: Realistic test data, not minimal stubs.
  */
 
 import * as fs from 'fs';

@@ -1,6 +1,6 @@
 /**
  * Command module index
- * Following procida: clear organization, single entry point
+ * Following docs: clear organization, single entry point
  */
 
 export { registerScanCommands } from './scan.js';

@@ -1,4 +1,4 @@
-# /wroblewski Summary
+# /mobile Summary
 
 > "Mobile first. Desktop is mobile with more space."
 

@@ -1,4 +1,4 @@
-# /ashkenas Summary
+# /functional Summary
 
 > "Readable over clever. Code is read far more than written."
 

@@ -244,11 +244,11 @@ result = step3(step2(step1(data)))
 ## When NOT to Use This Skill
 
 Use a different skill when:
-- **Optimizing single-machine code** → Use `carmack` (cache behavior, profiling, data-oriented)
-- **Writing kernel code** → Use `linus` (kernel style, data structures)
-- **Writing Go microservices** → Use `pike` (Go Proverbs, small interfaces)—but bill-joy for distributed concerns
-- **Building CLI tools** → Use `mcilroy` (Unix philosophy, pipes)
-- **General code clarity** → Use `kernighan` (readability, naming)
+- **Optimizing single-machine code** → Use `optimization` (cache behavior, profiling, data-oriented)
+- **Writing kernel code** → Use `data-first` (kernel style, data structures)
+- **Writing Go microservices** → Use `simplicity` (Go Proverbs, small interfaces)—but distributed for distributed concerns
+- **Building CLI tools** → Use `composition` (Unix philosophy, pipes)
+- **General code clarity** → Use `clarity` (readability, naming)
 
 Bill Joy is the **distributed systems skill**—use it when your system spans multiple machines, networks, or must handle failure.
 

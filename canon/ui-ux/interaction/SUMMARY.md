@@ -1,4 +1,4 @@
-# /buxton Summary
+# /interaction Summary
 
 > "Design for how humans actually interact with devices."
 

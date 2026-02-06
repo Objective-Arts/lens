@@ -303,6 +303,6 @@ Figma (tokens) ──┬──> tokens.json ──> code variables
 ## Integration
 
 Combine with:
-- `/frost` - Components that need handoff
-- `/curtis` - Documentation that enables handoff
+- `/components` - Components that need handoff
+- `/tokens` - Documentation that enables handoff
 - All other UI skills - The team process that ships them

@@ -1,7 +1,7 @@
 /**
  * Trace command - show YAML configuration stack for a skill.
  *
- * Following kernighan: clear output, one purpose.
+ * Following clarity: clear output, one purpose.
  */
 
 import type { Command } from 'commander';

@@ -236,10 +236,10 @@ Apply these checks:
 ## When NOT to Use This Skill
 
 Use a different skill when:
-- **Navigating crisis or layoffs** → Use `horowitz` (wartime leadership, hard decisions)
-- **Analyzing competitive moats** → Use `helmer` (7 Powers framework)
-- **Analyzing industry structure** → Use `porter` (Five Forces, positioning)
-- **Evaluating strategy quality** → Use `rumelt` (diagnosis-policy-action)
+- **Navigating crisis or layoffs** → Use `leadership` (wartime leadership, hard decisions)
+- **Analyzing competitive moats** → Use `moats` (7 Powers framework)
+- **Analyzing industry structure** → Use `competition` (Five Forces, positioning)
+- **Evaluating strategy quality** → Use `strategy` (diagnosis-policy-action)
 
 Grove is the **operational management skill**—use it for team effectiveness, OKRs, one-on-ones, and managerial leverage.
 

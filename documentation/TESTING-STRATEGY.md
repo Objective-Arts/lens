@@ -1,6 +1,6 @@
 # Testing Strategy for CC-Config & Ralph
 
-Applying: **meszaros** (xUnit patterns), **fowler-test** (test pyramid), **hevery** (testable code), **dodds** (testing trophy)
+Applying: **test-doubles** (xUnit patterns), **test-strategy** (test pyramid), **angular-core** (testable code), **react-test** (testing trophy)
 
 ---
 
@@ -19,7 +19,7 @@ Applying: **meszaros** (xUnit patterns), **fowler-test** (test pyramid), **hever
            /------------------\
 ```
 
-**Dodds' Testing Trophy adjustment for CLI tools:**
+**react-test Testing Trophy adjustment for CLI tools:**
 Integration tests are MORE valuable than unit tests for CLI - we care about what the user experiences, not internal implementation.
 
 ---
@@ -34,18 +34,18 @@ Fast, isolated, run on every commit.
 // Pure functions with no side effects
 describe('profile merging', () => {
   it('merges skills arrays without duplicates', () => {
-    const parent = { skills: { canon: ['kernighan', 'pike'] } };
-    const child = { skills: { canon: ['pike', 'dijkstra'] } };
+    const parent = { skills: { canon: ['clarity', 'simplicity'] } };
+    const child = { skills: { canon: ['simplicity', 'correctness'] } };
     const result = mergeProfiles(parent, child);
-    expect(result.skills.canon).toEqual(['kernighan', 'pike', 'dijkstra']);
+    expect(result.skills.canon).toEqual(['clarity', 'simplicity', 'correctness']);
   });
 });
 
 describe('ralph config parsing', () => {
   it('reads stage skills from yaml', () => {
-    const yaml = `skills:\n  plan:\n    - kernighan\n    - pike`;
+    const yaml = `skills:\n  plan:\n    - clarity\n    - simplicity`;
     const config = parseRalphConfig(yaml);
-    expect(config.skills.plan).toEqual(['kernighan', 'pike']);
+    expect(config.skills.plan).toEqual(['clarity', 'simplicity']);
   });
 });
 
@@ -65,15 +65,15 @@ describe('dynamic skill detection', () => {
   it('detects security keywords', () => {
     const item = 'Implement password reset with token validation';
     const skills = detectDynamicSkills(item, 'build');
-    expect(skills).toContain('schneier');
+    expect(skills).toContain('security-mindset');
     expect(skills).toContain('owasp');
   });
 
   it('detects UI keywords', () => {
     const item = 'Create modal dialog for user settings';
     const skills = detectDynamicSkills(item, 'build');
-    expect(skills).toContain('frost');
-    expect(skills).toContain('norman');
+    expect(skills).toContain('components');
+    expect(skills).toContain('usability');
   });
 });
 
@@ -87,7 +87,7 @@ describe('Gemini output parsing', () => {
 });
 ```
 
-### Hevery Principle: Extract Logic from Bash
+### Testable Code Principle: Extract Logic from Bash
 
 The bash ralph script is hard to unit test. Extract logic into testable TypeScript:
 
@@ -107,7 +107,7 @@ export function parseQodanaSarif(sarif: object): QodanaResult { ... }
 
 Test actual CLI behavior against real file systems.
 
-### Meszaros Pattern: Fresh Fixture per Test
+### test-doubles Pattern: Fresh Fixture per Test
 
 ```typescript
 import { mkdtemp, rm } from 'fs/promises';
@@ -118,7 +118,7 @@ describe('cc-config profile apply', () => {
   let tempDir: string;
 
   beforeEach(async () => {
-    // Fresh fixture - Meszaros: test independence
+    // Fresh fixture - test-doubles: test independence
     tempDir = await mkdtemp('/tmp/cc-test-');
   });
 
@@ -138,8 +138,8 @@ describe('cc-config profile apply', () => {
     execSync(`cc-config profile apply javascript -p ${tempDir}`);
 
     const skillsDir = join(tempDir, '.claude', 'skills');
-    expect(fs.existsSync(join(skillsDir, 'cherny', 'SKILL.md'))).toBe(true);
-    expect(fs.existsSync(join(skillsDir, 'crockford', 'SKILL.md'))).toBe(true);
+    expect(fs.existsSync(join(skillsDir, 'typescript', 'SKILL.md'))).toBe(true);
+    expect(fs.existsSync(join(skillsDir, 'js-safety', 'SKILL.md'))).toBe(true);
   });
 
   it('combines multiple profiles', () => {
@@ -150,10 +150,10 @@ describe('cc-config profile apply', () => {
     );
 
     // Has JavaScript skills
-    expect(config.skills.build).toContain('cherny');
+    expect(config.skills.build).toContain('typescript');
     // Has security skills
-    expect(config.skills.review).toContain('schneier');
-    expect(config.skills.review).toContain('tanya-janca');
+    expect(config.skills.review).toContain('security-mindset');
+    expect(config.skills.review).toContain('appsec');
   });
 
   it('generates ralph-config.yaml with stage skills', () => {
@@ -163,9 +163,9 @@ describe('cc-config profile apply', () => {
       fs.readFileSync(join(tempDir, '.claude', 'ralph-config.yaml'), 'utf8')
     );
 
-    expect(config.skills.plan).toContain('kernighan');
-    expect(config.skills.build).toContain('bloch');
-    expect(config.skills.review).toContain('schneier');
+    expect(config.skills.plan).toContain('clarity');
+    expect(config.skills.build).toContain('java');
+    expect(config.skills.review).toContain('security-mindset');
   });
 });
 
@@ -182,20 +182,20 @@ describe('cc-config canon', () => {
 
   it('lists available canon skills', () => {
     const output = execSync('cc-config canon list').toString();
-    expect(output).toContain('kernighan');
-    expect(output).toContain('schneier');
-    expect(output).toContain('dodds');
+    expect(output).toContain('clarity');
+    expect(output).toContain('security-mindset');
+    expect(output).toContain('react-test');
   });
 
   it('copies individual skill', () => {
-    execSync(`cc-config canon copy kernighan -p ${tempDir}`);
+    execSync(`cc-config canon copy clarity -p ${tempDir}`);
 
-    expect(fs.existsSync(join(tempDir, '.claude', 'skills', 'kernighan', 'SKILL.md'))).toBe(true);
+    expect(fs.existsSync(join(tempDir, '.claude', 'skills', 'clarity', 'SKILL.md'))).toBe(true);
   });
 
   it('detects outdated skills', async () => {
     // Setup: copy skill, then modify source
-    execSync(`cc-config canon copy kernighan -p ${tempDir}`);
+    execSync(`cc-config canon copy clarity -p ${tempDir}`);
 
     const output = execSync(`cc-config canon status -p ${tempDir}`).toString();
     expect(output).toContain('current');
@@ -446,23 +446,23 @@ test/
 
 ## Key Testing Principles Applied
 
-### Meszaros
+### test-doubles
 - ✅ Fresh fixture per test (temp directories)
 - ✅ One assertion concept per test
 - ✅ Test doubles for external services (Gemini, Qodana)
 - ✅ Arrange-Act-Assert structure
 
-### Fowler
+### test-strategy
 - ✅ Test pyramid respected (many unit, some integration, few E2E)
 - ✅ Contract tests for external APIs
 - ✅ Integration tests at boundaries (CLI → file system)
 
-### Hevery
+### Testable Code
 - ✅ Extract logic from bash into testable TypeScript
 - ✅ Inject dependencies (file system, external tools)
 - ✅ Separate construction from logic
 
-### Dodds
+### react-test
 - ✅ Test user behavior (CLI commands), not implementation
 - ✅ Integration tests prioritized for CLI tool
 - ✅ Avoid testing implementation details

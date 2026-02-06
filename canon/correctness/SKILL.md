@@ -287,11 +287,11 @@ Even without full formal proof:
 ## When NOT to Use This Skill
 
 Use a different skill when:
-- **Documenting algorithms as prose** → Use `knuth` (literate programming)
-- **Applying OO design patterns** → Use `gang-of-four` (23 patterns catalog)
-- **Writing Java/Kotlin** → Use `bloch` (Effective Java idioms)
-- **Optimizing performance** → Use `carmack` (profiling, data-oriented)
-- **General code clarity** → Use `kernighan` (readability, naming)
+- **Documenting algorithms as prose** → Use `algorithms` (literate programming)
+- **Applying OO design patterns** → Use `design-patterns` (23 patterns catalog)
+- **Writing Java/Kotlin** → Use `java` (Effective Java idioms)
+- **Optimizing performance** → Use `optimization` (profiling, data-oriented)
+- **General code clarity** → Use `clarity` (readability, naming)
 
 Dijkstra is the **formal methods skill**—use it when correctness must be proven, not just tested.
 

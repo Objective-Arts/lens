@@ -1,4 +1,4 @@
-# /bloch Summary
+# /java Summary
 
 > "APIs should be easy to use correctly and hard to use incorrectly." — Joshua Bloch
 

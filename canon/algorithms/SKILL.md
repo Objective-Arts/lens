@@ -195,11 +195,11 @@ Apply these checks:
 ## When NOT to Use This Skill
 
 Use a different skill when:
-- **Proving formal correctness** → Use `dijkstra` (invariants, weakest preconditions)
-- **Optimizing for performance** → Use `carmack` (profiling, cache behavior)
-- **Applying design patterns** → Use `gang-of-four` (23 classic patterns)
-- **Writing Java/Kotlin** → Use `bloch` (Effective Java idioms)
-- **General code clarity** → Use `kernighan` (readability, naming)
+- **Proving formal correctness** → Use `correctness` (invariants, weakest preconditions)
+- **Optimizing for performance** → Use `optimization` (profiling, cache behavior)
+- **Applying design patterns** → Use `design-patterns` (23 classic patterns)
+- **Writing Java/Kotlin** → Use `java` (Effective Java idioms)
+- **General code clarity** → Use `clarity` (readability, naming)
 
 Knuth is the **algorithmic documentation skill**—use it when code should read as literature and algorithms need precise explanation.
 

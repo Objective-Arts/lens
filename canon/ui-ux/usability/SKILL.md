@@ -195,6 +195,6 @@ The gap between system state and user understanding.
 ## Integration
 
 Combine with:
-- `/rams` - Philosophy behind why this matters
-- `/wroblewski` - Mobile-specific psychology (thumb zones)
-- `/buxton` - Input/interaction fundamentals
+- `/design` - Philosophy behind why this matters
+- `/mobile` - Mobile-specific psychology (thumb zones)
+- `/interaction` - Input/interaction fundamentals

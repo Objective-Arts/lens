@@ -1,8 +1,8 @@
 /**
  * Summary data types for D3 visualization.
  *
- * Following Linus: data structures first.
- * Following Cherny: precise types, discriminated unions.
+ * Following data-first: data structures first.
+ * Following typescript: precise types, discriminated unions.
  */
 
 /** Issue severity levels */

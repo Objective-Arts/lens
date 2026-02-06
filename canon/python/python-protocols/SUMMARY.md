@@ -1,4 +1,4 @@
-# /ramalho Summary
+# /python-protocols Summary
 
 > "Understanding special methods is the key to Pythonic code."
 

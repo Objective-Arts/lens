@@ -450,8 +450,8 @@ config.timeout;  // Type: 5000 (not number)
 | Type-level programming | Yes - conditionals, mapped types |
 | Reducing type annotations | Yes - leverage inference |
 | Complex function signatures | Yes - overloads, guards |
-| React component types | Partially - see abramov for React specifics |
-| Build configuration | No - see harris |
+| React component types | Partially - see react-state for React specifics |
+| Build configuration | No - see reactivity |
 
 ---
 

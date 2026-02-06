@@ -1,4 +1,4 @@
-# /meszaros Summary
+# /test-doubles Summary
 
 > "Tests as Documentation. Tests as Safety Net. Hard-to-test code is poorly designed."
 

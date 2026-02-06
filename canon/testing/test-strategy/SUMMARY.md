@@ -1,4 +1,4 @@
-# /fowler-test Summary
+# /test-strategy Summary
 
 > "Write tests at the lowest level that gives confidence. Unit tests for logic, integration tests for boundaries."
 

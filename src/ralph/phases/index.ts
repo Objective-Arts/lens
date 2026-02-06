@@ -1,7 +1,7 @@
 /**
  * Phase exports and factory.
  *
- * Following pike: simple exports, clear factory.
+ * Following simplicity: simple exports, clear factory.
  */
 
 export { Phase, PhaseContext, PhaseResult, PhaseStatus } from './types.js';

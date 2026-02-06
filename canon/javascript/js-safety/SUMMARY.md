@@ -1,4 +1,4 @@
-# /crockford Summary
+# /js-safety Summary
 
 > "JavaScript has more bad parts than good parts. Use only the good parts."
 

@@ -1,4 +1,4 @@
-# /harris Summary
+# /reactivity Summary
 
 > "The best runtime code is no runtime code."
 

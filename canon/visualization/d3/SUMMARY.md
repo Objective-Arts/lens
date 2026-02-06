@@ -1,4 +1,4 @@
-# /bostock Summary
+# /d3 Summary
 
 > "D3 embraces web standards rather than hiding them."
 

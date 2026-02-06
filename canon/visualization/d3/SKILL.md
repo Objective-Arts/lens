@@ -306,8 +306,8 @@ selection.transition()
 
 <related_skills>
 - **d3-expert** - Comprehensive D3 v7 patterns and API reference
-- **tufte-review** - Bostock's minimalism aligns with Tufte's data-ink principles
-- **temporal-choreography** - Animation patterns building on Bostock's transition philosophy
+- **charts-review** - D3's minimalism aligns with charts data-ink principles
+- **temporal-choreography** - Animation patterns building on D3's transition philosophy
 </related_skills>
 
 <success_criteria>

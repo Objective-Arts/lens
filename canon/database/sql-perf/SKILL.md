@@ -3,7 +3,7 @@ name: sql-perf
 description: Markus Winand's SQL performance patterns - indexing and query optimization
 ---
 
-# /winand — SQL Performance
+# /sql-perf — SQL Performance
 
 Channel Markus Winand: author of "SQL Performance Explained" and use-the-index-luke.com.
 

@@ -1,8 +1,8 @@
 /**
  * Qodana SARIF output parser.
  *
- * Following kernighan: parse carefully, validate inputs.
- * Following bloch: defensive programming, never trust external input.
+ * Following clarity: parse carefully, validate inputs.
+ * Following java: defensive programming, never trust external input.
  */
 
 import { QodanaResult, QodanaIssue } from '../types.js';

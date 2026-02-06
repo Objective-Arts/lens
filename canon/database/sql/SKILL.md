@@ -3,7 +3,7 @@ name: sql
 description: Joe Celko's SQL patterns - thinking in sets, not procedures
 ---
 
-# /celko — SQL Patterns
+# /sql — SQL Patterns
 
 Channel Joe Celko: SQL guru, author of "SQL for Smarties" and "SQL Programming Style."
 

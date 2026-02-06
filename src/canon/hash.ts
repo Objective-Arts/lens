@@ -51,14 +51,4 @@ export function hashSkillDirectory(skillPath: string): string {
   return crypto.createHash('sha256').update(combinedContent).digest('hex');
 }
 
-/**
- * Check if a skill directory has been modified from its installed hash
- */
-function isSkillModified(skillPath: string, originalHash: string): boolean {
-  if (!fs.existsSync(skillPath)) {
-    return true;
-  }
 
-  const currentHash = hashSkillDirectory(skillPath);
-  return currentHash !== originalHash;
-}

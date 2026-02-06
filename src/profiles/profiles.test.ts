@@ -119,20 +119,20 @@ describe('canon source directory', () => {
 describe('software-base profile skill existence', () => {
   // Using generic names (not tribute names)
   const baseBrainSkills = [
-    'clarity',      // kernighan
-    'pragmatism',   // thompson
-    'simplicity',   // pike
-    'composition',  // mcilroy
-    'distributed',  // bill-joy
-    'data-first',   // linus
-    'correctness',  // dijkstra
-    'algorithms',   // knuth
-    'abstraction',  // liskov
-    'optimization'  // carmack
+    'clarity',
+    'pragmatism',
+    'simplicity',
+    'composition',
+    'distributed',
+    'data-first',
+    'correctness',
+    'algorithms',
+    'abstraction',
+    'optimization'
   ];
 
   const designPatternSkills = [
-    'design-patterns'  // gang-of-four
+    'design-patterns'
   ];
 
   const securitySkills = [
@@ -141,19 +141,19 @@ describe('software-base profile skill existence', () => {
   ];
 
   const engineeringSkills = [
-    'failure',     // petroski
-    'safety',      // leveson
-    'resilience'   // taleb
+    'failure',
+    'safety',
+    'resilience'
   ];
 
   const documentationSkills = [
-    'docs'  // procida
+    'docs'
   ];
 
   const testingSkills = [
-    'legacy',         // feathers
-    'test-doubles',   // meszaros
-    'test-strategy'   // fowler-test
+    'legacy',
+    'test-doubles',
+    'test-strategy'
   ];
 
   // Helper to test skill existence without non-null assertions
@@ -206,10 +206,10 @@ describe('software-base profile skill existence', () => {
 describe('csharp profile skill existence', () => {
   // Using generic names (not tribute names)
   const csharpSkills = [
-    'csharp-depth',   // skeet
-    'async',          // cleary
-    'type-systems',   // hejlsberg
-    'java'            // bloch
+    'csharp-depth',
+    'async',
+    'type-systems',
+    'java'
   ];
 
   csharpSkills.forEach(skill => {
@@ -227,9 +227,9 @@ describe('csharp profile skill existence', () => {
 describe('javascript profile skill existence', () => {
   // Using generic names (not tribute names)
   const jsSkills = [
-    'typescript',   // cherny
-    'js-safety',    // crockford
-    'react-test'    // dodds
+    'typescript',
+    'js-safety',
+    'react-test'
   ];
 
   jsSkills.forEach(skill => {
@@ -244,7 +244,7 @@ describe('javascript profile skill existence', () => {
   });
 
   it('js-internals exists in canon', () => {
-    // Using generic name now (was kyle-simpson)
+    // Using generic name
     const skillPath = findSkillSourcePath('js-internals');
     if (skillPath) {
       expect(fs.existsSync(skillPath)).toBe(true);
@@ -254,17 +254,17 @@ describe('javascript profile skill existence', () => {
 
 describe('ui-ux profile skill existence', () => {
   const uiuxSkills = [
-    'frost',
-    'ive',
-    'norman',
-    'cooper',
-    'rams',
-    'wroblewski',
-    'buxton',
-    'curtis',
-    'duarte',
-    'kruzeniski',
-    'mall'
+    'atomic-design',
+    'aesthetics',
+    'usability',
+    'interaction-design',
+    'minimalism',
+    'mobile',
+    'interaction',
+    'process',
+    'motion',
+    'typography',
+    'design-systems'
   ];
 
   uiuxSkills.forEach(skill => {
@@ -281,10 +281,10 @@ describe('ui-ux profile skill existence', () => {
 
 describe('visualization profile skill existence', () => {
   const vizSkills = [
-    'tufte',
-    'bostock',
-    'few',
-    'knaflic'
+    'charts',
+    'd3',
+    'dashboards',
+    'data-story'
   ];
 
   vizSkills.forEach(skill => {
@@ -423,6 +423,63 @@ describe('applyComposableProfile - config deployment', () => {
     // Content should be unchanged (not overwritten)
     const content = fs.readFileSync(path.join(configDir, 'workflow-phases.yaml'), 'utf-8');
     expect(content).toBe('existing: true');
+  });
+});
+
+describe('path traversal protection', () => {
+  const testDir = path.join(tmpdir(), 'cc-traversal-test');
+
+  beforeEach(() => {
+    fs.mkdirSync(path.join(testDir, '.claude'), { recursive: true });
+  });
+
+  afterEach(() => {
+    fs.rmSync(testDir, { recursive: true, force: true });
+  });
+
+  it('rejects skill names with forward slash traversal', async () => {
+    const maliciousProfile: ComposableProfile = {
+      name: 'test-traversal',
+      composable: true,
+      skills: { canon: ['../../etc/passwd'] }
+    };
+
+    const result = await applyComposableProfile(maliciousProfile, testDir);
+    expect(result.errors.some(e => e.includes('path traversal'))).toBe(true);
+  });
+
+  it('rejects skill names with dot-dot traversal', async () => {
+    const maliciousProfile: ComposableProfile = {
+      name: 'test-dotdot',
+      composable: true,
+      skills: { canon: ['..'] }
+    };
+
+    const result = await applyComposableProfile(maliciousProfile, testDir);
+    expect(result.errors.some(e => e.includes('path traversal'))).toBe(true);
+  });
+
+  it('rejects skill names with backslash traversal', async () => {
+    const maliciousProfile: ComposableProfile = {
+      name: 'test-backslash',
+      composable: true,
+      skills: { canon: ['..\\..\\etc\\passwd'] }
+    };
+
+    const result = await applyComposableProfile(maliciousProfile, testDir);
+    expect(result.errors.some(e => e.includes('path traversal'))).toBe(true);
+  });
+
+  it('allows valid skill names with hyphens and underscores', async () => {
+    const goodProfile: ComposableProfile = {
+      name: 'test-valid',
+      composable: true,
+      skills: { canon: ['my-skill', 'my_skill_2'] }
+    };
+
+    const result = await applyComposableProfile(goodProfile, testDir);
+    // Should not have path traversal errors (may have "not found" errors, which is fine)
+    expect(result.errors.some(e => e.includes('path traversal'))).toBe(false);
   });
 });
 

@@ -2,7 +2,7 @@
  * Shared findings parser for review phases.
  *
  * Used by: independent-review, security-review, production-readiness
- * Following Kernighan: one function, one job, under 25 lines.
+ * Following clarity: one function, one job, under 25 lines.
  */
 
 /** Parsed finding from Claude/Gemini output */
