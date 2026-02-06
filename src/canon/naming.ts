@@ -8,7 +8,12 @@
 
 import * as fs from 'fs';
 import * as path from 'path';
+import { fileURLToPath } from 'node:url';
 import { getCanonSourcePath } from './index.js';
+
+/** Project root (works from both src/ and dist/) */
+const __dirname = path.dirname(fileURLToPath(import.meta.url));
+const NAMING_PROJECT_ROOT = path.resolve(__dirname, '..', '..');
 
 interface SkillNaming {
   tribute: string;
@@ -32,15 +37,22 @@ function loadNamingConfig(): NamingConfig | null {
   if (namingConfig !== null) return namingConfig;
 
   const canonPath = getCanonSourcePath();
-  const namingPath = path.join(canonPath, 'naming.json');
+  const candidates = [
+    path.join(canonPath, 'naming.json'),
+    path.join(NAMING_PROJECT_ROOT, 'canon', 'naming.json')
+  ];
 
-  try {
-    namingConfig = JSON.parse(fs.readFileSync(namingPath, 'utf-8')) as NamingConfig;
-    buildLookupMaps();
-    return namingConfig;
-  } catch {
-    return null;
+  for (const namingPath of candidates) {
+    try {
+      namingConfig = JSON.parse(fs.readFileSync(namingPath, 'utf-8')) as NamingConfig;
+      buildLookupMaps();
+      return namingConfig;
+    } catch {
+      // Try next candidate
+    }
   }
+
+  return null;
 }
 
 /**
@@ -83,9 +95,9 @@ export function resolveSkillName(name: string): string {
 }
 
 /**
- * Get the tribute name for a generic skill name (for display when debugging)
+ * Get the tribute name for a generic skill name.
  */
-function getTributeName(genericName: string): string | null {
+export function getTributeName(genericName: string): string | null {
   loadNamingConfig();
   if (!genericToTribute) return null;
   return genericToTribute.get(genericName) ?? null;

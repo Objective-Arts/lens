@@ -18,19 +18,18 @@ import { copyDirectorySync } from '../utils/fs.js';
 import { getGitCommit, getGitRemote } from '../utils/git.js';
 import { hashDirectoryContents } from '../utils/hash.js';
 
-// Default workflow skills source (relative to claude-optimal)
+// Default workflow skills source (in-repo, relative to compiled output)
+// From dist/workflow/ or src/workflow/, go up 2 levels to project root
 const DEFAULT_WORKFLOW_SOURCE = path.resolve(
   path.dirname(new URL(import.meta.url).pathname),
-  '../../../workflow-skills'
+  '../../workflow-skills'
 );
 
 // Alternative paths to check (order matters - first match wins)
 const WORKFLOW_PATHS = [
-  // Explicit claude-optimal path (primary source of truth)
-  path.resolve(process.env.HOME || '', 'local-tech-projects/claude-optimal/workflow-skills'),
   // Environment variable override
   process.env.CC_WORKFLOW_SKILLS_PATH,
-  // Relative to installed package (works in dev)
+  // Relative to project root (works in dev and dist)
   DEFAULT_WORKFLOW_SOURCE,
   // User's home directory alternatives
   path.resolve(process.env.HOME || '', '.claude/workflow-skills'),
@@ -81,19 +80,25 @@ export function listWorkflowSkills(): WorkflowSkillInfo[] {
   const sourcePath = getWorkflowSourcePath();
   if (!fs.existsSync(sourcePath)) return [];
 
-  const entries = fs.readdirSync(sourcePath, { withFileTypes: true });
   const skills: WorkflowSkillInfo[] = [];
 
-  for (const entry of entries) {
-    if (!entry.isDirectory() || entry.name.startsWith('.') || entry.name === 'node_modules') continue;
+  const scanDir = (dirPath: string): void => {
+    const entries = fs.readdirSync(dirPath, { withFileTypes: true });
+    for (const entry of entries) {
+      if (!entry.isDirectory() || entry.name.startsWith('.') || entry.name === 'node_modules') continue;
 
-    const skillPath = path.join(sourcePath, entry.name);
-    const result = readSkillDescription(path.join(skillPath, 'SKILL.md'));
-    if (result) {
-      skills.push({ name: entry.name, path: skillPath, description: result.description });
+      const skillPath = path.join(dirPath, entry.name);
+      const result = readSkillDescription(path.join(skillPath, 'SKILL.md'));
+      if (result) {
+        skills.push({ name: entry.name, path: skillPath, description: result.description });
+      } else {
+        // Recurse into subdirectories (e.g., workflow/, utils/, ralph-loop/)
+        scanDir(skillPath);
+      }
     }
-  }
+  };
 
+  scanDir(sourcePath);
   return skills;
 }
 
@@ -145,13 +150,20 @@ function isValidSkillName(name: string): boolean {
   return !name.includes('/') && !name.includes('\\') && !name.includes('..');
 }
 
+/** Find a workflow skill's source path by name (searches nested subdirectories) */
+function findWorkflowSkillPath(skillName: string): string | null {
+  const skills = listWorkflowSkills();
+  const found = skills.find(s => s.name === skillName);
+  return found?.path ?? null;
+}
+
 /** Validate skill source exists and has SKILL.md */
 function validateSkillSource(
   skillName: string,
-  sourcePath: string
+  _sourcePath: string
 ): { valid: true; skillSourcePath: string } | { valid: false; message: string } {
-  const skillSourcePath = path.join(sourcePath, skillName);
-  if (!fs.existsSync(skillSourcePath)) {
+  const skillSourcePath = findWorkflowSkillPath(skillName);
+  if (!skillSourcePath) {
     return { valid: false, message: `Workflow skill not found: ${skillName}` };
   }
   if (!fs.existsSync(path.join(skillSourcePath, 'SKILL.md'))) {

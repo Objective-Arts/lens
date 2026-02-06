@@ -5,6 +5,8 @@
 
 import { Command } from 'commander';
 import chalk from 'chalk';
+import * as fs from 'fs';
+import * as path from 'path';
 import {
   listProfiles,
   getProfile,
@@ -36,6 +38,13 @@ export function registerProfileCommands(program: Command): void {
     .option('-p, --project <path>', 'Project path')
     .option('--dry-run', 'Show what would be done')
     .action(handleApply);
+
+  profileCmd
+    .command('clean [projectPath]')
+    .description('Remove all lens-managed files from a project')
+    .option('-p, --project <path>', 'Project path')
+    .option('--dry-run', 'Show what would be removed')
+    .action(handleClean);
 }
 
 function handleList(): void {
@@ -123,6 +132,80 @@ async function handleApply(
   console.log(result.errors.length === 0
     ? chalk.green('\n✓ Profile applied successfully!')
     : chalk.yellow('\n⚠ Profile applied with some errors.'));
+}
+
+function handleClean(
+  projectPath: string | undefined,
+  options: { project?: string; dryRun?: boolean }
+): void {
+  const targetPath = projectPath || options.project || process.cwd();
+  const claudeDir = path.join(targetPath, '.claude');
+
+  if (!fs.existsSync(claudeDir)) {
+    console.log(chalk.yellow('No .claude directory found. Nothing to clean.'));
+    return;
+  }
+
+  const targets = [
+    { path: path.join(claudeDir, 'skills'), label: '.claude/skills/', type: 'dir' as const },
+    { path: path.join(claudeDir, 'canon-manifest.json'), label: '.claude/canon-manifest.json', type: 'file' as const },
+    { path: path.join(claudeDir, 'ralph-config.yaml'), label: '.claude/ralph-config.yaml', type: 'file' as const },
+    { path: path.join(claudeDir, 'config'), label: '.claude/config/', type: 'dir' as const },
+    { path: path.join(targetPath, 'canon'), label: 'canon (symlink)', type: 'symlink' as const },
+    { path: path.join(targetPath, 'workflow-skills'), label: 'workflow-skills (symlink)', type: 'symlink' as const },
+  ];
+
+  const found = targets.filter(t => fs.existsSync(t.path));
+
+  if (found.length === 0) {
+    console.log(chalk.yellow('No lens-managed files found. Nothing to clean.'));
+    return;
+  }
+
+  if (options.dryRun) {
+    console.log(chalk.bold('\nDRY RUN — would remove:\n'));
+    for (const t of found) {
+      if (t.type === 'dir') {
+        const count = fs.readdirSync(t.path).length;
+        console.log(`  ${chalk.red('×')} ${t.label} (${count} items)`);
+      } else {
+        console.log(`  ${chalk.red('×')} ${t.label}`);
+      }
+    }
+    console.log(chalk.gray('\nRun without --dry-run to remove.'));
+    return;
+  }
+
+  console.log(chalk.blue(`Cleaning lens files from ${targetPath}...\n`));
+  let removed = 0;
+
+  for (const t of found) {
+    try {
+      if (t.type === 'symlink') {
+        const stat = fs.lstatSync(t.path);
+        if (stat.isSymbolicLink()) {
+          fs.unlinkSync(t.path);
+          console.log(`  ${chalk.red('×')} ${t.label}`);
+          removed++;
+        }
+      } else if (t.type === 'dir') {
+        const count = fs.readdirSync(t.path).length;
+        fs.rmSync(t.path, { recursive: true });
+        console.log(`  ${chalk.red('×')} ${t.label} (${count} items)`);
+        removed++;
+      } else {
+        fs.unlinkSync(t.path);
+        console.log(`  ${chalk.red('×')} ${t.label}`);
+        removed++;
+      }
+    } catch (err) {
+      console.log(chalk.red(`  Failed to remove ${t.label}: ${err instanceof Error ? err.message : err}`));
+    }
+  }
+
+  console.log(removed > 0
+    ? chalk.green(`\n✓ Cleaned ${removed} items. Project is ready for a fresh apply.`)
+    : chalk.yellow('\nNothing was removed.'));
 }
 
 // Helpers

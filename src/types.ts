@@ -70,12 +70,12 @@ export type SkillCategory = 'security' | 'tech' | 'canon' | 'global';
 export interface SkillLibraryPaths {
   security: string;  // ~/.claude/skill-library/security/
   tech: string;      // ~/.claude/skill-library/tech/
-  canon: string;     // ~/local-tech-projects/canon-skills/
+  canon: string;     // ~/local-tech-projects/lens/canon/
   global: string;    // ~/.claude/skills/
 }
 
 /**
- * Composable profile - aligned with claude-optimal Base + Domain canon structure
+ * Composable profile - aligned with Base + Domain canon structure
  *
  * Canon is always alive - the lens through which all work is done.
  * Quality is generative (built in), not corrective (fixed after).

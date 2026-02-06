@@ -109,18 +109,17 @@ describe('getSkillLibraryPaths', () => {
 // ============================================================================
 
 describe('canon source directory', () => {
-  it('points to claude-optimal/canon', () => {
+  it('points to a canon directory', () => {
     const canonPath = getCanonSourcePath();
-    expect(canonPath).toContain('claude-optimal/canon');
+    expect(canonPath).toContain('canon');
     expect(fs.existsSync(canonPath)).toBe(true);
   });
 });
 
 describe('software-base profile skill existence', () => {
-  // Using generic names (not tribute names)
+  // Using generic names
   const baseBrainSkills = [
     'clarity',
-    'pragmatism',
     'simplicity',
     'composition',
     'distributed',
@@ -128,7 +127,8 @@ describe('software-base profile skill existence', () => {
     'correctness',
     'algorithms',
     'abstraction',
-    'optimization'
+    'optimization',
+    'pragmatism'
   ];
 
   const designPatternSkills = [
@@ -137,17 +137,24 @@ describe('software-base profile skill existence', () => {
 
   const securitySkills = [
     'security-mindset',
-    'owasp'
+    'owasp',
+    'threat-model',
+    'appsec',
+    'web-security'
   ];
 
   const engineeringSkills = [
     'failure',
     'safety',
-    'resilience'
+    'resilience',
+    'style'
   ];
 
   const documentationSkills = [
-    'docs'
+    'docs',
+    'prose',
+    'brevity',
+    'editing'
   ];
 
   const testingSkills = [
@@ -253,18 +260,19 @@ describe('javascript profile skill existence', () => {
 });
 
 describe('ui-ux profile skill existence', () => {
+  // UI/UX skills in canon
   const uiuxSkills = [
-    'atomic-design',
-    'aesthetics',
     'usability',
-    'interaction-design',
-    'minimalism',
     'mobile',
     'interaction',
-    'process',
     'motion',
     'typography',
-    'design-systems'
+    'components',
+    'visual',
+    'design',
+    'tokens',
+    'personas',
+    'handoff'
   ];
 
   uiuxSkills.forEach(skill => {
@@ -316,17 +324,8 @@ describe('all profiles have valid skill references', () => {
           skills.forEach((skill: string) => {
             it(`skill "${skill}" (${category}) can be found`, () => {
               const skillPath = findSkillSourcePath(skill);
-              // If not in canon, check skill library paths
-              if (!skillPath) {
-                const libPaths = getSkillLibraryPaths();
-                const categoryPath = libPaths[category as keyof typeof libPaths];
-                if (categoryPath) {
-                  const libPath = path.join(categoryPath, skill);
-                  expect(
-                    fs.existsSync(libPath) || skillPath !== null
-                  ).toBe(true);
-                }
-              } else {
+              expect(skillPath).not.toBeNull();
+              if (skillPath) {
                 expect(fs.existsSync(skillPath)).toBe(true);
               }
             });

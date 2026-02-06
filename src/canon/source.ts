@@ -8,14 +8,12 @@ import * as fs from 'fs';
 import * as path from 'path';
 import { homedir } from 'os';
 import type { CanonListItem } from './types.js';
-import { resolveSkillName } from './naming.js';
+import { resolveSkillName, getTributeName } from './naming.js';
 import { CANON_SUBDIRS, scanDirForSkills } from './helpers.js';
 import { getGitCommit, getGitRemote } from './manifest.js';
 
-/** Default canon source paths */
-const DEFAULT_CANON_PATH = path.join(homedir(), 'local-tech-projects', 'claude-optimal', 'canon');
-const SECURITY_SKILL_PATH = path.join(homedir(), '.claude', 'skill-library', 'security');
-const TECH_SKILL_PATH = path.join(homedir(), '.claude', 'skill-library', 'tech');
+/** Default canon source path */
+const DEFAULT_CANON_PATH = path.join(homedir(), 'local-tech-projects', 'lens', 'canon');
 
 /**
  * Get the configured canon source path.
@@ -39,9 +37,6 @@ export function listCanonSkills(): CanonListItem[] {
     scanDirForSkills(searchPath, subdir, skillsByName);
   }
 
-  // Fallback: security skills from skill-library
-  scanDirForSkills(SECURITY_SKILL_PATH, 'security', skillsByName);
-
   return Array.from(skillsByName.values()).sort((a, b) => a.name.localeCompare(b.name));
 }
 
@@ -49,28 +44,23 @@ export function listCanonSkills(): CanonListItem[] {
  * Find the source path for a skill by name.
  */
 export function findSkillSourcePath(skillName: string): string | null {
-  // Resolve tribute names to generic names when flag is set
+  // Resolve tribute names to generic names
   const resolvedName = resolveSkillName(skillName);
+  // Also get the tribute directory name for generic→tribute lookups
+  const tributeName = getTributeName(resolvedName);
   const canonPath = getCanonSourcePath();
 
-  for (const subdir of CANON_SUBDIRS) {
-    const searchPath = subdir ? path.join(canonPath, subdir, resolvedName) : path.join(canonPath, resolvedName);
+  // Try both the resolved (generic) name and tribute directory name
+  const namesToTry = tributeName ? [resolvedName, tributeName] : [resolvedName];
 
-    if (fs.existsSync(searchPath) && fs.existsSync(path.join(searchPath, 'SKILL.md'))) {
-      return searchPath;
+  for (const name of namesToTry) {
+    for (const subdir of CANON_SUBDIRS) {
+      const searchPath = subdir ? path.join(canonPath, subdir, name) : path.join(canonPath, name);
+
+      if (fs.existsSync(searchPath) && fs.existsSync(path.join(searchPath, 'SKILL.md'))) {
+        return searchPath;
+      }
     }
-  }
-
-  // Check security skills
-  const securityPath = path.join(SECURITY_SKILL_PATH, resolvedName);
-  if (fs.existsSync(securityPath) && fs.existsSync(path.join(securityPath, 'SKILL.md'))) {
-    return securityPath;
-  }
-
-  // Check tech skills
-  const techPath = path.join(TECH_SKILL_PATH, resolvedName);
-  if (fs.existsSync(techPath) && fs.existsSync(path.join(techPath, 'SKILL.md'))) {
-    return techPath;
   }
 
   return null;

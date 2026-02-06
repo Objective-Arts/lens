@@ -15,7 +15,7 @@ export { copyDirectorySync as copyDirectoryRecursive } from '../utils/fs.js';
 
 /** Subdirectories to search in canon-skills */
 export const CANON_SUBDIRS = [
-  '', 'javascript', 'go', 'java', 'python', 'angular', 'testing',
+  '', 'javascript', 'typescript', 'go', 'java', 'python', 'angular', 'testing',
   'visualization', 'business', 'ui-ux', 'csharp', 'react', 'security',
   'engineering', 'writing', 'patterns', 'database'
 ];
