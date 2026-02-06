@@ -1,6 +1,6 @@
 ---
 name: phase-loop
-description: Run 9-phase quality pipeline on any target. Supports rollback.
+description: Run 11-phase quality pipeline on any target. Supports rollback.
 ---
 
 # /phase-loop [path] [--rollback] [--dry-run]
@@ -32,7 +32,7 @@ git stash push -m "phase-loop:$(basename $TARGET):$(date +%s)"
 echo "Rollback point created. Use '/phase-loop --rollback' to restore."
 ```
 
-## The 9 Phases
+## The 11 Phases
 
 | # | Skill | Purpose |
 |---|-------|---------|
@@ -45,6 +45,8 @@ echo "Rollback point created. Use '/phase-loop --rollback' to restore."
 | 7 | qodana-fix | Static analysis, fix ALL issues |
 | 8 | adversarial-security-review | Security audit, fix vulnerabilities |
 | 9 | write-tests-run | Write/update tests, all must pass |
+| 10 | ai-smell-fix | Remove AI-generated code patterns |
+| 11 | write-tests-run | Re-run tests after ai-smell cleanup |
 
 **Skipped:** generate-docs (run separately if needed)
 
@@ -60,7 +62,7 @@ git stash push -m "phase-loop:$TARGET:$(date +%s)"
 
 for each phase in [create-plan, structure-first, implement-plan, refactor-check-fix,
                    dedupe-fix, gemini-fix, qodana-fix, adversarial-security-review,
-                   write-tests-run]:
+                   write-tests-run, ai-smell-fix, write-tests-run]:
     run_phase(target_path)
     if phase_has_issues:
         fix_issues()
@@ -85,6 +87,8 @@ Each phase must pass before moving to the next:
 | qodana-fix | 0 CRITICAL/HIGH issues |
 | adversarial-security-review | No vulnerabilities found |
 | write-tests-run | All tests pass |
+| ai-smell-fix | No AI-generated patterns remain |
+| write-tests-run | All tests still pass after cleanup |
 
 ## Rollback
 
@@ -115,6 +119,8 @@ Phase Loop: src/components/Button.tsx
   7. qodana-fix → 1 issue fixed
   8. adversarial-security-review → No issues
   9. write-tests-run → 4 tests, all pass
+  10. ai-smell-fix → 3 patterns cleaned
+  11. write-tests-run → 4 tests, all pass
   ✓ Complete
 
 Rollback available: /phase-loop --rollback
@@ -132,7 +138,7 @@ Rollback available: /phase-loop --rollback
 | Feature | phase-loop | ralph-loop |
 |---------|------------|------------|
 | Target | File, class, or directory | Full PRD |
-| Phases | 9 (skips docs) | 10 (full) |
+| Phases | 11 (skips docs) | 10 (full) |
 | Rollback | Yes (git stash) | No |
 | Loop behavior | One pass per target | Until PRD complete |
 
