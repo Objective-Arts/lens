@@ -14,8 +14,6 @@ export function printDependencies(result: ScanResult): void {
   console.log(chalk.gray('═'.repeat(50)));
 
   for (const claudeMd of result.claudeMds) {
-    if (!claudeMd) continue;
-
     console.log(`\n${chalk.cyan(claudeMd.path)}`);
 
     if (claudeMd.autoInvokes.length > 0) {

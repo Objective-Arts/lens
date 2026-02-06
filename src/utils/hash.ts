@@ -1,18 +1,8 @@
-/**
- * Shared hashing utilities.
- *
- * Directory content hashing for change detection.
- */
-
 import * as fs from 'fs';
 import * as path from 'path';
 import { createHash } from 'crypto';
 
-/**
- * Hash a directory's contents including structure.
- * Includes directory markers and file contents in the hash.
- * Returns truncated 16-char hash.
- */
+/** Includes directory markers and file contents. Returns truncated 16-char hash. */
 export function hashDirectoryContents(dirPath: string): string {
   const hash = createHash('sha256');
 

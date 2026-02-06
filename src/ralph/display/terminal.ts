@@ -11,8 +11,6 @@ import chalk from 'chalk';
 import { SkillDetection, StageStatus } from '../types.js';
 import { parseAppliedSection } from './applied-parser.js';
 
-// Re-export for backward compatibility
-
 /** Stage icons - matches PHASE_ORDER in phases/index.ts */
 const STAGE_ICONS: Record<string, string> = {
   'plan': '📝',

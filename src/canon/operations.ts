@@ -1,9 +1,3 @@
-/**
- * Canon skill operations.
- *
- * Copy, upgrade, diff, and status checking for skills.
- */
-
 import * as fs from 'fs';
 import * as path from 'path';
 import { hashSkillDirectory } from './hash.js';
@@ -11,111 +5,18 @@ import {
   readManifest,
   writeManifest,
   createManifest,
-  updateSkillInManifest,
-  getGitCommit,
-  getGitRemote
+  updateSkillInManifest
 } from './manifest.js';
+import { getGitCommit, getGitRemote } from '../utils/git.js';
 import type { SkillStatusInfo, CanonUpgradeResult } from './types.js';
 import {
   determineSkillStatus,
   generateLineDiff,
-  copyDirectoryRecursive,
   getInstalledSkills
 } from './helpers.js';
+import { copyDirectorySync } from '../utils/fs.js';
 import { getCanonSourcePath, findSkillSourcePath } from './source.js';
 
-/** Validate that skill can be copied */
-function validateSkillCopy(
-  skillName: string,
-  targetPath: string,
-  force: boolean
-): { valid: true; sourcePath: string } | { valid: false; message: string } {
-  const sourcePath = findSkillSourcePath(skillName);
-  if (!sourcePath) {
-    return { valid: false, message: `Skill not found in source: ${skillName}` };
-  }
-  if (fs.existsSync(targetPath) && !force) {
-    return { valid: false, message: `Skill already exists: ${skillName}. Use --force to overwrite.` };
-  }
-  return { valid: true, sourcePath };
-}
-
-/** Prepare target directory and copy skill files */
-function performSkillCopy(sourcePath: string, targetPath: string): void {
-  const skillsDir = path.dirname(targetPath);
-  if (!fs.existsSync(skillsDir)) {
-    fs.mkdirSync(skillsDir, { recursive: true });
-  }
-  if (fs.existsSync(targetPath)) {
-    fs.rmSync(targetPath, { recursive: true });
-  }
-  copyDirectoryRecursive(sourcePath, targetPath);
-}
-
-/** Update manifest after copying a skill */
-function updateManifestAfterCopy(
-  projectPath: string,
-  skillName: string,
-  targetPath: string,
-  sourcePath: string
-): void {
-  const canonPath = getCanonSourcePath();
-  let manifest = readManifest(projectPath);
-
-  if (!manifest) {
-    manifest = createManifest({
-      type: 'local',
-      path: canonPath,
-      gitRemote: getGitRemote(canonPath)
-    });
-  }
-
-  updateSkillInManifest(manifest, skillName, {
-    installedCommit: getGitCommit(canonPath),
-    installedAt: new Date().toISOString(),
-    sourceFile: path.relative(canonPath, sourcePath) || skillName,
-    hash: hashSkillDirectory(targetPath),
-    modified: false
-  });
-
-  writeManifest(projectPath, manifest);
-}
-
-/** Categorize a skill for upgrade decision */
-function categorizeSkillForUpgrade(
-  skillName: string,
-  statuses: SkillStatusInfo[],
-  force: boolean
-): 'upgrade' | { skip: string } | { error: string } {
-  const status = statuses.find(s => s.name === skillName);
-
-  if (!status) return { error: `${skillName}: not installed` };
-  if (status.status === 'current') return { skip: `${skillName}: already current` };
-  if (status.status === 'modified' && !force) {
-    return { skip: `${skillName}: locally modified (use --force to overwrite)` };
-  }
-  if (status.status === 'missing') return { error: `${skillName}: source not found` };
-  return 'upgrade';
-}
-
-/** Validate paths for diff operation */
-function validateDiffPaths(
-  skillName: string,
-  installedPath: string
-): { valid: true; sourcePath: string } | { valid: false; message: string } {
-  if (!fs.existsSync(installedPath)) {
-    return { valid: false, message: `Skill not installed: ${skillName}` };
-  }
-  const sourcePath = findSkillSourcePath(skillName);
-  if (!sourcePath) {
-    return { valid: false, message: `Source not found for: ${skillName}` };
-  }
-  return { valid: true, sourcePath };
-}
-
-/**
- * Check the status of all installed skills compared to source.
- */
 export function checkSkillStatus(projectPath: string): SkillStatusInfo[] {
   const manifest = readManifest(projectPath);
   const installedSkills = getInstalledSkills(projectPath);
@@ -147,9 +48,6 @@ function isValidSkillName(name: string): boolean {
   return !name.includes('/') && !name.includes('\\') && !name.includes('..');
 }
 
-/**
- * Copy a skill from source to project.
- */
 export function copySkill(
   skillName: string,
   projectPath: string,
@@ -158,62 +56,107 @@ export function copySkill(
   if (!isValidSkillName(skillName)) {
     return { success: false, message: `Invalid skill name (path traversal): ${skillName}` };
   }
-  const targetPath = path.join(projectPath, '.claude', 'skills', skillName);
-  const validation = validateSkillCopy(skillName, targetPath, options.force ?? false);
 
-  if (!validation.valid) {
-    return { success: false, message: validation.message };
+  const targetPath = path.join(projectPath, '.claude', 'skills', skillName);
+  const force = options.force ?? false;
+
+  // Validate skill can be copied
+  const sourcePath = findSkillSourcePath(skillName);
+  if (!sourcePath) {
+    return { success: false, message: `Skill not found in source: ${skillName}` };
+  }
+  if (fs.existsSync(targetPath) && !force) {
+    return { success: false, message: `Skill already exists: ${skillName}. Use --force to overwrite.` };
   }
 
-  performSkillCopy(validation.sourcePath, targetPath);
-  updateManifestAfterCopy(projectPath, skillName, targetPath, validation.sourcePath);
+  // Prepare target directory and copy skill files
+  const skillsDir = path.dirname(targetPath);
+  if (!fs.existsSync(skillsDir)) {
+    fs.mkdirSync(skillsDir, { recursive: true });
+  }
+  if (fs.existsSync(targetPath)) {
+    fs.rmSync(targetPath, { recursive: true });
+  }
+  copyDirectorySync(sourcePath, targetPath);
+
+  // Update manifest after copy
+  const canonPath = getCanonSourcePath();
+  let manifest = readManifest(projectPath);
+  if (!manifest) {
+    manifest = createManifest({
+      type: 'local',
+      path: canonPath,
+      gitRemote: getGitRemote(canonPath)
+    });
+  }
+  updateSkillInManifest(manifest, skillName, {
+    installedCommit: getGitCommit(canonPath),
+    installedAt: new Date().toISOString(),
+    sourceFile: path.relative(canonPath, sourcePath) || skillName,
+    hash: hashSkillDirectory(targetPath),
+    modified: false
+  });
+  writeManifest(projectPath, manifest);
 
   return { success: true, message: `Copied skill: ${skillName}` };
 }
 
-/**
- * Upgrade outdated skills from source.
- */
 export function upgradeSkills(
   projectPath: string,
   options: { force?: boolean; skills?: string[] } = {}
 ): CanonUpgradeResult {
   const result: CanonUpgradeResult = { upgraded: [], skipped: [], errors: [] };
   const statuses = checkSkillStatus(projectPath);
+  const force = options.force ?? false;
   const skillsToUpgrade = options.skills || statuses.map(s => s.name);
 
   for (const skillName of skillsToUpgrade) {
-    const category = categorizeSkillForUpgrade(skillName, statuses, options.force ?? false);
-
-    if (category === 'upgrade') {
-      const copyResult = copySkill(skillName, projectPath, { force: true });
-      copyResult.success
-        ? result.upgraded.push(skillName)
-        : result.errors.push(`${skillName}: ${copyResult.message}`);
-    } else if ('skip' in category) {
-      result.skipped.push(category.skip);
-    } else {
-      result.errors.push(category.error);
+    // Categorize skill for upgrade decision
+    const status = statuses.find(s => s.name === skillName);
+    if (!status) {
+      result.errors.push(`${skillName}: not installed`);
+      continue;
     }
+    if (status.status === 'current') {
+      result.skipped.push(`${skillName}: already current`);
+      continue;
+    }
+    if (status.status === 'modified' && !force) {
+      result.skipped.push(`${skillName}: locally modified (use --force to overwrite)`);
+      continue;
+    }
+    if (status.status === 'missing') {
+      result.errors.push(`${skillName}: source not found`);
+      continue;
+    }
+
+    const copyResult = copySkill(skillName, projectPath, { force: true });
+    copyResult.success
+      ? result.upgraded.push(skillName)
+      : result.errors.push(`${skillName}: ${copyResult.message}`);
   }
 
   return result;
 }
 
-/**
- * Show diff between installed and source skill.
- */
 export function diffSkill(skillName: string, projectPath: string): string | null {
   if (!isValidSkillName(skillName)) {
     return `Invalid skill name (path traversal): ${skillName}`;
   }
-  const installedPath = path.join(projectPath, '.claude', 'skills', skillName);
-  const validation = validateDiffPaths(skillName, installedPath);
 
-  if (!validation.valid) return validation.message;
+  const installedPath = path.join(projectPath, '.claude', 'skills', skillName);
+
+  // Validate paths
+  if (!fs.existsSync(installedPath)) {
+    return `Skill not installed: ${skillName}`;
+  }
+  const sourcePath = findSkillSourcePath(skillName);
+  if (!sourcePath) {
+    return `Source not found for: ${skillName}`;
+  }
 
   const installedMd = path.join(installedPath, 'SKILL.md');
-  const sourceMd = path.join(validation.sourcePath, 'SKILL.md');
+  const sourceMd = path.join(sourcePath, 'SKILL.md');
 
   let installedContent: string;
   let sourceContent: string;

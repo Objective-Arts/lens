@@ -8,6 +8,7 @@ import type {
   WorkflowSkillStatus
 } from './types.js';
 import { getGitCommit, getGitRemote } from '../utils/git.js';
+import { copyDirectorySync } from '../utils/fs.js';
 import { hashDirectoryContents } from '../utils/hash.js';
 
 // Default workflow skills source (in-repo, relative to compiled output)
@@ -210,7 +211,7 @@ export function installWorkflowSkill(
       fs.rmSync(targetPath, { recursive: true });
     }
   }
-  fs.symlinkSync(validation.skillSourcePath, targetPath);
+  copyDirectorySync(validation.skillSourcePath, targetPath);
   recordSkillInstall(projectPath, skillName, targetPath);
 
   return { success: true, message: `Installed workflow skill: ${skillName}` };

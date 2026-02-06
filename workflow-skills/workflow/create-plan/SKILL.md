@@ -76,6 +76,7 @@ These contain patterns that later quality phases (gemini-fix, qodana-fix, advers
 - **DESIGN** entries → plan architecture that avoids these structural mistakes
 - **CODE_QUALITY** entries → plan naming/structure that won't trigger these findings
 - **DUPLICATION** entries → check for these duplicate patterns in your plan
+- **AI_SMELL** entries → plan at the right abstraction level: no single-use wrappers, no speculative config/types, no over-decomposition
 
 If a file doesn't exist, skip it and continue.
 

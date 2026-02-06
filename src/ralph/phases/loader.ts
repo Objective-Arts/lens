@@ -1,11 +1,3 @@
-/**
- * Phase and keyword configuration loader.
- *
- * Pragmatic: get it working first, then optimize.
- * Clarity: explicit error handling, clear code.
- * Simplicity: small functions, single responsibility.
- */
-
 import * as fs from 'fs';
 import * as path from 'path';
 import * as yaml from 'yaml';
@@ -193,16 +185,10 @@ export function getRalphSequence(projectPath: string): readonly PhaseName[] {
 // KEYWORD RULES LOADING
 // =============================================================================
 
-/**
- * Escape special regex characters in a pattern string.
- */
 function escapeRegexPattern(pattern: string): string {
   return pattern.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
 }
 
-/**
- * Build regex from pattern strings.
- */
 function buildRegexFromPatterns(patterns: readonly string[]): RegExp {
   const escaped = patterns.map(p => {
     const esc = escapeRegexPattern(p);

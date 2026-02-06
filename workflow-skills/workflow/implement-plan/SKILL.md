@@ -103,6 +103,7 @@ Apply these lessons as you write code:
 - **LOGIC** entries → avoid these exact bug patterns (e.g., never pair `existsSync`+`readFileSync` — use try-catch; never use `execSync` with template literals — use `execFileSync` with args array; validate names before `path.join`; escape `</` in embedded JSON)
 - **CODE_QUALITY** entries → avoid dead exports, unused imports, redundant verification reads
 - **DESIGN** entries → respect size limits, avoid unbounded lists from user-controlled input
+- **AI_SMELL** entries → do NOT generate these antipatterns: no single-use helpers, no JSDoc restating function names, no null checks on typed params, no speculative types/config, no empty catch blocks
 
 This is the most impactful phase for preventing recurring issues. Check each LOGIC entry against your implementation.
 

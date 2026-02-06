@@ -31,12 +31,6 @@ export function generateSummaryHtml(summary: RunSummary, outputDir: string): str
     throw new Error(`Summary template not found: ${templatePath}`);
   }
 
-  // Verify template has closing body tag
-  if (!template.includes('</body>')) {
-    console.error('Summary template missing </body> tag');
-    throw new Error('Summary template missing </body> tag');
-  }
-
   // Embed data as script tag - MUST be before the render script runs
   // Escape </ sequences to prevent breaking out of the script tag (XSS prevention)
   const safeJson = JSON.stringify(summary, null, 2).replace(/<\//g, '<\\/');

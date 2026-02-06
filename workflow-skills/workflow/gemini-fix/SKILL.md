@@ -171,7 +171,7 @@ Read this file first. If the **general pattern** is already listed, skip. If it'
 - {General description of the pattern, not tied to specific files} → {how to avoid it}
 ```
 
-**Categories:** LOGIC, DESIGN, CODE_QUALITY, DUPLICATION
+**Categories:** LOGIC, DESIGN, CODE_QUALITY, DUPLICATION, AI_SMELL
 
 **Also record false positive patterns** that Gemini consistently flags incorrectly:
 

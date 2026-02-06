@@ -1,9 +1,3 @@
-/**
- * Audit report display
- *
- * Decomposed from 141-line function into single-responsibility helpers (simplicity)
- */
-
 import * as fs from 'fs';
 import chalk from 'chalk';
 import type { ScanResult } from '../../types.js';
@@ -11,7 +5,6 @@ import type { ScanResult } from '../../types.js';
 // Skill category definitions
 const BASE_CANON = ['clarity', 'owasp', 'react-test'];
 const SECURITY_SKILLS = ['security-mindset', 'owasp', 'threat-model', 'web-security'];
-const WORKFLOW_SKILLS: string[] = []; // Workflow patterns removed - use 8 phases instead
 const CANON_SKILLS = [
   'clarity', 'java', 'typescript', 'design-patterns', 'abstraction', 'testability', 'angular',
   'angular-perf', 'rxjs', 'js-internals', 'react-test', 'owasp', 'security-mindset',
@@ -72,18 +65,6 @@ function printQualityFlags(claudeMdContent: string): void {
 }
 
 /**
- * Print workflow skill checks
- */
-function printWorkflowChecks(projectSkills: string[]): void {
-  const hasWorkflowSkills = WORKFLOW_SKILLS.filter(s => projectSkills.includes(s));
-  if (hasWorkflowSkills.length >= 3) {
-    console.log(chalk.green(`  ✓ Tech workflow skills present (${hasWorkflowSkills.length}/5)`));
-  } else {
-    console.log(chalk.yellow(`  ○ Tech workflow skills sparse (${hasWorkflowSkills.length}/5)`));
-  }
-}
-
-/**
  * Print conflicts section
  */
 function printConflicts(result: ScanResult): void {
@@ -128,10 +109,9 @@ function printSkillsSummary(projectSkills: string[]): void {
   if (projectSkills.length === 0) return;
 
   const canonSkills = projectSkills.filter(s => CANON_SKILLS.includes(s));
-  const workflowSkillsFound = projectSkills.filter(s => WORKFLOW_SKILLS.includes(s));
   const securitySkillsFound = projectSkills.filter(s => SECURITY_SKILLS.includes(s));
   const domainSkills = projectSkills.filter(s =>
-    !canonSkills.includes(s) && !workflowSkillsFound.includes(s) && !securitySkillsFound.includes(s)
+    !canonSkills.includes(s) && !securitySkillsFound.includes(s)
   );
 
   if (canonSkills.length > 0) {
@@ -139,9 +119,6 @@ function printSkillsSummary(projectSkills: string[]): void {
   }
   if (securitySkillsFound.length > 0) {
     console.log(chalk.red(`  Security (${securitySkillsFound.length}): ${securitySkillsFound.join(', ')}`));
-  }
-  if (workflowSkillsFound.length > 0) {
-    console.log(chalk.yellow(`  Workflow (${workflowSkillsFound.length}): ${workflowSkillsFound.join(', ')}`));
   }
   if (domainSkills.length > 0) {
     console.log(chalk.green(`  Domain (${domainSkills.length}): ${domainSkills.join(', ')}`));
@@ -168,11 +145,6 @@ function printClaudeMdAnalysis(result: ScanResult): void {
   }
 }
 
-/**
- * Print full audit report
- *
- * Orchestrates decomposed helpers for single-responsibility display (simplicity)
- */
 export function printAuditReport(result: ScanResult): void {
   console.log(chalk.bold('\nConfiguration Audit Report'));
   console.log(chalk.gray('═'.repeat(50)));
@@ -187,7 +159,6 @@ export function printAuditReport(result: ScanResult): void {
 
   printPatternChecks(result, projectSkills);
   printQualityFlags(claudeMdContent);
-  printWorkflowChecks(projectSkills);
   printConflicts(result);
   printMissingRefs(result);
   printSkillsSummary(projectSkills);

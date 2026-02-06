@@ -9,7 +9,7 @@ import { spawn } from 'child_process';
 import * as fs from 'fs';
 import * as path from 'path';
 import { ClaudeOutput } from '../types.js';
-import { extractResult, isSuccessfulRun, isFailedRun } from '../parsers/claude-stream.js';
+import { extractResult, isFailedRun } from '../parsers/claude-stream.js';
 
 /** Callback for streaming events */
 export interface StreamCallbacks {
@@ -59,10 +59,8 @@ function buildClaudeResult(output: string, code: number | null, jsonPath: string
   // More lenient: succeed if exit code 0 and no explicit failure marker
   // Don't require success markers - they're nice to have but not mandatory
   const hasFailureMarker = isFailedRun(result) || isFailedRun(output);
-  const hasSuccessMarker = isSuccessfulRun(result) || isSuccessfulRun(output);
   return {
     success: code === 0 && !hasFailureMarker,
-    hasSuccessMarker, // phases can check this if they want stricter validation
     jsonPath, rawPath, result,
     durationMs: Date.now() - startTime,
   };

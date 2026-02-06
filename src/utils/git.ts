@@ -1,16 +1,7 @@
-/**
- * Shared git utilities.
- *
- * Read git repository information without spawning processes.
- */
-
 import * as fs from 'fs';
 import * as path from 'path';
 
-/**
- * Get the short commit hash from a git repository.
- * Reads .git/HEAD directly instead of spawning `git rev-parse`.
- */
+/** Reads .git/HEAD directly instead of spawning `git rev-parse`. */
 export function getGitCommit(repoPath: string): string | undefined {
   try {
     const headContent = fs.readFileSync(path.join(repoPath, '.git', 'HEAD'), 'utf-8').trim();
@@ -25,10 +16,7 @@ export function getGitCommit(repoPath: string): string | undefined {
   }
 }
 
-/**
- * Get the git remote URL from a repository.
- * Reads .git/config directly instead of spawning `git remote`.
- */
+/** Reads .git/config directly instead of spawning `git remote`. */
 export function getGitRemote(repoPath: string): string | undefined {
   const configPath = path.join(repoPath, '.git', 'config');
 

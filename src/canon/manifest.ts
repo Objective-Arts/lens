@@ -6,9 +6,6 @@ import * as fs from 'fs';
 import * as path from 'path';
 import type { CanonManifest, CanonSource, InstalledSkillInfo } from './types.js';
 
-// Re-export git utilities for backwards compatibility
-export { getGitCommit, getGitRemote } from '../utils/git.js';
-
 const MANIFEST_FILENAME = 'canon-manifest.json';
 
 /**
@@ -49,15 +46,10 @@ export function writeManifest(projectPath: string, manifest: CanonManifest): voi
 
 /**
  * Create a new manifest with default values
- * @param source - Source configuration (may include optional version for future migrations)
  */
-export function createManifest(
-  source: CanonSource & { version?: number }
-): CanonManifest {
-  const { version, ...sourceConfig } = source;
+export function createManifest(source: CanonSource): CanonManifest {
   return {
-    version,
-    source: sourceConfig,
+    source,
     installedAt: new Date().toISOString(),
     skills: {}
   };

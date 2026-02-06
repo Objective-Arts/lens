@@ -1,10 +1,3 @@
-/**
- * MCP Registry Module
- *
- * Provides server registry management for Claude Code.
- */
-
-// Registry functions - only export what's actually used
 export {
   getServer,
   listServers,
@@ -14,7 +7,6 @@ export {
   ensureRegistryDir
 } from './registry.js';
 
-// Operations - only export what's actually used
 export {
   isServerInstalled,
   isServerEnabled,

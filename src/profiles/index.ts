@@ -20,7 +20,6 @@ export type { ValidationResult } from './validation.js';
 // Re-export paths
 export {
   CLAUDE_DIR_NAME,
-  MANIFEST_VERSION,
   DEBUG,
   USER_PROFILES_DIR,
   BUILTIN_PROFILES_DIR,

@@ -1,9 +1,3 @@
-/**
- * MCP Registry - loads server definitions from ~/.claude/mcp-registry/servers/
- *
- * Directory-based registry (like skill-library) - the directory IS the index.
- */
-
 import * as fs from 'fs';
 import * as path from 'path';
 import { homedir } from 'os';
@@ -34,10 +28,6 @@ export function loadRegistry(): MCPRegistry {
   ensureRegistryDir();
 
   const servers = new Map<string, MCPServerDefinition>();
-
-  if (!fs.existsSync(REGISTRY_DIR)) {
-    return { servers };
-  }
 
   const files = fs.readdirSync(REGISTRY_DIR).filter(f =>
     f.endsWith('.yaml') || f.endsWith('.yml')
@@ -164,13 +154,6 @@ export function removeServerFromRegistry(name: string): boolean {
   }
 
   return false;
-}
-
-/**
- * Get the registry directory path
- */
-function getRegistryPath(): string {
-  return REGISTRY_DIR;
 }
 
 /**

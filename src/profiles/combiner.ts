@@ -31,25 +31,25 @@ function createEmptyCombined(profileNames: string[]): ComposableProfile {
 
 /** Merge skills by category */
 function mergeSkillsInto(combined: ComposableProfile, skills: ComposableProfile['skills']): void {
-  if (!skills || !combined.skills) return;
+  if (!skills) return;
   for (const category of SKILL_CATEGORIES) {
     const src = skills[category as SkillCategory] ?? [];
-    const dst = combined.skills[category as SkillCategory] ?? [];
-    combined.skills[category as SkillCategory] = mergeArrays(dst, src);
+    const dst = combined.skills![category as SkillCategory] ?? [];
+    combined.skills![category as SkillCategory] = mergeArrays(dst, src);
   }
 }
 
 /** Merge claudeMd sections */
 function mergeClaudeMdInto(combined: ComposableProfile, claudeMd: ComposableProfile['claudeMd']): void {
-  if (!claudeMd || !combined.claudeMd) return;
+  if (!claudeMd) return;
   if (claudeMd.standards) {
-    combined.claudeMd.standards = mergeArrays(combined.claudeMd.standards ?? [], claudeMd.standards);
+    combined.claudeMd!.standards = mergeArrays(combined.claudeMd!.standards ?? [], claudeMd.standards);
   }
   if (claudeMd.antiPatterns) {
-    combined.claudeMd.antiPatterns = mergeArrays(combined.claudeMd.antiPatterns ?? [], claudeMd.antiPatterns);
+    combined.claudeMd!.antiPatterns = mergeArrays(combined.claudeMd!.antiPatterns ?? [], claudeMd.antiPatterns);
   }
   if (claudeMd.autoInvoke) {
-    combined.claudeMd.autoInvoke = [...(combined.claudeMd.autoInvoke ?? []), ...claudeMd.autoInvoke];
+    combined.claudeMd!.autoInvoke = [...(combined.claudeMd!.autoInvoke ?? []), ...claudeMd.autoInvoke];
   }
 }
 

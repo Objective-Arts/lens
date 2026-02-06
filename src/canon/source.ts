@@ -1,30 +1,17 @@
-/**
- * Canon source path resolution.
- *
- * Find skills in canon source directories.
- */
-
 import * as fs from 'fs';
 import * as path from 'path';
 import { homedir } from 'os';
 import type { CanonListItem } from './types.js';
 import { resolveSkillName, getTributeName } from './naming.js';
 import { CANON_SUBDIRS, scanDirForSkills } from './helpers.js';
-import { getGitCommit, getGitRemote } from './manifest.js';
+import { getGitCommit, getGitRemote } from '../utils/git.js';
 
-/** Default canon source path */
 const DEFAULT_CANON_PATH = path.join(homedir(), 'local-tech-projects', 'lens', 'canon');
 
-/**
- * Get the configured canon source path.
- */
 export function getCanonSourcePath(): string {
   return process.env.CANON_SKILLS_PATH || DEFAULT_CANON_PATH;
 }
 
-/**
- * List all available canon skills from the source directory.
- */
 export function listCanonSkills(): CanonListItem[] {
   const canonPath = getCanonSourcePath();
   const skillsByName = new Map<string, CanonListItem>();
@@ -40,9 +27,6 @@ export function listCanonSkills(): CanonListItem[] {
   return Array.from(skillsByName.values()).sort((a, b) => a.name.localeCompare(b.name));
 }
 
-/**
- * Find the source path for a skill by name.
- */
 export function findSkillSourcePath(skillName: string): string | null {
   // Resolve tribute names to generic names
   const resolvedName = resolveSkillName(skillName);
@@ -66,9 +50,6 @@ export function findSkillSourcePath(skillName: string): string | null {
   return null;
 }
 
-/**
- * Get canon source info for display.
- */
 export function getCanonSourceInfo(): { path: string; commit?: string; remote?: string } {
   const canonPath = getCanonSourcePath();
   return {

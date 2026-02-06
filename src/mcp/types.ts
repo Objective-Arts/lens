@@ -1,12 +1,3 @@
-/**
- * MCP Server Registry Types
- *
- * Defines types for MCP server definitions with env var references (never actual secrets).
- */
-
-/**
- * MCP server transport type
- */
 export type MCPServerType = 'stdio' | 'http';
 
 /**

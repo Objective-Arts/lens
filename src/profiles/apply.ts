@@ -17,11 +17,10 @@ import {
   writeManifest,
   createManifest,
   updateSkillInManifest,
-  getGitCommit,
-  getGitRemote,
   hashSkillDirectory,
   getCanonSourcePath
 } from '../canon/index.js';
+import { getGitCommit, getGitRemote } from '../utils/git.js';
 import {
   getServer,
   isServerInstalled,
@@ -34,7 +33,6 @@ import {
 import { installAllWorkflowSkills } from '../workflow/index.js';
 import {
   CLAUDE_DIR_NAME,
-  MANIFEST_VERSION,
   MCP_SERVERS_DIR,
   PHASE_CONFIG_SOURCE_DIR,
   SKILL_LIBRARY_PATHS,
@@ -136,8 +134,7 @@ function getOrCreateManifest(projectPath: string, canonPath: string) {
   return createManifest({
     type: 'local',
     path: canonPath,
-    gitRemote: getGitRemote(canonPath),
-    version: MANIFEST_VERSION
+    gitRemote: getGitRemote(canonPath)
   });
 }
 

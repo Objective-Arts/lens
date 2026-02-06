@@ -67,8 +67,12 @@ function searchPattern(pattern: string, searchPath: string): Finding[] {
         });
       }
     }
-  } catch {
-    // grep returns non-zero if no matches
+  } catch (error: unknown) {
+    // grep returns exit code 1 when no matches found — that's expected
+    const exitCode = (error as { status?: number }).status;
+    if (exitCode !== 1) {
+      throw error;
+    }
   }
 
   return findings;

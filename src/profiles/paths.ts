@@ -16,9 +16,6 @@ const PROJECT_ROOT = path.resolve(__dirname, '..', '..');
 /** Claude directory name */
 export const CLAUDE_DIR_NAME = '.claude';
 
-/** Current manifest version */
-export const MANIFEST_VERSION = 1;
-
 /** Debug mode flag */
 export const DEBUG = process.env.NODE_ENV === 'development' || process.env.CC_DEBUG === 'true';
 

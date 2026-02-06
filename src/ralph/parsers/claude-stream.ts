@@ -1,12 +1,4 @@
-/**
- * Claude JSON stream parser.
- *
- * Claude outputs newline-delimited JSON objects.
- * This parses that stream format and extracts results.
- *
- * Following clarity: handle the messy reality of streamed output.
- * Following testability: single source of truth for markers.
- */
+/** Parses Claude's newline-delimited JSON stream format and extracts results. */
 
 import * as fs from 'fs';
 
@@ -40,12 +32,6 @@ const FAILURE_MARKERS = [
   'DOC_FAILED',
 ] as const;
 
-/**
- * Parse Claude's JSON stream file and extract the final result.
- *
- * @param jsonPath - Path to the .json stream file
- * @returns The extracted result text, or empty string if not found
- */
 export function extractResult(jsonPath: string): string {
   if (!fs.existsSync(jsonPath)) {
     return '';
@@ -95,9 +81,6 @@ export function extractResultFromContent(content: string): string {
   return allBlocks.join('\n');
 }
 
-/**
- * Unescape JSON string escape sequences.
- */
 function unescapeJson(str: string): string {
   return str
     .replace(/\\n/g, '\n')
@@ -107,23 +90,14 @@ function unescapeJson(str: string): string {
     .replace(/\\\\/g, '\\');
 }
 
-/**
- * Check if the stream indicates success.
- */
 export function isSuccessfulRun(content: string): boolean {
   return SUCCESS_MARKERS.some(marker => content.includes(marker));
 }
 
-/**
- * Check if the stream indicates failure.
- */
 export function isFailedRun(content: string): boolean {
   return FAILURE_MARKERS.some(marker => content.includes(marker));
 }
 
-/**
- * Extract error message from failed run.
- */
 export function extractError(content: string): string | null {
   const patterns = [
     /FAILED[:\s]+(.+?)(?:\n|$)/i,

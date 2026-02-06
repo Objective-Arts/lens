@@ -1,16 +1,7 @@
-/**
- * Shared filesystem utilities.
- *
- * Common file operations used across modules.
- */
-
 import * as fs from 'fs';
 import * as fsPromises from 'fs/promises';
 import * as path from 'path';
 
-/**
- * Recursively copy a directory (sync).
- */
 export function copyDirectorySync(src: string, dest: string): void {
   fs.mkdirSync(dest, { recursive: true });
 
@@ -28,9 +19,6 @@ export function copyDirectorySync(src: string, dest: string): void {
   }
 }
 
-/**
- * Recursively copy a directory (async).
- */
 export async function copyDirectoryAsync(src: string, dest: string): Promise<void> {
   await fsPromises.mkdir(dest, { recursive: true });
   const entries = await fsPromises.readdir(src, { withFileTypes: true });

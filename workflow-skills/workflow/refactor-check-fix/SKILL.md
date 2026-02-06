@@ -75,6 +75,7 @@ Before starting, read these canon skills and apply their principles throughout:
 1. `.claude/skills/clarity/SKILL.md`
 2. `.claude/skills/simplicity/SKILL.md`
 3. `.claude/skills/design-patterns/SKILL.md`
+4. `.claude/skills/refactoring/SKILL.md`
 
 **Load if applicable to target code:**
 - Duplication patterns detected → also read `.claude/skills/composition/SKILL.md`
@@ -92,6 +93,7 @@ Add relevant lessons to your checklist of things to look for:
 
 - **CODE_QUALITY** entries → actively hunt for these patterns (e.g., dead exports, unused imports, redundant verification reads)
 - **LOGIC** entries → check for these bug patterns during refactoring (e.g., TOCTOU, missing validation)
+- **AI_SMELL** entries → look for single-use helpers to inline, JSDoc restating function names, impossible null checks, empty catch blocks
 
 If a file doesn't exist, skip it and continue.
 

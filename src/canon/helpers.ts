@@ -1,17 +1,7 @@
-/**
- * Canon helper functions.
- *
- * Low-level helpers for skill scanning, validation, and diffing.
- */
-
 import * as fs from 'fs';
 import * as path from 'path';
 import { hashSkillDirectory } from './hash.js';
 import type { CanonListItem, SkillStatus } from './types.js';
-import { copyDirectorySync } from '../utils/fs.js';
-
-// Re-export for backwards compatibility
-export { copyDirectorySync as copyDirectoryRecursive } from '../utils/fs.js';
 
 /** Subdirectories to search in canon-skills */
 export const CANON_SUBDIRS = [
@@ -20,13 +10,12 @@ export const CANON_SUBDIRS = [
   'engineering', 'writing', 'patterns', 'database'
 ];
 
-/** Check if a directory contains a valid skill (has SKILL.md) */
 export function isValidSkillDir(dirPath: string): boolean {
   return fs.existsSync(path.join(dirPath, 'SKILL.md'));
 }
 
-/** Scan a directory for skills, adding to map (first wins) */
-export function scanDirForSkills(
+export function scanDirForSkills( // first wins
+
   searchPath: string,
   category: string,
   skillsByName: Map<string, CanonListItem>
@@ -49,7 +38,6 @@ export function scanDirForSkills(
   }
 }
 
-/** Deduplicate skills, preferring canon source over skill-library */
 export function deduplicateSkills(
   allSkills: CanonListItem[],
   canonSourcePath: string
@@ -66,7 +54,6 @@ export function deduplicateSkills(
   return Array.from(skillsByName.values());
 }
 
-/** Determine skill status based on hashes */
 export function determineSkillStatus(
   installedPath: string,
   sourcePath: string | null,
@@ -88,7 +75,6 @@ export function determineSkillStatus(
   return { status: currentHash === sourceHash ? 'current' : 'outdated', sourceHash };
 }
 
-/** Generate line-by-line diff between two strings */
 export function generateLineDiff(installedContent: string, sourceContent: string): string[] {
   const installedLines = installedContent.split('\n');
   const sourceLines = sourceContent.split('\n');
@@ -114,7 +100,6 @@ export function generateLineDiff(installedContent: string, sourceContent: string
   return diff;
 }
 
-/** List skills installed in a project's .claude/skills/ directory */
 export function getInstalledSkills(projectPath: string): string[] {
   const skillsDir = path.join(projectPath, '.claude', 'skills');
 
@@ -129,7 +114,6 @@ export function getInstalledSkills(projectPath: string): string[] {
     .sort();
 }
 
-/** Get installed skill directories */
 export function getInstalledSkillDirs(skillsDir: string): string[] {
   if (!fs.existsSync(skillsDir)) return [];
   return fs.readdirSync(skillsDir).filter(f => {

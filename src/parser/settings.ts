@@ -1,7 +1,3 @@
-/**
- * Settings parser - extracts settings.json configuration
- */
-
 import * as fs from 'fs';
 import type { SettingsParsed, ConfigScope } from '../types.js';
 

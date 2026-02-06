@@ -52,6 +52,7 @@ Apply relevant lessons to your structural design:
 
 - **DESIGN** entries → avoid these architectural mistakes in your target state
 - **LOGIC** entries → design types/interfaces that make these bug patterns impossible (e.g., validated newtypes instead of raw strings for paths/names)
+- **AI_SMELL** entries → do not create speculative types/interfaces without consumers; avoid over-decomposition
 
 If a file doesn't exist, skip it and continue.
 

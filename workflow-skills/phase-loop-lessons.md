@@ -1,6 +1,6 @@
 # Phase Loop Lessons (Universal)
 
-Cross-project patterns accumulated from phases 6-8 (gemini-fix, qodana-fix, adversarial-security-review).
+Cross-project patterns accumulated from phases 5b-8 (ai-smell-fix, gemini-fix, qodana-fix, adversarial-security-review).
 Phases 1-5 read this file at Step 0b to proactively avoid known mistakes.
 
 This file ships with workflow-skills/ and applies to ALL projects.
@@ -12,6 +12,7 @@ Project-specific lessons go in `.claude/phase-loop-lessons.md` (local to each pr
 - **CODE_QUALITY**: Naming/complexity/style (for implement-plan, refactor-check-fix)
 - **DUPLICATION**: Repeated patterns (for dedupe-fix)
 - **LOGIC**: Bugs/edge cases (for implement-plan)
+- **AI_SMELL**: AI-generated antipatterns (for implement-plan, create-plan, structure-first)
 
 ---
 
@@ -75,6 +76,30 @@ Project-specific lessons go in `.claude/phase-loop-lessons.md` (local to each pr
 ### Same-Name Constants
 - Watch for the same constant defined in multiple files (e.g., `PHASE_ORDER` in both `types.ts` and `phases/index.ts`)
 - Keep one canonical location, import everywhere else
+
+## AI_SMELL Patterns
+
+### Single-Use Helper Functions
+- Do not extract a helper function that is called exactly once — inline the logic at the call site. Only extract when there are 2+ callers.
+- create-plan and structure-first should not decompose below the natural abstraction level.
+
+### Comment Spam (JSDoc Restating Code)
+- Do not add JSDoc that restates the function name: `/** Get the user */ function getUser()` — delete it.
+- Only comment non-obvious behavior: unusual algorithms, why (not what), invariants, edge cases.
+- File header comments restating the filename ("Shared filesystem utilities" in `utils/fs.ts`) are noise — omit them.
+
+### Defensive Paranoia (Impossible Null Checks)
+- Do not add null/undefined checks on typed parameters — trust TypeScript's type system.
+- `if (!content) return 0` on a `string` param is dead code. `if (!claudeMd) continue` in a `ClaudeMdParsed[]` loop is dead code.
+- Do not add `existsSync` checks after a function that already ensures the directory exists.
+
+### Speculative Features
+- Do not add version fields, config options, or parameters that have only one possible value.
+- Do not create types/interfaces speculatively — wait until there's a second consumer.
+- Do not add backward-compatibility re-exports (`export { X as OldName }`) on day one.
+
+### Error Swallowing
+- Empty `catch {}` blocks hide real errors. If swallowing is intentional, check the specific error condition (e.g., exit code 1 from grep means "no matches" — re-throw anything else).
 
 ## Gemini False Positive Patterns
 

@@ -61,6 +61,7 @@ Use relevant lessons to guide your deduplication:
 
 - **DUPLICATION** entries → actively search for these specific duplicate patterns (e.g., same-name constants in different files)
 - **LOGIC** entries → when consolidating, ensure the shared version avoids known bug patterns (e.g., TOCTOU)
+- **AI_SMELL** entries → when consolidating, don't over-abstract: only extract if 2+ callers exist; don't create single-use wrappers
 
 If a file doesn't exist, skip it and continue.
 

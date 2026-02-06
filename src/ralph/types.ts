@@ -21,15 +21,6 @@ export interface Prd {
   raw: string;
 }
 
-/** Stage names (legacy - use PhaseName for new code) */
-export type StageName =
-  | 'plan'
-  | 'build'
-  | 'refactor'
-  | 'test'
-  | 'review'
-  | 'doc';
-
 /**
  * Phase names for the 8-phase workflow.
  * Following data-first: data structures first.
@@ -107,7 +98,6 @@ export interface QodanaResult {
 /** Claude process output */
 export interface ClaudeOutput {
   success: boolean;
-  hasSuccessMarker?: boolean; // true if output contains expected completion marker
   jsonPath: string;
   rawPath: string;
   result: string;
@@ -124,13 +114,6 @@ export interface Session {
   currentItem: number;
   totalItems: number;
   completedItems: number;
-}
-
-/** Display options */
-export interface DisplayOptions {
-  verbose: boolean;
-  quiet: boolean;
-  noColor: boolean;
 }
 
 /** Skill detection result with matched keywords */

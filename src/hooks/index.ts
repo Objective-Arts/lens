@@ -1,10 +1,3 @@
-/**
- * Hook management for Claude Code settings.json
- *
- * Following clarity: clear, explicit operations.
- * Following java: defensive programming with backups.
- */
-
 import * as fs from "fs";
 import * as path from "path";
 import * as os from "os";

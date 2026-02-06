@@ -8,8 +8,6 @@
 const CHARS_PER_TOKEN = 4;
 
 export function estimateTokens(content: string): number {
-  if (!content) return 0;
-
   // Simple estimation: divide by average chars per token
   // Account for whitespace and special characters
   const cleanedContent = content.replace(/\s+/g, ' ').trim();
