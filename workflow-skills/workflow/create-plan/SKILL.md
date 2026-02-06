@@ -47,6 +47,40 @@ Every item must be SPECIFIC and ACTIONABLE.
 
 ## Process
 
+### Step 0: Load Expert Guidance
+
+Before starting, read these canon skills and apply their principles throughout:
+
+**Always load:**
+1. `.claude/skills/clarity/SKILL.md`
+2. `.claude/skills/simplicity/SKILL.md`
+3. `.claude/skills/data-first/SKILL.md`
+4. `.claude/skills/correctness/SKILL.md`
+5. `.claude/skills/abstraction/SKILL.md`
+
+**Load if applicable to target code:**
+- Auth, tokens, passwords, encryption → also read `.claude/skills/security-mindset/SKILL.md` and `.claude/skills/owasp/SKILL.md`
+
+If a skill file doesn't exist (not installed in this project), skip it and continue.
+Reference loaded experts in your APPLIED output.
+
+### Step 0b: Learn From Past Mistakes
+
+Read both lessons files if they exist:
+1. `workflow-skills/phase-loop-lessons.md` — universal patterns (ships with skills, applies to all projects)
+2. `.claude/phase-loop-lessons.md` — project-specific patterns (accumulated from this project's runs)
+
+These contain patterns that later quality phases (gemini-fix, qodana-fix, adversarial-security) have repeatedly caught. Your plan should proactively address these known patterns so they don't recur:
+
+- **LOGIC** entries → plan to avoid these bug patterns (e.g., TOCTOU, path traversal, shell injection)
+- **DESIGN** entries → plan architecture that avoids these structural mistakes
+- **CODE_QUALITY** entries → plan naming/structure that won't trigger these findings
+- **DUPLICATION** entries → check for these duplicate patterns in your plan
+
+If a file doesn't exist, skip it and continue.
+
+### Step 1: Explore
+
 1. **Explore** - Use Glob, Grep, Read to understand existing code
 2. **Design** - Create plan with ALL required sections
 3. **Save** - Write to `.claude/create-plans/[slug].md`

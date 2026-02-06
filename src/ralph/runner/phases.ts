@@ -1,7 +1,7 @@
 /**
  * Phase execution logic.
  *
- * Following Kernighan: clear control flow, small functions.
+ * Following clarity: clear control flow, small functions.
  */
 
 import { Phase, PhaseContext, PhaseStatus, PhaseResult } from '../phases/index.js';
@@ -159,17 +159,6 @@ async function executePhaseWithRetry(
     }
   }
   return true;
-}
-
-/** Execute a single phase (no retry). */
-async function executePhase(
-  phase: Phase, context: PhaseContext, phaseStatus: Map<string, PhaseStatus>,
-  collector: SummaryCollector, itemNum: number
-): Promise<boolean> {
-  const startTime = Date.now();
-  const result = await phase.execute(context);
-  const durationMs = Date.now() - startTime;
-  return processPhaseResult(result, phase, durationMs, context, phaseStatus, collector, itemNum);
 }
 
 /** Check if phase should be skipped. */

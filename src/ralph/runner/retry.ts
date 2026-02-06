@@ -1,10 +1,8 @@
 /**
  * Retry logic for phase execution.
  *
- * Following Kernighan: small functions, clear control flow.
+ * Following clarity: small functions, clear control flow.
  */
-
-import { Phase, PhaseContext } from '../phases/index.js';
 
 /** Maximum retry attempts for self-correction. */
 export const MAX_RETRIES = 5;

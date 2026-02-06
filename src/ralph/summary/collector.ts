@@ -1,8 +1,8 @@
 /**
  * Summary data collector.
  *
- * Following Hevery: mutable state contained, clear interface.
- * Following McIlroy: single responsibility.
+ * Following testability: mutable state contained, clear interface.
+ * Following composition: single responsibility.
  */
 
 import {
@@ -161,19 +161,6 @@ export function parseQodanaIssues(output: string): QodanaSummary {
   const pattern = /(\w+):\s+(.+?)\s+at\s+([^:]+):(\d+)(?:\s*-\s*(FIXED|fixed))?/gm;
   const issues = extractIssues(output, pattern, true);
   return buildIssueSummary(output, issues, 'QODANA') as QodanaSummary;
-}
-
-/** Parse test results from output */
-function parseTestResults(output: string): TestSummary {
-  const passedMatch = output.match(/PASSED:\s*(\d+)/i);
-  const failedMatch = output.match(/FAILED:\s*(\d+)/i);
-  const writtenMatch = output.match(/WRITTEN:\s*(\d+)/i);
-
-  return {
-    passed: passedMatch ? parseInt(passedMatch[1], 10) : 0,
-    failed: failedMatch ? parseInt(failedMatch[1], 10) : 0,
-    written: writtenMatch ? parseInt(writtenMatch[1], 10) : 0,
-  };
 }
 
 /** Parse refactor improvements from output */

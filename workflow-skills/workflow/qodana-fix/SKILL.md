@@ -105,6 +105,40 @@ ANALYSIS_ISSUES: N
 VERIFIED_CLEAN: yes
 ```
 
+## Final: Record Lessons Learned
+
+After fixing all issues, record NEW findings so earlier phases learn from them.
+
+**Write to TWO files:**
+
+### 1. Project-local: `.claude/phase-loop-lessons.md`
+
+Append the specific finding with file paths and context:
+
+```markdown
+## {date} - {target path}
+### Qodana Found (phase 7)
+- {CATEGORY}: {specific description with file:line} → {which earlier phase should catch this and how}
+```
+
+### 2. Universal: `workflow-skills/phase-loop-lessons.md`
+
+Read this file first. If the **general pattern** is already listed, skip. If it's a NEW general pattern not already covered, append it to the appropriate section (LOGIC Patterns, DESIGN Patterns, CODE_QUALITY Patterns, or DUPLICATION Patterns). Write the general rule, not the project-specific instance:
+
+```markdown
+### {Pattern Name}
+- {General description of the pattern, not tied to specific files} → {how to avoid it}
+```
+
+**Categories:** LOGIC, DESIGN, CODE_QUALITY, DUPLICATION
+
+Common Qodana findings that indicate earlier-phase gaps:
+- Unused imports → implement-plan should not import "just in case"
+- Dead functions → implement-plan should verify exports are used; refactor-check-fix should grep for callers
+- Dead constants → dedupe-fix should catch same-name constants in different files
+
+If no new lessons were learned (already in both files), skip this step.
+
 ## Validation (Phase will FAIL if violated)
 
 - Qodana not called (unless unsupported project)

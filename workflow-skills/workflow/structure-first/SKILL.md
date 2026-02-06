@@ -26,6 +26,37 @@ else:
 
 ---
 
+## Step 0: Load Expert Guidance
+
+Before starting either mode, read these canon skills and apply their principles throughout:
+
+**Always load:**
+1. `.claude/skills/data-first/SKILL.md`
+2. `.claude/skills/correctness/SKILL.md`
+3. `.claude/skills/abstraction/SKILL.md`
+4. `.claude/skills/composition/SKILL.md`
+
+**Load if applicable to target code:**
+- TypeScript files (.ts) → also read `.claude/skills/typescript/SKILL.md`
+
+If a skill file doesn't exist (not installed in this project), skip it and continue.
+Reference loaded experts in your APPLIED output.
+
+### Step 0b: Learn From Past Mistakes
+
+Read both lessons files if they exist:
+1. `workflow-skills/phase-loop-lessons.md` — universal patterns (ships with skills, applies to all projects)
+2. `.claude/phase-loop-lessons.md` — project-specific patterns (accumulated from this project's runs)
+
+Apply relevant lessons to your structural design:
+
+- **DESIGN** entries → avoid these architectural mistakes in your target state
+- **LOGIC** entries → design types/interfaces that make these bug patterns impossible (e.g., validated newtypes instead of raw strings for paths/names)
+
+If a file doesn't exist, skip it and continue.
+
+---
+
 ## MODE: Map (Existing Code)
 
 Analyze existing code, diagram relationships, design improvements.

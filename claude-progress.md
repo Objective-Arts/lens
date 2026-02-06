@@ -1,49 +1,48 @@
-# Session Progress - 2026-02-05T14:00:00Z
+# Session Progress - 2026-02-05T20:00:00Z
 
 ## Current Task
-Major restructuring of the Lens project: reorganizing workflow-skills, flattening CLI structure, enabling dogfooding, and fixing skill discovery
+Wiring up the self-learning feedback loop in workflow-skills so the phase-loop pipeline gets smarter over time and across projects.
 
 ## Completed
-- **Workflow-skills reorganization**: Split into `ralph-loop/`, `workflow/`, `utils/` directories
-- **Skill renames**: `refactor-fix` → `refactor-check-fix`, `write-tests` → `write-tests-run`
-- **New skills created**: `ai-smell-fix`, `ai-smell-scan` for detecting/removing AI-generated code patterns
-- **phase-loop updated**: Now 9 phases with git stash rollback support, `--rollback` and `--dry-run` flags
-- **structure-first updated**: Context-aware - maps existing architecture OR creates new types from plan
-- **CLI flattened**: Moved `cli/src`, `cli/package.json`, etc. to project root (no more nested `cli/` directory)
-- **Project renamed**: `claude-optimal` → `lens`
-- **Documentation updated**: All skill references corrected in WORKFLOW-SKILLS.md, index.md, PROJECT-OVERVIEW.md
-- **Deleted obsolete files**: `flow-guide.html`, `architecture-flow.html` (outdated, redundant with markdown docs)
-- **Fixed skill discovery**: Replaced 3 category-level symlinks with 24 individual skill symlinks in `.claude/skills/`
+- Phase-loop completed for ALL 8 src/ modules: utils → trace → scanner → profiles → canon → workflow → ralph → cli
+- Key fixes across all modules: shell injection (dedupe.ts), XSS (summary generator), path traversal (profile create), TOCTOU (many files), dead code removal
+- 23 new ralph tests + 9 new cli tests added
+- Wired up self-learning feedback loop in all 8 SKILL.md files:
+  - Phases 1-5: Added Step 0b to READ both lessons files
+  - Phases 6-8: Added "Final: Record Lessons Learned" to WRITE to both files
+- Created two-tier knowledge system:
+  - `workflow-skills/phase-loop-lessons.md` — universal patterns (ships with skills, grows across all projects)
+  - `.claude/phase-loop-lessons.md` — project-specific instances
+- Populated universal lessons file with distilled patterns from all 8 modules
 
 ## In Progress
-- Git state has many uncommitted changes from restructuring
+- Nothing actively in progress — ready to commit
 
 ## Blockers / Open Questions
-- None currently
+- Cross-user learning (multiple people using the skills): discussed Vercel API approach but not built yet
+- Vercel service would have POST /api/lessons and GET /api/lessons endpoints
 
 ## Next Steps
-1. Review and commit the restructuring changes
-2. Run `npm install` to restore node_modules at new root location
-3. Test that `lens` CLI still builds and runs
-4. Test dogfooding: run `/phase-loop src/` on the lens codebase itself
+1. Commit current changes
+2. (Future) Build Vercel lessons API for cross-user learning
+3. (Future) Run phase-loop on another project to validate the feedback loop works end-to-end
 
 ## Key Files Modified
-- `.claude/skills/*` - Fixed: 24 individual symlinks replacing 3 category symlinks
-- `workflow-skills/README.md` - New structure documentation
-- `workflow-skills/ralph-loop/README.md` - Orchestrator docs
-- `workflow-skills/workflow/README.md` - Workflow skills docs
-- `workflow-skills/utils/README.md` - Utility skills docs
-- `workflow-skills/workflow/phase-loop/SKILL.md` - 9 phases, rollback support
-- `workflow-skills/workflow/structure-first/SKILL.md` - Context-aware (map vs create mode)
-- `workflow-skills/workflow/ai-smell-fix/SKILL.md` - New skill
-- `workflow-skills/utils/ai-smell-scan/SKILL.md` - New skill
-- `CLAUDE.md` - Updated with all 24 correct skill names
-- `documentation/WORKFLOW-SKILLS.md` - Complete rewrite with new structure
+- `workflow-skills/workflow/create-plan/SKILL.md` - Added Step 0b (READ lessons)
+- `workflow-skills/workflow/structure-first/SKILL.md` - Added Step 0b (READ lessons)
+- `workflow-skills/workflow/implement-plan/SKILL.md` - Added Step 0b (READ lessons)
+- `workflow-skills/workflow/refactor-check-fix/SKILL.md` - Added Step 0b (READ lessons)
+- `workflow-skills/workflow/dedupe-fix/SKILL.md` - Added Step 0b (READ lessons)
+- `workflow-skills/workflow/gemini-fix/SKILL.md` - Added Final: Record Lessons (WRITE both)
+- `workflow-skills/workflow/qodana-fix/SKILL.md` - Added Final: Record Lessons (WRITE both)
+- `workflow-skills/workflow/adversarial-security-review/SKILL.md` - Added Final: Record Lessons (WRITE both)
+- `workflow-skills/phase-loop-lessons.md` - NEW: universal lessons file
+- `.claude/phase-loop-lessons.md` - Project-specific lessons from all 8 modules
 
 ## Context to Restore
-- **Directory structure**: `workflow-skills/` now has 3 subdirs: `ralph-loop/`, `workflow/`, `utils/`
-- **Naming convention**: `-fix` suffix = modifies code (in workflow/), `-scan` suffix = read-only (in utils/)
-- **9-phase pipeline**: create-plan → structure-first → implement-plan → refactor-check-fix → dedupe-fix → gemini-fix → qodana-fix → adversarial-security-review → write-tests-run
-- **Skill discovery fix**: Claude Code requires `.claude/skills/<skill-name>/SKILL.md` (one level deep). Category-level symlinks (pointing to dirs containing subdirs) don't work — each skill needs its own symlink.
-- **Dogfooding**: `.claude/skills/` uses symlinks so skill edits take effect immediately
-- **Project is now at**: `/Users/steve/local-tech-projects/lens/`
+- Two-tier knowledge: universal (workflow-skills/) + project-local (.claude/)
+- Phases 6-8 check universal file first, only append NEW general patterns (deduped)
+- implement-plan is the most impactful reader phase (LOGIC + CODE_QUALITY)
+- Gemini false positives are tracked so future runs skip them
+- Feedback loop: inspectors find patterns → write them down → builders read next time → fewer mistakes
+- 9-phase pipeline: create-plan → structure-first → implement-plan → refactor-check-fix → dedupe-fix → gemini-fix → qodana-fix → adversarial-security-review → write-tests-run

@@ -1,8 +1,8 @@
 /**
  * Main ralph runner - orchestrates PRD item processing.
  *
- * Following McIlroy: pipeline architecture.
- * Following Kernighan: simple control flow.
+ * Following composition: pipeline architecture.
+ * Following clarity: simple control flow.
  */
 
 import * as fs from 'fs';
@@ -17,7 +17,7 @@ import {
   printWarning, printInfo, printSummaryLink,
 } from './display/terminal.js';
 import {
-  createSession, validateProjectPath, detectProjectType, buildPhaseContext,
+  createSession, validateProjectPath, detectProjectType,
 } from './runner/context.js';
 import { runItemPhases } from './runner/phases.js';
 

@@ -75,6 +75,41 @@ You MUST follow these constraints EXACTLY:
 
 ## Process
 
+### Step 0: Load Expert Guidance
+
+Before starting, read these canon skills and apply their principles throughout:
+
+**Always load:**
+1. `.claude/skills/pragmatism/SKILL.md`
+2. `.claude/skills/clarity/SKILL.md`
+3. `.claude/skills/simplicity/SKILL.md`
+4. `.claude/skills/composition/SKILL.md`
+
+**Load if applicable to target code:**
+- TypeScript files (.ts) → also read `.claude/skills/typescript/SKILL.md`
+- Auth, tokens, passwords, encryption → also read `.claude/skills/security-mindset/SKILL.md` and `.claude/skills/owasp/SKILL.md`
+
+If a skill file doesn't exist (not installed in this project), skip it and continue.
+Reference loaded experts in your APPLIED output.
+
+### Step 0b: Learn From Past Mistakes
+
+Read both lessons files if they exist:
+1. `workflow-skills/phase-loop-lessons.md` — universal patterns (ships with skills, applies to all projects)
+2. `.claude/phase-loop-lessons.md` — project-specific patterns (accumulated from this project's runs)
+
+Apply these lessons as you write code:
+
+- **LOGIC** entries → avoid these exact bug patterns (e.g., never pair `existsSync`+`readFileSync` — use try-catch; never use `execSync` with template literals — use `execFileSync` with args array; validate names before `path.join`; escape `</` in embedded JSON)
+- **CODE_QUALITY** entries → avoid dead exports, unused imports, redundant verification reads
+- **DESIGN** entries → respect size limits, avoid unbounded lists from user-controlled input
+
+This is the most impactful phase for preventing recurring issues. Check each LOGIC entry against your implementation.
+
+If a file doesn't exist, skip it and continue.
+
+### Step 1: Load Plan
+
 1. **Load Plan** - Read plan from `.claude/plans/` or context
 2. **Check Structure** - Verify types/interfaces exist from `/structure-first`
 3. **Implement** - Write code following the plan EXACTLY

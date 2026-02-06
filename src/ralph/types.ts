@@ -1,7 +1,7 @@
 /**
  * Core types for Ralph - PRD-driven autonomous implementation tool.
  *
- * Following cherny: strict types, discriminated unions, no any.
+ * Following typescript: strict types, discriminated unions, no any.
  */
 
 /** PRD item status */
@@ -32,8 +32,8 @@ export type StageName =
 
 /**
  * Phase names for the 8-phase workflow.
- * Following linus: data structures first.
- * Following dijkstra: explicit, ordered sequence.
+ * Following data-first: data structures first.
+ * Following correctness: explicit, ordered sequence.
  */
 export type PhaseName =
   | 'plan'
@@ -46,18 +46,6 @@ export type PhaseName =
   | 'doc-code'
   | 'production-readiness'  // Post-loop phase
   | 'security-review';      // Post-loop phase
-
-/** Phase execution order - same for commands and Ralph loop */
-const PHASE_ORDER: readonly PhaseName[] = [
-  'plan',
-  'structure-first',
-  'implement',
-  'refactor-check',
-  'independent-review',
-  'static-analysis',
-  'test',
-  'doc-code',
-] as const;
 
 /** Stage execution result */
 export type StageResult =
@@ -162,7 +150,7 @@ export type StageStatus = 'pending' | 'running' | 'done' | 'skipped' | 'failed';
 
 /**
  * Configuration for a single phase from workflow-phases.yaml.
- * Following cherny: readonly for immutability.
+ * Following typescript: readonly for immutability.
  */
 export interface PhaseConfig {
   readonly description: string;
@@ -201,7 +189,7 @@ export interface KeywordDetectionConfig {
 
 /**
  * Compiled keyword rule with regex for matching.
- * Following gang-of-four: Strategy pattern for detection.
+ * Following design-patterns: Strategy pattern for detection.
  */
 export interface CompiledKeywordRule {
   readonly category: string;
@@ -211,7 +199,7 @@ export interface CompiledKeywordRule {
 
 /**
  * Expert detection result with source tracking.
- * Following bloch: clear return types.
+ * Following java: clear return types.
  */
 export interface ExpertDetection {
   /** Expert names to load */

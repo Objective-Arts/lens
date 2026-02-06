@@ -1,6 +1,6 @@
 /**
  * Profile commands - manage configuration profiles
- * Following kernighan: single responsibility module
+ * Following clarity: single responsibility module
  */
 
 import { Command } from 'commander';
@@ -76,6 +76,10 @@ function handleShow(name: string): void {
 }
 
 function handleCreate(name: string): void {
+  if (name.includes('/') || name.includes('\\') || name.includes('..')) {
+    console.log(chalk.red(`Invalid profile name (path traversal): ${name}`));
+    return;
+  }
   const profile: ComposableProfile = { ...exampleComposableProfile, name };
   saveProfile(profile);
   console.log(chalk.green(`Created profile: ${name}`));

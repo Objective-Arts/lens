@@ -9,7 +9,7 @@ import { runClaude, StreamCallbacks } from '../process/claude.js';
 import { extractError } from '../parsers/claude-stream.js';
 import {
   hasNoCode, NO_ANALYSIS_INDICATORS, parseMcpPhaseOutput, buildPhaseMetrics,
-  formatSuccessMessage, QODANA_EVIDENCE,
+  QODANA_EVIDENCE,
 } from './mcp-helpers.js';
 import chalk from 'chalk';
 

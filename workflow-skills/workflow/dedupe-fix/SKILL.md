@@ -39,6 +39,31 @@ Duplication is a form of technical debt. The consolidated code must look like it
 
 ## Process
 
+### Step 0: Load Expert Guidance
+
+Before starting, read these canon skills and apply their principles throughout:
+
+**Always load:**
+1. `.claude/skills/composition/SKILL.md`
+2. `.claude/skills/clarity/SKILL.md`
+3. `.claude/skills/simplicity/SKILL.md`
+
+If a skill file doesn't exist (not installed in this project), skip it and continue.
+Reference loaded experts in your APPLIED output.
+
+### Step 0b: Learn From Past Mistakes
+
+Read both lessons files if they exist:
+1. `workflow-skills/phase-loop-lessons.md` — universal patterns (ships with skills, applies to all projects)
+2. `.claude/phase-loop-lessons.md` — project-specific patterns (accumulated from this project's runs)
+
+Use relevant lessons to guide your deduplication:
+
+- **DUPLICATION** entries → actively search for these specific duplicate patterns (e.g., same-name constants in different files)
+- **LOGIC** entries → when consolidating, ensure the shared version avoids known bug patterns (e.g., TOCTOU)
+
+If a file doesn't exist, skip it and continue.
+
 ### Step 1: Find Duplicates
 
 Search for duplicated patterns:

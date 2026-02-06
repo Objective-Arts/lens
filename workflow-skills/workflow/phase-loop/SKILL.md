@@ -48,6 +48,10 @@ echo "Rollback point created. Use '/phase-loop --rollback' to restore."
 
 **Skipped:** generate-docs (run separately if needed)
 
+## Canon Expert Loading
+
+Each phase automatically loads its own canon experts in Step 0 before doing any work. The orchestrator does not load experts — individual phases handle this themselves. See each phase's SKILL.md for which experts it loads.
+
 ## Execution
 
 ```

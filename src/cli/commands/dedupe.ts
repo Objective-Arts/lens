@@ -4,9 +4,8 @@
  * Scans codebase for duplicated code patterns and reports consolidation opportunities.
  */
 
-import * as fs from 'fs';
 import * as path from 'path';
-import { execSync } from 'child_process';
+import { execFileSync } from 'child_process';
 
 interface DuplicationPattern {
   name: string;
@@ -43,18 +42,22 @@ const PATTERNS: DuplicationPattern[] = [
   { name: 'pathJoinClaude', pattern: "path\\.join.*'\\.claude'", description: '.claude path construction' },
 ];
 
-/** Run grep and parse results */
+/** Filter out non-source lines (node_modules, tests, dist). */
+function isSourceLine(line: string): boolean {
+  return !line.includes('node_modules') && !line.includes('.test.ts') && !line.includes('dist/');
+}
+
+/** Run grep safely using execFileSync (no shell interpolation). */
 function searchPattern(pattern: string, searchPath: string): Finding[] {
   const findings: Finding[] = [];
 
   try {
-    const result = execSync(
-      `grep -rn "${pattern}" --include="*.ts" "${searchPath}" 2>/dev/null | grep -v node_modules | grep -v "\\.test\\.ts" | grep -v "dist/"`,
-      { encoding: 'utf-8', maxBuffer: 10 * 1024 * 1024 }
-    );
+    const result = execFileSync('grep', [
+      '-rn', pattern, '--include=*.ts', searchPath,
+    ], { encoding: 'utf-8', maxBuffer: 10 * 1024 * 1024, stdio: ['pipe', 'pipe', 'pipe'] });
 
     for (const line of result.trim().split('\n')) {
-      if (!line) continue;
+      if (!line || !isSourceLine(line)) continue;
       const match = line.match(/^([^:]+):(\d+):(.*)$/);
       if (match) {
         findings.push({
@@ -115,23 +118,52 @@ function generateRecommendation(patternName: string, findings: Finding[]): strin
   return recommendations[patternName] || `Found in ${fileCount} files - review for consolidation`;
 }
 
+/** Format a single result entry with its files and recommendation. */
+function formatResultEntry(result: DuplicationResult, index: number): string[] {
+  const lines: string[] = [];
+  const uniqueFiles = [...new Set(result.findings.map(f => f.file))];
+
+  lines.push(`### ${index + 1}. ${result.pattern}`);
+  lines.push(`${result.description}`);
+  lines.push('');
+  lines.push('FILES:');
+
+  for (const file of uniqueFiles) {
+    const firstFinding = result.findings.find(f => f.file === file)!;
+    lines.push(`- ${file}:${firstFinding.line} - ${firstFinding.content}`);
+  }
+
+  lines.push('');
+  lines.push(`RECOMMENDATION: ${result.recommendation}`);
+  lines.push('');
+  return lines;
+}
+
+/** Format the top-N consolidation priority list. */
+function formatPriorityList(results: DuplicationResult[]): string[] {
+  const lines: string[] = ['CONSOLIDATION_PRIORITY:'];
+  for (let i = 0; i < Math.min(results.length, 5); i++) {
+    const fileCount = new Set(results[i].findings.map(f => f.file)).size;
+    lines.push(`${i + 1}. ${results[i].pattern} (${fileCount} files)`);
+  }
+  lines.push('');
+  lines.push('DEDUPE_COMPLETE');
+  return lines;
+}
+
 /** Format report */
 function formatReport(results: DuplicationResult[], searchPath: string): string {
-  const lines: string[] = [];
-
-  lines.push(`## Deduplication Report: ${searchPath}`);
-  lines.push('');
-  lines.push(`DUPLICATIONS_FOUND: ${results.length}`);
-  lines.push('');
+  const lines: string[] = [
+    `## Deduplication Report: ${searchPath}`, '',
+    `DUPLICATIONS_FOUND: ${results.length}`, '',
+  ];
 
   if (results.length === 0) {
-    lines.push('No significant duplications detected.');
-    lines.push('');
-    lines.push('DEDUPE_COMPLETE');
+    lines.push('No significant duplications detected.', '', 'DEDUPE_COMPLETE');
     return lines.join('\n');
   }
 
-  // Sort by number of files affected
+  // Sort by number of files affected (descending)
   results.sort((a, b) => {
     const aFiles = new Set(a.findings.map(f => f.file)).size;
     const bFiles = new Set(b.findings.map(f => f.file)).size;
@@ -139,47 +171,23 @@ function formatReport(results: DuplicationResult[], searchPath: string): string 
   });
 
   for (let i = 0; i < results.length; i++) {
-    const result = results[i];
-    const uniqueFiles = [...new Set(result.findings.map(f => f.file))];
-
-    lines.push(`### ${i + 1}. ${result.pattern}`);
-    lines.push(`${result.description}`);
-    lines.push('');
-    lines.push('FILES:');
-
-    for (const file of uniqueFiles) {
-      const fileFindings = result.findings.filter(f => f.file === file);
-      const firstFinding = fileFindings[0];
-      lines.push(`- ${file}:${firstFinding.line} - ${firstFinding.content}`);
-    }
-
-    lines.push('');
-    lines.push(`RECOMMENDATION: ${result.recommendation}`);
-    lines.push('');
+    lines.push(...formatResultEntry(results[i], i));
   }
 
-  lines.push('CONSOLIDATION_PRIORITY:');
-  for (let i = 0; i < Math.min(results.length, 5); i++) {
-    const result = results[i];
-    const fileCount = new Set(result.findings.map(f => f.file)).size;
-    lines.push(`${i + 1}. ${result.pattern} (${fileCount} files)`);
-  }
-  lines.push('');
-  lines.push('DEDUPE_COMPLETE');
-
+  lines.push(...formatPriorityList(results));
   return lines.join('\n');
 }
 
 /** Main command handler */
-export function runDedupe(targetPath: string = '.'): string {
+function runDedupe(targetPath: string = '.'): string {
   const absolutePath = path.resolve(targetPath);
 
-  if (!fs.existsSync(absolutePath)) {
-    return `Error: Path not found: ${absolutePath}`;
+  try {
+    const results = analyzeDuplications(absolutePath);
+    return formatReport(results, targetPath);
+  } catch {
+    return `Error: Path not accessible: ${absolutePath}`;
   }
-
-  const results = analyzeDuplications(absolutePath);
-  return formatReport(results, targetPath);
 }
 
 /** Register dedupe commands */

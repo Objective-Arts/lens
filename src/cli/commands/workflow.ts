@@ -1,6 +1,6 @@
 /**
  * Workflow commands - manage workflow skills
- * Following kernighan: single responsibility module
+ * Following clarity: single responsibility module
  */
 
 import { Command } from 'commander';
@@ -12,7 +12,6 @@ import {
   getWorkflowSourceInfo
 } from '../../workflow/index.js';
 import { printList } from '../display/index.js';
-import { validateProjectPath, getPathValidationError } from '../../utils/validation.js';
 
 export function registerWorkflowCommands(program: Command): void {
   const workflowCmd = program.command('workflow').description('Manage workflow skills');
@@ -30,15 +29,6 @@ export function registerWorkflowCommands(program: Command): void {
     .action(handleUpgrade);
 
   workflowCmd.command('source').description('Show source info').action(handleSource);
-}
-
-function validatePath(path: string): string | null {
-  const validated = validateProjectPath(path);
-  if (!validated) {
-    console.log(chalk.red(`Invalid path: ${getPathValidationError(path)}`));
-    return null;
-  }
-  return validated;
 }
 
 function handleList(): void {

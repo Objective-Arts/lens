@@ -67,6 +67,36 @@ You MUST check for and FIX all of these issues. Not "consider" - FIX:
 
 ## Process
 
+### Step 0: Load Expert Guidance
+
+Before starting, read these canon skills and apply their principles throughout:
+
+**Always load:**
+1. `.claude/skills/clarity/SKILL.md`
+2. `.claude/skills/simplicity/SKILL.md`
+3. `.claude/skills/design-patterns/SKILL.md`
+
+**Load if applicable to target code:**
+- Duplication patterns detected → also read `.claude/skills/composition/SKILL.md`
+
+If a skill file doesn't exist (not installed in this project), skip it and continue.
+Reference loaded experts in your APPLIED output.
+
+### Step 0b: Learn From Past Mistakes
+
+Read both lessons files if they exist:
+1. `workflow-skills/phase-loop-lessons.md` — universal patterns (ships with skills, applies to all projects)
+2. `.claude/phase-loop-lessons.md` — project-specific patterns (accumulated from this project's runs)
+
+Add relevant lessons to your checklist of things to look for:
+
+- **CODE_QUALITY** entries → actively hunt for these patterns (e.g., dead exports, unused imports, redundant verification reads)
+- **LOGIC** entries → check for these bug patterns during refactoring (e.g., TOCTOU, missing validation)
+
+If a file doesn't exist, skip it and continue.
+
+### Step 1: Identify Issues
+
 1. **Identify Issues** - Find all code quality problems
 2. **Fix Each One** - Use Edit tool to fix
 3. **Run Tests** - Verify behavior preserved

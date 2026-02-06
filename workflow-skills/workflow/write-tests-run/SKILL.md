@@ -70,6 +70,22 @@ You MUST write and run tests. Not "consider testing" - WRITE TESTS.
 
 ## Process
 
+### Step 0: Load Expert Guidance
+
+Before starting, read these canon skills and apply their principles throughout:
+
+**Always load:**
+1. `.claude/skills/test-doubles/SKILL.md`
+2. `.claude/skills/test-strategy/SKILL.md`
+
+**Load if applicable to target code:**
+- Auth, tokens, passwords, encryption → also read `.claude/skills/security-mindset/SKILL.md`
+
+If a skill file doesn't exist (not installed in this project), skip it and continue.
+Reference loaded experts in your APPLIED output.
+
+### Step 1: Find Code
+
 1. **Find Code** - Identify what needs testing
 2. **Write Tests** - Create test files with real assertions
 3. **Run Tests** - Execute and verify they pass
