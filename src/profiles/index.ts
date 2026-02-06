@@ -2,7 +2,7 @@
  * Profile management - create and apply configuration profiles
  *
  * Supports composable profiles that can be combined with + syntax:
- *   cc-config profile apply base-tech+javascript+react /path/to/project
+ *   lens profile apply base-tech+javascript+react /path/to/project
  *
  * Module structure:
  * - validation.ts - Schema validation and type guards

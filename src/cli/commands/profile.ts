@@ -43,7 +43,7 @@ function handleList(): void {
 
   if (profiles.length === 0) {
     console.log(chalk.gray('No profiles found.'));
-    console.log(chalk.gray(`Create one with: cc-config profile create <name>`));
+    console.log(chalk.gray(`Create one with: lens profile create <name>`));
     return;
   }
 
@@ -57,7 +57,7 @@ function handleList(): void {
   }
 
   console.log(chalk.gray('\nTip: Combine profiles with + syntax:'));
-  console.log(chalk.gray('  cc-config profile apply base-tech+javascript+react /path/to/project'));
+  console.log(chalk.gray('  lens profile apply base-tech+javascript+react /path/to/project'));
 }
 
 function handleShow(name: string): void {

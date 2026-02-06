@@ -34,7 +34,7 @@ export function loadConfig(projectPath: string): RalphConfig {
   } catch {
     throw new Error(
       `Ralph config not found: ${configPath}\n` +
-      `Run 'cc-config profile apply <profile>+ralph-integration' to set up.`
+      `Run 'lens profile apply <profile>+ralph-integration' to set up.`
     );
   }
   const parsed = yaml.load(content) as Partial<RalphConfig>;

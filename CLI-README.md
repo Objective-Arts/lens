@@ -1,21 +1,21 @@
-# cc-config CLI
+# lens CLI
 
-**cc-config** sets up Claude Code projects with expert skills and configuration profiles, while **ralph** autonomously implements features by running code through a 10-phase workflow (plan → structure → implement → refactor → review → analyze → test → document → security → production-readiness). This reflects Deming's principle of building quality in rather than inspecting it at the end—expert guidance shapes the code from the first line, and quality gates at each phase catch issues when they're cheap to fix, not after the feature is "done." The result is code that is much more reviewable and much closer to production ready.
+**lens** sets up Claude Code projects with expert skills and configuration profiles, while **ralph** autonomously implements features by running code through a 10-phase workflow (plan → structure → implement → refactor → review → analyze → test → document → security → production-readiness). This reflects Deming's principle of building quality in rather than inspecting it at the end—expert guidance shapes the code from the first line, and quality gates at each phase catch issues when they're cheap to fix, not after the feature is "done." The result is code that is much more reviewable and much closer to production ready.
 
 ## Quick Start
 
 ```bash
 # Install globally
-npm install -g cc-config
+npm install -g lens
 
 # Apply a profile to your project
-cc-config profile apply javascript+react -p /path/to/project
+lens profile apply javascript+react -p /path/to/project
 
 # Scan configuration
-cc-config scan -p /path/to/project
+lens scan -p /path/to/project
 
 # Audit for issues
-cc-config audit -p /path/to/project
+lens audit -p /path/to/project
 ```
 
 ## Features

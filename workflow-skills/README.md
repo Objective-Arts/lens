@@ -47,10 +47,10 @@ workflow-skills/
 
 ## Installation
 
-### Via cc-config (recommended)
+### Via lens (recommended)
 
 ```bash
-cc-config profile apply javascript+ralph-integration .
+lens profile apply javascript+ralph-integration .
 ```
 
 ### Manual

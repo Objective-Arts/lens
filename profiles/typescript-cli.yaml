@@ -4,7 +4,7 @@ projectType: software
 composable: true
 
 # Combine with software-base for complete coverage:
-#   cc-config profile apply software-base+typescript-cli .
+#   lens profile apply software-base+typescript-cli .
 
 skills:
   canon:

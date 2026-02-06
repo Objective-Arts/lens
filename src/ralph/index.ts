@@ -25,7 +25,7 @@ function validateInputs(options: ParsedArgs): { prdPath: string; projectPath: st
 /** Check prerequisites are met. Exits if not. */
 async function checkPrerequisites(projectPath: string): Promise<void> {
   if (!hasConfig(projectPath)) {
-    printError('Ralph config not found.\nRun: cc-config profile apply <profile>+ralph-integration -p .');
+    printError('Ralph config not found.\nRun: lens profile apply <profile>+ralph-integration -p .');
     process.exit(1);
   }
   if (!(await isClaudeAvailable())) {
@@ -120,7 +120,7 @@ Ralph processes each unchecked item in the PRD through 8 phases:
 
 Prerequisites:
   - Claude CLI installed
-  - ralph-config.yaml in .claude/ (use cc-config to set up)
+  - ralph-config.yaml in .claude/ (use lens to set up)
 `);
 }
 

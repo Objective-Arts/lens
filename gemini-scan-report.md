@@ -99,8 +99,8 @@ Consider fixing:
 6. **workflow.ts:109-110** — Hardcoded status display string `'lns workflow upgrade'`
    - Concern: The CLI is called `lens` but the help text says `lns`. Inconsistent branding.
 
-7. **canon.ts display/canon.ts:90** — Upgrade hint says `cc-config canon upgrade`
-   - Concern: Same branding issue — CLI is `lens`, hint says `cc-config`.
+7. **canon.ts display/canon.ts:90** — Upgrade hint says `lens canon upgrade`
+   - Concern: Same branding issue — CLI is `lens`, hint says `lens`.
 
 8. **audit.ts:28-33** — `fs.existsSync` used in display code
    - Concern: Display functions should be pure. Calling `fs.existsSync` from a "display" module breaks the stated contract of "pure display functions — no side effects except console output."
@@ -124,8 +124,8 @@ Minor improvements:
 2. **dedupe.ts:66** — Magic number `80` for content truncation
    - `match[3].trim().slice(0, 80)` — extract to `MAX_CONTENT_LENGTH` constant.
 
-3. **profile.ts:47-48** — Tip text references old CLI name `cc-config`
-   - `cc-config profile apply base-tech+javascript+react` should say `lens`.
+3. **profile.ts:47-48** — Tip text references old CLI name `lens`
+   - `lens profile apply base-tech+javascript+react` should say `lens`.
 
 4. **display/profile.ts:43** — `printDeployedSkills` sorts the input array in place
    - `skillNames.sort()` mutates the caller's array. Use `[...skillNames].sort()`.
@@ -133,7 +133,7 @@ Minor improvements:
 5. **audit.ts** — Comments attribute design to "Pike" and "Dijkstra"
    - These attributions add noise without value. The code speaks for itself.
 
-6. **display/canon.ts:150** — `printVerifySummary` references `cc-config canon deploy --force`
+6. **display/canon.ts:150** — `printVerifySummary` references `lens canon deploy --force`
    - Should say `lens canon deploy --force`.
 
 7. **cli.integration.test.ts:219** — Unused loop variable `name` in manifest test

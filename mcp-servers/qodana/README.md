@@ -53,11 +53,11 @@ Add to your `.mcp.json`:
 }
 ```
 
-Or use cc-config:
+Or use lens:
 
 ```bash
-cc-config mcp install qodana -p .
-cc-config mcp enable qodana -p .
+lens mcp install qodana -p .
+lens mcp enable qodana -p .
 ```
 
 ## Tools

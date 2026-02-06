@@ -4,7 +4,7 @@
  * NOTE: This module is largely deprecated. Ralph is now TypeScript-based
  * and installed via `npm link`. The bash script installation is no longer used.
  *
- * Kept for backward compatibility with `cc-config tools` command.
+ * Kept for backward compatibility with `lens tools` command.
  */
 
 import * as fs from 'fs';

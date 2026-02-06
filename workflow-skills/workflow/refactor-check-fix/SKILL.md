@@ -50,7 +50,7 @@ You MUST check for and FIX all of these issues. Not "consider" - FIX:
 2. **FILES > 300 LINES** - Split into focused modules. Create thin re-export index if needed.
 3. **COMPLEXITY > 10** - Cyclomatic complexity too high. Flatten with early returns, extract helpers.
 4. **VAGUE NAMES** - Rename data/result/temp/item/info to meaningful names.
-5. **DUPLICATE CODE** - Extract to shared function. Run `cc-config dedupe` to find cross-file duplications.
+5. **DUPLICATE CODE** - Extract to shared function. Run `lens dedupe` to find cross-file duplications.
 6. **CROSS-FILE DUPLICATION** - Same function in multiple files → extract to utils/.
 7. **DEEP NESTING** - Flatten with early returns.
 8. **MAGIC NUMBERS/STRINGS** - Extract to named constants.

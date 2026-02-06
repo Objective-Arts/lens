@@ -54,7 +54,7 @@ describe('scan', () => {
 });
 
 describe('scan with project path', () => {
-  const testProjectPath = path.join(tmpdir(), 'cc-config-test-project');
+  const testProjectPath = path.join(tmpdir(), 'lens-test-project');
 
   beforeEach(() => {
     // Create a minimal test project structure

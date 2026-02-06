@@ -293,7 +293,7 @@ export function enableServer(name: string, projectPath?: string): MCPOperationRe
   if (!isServerInstalled(name, projectPath)) {
     return {
       success: false,
-      message: `Server not installed: ${name}. Install it first with: cc-config mcp install ${name}${projectPath ? ' -p ' + projectPath : ''}`,
+      message: `Server not installed: ${name}. Install it first with: lens mcp install ${name}${projectPath ? ' -p ' + projectPath : ''}`,
       server: name
     };
   }

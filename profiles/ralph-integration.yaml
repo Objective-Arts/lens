@@ -4,9 +4,9 @@ projectType: software
 composable: true
 
 # NOTE: This profile does NOT include canon skills - those come from your tech profile.
-# Use with: cc-config profile apply javascript+ralph-integration
-# Or:       cc-config profile apply react+ralph-integration
-# Or:       cc-config profile apply java+ralph-integration
+# Use with: lens profile apply javascript+ralph-integration
+# Or:       lens profile apply react+ralph-integration
+# Or:       lens profile apply java+ralph-integration
 
 # Agents for quality enforcement during autonomous iteration
 agents:
@@ -84,13 +84,13 @@ ralph:
 # Example usage:
 #
 #   # For a JavaScript/React project:
-#   cc-config profile apply javascript+react+ralph-integration -p .
+#   lens profile apply javascript+react+ralph-integration -p .
 #
 #   # For a Java project:
-#   cc-config profile apply java+ralph-integration -p .
+#   lens profile apply java+ralph-integration -p .
 #
 #   # For a Python project:
-#   cc-config profile apply python+ralph-integration -p .
+#   lens profile apply python+ralph-integration -p .
 #
 # This gives you:
 #   - Tech profile: language canon + standards

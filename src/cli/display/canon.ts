@@ -89,7 +89,7 @@ function printStatusSummary(statuses: SkillStatusInfo[], projectPath: string): v
   const modified = statuses.filter(s => s.status === 'modified').length;
 
   if (outdated > 0) {
-    console.log(chalk.yellow(`\nRun 'cc-config canon upgrade -p ${projectPath}' to update ${outdated} skill(s)`));
+    console.log(chalk.yellow(`\nRun 'lens canon upgrade -p ${projectPath}' to update ${outdated} skill(s)`));
   }
   if (modified > 0) {
     console.log(chalk.blue(`\n${modified} skill(s) have local modifications`));
@@ -149,6 +149,6 @@ function printVerifySummary(result: {
   if (result.allMatch) {
     console.log(chalk.green('\n✓ All canon skills are identical to source!'));
   } else {
-    console.log(chalk.yellow('\n⚠ Some skills differ from source. Run `cc-config canon deploy --force` to sync.'));
+    console.log(chalk.yellow('\n⚠ Some skills differ from source. Run `lens canon deploy --force` to sync.'));
   }
 }

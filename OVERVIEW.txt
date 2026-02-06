@@ -121,9 +121,9 @@ Profiles compose these combinations. A profile defines:
 
 Profiles combine with + syntax:
 
-  cc-config profile apply javascript+react ./myproject
-  cc-config profile apply python+security ./myproject
-  cc-config profile apply angular+testing ./myproject
+  lens profile apply javascript+react ./myproject
+  lens profile apply python+security ./myproject
+  lens profile apply angular+testing ./myproject
 
 The first installs react-state, react-test, typescript, js-perf. The second installs
 security-mindset, OWASP, python-idioms, python-protocols. Each profile adds its auto-invoke rules.
@@ -135,27 +135,27 @@ Skills copy as real files into each project's .claude/skills/ directory. No
 symlinks, no remote dependencies. A manifest tracks version and hash for each
 skill. Projects work standalone--clone the repo, skills are there.
 
-Upgrades are explicit. Run "cc-config canon upgrade" to pull new versions from
+Upgrades are explicit. Run "lens canon upgrade" to pull new versions from
 the source repository. Local edits persist unless forced. The manifest shows
 which skills are current, outdated, or modified.
 
 
 The CLI
 
-cc-config manages the system:
+lens manages the system:
 
-  cc-config canon list          - show available skills
-  cc-config canon install NAME  - copy a skill to project
-  cc-config canon status        - compare installed vs source
-  cc-config canon upgrade       - update outdated skills
-  cc-config canon diff NAME     - show changes between versions
+  lens canon list          - show available skills
+  lens canon install NAME  - copy a skill to project
+  lens canon status        - compare installed vs source
+  lens canon upgrade       - update outdated skills
+  lens canon diff NAME     - show changes between versions
 
-  cc-config profile list        - show available profiles
-  cc-config profile show NAME   - display profile contents
-  cc-config profile apply NAME  - configure a project
+  lens profile list        - show available profiles
+  lens profile show NAME   - display profile contents
+  lens profile apply NAME  - configure a project
 
-  cc-config scan                - discover all Claude configuration
-  cc-config mcp list            - show MCP server status
+  lens scan                - discover all Claude configuration
+  lens mcp list            - show MCP server status
 
 
 Auto-Invoke Rules

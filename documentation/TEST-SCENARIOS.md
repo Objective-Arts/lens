@@ -1,35 +1,35 @@
 # CLI Test Scenarios
 
-End-to-end test scenarios for cc-config and ralph.
+End-to-end test scenarios for lens and ralph.
 
 ---
 
 ## CC-CONFIG: Profile Management
 
 ### Profile List
-- [ ] `cc-config profile list` shows all available profiles
+- [ ] `lens profile list` shows all available profiles
 - [ ] Profiles grouped by type (software, business, etc.)
 - [ ] Shows skill count for each profile
 - [ ] Composable profiles marked appropriately
 
 ### Profile Show
-- [ ] `cc-config profile show javascript` displays profile details
+- [ ] `lens profile show javascript` displays profile details
 - [ ] Shows skills by category (canon, tech, security)
 - [ ] Shows ralph stage-specific skills
 - [ ] Shows claudeMd standards and antiPatterns
 - [ ] Shows auto-invoke rules
-- [ ] `cc-config profile show nonexistent` shows helpful error
+- [ ] `lens profile show nonexistent` shows helpful error
 
 ### Profile Apply
-- [ ] `cc-config profile apply javascript -p /path` creates .claude directory
+- [ ] `lens profile apply javascript -p /path` creates .claude directory
 - [ ] Copies canon skills to .claude/skills/
 - [ ] Generates .claude/ralph-config.yaml with stage skills
 - [ ] Updates/creates CLAUDE.md with profile info
 - [ ] Adds auto-invoke rules to CLAUDE.md
-- [ ] `cc-config profile apply javascript+react -p /path` combines profiles
+- [ ] `lens profile apply javascript+react -p /path` combines profiles
 - [ ] Combined profile merges skills (no duplicates)
 - [ ] Combined profile merges ralph stage skills
-- [ ] `cc-config profile apply javascript+security-hardened+ralph-integration` three-way combine works
+- [ ] `lens profile apply javascript+security-hardened+ralph-integration` three-way combine works
 - [ ] Re-applying profile with --force overwrites existing
 - [ ] Without --force, skips existing skills
 
@@ -46,39 +46,39 @@ End-to-end test scenarios for cc-config and ralph.
 ## CC-CONFIG: Canon Skills
 
 ### Canon List
-- [ ] `cc-config canon list` shows all available skills
+- [ ] `lens canon list` shows all available skills
 - [ ] Skills organized by category (javascript, security, testing, etc.)
 - [ ] Shows source path for each skill
 
 ### Canon Copy
-- [ ] `cc-config canon copy react-state -p /path` copies skill to project
+- [ ] `lens canon copy react-state -p /path` copies skill to project
 - [ ] Creates .claude/skills/react-state/ directory structure
 - [ ] Copies SKILL.md and SUMMARY.md
 - [ ] Updates canon manifest with hash and timestamp
-- [ ] `cc-config canon copy nonexistent` shows error
+- [ ] `lens canon copy nonexistent` shows error
 - [ ] Without --force, skips existing skill
 - [ ] With --force, overwrites existing skill
 
 ### Canon Status
-- [ ] `cc-config canon status -p /path` shows installed skills
+- [ ] `lens canon status -p /path` shows installed skills
 - [ ] Identifies current/outdated/modified skills
 - [ ] Shows source commit vs installed commit
 - [ ] Handles missing source gracefully
 
 ### Canon Upgrade
-- [ ] `cc-config canon upgrade -p /path` updates outdated skills
+- [ ] `lens canon upgrade -p /path` updates outdated skills
 - [ ] Skips locally modified skills (without --force)
 - [ ] With --force, overwrites modified skills
 - [ ] Updates manifest after upgrade
-- [ ] `cc-config canon upgrade react-state -p /path` upgrades specific skill
+- [ ] `lens canon upgrade react-state -p /path` upgrades specific skill
 
 ### Canon Verify
-- [ ] `cc-config canon verify -p /path` compares installed vs source
+- [ ] `lens canon verify -p /path` compares installed vs source
 - [ ] Reports matches, differences, missing, extra
 - [ ] Returns non-zero exit code if differences found
 
 ### Canon Deploy All
-- [ ] `cc-config canon deploy -p /path` copies all canon skills
+- [ ] `lens canon deploy -p /path` copies all canon skills
 - [ ] Respects --force flag
 - [ ] Reports count of deployed/skipped/errors
 
@@ -87,14 +87,14 @@ End-to-end test scenarios for cc-config and ralph.
 ## CC-CONFIG: Context Analysis
 
 ### Context Check
-- [ ] `cc-config context -p /path` analyzes token usage
+- [ ] `lens context -p /path` analyzes token usage
 - [ ] Shows breakdown by scope (project, user, skill, memory)
 - [ ] Shows top consumers
 - [ ] Calculates total tokens
 - [ ] Warns when approaching context limits
 
 ### Context Detail
-- [ ] `cc-config context --detail -p /path` shows per-file breakdown
+- [ ] `lens context --detail -p /path` shows per-file breakdown
 - [ ] Lists each skill with token count
 - [ ] Shows percentage of total
 
@@ -313,7 +313,7 @@ End-to-end test scenarios for cc-config and ralph.
 ### Fresh Project Setup
 1. [ ] Create new directory
 2. [ ] Create PRD.md with items
-3. [ ] Run `cc-config profile apply javascript+security-hardened+ralph-integration -p .`
+3. [ ] Run `lens profile apply javascript+security-hardened+ralph-integration -p .`
 4. [ ] Verify .claude/skills/ populated
 5. [ ] Verify .claude/ralph-config.yaml created
 6. [ ] Verify CLAUDE.md updated

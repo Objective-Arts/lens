@@ -1,4 +1,4 @@
-# Developer Guide: Learning to Code in cc-config
+# Developer Guide: Learning to Code in lens
 
 This guide teaches you how to understand and write code in this codebase. No deep TypeScript knowledge required—we explain everything as we go.
 
@@ -6,7 +6,7 @@ This guide teaches you how to understand and write code in this codebase. No dee
 
 ## Overview
 
-**cc-config** sets up Claude Code projects with expert skills and configuration profiles, while **ralph** autonomously implements features by running code through a 10-phase workflow (plan → structure → implement → refactor → review → analyze → test → document → security → production-readiness). This reflects Deming's principle of building quality in rather than inspecting it at the end—expert guidance shapes the code from the first line, and quality gates at each phase catch issues when they're cheap to fix, not after the feature is "done." The result is code that is much more reviewable and much closer to production ready.
+**lens** sets up Claude Code projects with expert skills and configuration profiles, while **ralph** autonomously implements features by running code through a 10-phase workflow (plan → structure → implement → refactor → review → analyze → test → document → security → production-readiness). This reflects Deming's principle of building quality in rather than inspecting it at the end—expert guidance shapes the code from the first line, and quality gates at each phase catch issues when they're cheap to fix, not after the feature is "done." The result is code that is much more reviewable and much closer to production ready.
 
 ---
 
@@ -14,7 +14,7 @@ This guide teaches you how to understand and write code in this codebase. No dee
 
 This codebase has two tools:
 
-1. **cc-config** — Sets up projects with the right skills and configuration
+1. **lens** — Sets up projects with the right skills and configuration
 2. **ralph** — Runs code through 10 phases to implement features autonomously
 
 Both are command-line tools written in TypeScript.
@@ -40,7 +40,7 @@ import {
 const program = new Command();
 
 program
-  .name('cc-config')
+  .name('lens')
   .description('Claude Code configuration manager')
   .version('0.1.0');
 
@@ -59,7 +59,7 @@ Let's break this down:
 | `#!/usr/bin/env node` | Tells the system to run this with Node.js |
 | `import { Command } from 'commander'` | Loads the Commander library that handles CLI arguments |
 | `const program = new Command()` | Creates a new command-line program |
-| `program.name('cc-config')` | Sets the program name |
+| `program.name('lens')` | Sets the program name |
 | `registerScanCommands(program)` | Adds the "scan" command (we'll see how below) |
 | `program.parse()` | Reads what the user typed and runs the right command |
 
@@ -109,7 +109,7 @@ program
   .description('Scan and discover...')
   .option('-p, --project <path>', 'Project path', process.cwd())
   .action(async (options) => {
-    // This runs when user types "cc-config scan"
+    // This runs when user types "lens scan"
   });
 ```
 
@@ -543,9 +543,9 @@ registerHelloCommand(program);  // Add this
 
 ```bash
 npm run build
-cc-config hello
-cc-config hello Steve
-cc-config hello Steve --loud
+lens hello
+lens hello Steve
+lens hello Steve --loud
 ```
 
 ---
@@ -719,7 +719,7 @@ npm run test:watch          # Re-run on file changes
 npm link
 ```
 
-Now `cc-config` and `ralph` work from anywhere.
+Now `lens` and `ralph` work from anywhere.
 
 ---
 

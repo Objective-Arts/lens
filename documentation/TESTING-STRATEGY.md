@@ -114,7 +114,7 @@ import { mkdtemp, rm } from 'fs/promises';
 import { execSync } from 'child_process';
 import { join } from 'path';
 
-describe('cc-config profile apply', () => {
+describe('lens profile apply', () => {
   let tempDir: string;
 
   beforeEach(async () => {
@@ -127,7 +127,7 @@ describe('cc-config profile apply', () => {
   });
 
   it('creates .claude directory structure', () => {
-    execSync(`cc-config profile apply javascript -p ${tempDir}`);
+    execSync(`lens profile apply javascript -p ${tempDir}`);
 
     expect(fs.existsSync(join(tempDir, '.claude'))).toBe(true);
     expect(fs.existsSync(join(tempDir, '.claude', 'skills'))).toBe(true);
@@ -135,7 +135,7 @@ describe('cc-config profile apply', () => {
   });
 
   it('copies canon skills to project', () => {
-    execSync(`cc-config profile apply javascript -p ${tempDir}`);
+    execSync(`lens profile apply javascript -p ${tempDir}`);
 
     const skillsDir = join(tempDir, '.claude', 'skills');
     expect(fs.existsSync(join(skillsDir, 'typescript', 'SKILL.md'))).toBe(true);
@@ -143,7 +143,7 @@ describe('cc-config profile apply', () => {
   });
 
   it('combines multiple profiles', () => {
-    execSync(`cc-config profile apply javascript+security-hardened -p ${tempDir}`);
+    execSync(`lens profile apply javascript+security-hardened -p ${tempDir}`);
 
     const config = yaml.load(
       fs.readFileSync(join(tempDir, '.claude', 'ralph-config.yaml'), 'utf8')
@@ -157,7 +157,7 @@ describe('cc-config profile apply', () => {
   });
 
   it('generates ralph-config.yaml with stage skills', () => {
-    execSync(`cc-config profile apply software-base -p ${tempDir}`);
+    execSync(`lens profile apply software-base -p ${tempDir}`);
 
     const config = yaml.load(
       fs.readFileSync(join(tempDir, '.claude', 'ralph-config.yaml'), 'utf8')
@@ -169,7 +169,7 @@ describe('cc-config profile apply', () => {
   });
 });
 
-describe('cc-config canon', () => {
+describe('lens canon', () => {
   let tempDir: string;
 
   beforeEach(async () => {
@@ -181,23 +181,23 @@ describe('cc-config canon', () => {
   });
 
   it('lists available canon skills', () => {
-    const output = execSync('cc-config canon list').toString();
+    const output = execSync('lens canon list').toString();
     expect(output).toContain('clarity');
     expect(output).toContain('security-mindset');
     expect(output).toContain('react-test');
   });
 
   it('copies individual skill', () => {
-    execSync(`cc-config canon copy clarity -p ${tempDir}`);
+    execSync(`lens canon copy clarity -p ${tempDir}`);
 
     expect(fs.existsSync(join(tempDir, '.claude', 'skills', 'clarity', 'SKILL.md'))).toBe(true);
   });
 
   it('detects outdated skills', async () => {
     // Setup: copy skill, then modify source
-    execSync(`cc-config canon copy clarity -p ${tempDir}`);
+    execSync(`lens canon copy clarity -p ${tempDir}`);
 
-    const output = execSync(`cc-config canon status -p ${tempDir}`).toString();
+    const output = execSync(`lens canon status -p ${tempDir}`).toString();
     expect(output).toContain('current');
   });
 });

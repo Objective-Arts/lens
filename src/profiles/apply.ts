@@ -415,7 +415,7 @@ async function generateRalphConfig(profile: ComposableProfile, projectPath: stri
   const configPath = path.join(projectPath, CLAUDE_DIR_NAME, 'ralph-config.yaml');
   const config: Record<string, unknown> = {
     _generated: `Auto-generated from profile: ${profile.name}`,
-    _regenerate: 'cc-config profile apply',
+    _regenerate: 'lens profile apply',
   };
 
   if (profile.ralph.skills) {

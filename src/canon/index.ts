@@ -4,7 +4,7 @@
  * Skills are copied (not symlinked) into .claude/skills/ as real files.
  * A manifest tracks source, version, and upgrade path.
  * Projects are fully portable - work standalone.
- * Upgrades are explicit - run `cc-config canon upgrade`.
+ * Upgrades are explicit - run `lens canon upgrade`.
  *
  * Module structure:
  * - types.ts - Type definitions

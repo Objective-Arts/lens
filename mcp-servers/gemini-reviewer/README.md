@@ -16,7 +16,7 @@ Code review via Google Gemini. Use as an external reviewer during Claude Code se
 - `readability` - Clarity and maintainability
 - `bugs` - Bug detection and edge cases
 
-## Setup via cc-config
+## Setup via lens
 
 ### 1. Get API Key
 
@@ -32,7 +32,7 @@ export GEMINI_API_KEY="your-key-here"
 
 Then reload: `source ~/.zshrc`
 
-### 3. Register Server in cc-config Registry
+### 3. Register Server in lens Registry
 
 ```bash
 cd mcp-servers/gemini-reviewer
@@ -46,8 +46,8 @@ This adds the server definition to `~/.claude/mcp-registry/servers/`.
 
 ```bash
 cd /path/to/your/project
-cc-config mcp install gemini-reviewer
-cc-config mcp enable gemini-reviewer
+lens mcp install gemini-reviewer
+lens mcp enable gemini-reviewer
 ```
 
 This creates/updates `.mcp.json` in your project with the server config.

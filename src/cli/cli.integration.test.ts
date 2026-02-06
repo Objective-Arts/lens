@@ -1,5 +1,5 @@
 /**
- * Integration tests for cc-config CLI
+ * Integration tests for lens CLI
  *
  * Tests that run actual CLI commands and verify real functionality
  */
@@ -12,7 +12,7 @@ import { tmpdir } from 'os';
 
 // Helper to create unique test directories
 function createTestDir(): string {
-  const testDir = path.join(tmpdir(), `cc-config-test-${Date.now()}-${Math.random().toString(36).slice(2)}`);
+  const testDir = path.join(tmpdir(), `lens-test-${Date.now()}-${Math.random().toString(36).slice(2)}`);
   fs.mkdirSync(testDir, { recursive: true });
   return testDir;
 }
@@ -20,7 +20,7 @@ function createTestDir(): string {
 // Helper to run CLI commands
 function runCli(args: string, cwd?: string): { stdout: string; stderr: string; exitCode: number } {
   try {
-    const stdout = execSync(`cc-config ${args}`, {
+    const stdout = execSync(`lens ${args}`, {
       cwd,
       encoding: 'utf-8',
       stdio: ['pipe', 'pipe', 'pipe']
@@ -46,7 +46,7 @@ function isSymlink(filepath: string): boolean {
   }
 }
 
-describe('cc-config CLI integration', () => {
+describe('lens CLI integration', () => {
   let testDir: string;
 
   beforeEach(() => {
