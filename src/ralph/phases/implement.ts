@@ -136,6 +136,11 @@ export class ImplementPhase extends BasePhase {
       return this.failed('Code contains vague variable names (data, result, temp, etc). Use meaningful names.');
     }
 
+    const principleError = this.validateAppliedPrinciples(output.result, experts);
+    if (principleError) {
+      return this.failed(`Principle validation failed: ${principleError}`);
+    }
+
     return this.success('Implementation complete', undefined, output.result);
   }
 }

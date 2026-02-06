@@ -123,6 +123,11 @@ export class PlanPhase extends BasePhase {
       return this.failed('Plan contains vague language. All items must be specific and actionable.');
     }
 
+    const principleError = this.validateAppliedPrinciples(output.result, experts);
+    if (principleError) {
+      return this.failed(`Principle validation failed: ${principleError}`);
+    }
+
     // Save plan
     const plansDir = path.join(projectPath, '.claude', 'plans');
     if (!fs.existsSync(plansDir)) {

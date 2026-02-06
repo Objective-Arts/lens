@@ -123,6 +123,11 @@ export class RefactorCheckPhase extends BasePhase {
       }
     }
 
+    const principleError = this.validateAppliedPrinciples(output.result, experts);
+    if (principleError) {
+      return this.failed(`Principle validation failed: ${principleError}`);
+    }
+
     // Parse refactoring count (handles markdown bold)
     const countMatch = output.result.match(/\*?\*?REFACTOR_COUNT:?\*?\*?\s*(\d+)/i);
     const refactorCount = countMatch ? parseInt(countMatch[1], 10) : 0;

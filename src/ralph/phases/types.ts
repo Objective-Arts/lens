@@ -85,8 +85,7 @@ export abstract class BasePhase implements Phase {
   }
 
   /**
-   * Build expert guidance string for prompts.
-   * Each phase adds its own output format - this just provides the expert content.
+   * Build expert guidance from SUMMARY.md content with enforcement checklists.
    */
   protected buildExpertGuidance(experts: readonly Skill[]): string {
     if (experts.length === 0) {
@@ -94,27 +93,98 @@ export abstract class BasePhase implements Phase {
     }
 
     const expertNames = experts.map(s => s.name).join(', ');
-    const guidance = experts.map(s => `## ${s.name}\n\n${this.extractCore(s.content)}`);
 
-    return `\n\n---\n\nEXPERT GUIDANCE (${expertNames}):\n\n` + guidance.join('\n\n---\n\n');
+    const guidance = experts.map(s => {
+      const body = s.summary || this.stripFrontmatter(s.content);
+      return `## ${s.name}\n\n${body}`;
+    });
+
+    const checklistSection = this.buildEnforcementChecklist(experts);
+
+    return `\n\n---\n\nEXPERT GUIDANCE (${expertNames}):\n\n`
+      + guidance.join('\n\n---\n\n')
+      + checklistSection;
   }
 
   /**
-   * Extract core content from skill, skipping frontmatter.
+   * Build enforcement checklist — hard pass/fail gates from expert checklists.
    */
-  private extractCore(content: string, maxLines: number = 50): string {
-    const lines = content.split('\n');
-    let start = 0;
+  private buildEnforcementChecklist(experts: readonly Skill[]): string {
+    const allItems: string[] = [];
 
-    // Skip YAML frontmatter
-    if (lines[0]?.trim() === '---') {
-      const endIdx = lines.findIndex((l, i) => i > 0 && l.trim() === '---');
-      if (endIdx > 0) {
-        start = endIdx + 1;
+    for (const expert of experts) {
+      if (expert.checklist.length > 0) {
+        for (const item of expert.checklist) {
+          allItems.push(`- [${expert.name}] ${item}`);
+        }
       }
     }
 
-    return lines.slice(start, start + maxLines).join('\n').trim();
+    if (allItems.length === 0) return '';
+
+    return `\n\n---\n\n## ENFORCEMENT CHECKLIST (PASS/FAIL — NOT OPTIONAL)\n\n`
+      + `Your code MUST pass ALL of these checks. If any check fails, your output is rejected.\n\n`
+      + allItems.join('\n')
+      + `\n\nFor each item in APPLIED:, cite the specific checklist item it satisfies.`
+      + ` Generic claims like "applied clarity principles" will be rejected.\n`;
+  }
+
+  /** Strip YAML frontmatter. */
+  private stripFrontmatter(content: string): string {
+    const lines = content.split('\n');
+    if (lines[0]?.trim() === '---') {
+      const endIdx = lines.findIndex((l, i) => i > 0 && l.trim() === '---');
+      if (endIdx > 0) {
+        return lines.slice(endIdx + 1).join('\n').trim();
+      }
+    }
+    return content.trim();
+  }
+
+  /** Validate APPLIED section has concrete, per-expert decisions. Returns error or null. */
+  protected validateAppliedPrinciples(output: string, experts: readonly Skill[]): string | null {
+    if (experts.length === 0) return null;
+
+    const appliedMatch = output.match(/APPLIED:\s*\n([\s\S]*?)(?=\n[A-Z_]+(?:_COMPLETE)?|\s*$)/i);
+    if (!appliedMatch) {
+      return 'Missing APPLIED section. You must cite which expert principles you applied.';
+    }
+
+    const appliedText = appliedMatch[1];
+    const appliedLines = appliedText
+      .split('\n')
+      .filter(line => line.trim().startsWith('-'))
+      .map(line => line.trim());
+
+    if (appliedLines.length === 0) {
+      return 'APPLIED section is empty. Each loaded expert must have a specific decision cited.';
+    }
+
+    const expertNames = experts.map(s => s.name);
+    const missingExperts = expertNames.filter(name =>
+      !appliedLines.some(line => line.toLowerCase().includes(name.toLowerCase()))
+    );
+
+    if (missingExperts.length > 0) {
+      return `APPLIED section missing decisions for: ${missingExperts.join(', ')}. `
+        + `Each expert must have a specific decision (not generic claims).`;
+    }
+
+    const genericPatterns = [
+      /applied .* principles?$/i,
+      /followed .* guidance$/i,
+      /used .* best practices$/i,
+      /considered .* approach$/i,
+    ];
+    const genericLines = appliedLines.filter(line =>
+      genericPatterns.some(p => p.test(line))
+    );
+    if (genericLines.length > 0) {
+      return `APPLIED section contains generic claims: "${genericLines[0]}". `
+        + `Cite specific decisions (e.g., "clarity: used early returns to flatten nesting in parseConfig").`;
+    }
+
+    return null;
   }
 
   /**

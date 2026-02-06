@@ -48,6 +48,8 @@ export type StageResult =
 export interface Skill {
   name: string;
   content: string;
+  summary: string;
+  checklist: readonly string[];
   source: 'profile' | 'dynamic';
 }
 
