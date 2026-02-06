@@ -1,10 +1,3 @@
-/**
- * Workflow Skills Management
- *
- * Manages universal workflow skills (not canon) that apply across all projects.
- * Uses copy-with-manifest pattern for portability.
- */
-
 import * as fs from 'fs';
 import * as path from 'path';
 import type {
@@ -14,7 +7,6 @@ import type {
   WorkflowSkillInfo,
   WorkflowSkillStatus
 } from './types.js';
-import { copyDirectorySync } from '../utils/fs.js';
 import { getGitCommit, getGitRemote } from '../utils/git.js';
 import { hashDirectoryContents } from '../utils/hash.js';
 
@@ -36,9 +28,6 @@ const WORKFLOW_PATHS = [
   path.resolve(process.env.HOME || '', 'workflow-skills')
 ].filter((p): p is string => Boolean(p));
 
-/**
- * Get the workflow skills source path
- */
 function getWorkflowSourcePath(): string {
   for (const p of WORKFLOW_PATHS) {
     if (fs.existsSync(p)) {
@@ -48,9 +37,6 @@ function getWorkflowSourcePath(): string {
   return DEFAULT_WORKFLOW_SOURCE;
 }
 
-/**
- * Get info about the workflow source
- */
 export function getWorkflowSourceInfo(): WorkflowSource & { commit?: string; remote?: string } {
   const sourcePath = getWorkflowSourcePath();
   const commit = getGitCommit(sourcePath);
@@ -217,9 +203,14 @@ export function installWorkflowSkill(
   }
 
   if (fs.existsSync(targetPath)) {
-    fs.rmSync(targetPath, { recursive: true });
+    const stat = fs.lstatSync(targetPath);
+    if (stat.isSymbolicLink()) {
+      fs.unlinkSync(targetPath);
+    } else {
+      fs.rmSync(targetPath, { recursive: true });
+    }
   }
-  copyDirectorySync(validation.skillSourcePath, targetPath);
+  fs.symlinkSync(validation.skillSourcePath, targetPath);
   recordSkillInstall(projectPath, skillName, targetPath);
 
   return { success: true, message: `Installed workflow skill: ${skillName}` };
@@ -318,21 +309,6 @@ export function checkWorkflowStatus(projectPath: string): WorkflowStatusInfo[] {
   });
 }
 
-/** Categorize a skill status for upgrade decision */
-function categorizeForUpgrade(
-  status: WorkflowStatusInfo,
-  force: boolean
-): 'upgrade' | { skip: string } {
-  if (status.status === 'current') return { skip: `${status.name}: already current` };
-  if (status.status === 'modified' && !force) {
-    return { skip: `${status.name}: locally modified (use --force to overwrite)` };
-  }
-  if (status.status === 'missing' || status.status === 'unknown') {
-    return { skip: `${status.name}: ${status.status}` };
-  }
-  return 'upgrade';
-}
-
 export function upgradeWorkflowSkills(
   projectPath: string,
   options: { force?: boolean; skills?: string[] } = {}
@@ -343,14 +319,23 @@ export function upgradeWorkflowSkills(
   }
 
   const statuses = checkWorkflowStatus(projectPath);
+  const force = options.force ?? false;
   const results = { upgraded: [] as string[], skipped: [] as string[], errors: [] as string[] };
 
   for (const status of statuses) {
     if (options.skills && !options.skills.includes(status.name)) continue;
 
-    const category = categorizeForUpgrade(status, options.force ?? false);
-    if (category !== 'upgrade') {
-      results.skipped.push(category.skip);
+    // Categorize skill for upgrade decision
+    if (status.status === 'current') {
+      results.skipped.push(`${status.name}: already current`);
+      continue;
+    }
+    if (status.status === 'modified' && !force) {
+      results.skipped.push(`${status.name}: locally modified (use --force to overwrite)`);
+      continue;
+    }
+    if (status.status === 'missing' || status.status === 'unknown') {
+      results.skipped.push(`${status.name}: ${status.status}`);
       continue;
     }
 
