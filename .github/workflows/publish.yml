@@ -1,8 +1,11 @@
 name: Publish to GitHub Packages
 
 on:
-  release:
-    types: [published]
+  push:
+    tags:
+      - 'lens-v*'
+      - 'gemini-reviewer-v*'
+      - 'qodana-v*'
 
 jobs:
   publish:
@@ -20,26 +23,42 @@ jobs:
           registry-url: 'https://npm.pkg.github.com'
           scope: '@objective-arts'
 
+      - name: Determine package from tag
+        id: pkg
+        run: |
+          TAG=${GITHUB_REF#refs/tags/}
+          if [[ "$TAG" == lens-v* ]]; then
+            echo "dir=." >> "$GITHUB_OUTPUT"
+            echo "version=${TAG#lens-v}" >> "$GITHUB_OUTPUT"
+          elif [[ "$TAG" == gemini-reviewer-v* ]]; then
+            echo "dir=mcp-servers/gemini-reviewer" >> "$GITHUB_OUTPUT"
+            echo "version=${TAG#gemini-reviewer-v}" >> "$GITHUB_OUTPUT"
+          elif [[ "$TAG" == qodana-v* ]]; then
+            echo "dir=mcp-servers/qodana" >> "$GITHUB_OUTPUT"
+            echo "version=${TAG#qodana-v}" >> "$GITHUB_OUTPUT"
+          else
+            echo "Unknown tag prefix: $TAG"
+            exit 1
+          fi
+
       - name: Install dependencies
-        working-directory: ./cli
+        working-directory: ${{ steps.pkg.outputs.dir }}
         run: npm ci
 
       - name: Build
-        working-directory: ./cli
-        run: npm run build
+        working-directory: ${{ steps.pkg.outputs.dir }}
+        run: npm run build --if-present
 
       - name: Run tests
-        working-directory: ./cli
-        run: npm test
+        working-directory: ${{ steps.pkg.outputs.dir }}
+        run: npm test --if-present
 
-      - name: Update version from release tag
-        working-directory: ./cli
-        run: |
-          VERSION=${GITHUB_REF#refs/tags/v}
-          npm version $VERSION --no-git-tag-version --allow-same-version
+      - name: Set version from tag
+        working-directory: ${{ steps.pkg.outputs.dir }}
+        run: npm version ${{ steps.pkg.outputs.version }} --no-git-tag-version --allow-same-version
 
       - name: Publish
-        working-directory: ./cli
+        working-directory: ${{ steps.pkg.outputs.dir }}
         run: npm publish
         env:
           NODE_AUTH_TOKEN: ${{ secrets.GITHUB_TOKEN }}

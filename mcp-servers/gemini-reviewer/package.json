@@ -1,11 +1,31 @@
 {
-  "name": "gemini-reviewer",
+  "name": "@objective-arts/mcp-server-gemini-reviewer",
   "version": "1.0.0",
-  "type": "module",
   "description": "MCP server for Gemini code reviews",
+  "type": "module",
   "main": "index.js",
+  "bin": {
+    "mcp-server-gemini-reviewer": "./index.js"
+  },
+  "files": [
+    "index.js",
+    "README.md"
+  ],
   "scripts": {
     "start": "node index.js"
+  },
+  "publishConfig": {
+    "registry": "https://npm.pkg.github.com"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/Objective-Arts/lens.git",
+    "directory": "mcp-servers/gemini-reviewer"
+  },
+  "author": "Objective Arts LLC",
+  "license": "MIT",
+  "engines": {
+    "node": ">=18.0.0"
   },
   "dependencies": {
     "@google/generative-ai": "^0.21.0",

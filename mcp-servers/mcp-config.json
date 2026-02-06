@@ -1,18 +1,22 @@
 {
   "mcpServers": {
+    "sequential-thinking": {
+      "type": "stdio",
+      "command": "npx",
+      "args": ["-y", "@modelcontextprotocol/server-sequential-thinking"]
+    },
     "gemini-reviewer": {
       "type": "stdio",
-      "command": "node",
-      "args": [
-        "/Users/steve/local-tech-projects/claude-optimal/mcp-servers/gemini-reviewer/index.js"
-      ]
+      "command": "npx",
+      "args": ["-y", "@objective-arts/mcp-server-gemini-reviewer"],
+      "env": {
+        "GEMINI_API_KEY": "${GEMINI_API_KEY}"
+      }
     },
     "qodana": {
       "type": "stdio",
-      "command": "node",
-      "args": [
-        "/Users/steve/local-tech-projects/claude-optimal/mcp-servers/qodana/dist/index.js"
-      ]
+      "command": "npx",
+      "args": ["-y", "@objective-arts/mcp-server-qodana"]
     }
   }
 }

@@ -1,5 +1,5 @@
 {
-  "name": "@anthropic/mcp-server-qodana",
+  "name": "@objective-arts/mcp-server-qodana",
   "version": "0.1.0",
   "description": "MCP server for JetBrains Qodana code quality analysis",
   "type": "module",
@@ -10,7 +10,7 @@
   "scripts": {
     "build": "tsc",
     "dev": "tsx src/index.ts",
-    "start": "node dist/index.ts",
+    "start": "node dist/index.js",
     "test": "vitest",
     "prepublishOnly": "npm run build"
   },
@@ -22,7 +22,15 @@
     "static-analysis",
     "claude"
   ],
-  "author": "Steve",
+  "publishConfig": {
+    "registry": "https://npm.pkg.github.com"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/Objective-Arts/lens.git",
+    "directory": "mcp-servers/qodana"
+  },
+  "author": "Objective Arts LLC",
   "license": "MIT",
   "dependencies": {
     "@modelcontextprotocol/sdk": "^1.0.0"
@@ -37,6 +45,7 @@
     "node": ">=18.0.0"
   },
   "files": [
-    "dist"
+    "dist",
+    "README.md"
   ]
 }
