@@ -24,11 +24,11 @@ ${chalk.bold.white('Lens')} ${chalk.dim('— AI Assisted Development That Builds
 ${chalk.bold.yellow('CONFIGURE A PROJECT')}
 
   ${chalk.white('1.')} ${chalk.green('$')} lens profile list              ${chalk.dim('See available profiles')}
-  ${chalk.white('2.')} ${chalk.green('$')} lens profile apply ${chalk.dim('<profile>')}    ${chalk.dim('Install skills + config')}
-  ${chalk.white('3.')} ${chalk.green('$')} claude                         ${chalk.dim('Start Claude Code')}
+  ${chalk.white('2.')} ${chalk.green('$')} lens profile apply ${chalk.white('javascript+react .')}  ${chalk.dim('Install skills + config')}
+  ${chalk.white('3.')} ${chalk.green('$')} claude                                  ${chalk.dim('Start Claude Code')}
 
-  ${chalk.dim('Profiles: javascript, python, java, react, angular, csharp, security ...')}
-  ${chalk.dim('This copies canon skills to .claude/skills/ and phases to .claude/phases/,')}
+  ${chalk.dim('Combine profiles with +: javascript+react, python+security, java+sql')}
+  ${chalk.dim('Copies canon skills to .claude/skills/, phases to .claude/phases/,')}
   ${chalk.dim('sets up CLAUDE.md with auto-invoke rules, and configures MCP servers.')}
 
 ${chalk.bold.yellow('INSIDE CLAUDE CODE')} ${chalk.dim('(slash commands after setup)')}
