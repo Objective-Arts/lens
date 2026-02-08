@@ -1,7 +1,7 @@
 # Session Progress - 2026-02-05T20:00:00Z
 
 ## Current Task
-Wiring up the self-learning feedback loop in workflow-skills so the phase-loop pipeline gets smarter over time and across projects.
+Wiring up the self-learning feedback loop in workflow-skills so the /build or /improve pipeline gets smarter over time and across projects.
 
 ## Completed
 - Phase-loop completed for ALL 8 src/ modules: utils → trace → scanner → profiles → canon → workflow → ralph → cli
@@ -11,8 +11,8 @@ Wiring up the self-learning feedback loop in workflow-skills so the phase-loop p
   - Phases 1-5: Added Step 0b to READ both lessons files
   - Phases 6-8: Added "Final: Record Lessons Learned" to WRITE to both files
 - Created two-tier knowledge system:
-  - `workflow-skills/phase-loop-lessons.md` — universal patterns (ships with skills, grows across all projects)
-  - `.claude/phase-loop-lessons.md` — project-specific instances
+  - `workflow-skills/lessons.md` — universal patterns (ships with skills, grows across all projects)
+  - `.claude/lessons.md` — project-specific instances
 - Populated universal lessons file with distilled patterns from all 8 modules
 
 ## In Progress
@@ -25,7 +25,7 @@ Wiring up the self-learning feedback loop in workflow-skills so the phase-loop p
 ## Next Steps
 1. Commit current changes
 2. (Future) Build Vercel lessons API for cross-user learning
-3. (Future) Run phase-loop on another project to validate the feedback loop works end-to-end
+3. (Future) Run /build or /improve on another project to validate the feedback loop works end-to-end
 
 ## Key Files Modified
 - `workflow-skills/workflow/create-plan/SKILL.md` - Added Step 0b (READ lessons)
@@ -36,8 +36,8 @@ Wiring up the self-learning feedback loop in workflow-skills so the phase-loop p
 - `workflow-skills/workflow/gemini-fix/SKILL.md` - Added Final: Record Lessons (WRITE both)
 - `workflow-skills/workflow/qodana-fix/SKILL.md` - Added Final: Record Lessons (WRITE both)
 - `workflow-skills/workflow/adversarial-security-review/SKILL.md` - Added Final: Record Lessons (WRITE both)
-- `workflow-skills/phase-loop-lessons.md` - NEW: universal lessons file
-- `.claude/phase-loop-lessons.md` - Project-specific lessons from all 8 modules
+- `workflow-skills/lessons.md` - NEW: universal lessons file
+- `.claude/lessons.md` - Project-specific lessons from all 8 modules
 
 ## Context to Restore
 - Two-tier knowledge: universal (workflow-skills/) + project-local (.claude/)

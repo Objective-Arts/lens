@@ -31,7 +31,7 @@
 - No new security concerns (existing patterns preserved)
 
 ## TESTS:
-- No tests for now (heavy dependency on ralph config modules makes unit testing complex; will test at integration level during src/ralph phase-loop)
+- No tests for now (heavy dependency on ralph config modules makes unit testing complex; will test at integration level during src/ralph quality pass)
 
 ## CONSTRAINTS_APPLIED:
 - No duplicate modules: phase mapping extracted to single function

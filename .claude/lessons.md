@@ -1,6 +1,6 @@
-# Phase Loop Lessons
+# Lessons
 
-Accumulated patterns from phases 6-7 (gemini-fix, qodana-fix) that phases 1-5 should catch.
+Accumulated patterns from review phases (gemini-fix, qodana-fix) that earlier phases should catch.
 
 Each entry records what a later phase found that an earlier phase missed. Over time, the earlier phases read this file and learn to prevent these patterns.
 
@@ -13,7 +13,7 @@ Each entry records what a later phase found that an earlier phase missed. Over t
 
 ---
 
-<!-- Entries will be appended below by phase-loop after phases 6 and 7 -->
+<!-- Entries will be appended below by /build and /improve after review phases -->
 
 ## 2026-02-05 - src/utils
 ### Gemini Found (phase 6)

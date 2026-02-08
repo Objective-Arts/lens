@@ -7,7 +7,10 @@
 | Command | Description |
 |---------|-------------|
 | `/ralph-loop [prd-file] [--max N] [--resume]` | Autonomous PRD implementation loop |
-| `/phase-loop [path] [--rollback] [--dry-run]` | 9-phase quality pipeline on file/directory |
+| `/build [path] [--rollback] [--dry-run]` | Build new feature with 11-phase quality pipeline |
+| `/improve [path] [--rollback] [--dry-run]` | Improve existing code with 11-phase quality pipeline |
+| `/quick-edit [description]` | Simple changes (add field, rename, small fix) |
+| `/quick-clean [path]` | Fast AI smell cleanup before commit |
 | `/create-plan [task]` | Create implementation plan before coding |
 | `/structure-first [path]` | Map architecture or design data structures |
 | `/implement-plan [target]` | Implement code from plan |
@@ -46,8 +49,8 @@
 - `--external` — Enable Gemini + Qodana post-loop validation
 - `--dry-run` — Show what would be done without executing
 
-**Flags for /phase-loop:**
-- `--rollback` — Restore from last phase-loop stash
+**Flags for /build and /improve:**
+- `--rollback` — Restore from last stash
 - `--dry-run` — Show what would change without modifying
 
 ## Standards
