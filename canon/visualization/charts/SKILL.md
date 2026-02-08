@@ -1,6 +1,6 @@
 ---
 name: charts
-description: "Tufte's graphical integrity"
+description: "Graphical integrity"
 ---
 
 This skill applies Edward Tufte's principles of graphical excellence to review visualization code. Invoke when creating or reviewing D3, Chart.js, Recharts, or any data visualization implementation.

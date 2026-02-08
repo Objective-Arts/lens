@@ -1,6 +1,6 @@
 ---
 name: python-idioms
-description: "Hettinger's Pythonic idioms - itertools, descriptors, 'there must be a better way'"
+description: "Pythonic idioms - itertools, descriptors, 'there must be a better way'"
 ---
 
 # Raymond Hettinger - Pythonic Idioms

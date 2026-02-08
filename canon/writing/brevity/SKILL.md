@@ -1,6 +1,6 @@
 ---
 name: brevity
-description: "Strunk & White's Elements of Style - omit needless words, use active voice"
+description: "Elements of Style - omit needless words, use active voice"
 ---
 
 # Strunk & White: The Elements of Style

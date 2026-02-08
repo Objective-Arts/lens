@@ -1,6 +1,6 @@
 ---
 name: rxjs
-description: "Lesh's RxJS patterns for Angular"
+description: "RxJS patterns for Angular"
 allowed-tools: []
 ---
 

@@ -1,6 +1,6 @@
 ---
 name: csharp-depth
-description: "Jon Skeet's deep C# expertise from C# in Depth"
+description: "Deep C# expertise from C# in Depth"
 ---
 
 # Skeet: C# Mastery

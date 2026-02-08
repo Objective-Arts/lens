@@ -1,6 +1,6 @@
 ---
 name: angular-arch
-description: "Kurata's Angular architecture and organization patterns"
+description: "Angular architecture and organization patterns"
 allowed-tools: []
 ---
 

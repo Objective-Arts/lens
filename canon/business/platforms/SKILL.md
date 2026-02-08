@@ -1,6 +1,6 @@
 ---
 name: platforms
-description: "Ben Thompson's Aggregation Theory and tech strategy"
+description: "Aggregation Theory and tech strategy"
 allowed-tools: []
 ---
 

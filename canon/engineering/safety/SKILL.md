@@ -1,6 +1,6 @@
 ---
 name: safety
-description: "Leveson's system safety - STAMP/STPA, accidents as system failures, safety constraints"
+description: "System safety - STAMP/STPA, accidents as system failures, safety constraints"
 ---
 
 # Nancy Leveson - System Safety Engineering

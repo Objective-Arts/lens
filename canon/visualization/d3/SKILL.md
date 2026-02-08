@@ -1,6 +1,6 @@
 ---
 name: d3
-description: "Bostock's D3 patterns and philosophy"
+description: "D3 patterns and philosophy"
 ---
 
 <objective>

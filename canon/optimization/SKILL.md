@@ -1,6 +1,6 @@
 ---
 name: optimization
-description: "Carmack's performance optimization"
+description: "Performance optimization"
 allowed-tools: []
 ---
 

@@ -1,6 +1,6 @@
 ---
 name: algorithms
-description: "Knuth's literate programming"
+description: "Literate programming"
 allowed-tools: []
 ---
 

@@ -1,6 +1,6 @@
 ---
 name: typescript
-description: "Cherny's advanced TypeScript"
+description: "Advanced TypeScript"
 ---
 
 # Boris Cherny TypeScript Principles

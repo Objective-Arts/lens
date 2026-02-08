@@ -1,6 +1,6 @@
 ---
 name: java
-description: "Bloch's Effective Java patterns"
+description: "Effective Java patterns"
 allowed-tools: []
 ---
 

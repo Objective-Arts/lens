@@ -1,6 +1,6 @@
 ---
 name: handoff
-description: "Mall's design-dev collaboration - hot potato, handoff, shared language"
+description: "Design-dev collaboration - hot potato, handoff, shared language"
 ---
 
 # Dan Mall - Design-Dev Collaboration

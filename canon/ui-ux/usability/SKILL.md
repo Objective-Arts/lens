@@ -1,6 +1,6 @@
 ---
 name: usability
-description: "Norman's design psychology - affordances, feedback, mental models"
+description: "Design psychology - affordances, feedback, mental models"
 ---
 
 # Don Norman - Design Psychology

@@ -1,6 +1,6 @@
 ---
 name: angular-perf
-description: "Gechev's Angular performance and optimization patterns"
+description: "Angular performance and optimization patterns"
 allowed-tools: []
 ---
 

@@ -1,6 +1,6 @@
 ---
 name: data-first
-description: "Linus kernel style and good taste"
+description: "Kernel style and good taste"
 allowed-tools: []
 ---
 

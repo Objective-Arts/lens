@@ -1,6 +1,6 @@
 ---
 name: abstraction
-description: "Liskov's abstraction and LSP"
+description: "Abstraction and LSP"
 ---
 
 # Barbara Liskov Principles

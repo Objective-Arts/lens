@@ -1,6 +1,6 @@
 ---
 name: mobile
-description: "Wroblewski's mobile-first patterns - forms, thumb zones, responsive"
+description: "Mobile-first patterns - forms, thumb zones, responsive"
 ---
 
 # Luke Wroblewski - Mobile-First Patterns

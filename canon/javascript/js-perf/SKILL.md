@@ -1,6 +1,6 @@
 ---
 name: js-perf
-description: "Osmani's JS performance patterns"
+description: "JS performance patterns"
 ---
 # Addy Osmani JavaScript Philosophy
 

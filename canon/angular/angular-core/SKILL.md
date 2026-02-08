@@ -1,6 +1,6 @@
 ---
 name: angular-core
-description: "Hevery's Angular patterns and testable architecture"
+description: "Angular patterns and testable architecture"
 allowed-tools: []
 ---
 

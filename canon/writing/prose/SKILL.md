@@ -1,6 +1,6 @@
 ---
 name: prose
-description: "Zinsser's On Writing Well - clarity, simplicity, and removing clutter"
+description: "On Writing Well - clarity, simplicity, and removing clutter"
 ---
 
 # William Zinsser: On Writing Well

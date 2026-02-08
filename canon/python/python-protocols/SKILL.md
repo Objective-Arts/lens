@@ -1,6 +1,6 @@
 ---
 name: python-protocols
-description: "Ramalho's Fluent Python - data model, protocols, dunder methods, Pythonic design"
+description: "Fluent Python - data model, protocols, dunder methods, Pythonic design"
 ---
 
 # Luciano Ramalho - Fluent Python

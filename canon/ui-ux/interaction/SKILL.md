@@ -1,6 +1,6 @@
 ---
 name: interaction
-description: "Buxton's interaction design - input fundamentals, sketching UX"
+description: "Interaction design - input fundamentals, sketching UX"
 ---
 
 # Bill Buxton - Interaction Design

@@ -1,6 +1,6 @@
 ---
 name: react-test
-description: "Dodds' React and testing patterns"
+description: "React and testing patterns"
 ---
 
 # Kent C. Dodds Patterns

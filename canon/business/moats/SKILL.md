@@ -1,6 +1,6 @@
 ---
 name: moats
-description: "Helmer's 7 Powers framework"
+description: "7 Powers framework"
 allowed-tools: []
 ---
 

@@ -1,6 +1,6 @@
 ---
 name: design-patterns
-description: "GoF 23 design patterns"
+description: "Classic design patterns"
 allowed-tools: []
 ---
 

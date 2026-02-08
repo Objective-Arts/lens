@@ -1,6 +1,6 @@
 ---
 name: clarity
-description: "Kernighan's clarity and simplicity"
+description: "Clarity and simplicity"
 allowed-tools: []
 ---
 

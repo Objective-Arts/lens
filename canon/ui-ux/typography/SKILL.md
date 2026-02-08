@@ -1,6 +1,6 @@
 ---
 name: typography
-description: "Kruzeniski's typography-first design - type hierarchy, Fluent principles"
+description: "Typography-first design - type hierarchy, Fluent principles"
 ---
 
 # Mike Kruzeniski - Typography

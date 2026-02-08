@@ -1,6 +1,6 @@
 ---
 name: leadership
-description: "Horowitz's crisis leadership"
+description: "Crisis leadership"
 allowed-tools: []
 ---
 

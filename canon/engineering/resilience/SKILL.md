@@ -1,6 +1,6 @@
 ---
 name: resilience
-description: "Taleb's antifragility - systems that gain from disorder, via negativa, skin in the game"
+description: "Antifragility - systems that gain from disorder, via negativa, skin in the game"
 ---
 
 # Nassim Nicholas Taleb - Antifragility

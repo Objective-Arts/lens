@@ -1,6 +1,6 @@
 ---
 name: async
-description: "Stephen Cleary's async/await and concurrency patterns"
+description: "Async/await and concurrency patterns"
 ---
 
 # Cleary: Async Done Right

@@ -1,6 +1,6 @@
 ---
 name: simplicity
-description: "Pike's Go proverbs and simplicity"
+description: "Go proverbs and simplicity"
 allowed-tools: []
 ---
 

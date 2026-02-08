@@ -1,6 +1,6 @@
 ---
 name: personas
-description: "Cooper's Goal-Directed Design - personas, polite software, eliminate excise"
+description: "Goal-Directed Design - personas, polite software, eliminate excise"
 ---
 
 # Alan Cooper - Interaction Design

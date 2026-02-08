@@ -1,6 +1,6 @@
 ---
 name: python-advanced
-description: "Beazley's advanced Python - generators, coroutines, metaprogramming, execution model"
+description: "Advanced Python - generators, coroutines, metaprogramming, execution model"
 ---
 
 # David Beazley - Advanced Python

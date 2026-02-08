@@ -1,6 +1,6 @@
 ---
 name: js-safety
-description: "Crockford's JS Good Parts"
+description: "JS Good Parts"
 ---
 
 # Douglas Crockford JavaScript Philosophy

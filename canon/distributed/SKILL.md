@@ -1,6 +1,6 @@
 ---
 name: distributed
-description: "Joy's distributed systems principles"
+description: "Distributed systems principles"
 allowed-tools: []
 ---
 

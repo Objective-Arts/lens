@@ -1,6 +1,6 @@
 ---
 name: tokens
-description: "Curtis' design system governance - versioning, documentation, tokens"
+description: "Design system governance - versioning, documentation, tokens"
 ---
 
 # Nathan Curtis - Design System Governance

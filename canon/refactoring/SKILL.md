@@ -1,6 +1,6 @@
 ---
 name: refactoring
-description: Martin Fowler's refactoring patterns - improving code design without changing behavior
+description: Refactoring patterns - improving code design without changing behavior
 ---
 
 # /refactoring — Refactoring Patterns

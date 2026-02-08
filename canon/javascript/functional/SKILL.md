@@ -1,6 +1,6 @@
 ---
 name: functional
-description: "Ashkenas' functional JS elegance"
+description: "Functional JS elegance"
 ---
 
 # Jeremy Ashkenas JavaScript Philosophy

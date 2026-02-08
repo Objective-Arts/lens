@@ -1,6 +1,6 @@
 ---
 name: correctness
-description: "Dijkstra's formal methods"
+description: "Formal methods"
 allowed-tools: []
 ---
 

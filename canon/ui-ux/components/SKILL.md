@@ -1,6 +1,6 @@
 ---
 name: components
-description: "Frost's Atomic Design - atoms, molecules, organisms, templates, pages"
+description: "Atomic Design - atoms, molecules, organisms, templates, pages"
 ---
 
 # Brad Frost - Atomic Design

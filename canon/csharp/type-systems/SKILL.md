@@ -1,6 +1,6 @@
 ---
 name: type-systems
-description: "Anders Hejlsberg's language design philosophy"
+description: "Language design philosophy"
 ---
 
 # Hejlsberg: Language Design Wisdom

@@ -1,6 +1,6 @@
 ---
 name: visual
-description: "Ive's visual design - minimalism, material honesty, depth"
+description: "Visual design - minimalism, material honesty, depth"
 ---
 
 # Jony Ive - Visual Design

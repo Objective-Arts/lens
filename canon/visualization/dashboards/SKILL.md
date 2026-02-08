@@ -1,6 +1,6 @@
 ---
 name: dashboards
-description: "Few's dashboard design principles"
+description: "Dashboard design principles"
 ---
 
 <purpose>

@@ -1,6 +1,6 @@
 ---
 name: editing
-description: "Stephen King's On Writing - kill your darlings, practical writing advice"
+description: "On Writing - kill your darlings, practical writing advice"
 ---
 
 # Stephen King: On Writing

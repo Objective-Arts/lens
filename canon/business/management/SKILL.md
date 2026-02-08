@@ -1,6 +1,6 @@
 ---
 name: management
-description: "Grove's high-output management"
+description: "High-output management"
 allowed-tools: []
 ---
 

@@ -1,6 +1,6 @@
 ---
 name: design
-description: "Rams' 10 Principles of Good Design - less but better"
+description: "10 Principles of Good Design - less but better"
 ---
 
 # Dieter Rams - Design Philosophy

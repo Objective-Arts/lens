@@ -1,6 +1,6 @@
 ---
 name: motion
-description: "Duarte's Material motion - meaningful animation, physical metaphors"
+description: "Material motion - meaningful animation, physical metaphors"
 ---
 
 # Matías Duarte - Motion Design

@@ -1,6 +1,6 @@
 ---
 name: data-story
-description: "Knaflic's data storytelling"
+description: "Data storytelling"
 ---
 
 <essential_principles>

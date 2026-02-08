@@ -1,6 +1,6 @@
 ---
 name: composition
-description: "McIlroy's Unix philosophy"
+description: "Unix philosophy"
 allowed-tools: []
 ---
 

@@ -1,6 +1,6 @@
 ---
 name: failure
-description: "Petroski's engineering philosophy - form follows failure, learning from case studies"
+description: "Engineering philosophy - form follows failure, learning from case studies"
 ---
 
 # Henry Petroski - Engineering Design Philosophy

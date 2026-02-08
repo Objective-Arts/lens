@@ -1,6 +1,6 @@
 ---
 name: pragmatism
-description: "Ken Thompson's pragmatic systems philosophy"
+description: "Pragmatic systems philosophy"
 allowed-tools: []
 ---
 

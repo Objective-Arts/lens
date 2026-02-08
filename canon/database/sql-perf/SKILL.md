@@ -1,6 +1,6 @@
 ---
 name: sql-perf
-description: Markus Winand's SQL performance patterns - indexing and query optimization
+description: SQL performance patterns - indexing and query optimization
 ---
 
 # /sql-perf — SQL Performance

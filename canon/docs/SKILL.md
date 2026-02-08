@@ -1,6 +1,6 @@
 ---
 name: docs
-description: "Procida's Diátaxis documentation framework - the right doc for the right need"
+description: "Diátaxis documentation framework - the right doc for the right need"
 ---
 
 # Daniele Procida: Diátaxis Documentation Framework

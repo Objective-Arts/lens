@@ -1,6 +1,6 @@
 ---
 name: sql
-description: Joe Celko's SQL patterns - thinking in sets, not procedures
+description: SQL patterns - thinking in sets, not procedures
 ---
 
 # /sql — SQL Patterns

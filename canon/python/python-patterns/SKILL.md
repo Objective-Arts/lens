@@ -1,6 +1,6 @@
 ---
 name: python-patterns
-description: "Slatkin's Effective Python - 90 specific ways to write better Python code"
+description: "Effective Python - 90 specific ways to write better Python code"
 ---
 
 # Brett Slatkin - Effective Python

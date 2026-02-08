@@ -1,6 +1,6 @@
 ---
 name: reactivity
-description: "Harris' compile-time JS philosophy"
+description: "Compile-time JS philosophy"
 ---
 
 # Rich Harris JavaScript Philosophy

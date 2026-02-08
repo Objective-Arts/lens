@@ -1,6 +1,6 @@
 ---
 name: strategy
-description: "Rumelt's good strategy principles"
+description: "Good strategy principles"
 allowed-tools: []
 ---
 
