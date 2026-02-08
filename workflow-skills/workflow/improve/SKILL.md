@@ -116,7 +116,7 @@ For each phase in the table above, spawn a **single Task subagent** (`subagent_t
 For phases 1-5, 9-11 (no MCP tools needed):
 
 ```
-Read the skill file at /Users/steve/local-tech-projects/lens/workflow-skills/workflow/{SKILL_NAME}/SKILL.md
+Read the skill file at .claude/phases/{SKILL_NAME}/SKILL.md
 and execute ALL of its instructions against: {TARGET}
 
 This is an IMPROVEMENT workflow on existing code. The code already exists.

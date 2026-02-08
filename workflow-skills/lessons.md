@@ -95,6 +95,23 @@ Project-specific lessons go in `.claude/lessons.md` (local to each project).
 - These keywords change style inheritance rather than setting a color, enabling layout manipulation attacks
 - Pattern: maintain a blocklist Set and check `trimmed.toLowerCase()` against it before accepting named colors
 
+### Client-Side API Key Exposure
+- NEVER use framework-specific client-exposed env var prefixes (VITE_, NEXT_PUBLIC_, REACT_APP_) for API keys or secrets
+- These prefixes exist to intentionally expose values to the browser bundle; secrets must stay server-side
+- Inject credentials via server-side proxy headers, middleware, or backend API routes -- never in client-shipped JavaScript
+- Pattern: rename `VITE_API_KEY` to `API_KEY` (no prefix) and read it in `vite.config.js` proxy config via `process.env`
+
+### LLM Tool Input Validation
+- When an LLM calls tools via tool_use, all input parameters come from the model and must be validated as untrusted input
+- Whitelist valid values for enums (columns, tabs, statuses); cap numeric inputs (limits, page sizes)
+- Validate string IDs for type and length; never interpolate into selectors or queries without validation
+- The LLM can be manipulated via prompt injection to pass malicious tool inputs
+
+### Async Mutation Rollback Scope
+- When mutating shared state (arrays, objects) across multiple async steps, wrap the entire sequence in a single try/catch with rollback
+- Partial rollback (only on one failure point) leaves state inconsistent when later steps fail
+- Pattern: save rollback index before mutations, restore on any error within the full sequence
+
 ### Recursive Traversal Depth Limits
 - Any recursive function traversing tree/graph data structures must have a max depth parameter
 - Without it, circular references or maliciously deep structures cause stack overflow
@@ -123,6 +140,11 @@ Project-specific lessons go in `.claude/lessons.md` (local to each project).
 ### Unused Imports
 - Don't import symbols "just in case" — only import what you use
 - After refactoring, check if imports became unused
+
+### Unresolved JSDoc Type References
+- Every `@typedef`, `@type`, or `@property` that references a named type must have that type defined (via `@typedef` or `import()`)
+- Common miss: referencing a type name in a `@property` annotation that was never declared anywhere in the codebase
+- Qodana catches these as `JSValidateJSDoc` — define the typedef before referencing it, or use `Object` if no formal type exists
 
 ### Redundant Verification Reads
 - Don't `readFileSync` after `writeFileSync` to "verify" the write — trust the write, this is both TOCTOU and wasted I/O

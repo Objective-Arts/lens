@@ -11,6 +11,12 @@ import { getGitCommit, getGitRemote } from '../utils/git.js';
 import { copyDirectorySync } from '../utils/fs.js';
 import { hashDirectoryContents } from '../utils/hash.js';
 
+/** Skills visible as slash commands in Claude Code */
+const USER_FACING_SKILLS = new Set([
+  'build', 'improve', 'quick-edit', 'quick-clean',
+  'ai-smell-scan', 'ai-smell-fix', 'generate-docs', 'lens'
+]);
+
 // Default workflow skills source (in-repo, relative to compiled output)
 // From dist/workflow/ or src/workflow/, go up 2 levels to project root
 const DEFAULT_WORKFLOW_SOURCE = path.resolve(
@@ -188,7 +194,7 @@ function recordSkillInstall(
 export function installWorkflowSkill(
   skillName: string,
   projectPath: string,
-  options: { force?: boolean } = {}
+  options: { force?: boolean; targetDir?: string } = {}
 ): { success: boolean; message: string } {
   if (!isValidSkillName(skillName)) {
     return { success: false, message: `Invalid skill name (path traversal): ${skillName}` };
@@ -198,7 +204,8 @@ export function installWorkflowSkill(
   const validation = validateSkillSource(skillName, sourcePath);
   if (!validation.valid) return { success: false, message: validation.message };
 
-  const targetPath = path.join(projectPath, '.claude', 'skills', skillName);
+  const dir = options.targetDir ?? path.join(projectPath, '.claude', 'skills');
+  const targetPath = path.join(dir, skillName);
   if (fs.existsSync(targetPath) && !options.force) {
     return { success: false, message: `Skill already installed: ${skillName}. Use --force to overwrite.` };
   }
@@ -220,22 +227,8 @@ export function installWorkflowSkill(
 /**
  * Install all workflow skills to a project.
  *
- * Copies all available workflow skills (ralph-loop, implement, adversarial-review, etc.)
- * to the project's `.claude/skills/` directory.
- *
- * @param projectPath - Target project directory
- * @param options - Installation options
- * @param options.force - Overwrite existing skills (default: false)
- * @returns Result with installed, skipped, and error arrays
- *
- * @example
- * ```typescript
- * const result = installAllWorkflowSkills('./myproject');
- * console.log(`Installed ${result.installed.length} workflow skills`);
- *
- * // Force reinstall
- * const result = installAllWorkflowSkills('./myproject', { force: true });
- * ```
+ * User-facing skills go to `.claude/skills/` (visible as slash commands).
+ * Internal phase skills go to `.claude/phases/` (used by build/improve, not visible).
  */
 export function installAllWorkflowSkills(
   projectPath: string,
@@ -244,11 +237,16 @@ export function installAllWorkflowSkills(
   const skills = listWorkflowSkills();
   const results = { installed: [] as string[], skipped: [] as string[], errors: [] as string[] };
 
+  const skillsDir = path.join(projectPath, '.claude', 'skills');
+  const phasesDir = path.join(projectPath, '.claude', 'phases');
+  if (!fs.existsSync(phasesDir)) fs.mkdirSync(phasesDir, { recursive: true });
+
   for (const skill of skills) {
-    const result = installWorkflowSkill(skill.name, projectPath, options);
+    const targetDir = USER_FACING_SKILLS.has(skill.name) ? skillsDir : phasesDir;
+    const result = installWorkflowSkill(skill.name, projectPath, { ...options, targetDir });
     if (result.success) {
       results.installed.push(skill.name);
-    } else if (!options.force && fs.existsSync(path.join(projectPath, '.claude', 'skills', skill.name))) {
+    } else if (!options.force && fs.existsSync(path.join(targetDir, skill.name))) {
       results.skipped.push(`${skill.name}: already installed`);
     } else {
       results.errors.push(`${skill.name}: ${result.message}`);
@@ -303,7 +301,8 @@ export function checkWorkflowStatus(projectPath: string): WorkflowStatusInfo[] {
   const sourceInfo = getWorkflowSourceInfo();
 
   return Object.entries(manifest.skills).map(([skillName, info]) => {
-    const installedPath = path.join(projectPath, '.claude', 'skills', skillName);
+    const subdir = USER_FACING_SKILLS.has(skillName) ? 'skills' : 'phases';
+    const installedPath = path.join(projectPath, '.claude', subdir, skillName);
     const sourceSkillPath = path.join(sourcePath, skillName);
     const status = determineSkillStatus(info, installedPath, sourceSkillPath, sourceInfo.commit);
     return { ...status, name: skillName };
@@ -340,7 +339,10 @@ export function upgradeWorkflowSkills(
       continue;
     }
 
-    const result = installWorkflowSkill(status.name, projectPath, { force: true });
+    const targetDir = USER_FACING_SKILLS.has(status.name)
+      ? path.join(projectPath, '.claude', 'skills')
+      : path.join(projectPath, '.claude', 'phases');
+    const result = installWorkflowSkill(status.name, projectPath, { force: true, targetDir });
     result.success
       ? results.upgraded.push(status.name)
       : results.errors.push(`${status.name}: ${result.message}`);

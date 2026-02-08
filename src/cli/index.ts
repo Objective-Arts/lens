@@ -21,28 +21,32 @@ const program = new Command();
 const DESCRIPTION = `
 ${chalk.bold.white('Lens')} ${chalk.dim('— AI Assisted Development That Builds In Quality')}
 
-${chalk.bold.yellow('SETUP')}
-  ${chalk.green('$')} lens profile apply ${chalk.dim('<javascript|python|...>')}
-  ${chalk.green('$')} claude
+${chalk.bold.yellow('CONFIGURE A PROJECT')}
 
-${chalk.bold.yellow('WORKFLOW SKILLS')} ${chalk.dim('(use inside Claude Code)')}
-  ${chalk.cyan('/lens')}                        ${chalk.white('Start here')} — status, help, choices
-  ${chalk.cyan('/create-plan')} ${chalk.dim('feature')}       Design before coding
-  ${chalk.cyan('/structure-first')} ${chalk.dim('feature')}   Define types and interfaces
-  ${chalk.cyan('/implement-plan')}              Build from plan
-  ${chalk.cyan('/gemini-scan')} ${chalk.dim('path')}          Adversarial code review
+  ${chalk.white('1.')} ${chalk.green('$')} lens profile list              ${chalk.dim('See available profiles')}
+  ${chalk.white('2.')} ${chalk.green('$')} lens profile apply ${chalk.dim('<profile>')}    ${chalk.dim('Install skills + config')}
+  ${chalk.white('3.')} ${chalk.green('$')} claude                         ${chalk.dim('Start Claude Code')}
+
+  ${chalk.dim('Profiles: javascript, python, java, react, angular, csharp, security ...')}
+  ${chalk.dim('This copies canon skills to .claude/skills/ and phases to .claude/phases/,')}
+  ${chalk.dim('sets up CLAUDE.md with auto-invoke rules, and configures MCP servers.')}
+
+${chalk.bold.yellow('INSIDE CLAUDE CODE')} ${chalk.dim('(slash commands after setup)')}
+
   ${chalk.cyan('/build')} ${chalk.dim('target')}              Build new feature (11 phases)
   ${chalk.cyan('/improve')} ${chalk.dim('path')}             Improve existing code (11 phases)
-  ${chalk.cyan('/quick-edit')} ${chalk.dim('desc')}          Simple changes (field, rename)
+  ${chalk.cyan('/quick-edit')} ${chalk.dim('desc')}          Simple change (add field, rename)
   ${chalk.cyan('/quick-clean')} ${chalk.dim('path')}         Fast AI smell cleanup
+  ${chalk.cyan('/ai-smell-scan')} ${chalk.dim('path')}       Check for AI-generated patterns
+  ${chalk.cyan('/ai-smell-fix')} ${chalk.dim('path')}        Fix AI-generated patterns
+  ${chalk.cyan('/generate-docs')} ${chalk.dim('path')}       Generate documentation
+  ${chalk.cyan('/lens')}                        Status, help, choices
 
-${chalk.bold.yellow('CLI COMMANDS')}
-  ${chalk.cyan('lens profile apply')} ${chalk.dim('<profile>')}   Configure project
-  ${chalk.cyan('lens canon list')}                 Browse 70+ quality lenses
-  ${chalk.cyan('lens scan')}                       Show current config
+${chalk.bold.yellow('OTHER CLI COMMANDS')}
 
-${chalk.bold.yellow('AUTONOMOUS MODE')}
-  ${chalk.cyan('/ralph-loop')} ${chalk.dim('prd.md')}         Execute PRD with full quality gates
+  ${chalk.cyan('lens canon list')}                 Browse 75+ expert skills
+  ${chalk.cyan('lens canon inspect')} ${chalk.dim('<skill>')}   Show what a skill contains
+  ${chalk.cyan('lens scan')}                       Show current project config
 
 Run ${chalk.yellow('lens <command> --help')} for details.
 `;
