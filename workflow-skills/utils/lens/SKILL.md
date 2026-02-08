@@ -113,9 +113,14 @@ Show workflow skills grouped by purpose:
  TESTING
    /write-tests-run [level]     Generate tests
 
- TARGETED QUALITY
-   /phase-loop [path]       Run 9 phases with rollback
+ HEAVY WORKFLOWS (11 phases)
+   /build [target]          New feature from scratch
+   /improve [path]          Refine existing code
    /final-polish [path]     Senior review prep
+
+ LIGHT WORKFLOWS
+   /quick-edit [desc]       Simple change (add field, rename)
+   /quick-clean [path]      Fast AI smell cleanup
 
  AUTONOMOUS
    /ralph-loop [prd]        Full PRD implementation
@@ -132,10 +137,12 @@ Guide user to start coding:
 ```
 Quick Start Options:
 
-1. **New feature** — /create-plan → /structure-first → /implement-plan
-2. **Improve existing code** — /phase-loop [path]
-3. **Review code** — /gemini-scan [path]
-4. **Run full PRD** — /ralph-loop [prd.md]
+1. **New feature** — /build [target] (runs all 11 phases)
+2. **Improve existing code** — /improve [path] (runs all 11 phases)
+3. **Simple change** — /quick-edit [description]
+4. **Fast cleanup** — /quick-clean [path]
+5. **Review code** — /gemini-scan [path]
+6. **Run full PRD** — /ralph-loop [prd.md]
 
 Which workflow?
 ```

@@ -7,6 +7,8 @@ description: Generate documentation. Public APIs must have JSDoc. No vague docs.
 
 Generate documentation. Public APIs MUST be documented.
 
+> **No arguments?** Describe this skill and stop. Do not execute.
+
 ## First: Activate Workflow
 
 ```bash

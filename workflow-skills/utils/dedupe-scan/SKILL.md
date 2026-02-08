@@ -7,6 +7,8 @@ description: Find and report duplicated code patterns. Read-only - does not fix.
 
 **Read-only** scan for duplicated code patterns. Reports findings without making changes.
 
+> **No arguments?** Describe this skill and stop. Do not execute.
+
 ## Process
 
 1. **Search for common duplication patterns**

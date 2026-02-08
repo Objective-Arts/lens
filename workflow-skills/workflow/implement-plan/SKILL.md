@@ -7,6 +7,8 @@ description: Implement code from plan. Max 30 lines per function. No vague names
 
 Implement code from the approved plan. Strict constraints enforced.
 
+> **No arguments?** Describe this skill and stop. Do not execute.
+
 ## First: Activate Workflow
 
 ```bash
@@ -79,11 +81,17 @@ You MUST follow these constraints EXACTLY:
 
 Before starting, read these canon skills and apply their principles throughout:
 
-**Always load:**
-1. `.claude/skills/pragmatism/SKILL.md`
-2. `.claude/skills/clarity/SKILL.md`
-3. `.claude/skills/simplicity/SKILL.md`
-4. `.claude/skills/composition/SKILL.md`
+**Always load (base brain — all 10):**
+1. `.claude/skills/clarity/SUMMARY.md`
+2. `.claude/skills/pragmatism/SUMMARY.md`
+3. `.claude/skills/simplicity/SUMMARY.md`
+4. `.claude/skills/composition/SUMMARY.md`
+5. `.claude/skills/distributed/SUMMARY.md`
+6. `.claude/skills/data-first/SUMMARY.md`
+7. `.claude/skills/correctness/SUMMARY.md`
+8. `.claude/skills/algorithms/SUMMARY.md`
+9. `.claude/skills/abstraction/SUMMARY.md`
+10. `.claude/skills/optimization/SUMMARY.md`
 
 **Load if applicable to target code:**
 - TypeScript files (.ts) → also read `.claude/skills/typescript/SKILL.md`
@@ -95,8 +103,8 @@ Reference loaded experts in your APPLIED output.
 ### Step 0b: Learn From Past Mistakes
 
 Read both lessons files if they exist:
-1. `workflow-skills/phase-loop-lessons.md` — universal patterns (ships with skills, applies to all projects)
-2. `.claude/phase-loop-lessons.md` — project-specific patterns (accumulated from this project's runs)
+1. `workflow-skills/lessons.md` — universal patterns (ships with skills, applies to all projects)
+2. `.claude/lessons.md` — project-specific patterns (accumulated from this project's runs)
 
 Apply these lessons as you write code:
 

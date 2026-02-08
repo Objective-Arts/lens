@@ -7,6 +7,8 @@ description: Running existing tests and reporting results when users say "run te
 
 Run existing tests. Report results. That's it.
 
+> **No arguments?** Describe this skill and stop. Do not execute.
+
 ## When NOT to Use
 
 - Need to **write** tests: use `/write-tests-run`

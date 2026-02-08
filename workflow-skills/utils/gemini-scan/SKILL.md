@@ -8,6 +8,8 @@ description: Read-only code review via Gemini. Reports issues without fixing. Se
 **Read-only** independent code review using Gemini. Reports issues without making any changes.
 Senior Google engineer style - no handholding, no false praise.
 
+> **No arguments?** Describe this skill and stop. Do not execute.
+
 ## Craft Standards: What We're Looking For
 
 **Code that a master craftsperson would be proud of.**

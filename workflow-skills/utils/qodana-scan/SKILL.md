@@ -7,6 +7,8 @@ description: Read-only Qodana static analysis. Reports issues without fixing.
 
 **Read-only** static analysis using Qodana. Reports issues without making any changes.
 
+> **No arguments?** Describe this skill and stop. Do not execute.
+
 ## Target
 
 If a path argument is provided, analyze that directory.

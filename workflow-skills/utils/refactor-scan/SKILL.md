@@ -7,6 +7,8 @@ description: Read-only refactoring analysis. Shows what needs fixing without mak
 
 Analyze code for refactoring opportunities. **Read-only — no changes made.**
 
+> **No arguments?** Describe this skill and stop. Do not execute.
+
 ## On Invoke
 
 1. **Read target** files (argument or recently discussed code)

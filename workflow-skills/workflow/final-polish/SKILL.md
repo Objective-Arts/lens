@@ -1,17 +1,19 @@
 ---
 name: final-polish
-description: Final refinement pass after phase-loop. Ensures code is ready for senior review.
+description: Final refinement pass after build or /improve. Ensures code is ready for senior review.
 ---
 
 # /final-polish [path]
 
-Final refinement pass that prepares code for senior review. **Requires `/phase-loop` to have been run first.**
+Final refinement pass that prepares code for senior review. **Requires `/build or /improve` to have been run first.**
+
+> **No arguments?** Describe this skill and stop. Do not execute.
 
 ## Prerequisite Check
 
 ```
-if not exists(.claude/phase-loop.log) or path not in log:
-    ERROR: "Run /phase-loop first"
+if not exists(.claude/build or /improve.log) or path not in log:
+    ERROR: "Run /build or /improve first"
     EXIT
 ```
 
@@ -67,6 +69,6 @@ Final Polish: src/components/Button.tsx
 
 ## When to Use
 
-- After `/phase-loop` completes
+- After `/build or /improve` completes
 - Before opening a PR
 - Before requesting senior review

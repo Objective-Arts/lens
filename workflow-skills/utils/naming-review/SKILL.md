@@ -7,6 +7,8 @@ description: Review names for clarity principles. Find jargon, ambiguity, incons
 
 Review names in code or configuration for clarity, consistency, and intent.
 
+> **No arguments?** Describe this skill and stop. Do not execute.
+
 *"Say what you mean, simply and directly."*
 
 ## Also Detect: AI-Generated Naming Antipatterns

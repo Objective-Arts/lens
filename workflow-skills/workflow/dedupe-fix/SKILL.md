@@ -7,6 +7,8 @@ description: Find duplicated code and consolidate into shared utilities. Fixes a
 
 Find duplicated code patterns and consolidate them into shared utilities.
 
+> **No arguments?** Describe this skill and stop. Do not execute.
+
 ## First: Activate Workflow
 
 ```bash
@@ -54,8 +56,8 @@ Reference loaded experts in your APPLIED output.
 ### Step 0b: Learn From Past Mistakes
 
 Read both lessons files if they exist:
-1. `workflow-skills/phase-loop-lessons.md` — universal patterns (ships with skills, applies to all projects)
-2. `.claude/phase-loop-lessons.md` — project-specific patterns (accumulated from this project's runs)
+1. `workflow-skills/lessons.md` — universal patterns (ships with skills, applies to all projects)
+2. `.claude/lessons.md` — project-specific patterns (accumulated from this project's runs)
 
 Use relevant lessons to guide your deduplication:
 

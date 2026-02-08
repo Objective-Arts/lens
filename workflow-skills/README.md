@@ -29,10 +29,23 @@ workflow-skills/
 /ralph-loop --resume          # Continue from last session
 ```
 
-### Targeted Workflow
+### Heavy Workflow (11 phases)
 
 ```bash
-/phase-loop src/component.ts  # Quality pipeline on single file
+/build user-auth             # New feature from scratch
+/improve src/component.ts    # Quality pipeline on existing code
+```
+
+### Light Workflow (no phases)
+
+```bash
+/quick-edit add email field  # Simple change with checklist
+/quick-clean src/            # Fast AI smell cleanup
+```
+
+### Individual Skills
+
+```bash
 /gemini-fix src/              # Scan and fix issues
 /refactor-check-fix src/module.ts   # Refactor with verification
 ```

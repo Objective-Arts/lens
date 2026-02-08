@@ -7,6 +7,8 @@ description: Fast cleanup for AI smells and common problems. No external tools. 
 
 Fast code review that **finds and fixes** AI-generated antipatterns and common problems.
 
+> **No arguments?** Describe this skill and stop. Do not execute.
+
 ## What Is This?
 
 `/quick-clean` is the **light workflow** for fast cleanup. No planning, no external tools — just find issues and fix them.

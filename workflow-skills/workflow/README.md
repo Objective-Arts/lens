@@ -13,11 +13,24 @@ Multi-step processes that modify code. Each follows a scan → fix → verify pa
 | `/implement-plan` | Write code from approved plan |
 | `/write-tests-run` | Write and run tests |
 
-### Quality Pipeline
+### Heavy Workflows (11 phases)
 
 | Skill | Purpose |
 |-------|---------|
-| `/phase-loop` | Run quality phases on single file |
+| `/build` | New feature with full quality pipeline |
+| `/improve` | Refine existing code with full pipeline |
+
+### Light Workflows (no phases)
+
+| Skill | Purpose |
+|-------|---------|
+| `/quick-edit` | Simple changes (add field, rename, fix) |
+| `/quick-clean` | Fast AI smell cleanup |
+
+### Quality Skills
+
+| Skill | Purpose |
+|-------|---------|
 | `/refactor-check-fix` | Clean up and simplify code |
 | `/ai-smell-fix` | Remove AI-generated code smells |
 | `/gemini-fix` | Gemini review + fix all issues |
@@ -39,7 +52,10 @@ Multi-step processes that modify code. Each follows a scan → fix → verify pa
 /implement-plan               # Implement from plan
 /write-tests-run unit             # Write unit tests
 
-/phase-loop src/component.ts  # Quality pipeline on file
+/build user-auth              # New feature (11 phases)
+/improve src/component.ts     # Improve existing (11 phases)
+/quick-edit add email field   # Simple change
+/quick-clean src/             # Fast cleanup
 /refactor-check-fix src/      # Refactor with verification
 /ai-smell-fix src/            # Remove AI patterns
 /gemini-fix src/              # Gemini review + fix

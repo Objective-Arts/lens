@@ -7,6 +7,8 @@ description: Explain what a skill does, when to use it, and its triggers
 
 Explain a skill's purpose, usage, and auto-invoke triggers.
 
+> **No arguments?** Describe this skill and stop. Do not execute.
+
 ## On Invoke
 
 1. **Find the skill** in `.claude/skills/[skill-name]/SKILL.md`

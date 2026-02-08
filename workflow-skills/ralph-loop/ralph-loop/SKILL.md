@@ -7,6 +7,8 @@ description: Autonomous PRD implementation with 10-phase quality pipeline. Keeps
 
 Autonomous loop that implements PRD items through a 10-phase quality pipeline.
 
+> **No arguments?** Describe this skill and stop. Do not execute.
+
 ## Craft Standards (CORE PRINCIPLE)
 
 **Every line of code must be worthy of a master craftsperson's pride.**

@@ -7,6 +7,8 @@ description: Design data structures before implementation. Maps existing code or
 
 Design data structures and architecture. Context-aware: maps existing code or creates new types from plan.
 
+> **No arguments?** Describe this skill and stop. Do not execute.
+
 ## First: Activate Workflow
 
 ```bash
@@ -30,11 +32,17 @@ else:
 
 Before starting either mode, read these canon skills and apply their principles throughout:
 
-**Always load:**
-1. `.claude/skills/data-first/SKILL.md`
-2. `.claude/skills/correctness/SKILL.md`
-3. `.claude/skills/abstraction/SKILL.md`
-4. `.claude/skills/composition/SKILL.md`
+**Always load (base brain — all 10):**
+1. `.claude/skills/clarity/SUMMARY.md`
+2. `.claude/skills/pragmatism/SUMMARY.md`
+3. `.claude/skills/simplicity/SUMMARY.md`
+4. `.claude/skills/composition/SUMMARY.md`
+5. `.claude/skills/distributed/SUMMARY.md`
+6. `.claude/skills/data-first/SUMMARY.md`
+7. `.claude/skills/correctness/SUMMARY.md`
+8. `.claude/skills/algorithms/SUMMARY.md`
+9. `.claude/skills/abstraction/SUMMARY.md`
+10. `.claude/skills/optimization/SUMMARY.md`
 
 **Load if applicable to target code:**
 - TypeScript files (.ts) → also read `.claude/skills/typescript/SKILL.md`
@@ -45,8 +53,8 @@ Reference loaded experts in your APPLIED output.
 ### Step 0b: Learn From Past Mistakes
 
 Read both lessons files if they exist:
-1. `workflow-skills/phase-loop-lessons.md` — universal patterns (ships with skills, applies to all projects)
-2. `.claude/phase-loop-lessons.md` — project-specific patterns (accumulated from this project's runs)
+1. `workflow-skills/lessons.md` — universal patterns (ships with skills, applies to all projects)
+2. `.claude/lessons.md` — project-specific patterns (accumulated from this project's runs)
 
 Apply relevant lessons to your structural design:
 

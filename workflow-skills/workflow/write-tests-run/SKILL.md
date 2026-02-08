@@ -7,6 +7,8 @@ description: Write and run tests. Tests are REQUIRED. All must pass.
 
 Write and RUN tests. Tests are REQUIRED, not optional.
 
+> **No arguments?** Describe this skill and stop. Do not execute.
+
 ## First: Activate Workflow
 
 ```bash

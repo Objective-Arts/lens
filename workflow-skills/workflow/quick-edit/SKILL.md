@@ -7,6 +7,8 @@ description: Simple changes done right. Add field, rename, small fix - with chec
 
 For simple changes that don't warrant full planning but still need care.
 
+> **No arguments?** Describe this skill and stop. Do not execute.
+
 ## What Is This?
 
 `/quick-edit` is the **light workflow** for small, focused changes. No planning phases, no external review — just careful execution with a checklist.

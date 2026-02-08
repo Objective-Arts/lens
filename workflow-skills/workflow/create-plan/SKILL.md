@@ -7,6 +7,8 @@ description: Create implementation plan before coding. Plan file must exist with
 
 Create a detailed, actionable implementation plan. No vague language. No optional sections.
 
+> **No arguments?** Describe this skill and stop. Do not execute.
+
 ## First: Activate Workflow
 
 ```bash
@@ -51,12 +53,17 @@ Every item must be SPECIFIC and ACTIONABLE.
 
 Before starting, read these canon skills and apply their principles throughout:
 
-**Always load:**
-1. `.claude/skills/clarity/SKILL.md`
-2. `.claude/skills/simplicity/SKILL.md`
-3. `.claude/skills/data-first/SKILL.md`
-4. `.claude/skills/correctness/SKILL.md`
-5. `.claude/skills/abstraction/SKILL.md`
+**Always load (base brain — all 10):**
+1. `.claude/skills/clarity/SUMMARY.md`
+2. `.claude/skills/pragmatism/SUMMARY.md`
+3. `.claude/skills/simplicity/SUMMARY.md`
+4. `.claude/skills/composition/SUMMARY.md`
+5. `.claude/skills/distributed/SUMMARY.md`
+6. `.claude/skills/data-first/SUMMARY.md`
+7. `.claude/skills/correctness/SUMMARY.md`
+8. `.claude/skills/algorithms/SUMMARY.md`
+9. `.claude/skills/abstraction/SUMMARY.md`
+10. `.claude/skills/optimization/SUMMARY.md`
 
 **Load if applicable to target code:**
 - Auth, tokens, passwords, encryption → also read `.claude/skills/security-mindset/SKILL.md` and `.claude/skills/owasp/SKILL.md`
@@ -67,8 +74,8 @@ Reference loaded experts in your APPLIED output.
 ### Step 0b: Learn From Past Mistakes
 
 Read both lessons files if they exist:
-1. `workflow-skills/phase-loop-lessons.md` — universal patterns (ships with skills, applies to all projects)
-2. `.claude/phase-loop-lessons.md` — project-specific patterns (accumulated from this project's runs)
+1. `workflow-skills/lessons.md` — universal patterns (ships with skills, applies to all projects)
+2. `.claude/lessons.md` — project-specific patterns (accumulated from this project's runs)
 
 These contain patterns that later quality phases (gemini-fix, qodana-fix, adversarial-security) have repeatedly caught. Your plan should proactively address these known patterns so they don't recur:
 

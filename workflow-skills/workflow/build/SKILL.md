@@ -7,6 +7,8 @@ description: Build a new feature from scratch. 11-phase quality pipeline with ro
 
 Build a new feature, component, or module from scratch using the full 11-phase quality pipeline.
 
+> **No arguments?** Describe this skill and stop. Do not execute.
+
 ## What Is This?
 
 `/build` is the **heavy workflow** for creating new code. It runs 11 phases in sequence:
@@ -114,7 +116,7 @@ For each phase in the table above, spawn a **single Task subagent** (`subagent_t
 For phases 1-5, 9-11 (no MCP tools needed):
 
 ```
-Read the skill file at workflow-skills/workflow/{SKILL_NAME}/SKILL.md
+Read the skill file at /Users/steve/local-tech-projects/lens/workflow-skills/workflow/{SKILL_NAME}/SKILL.md
 and execute ALL of its instructions against: {TARGET}
 
 Follow every step in the skill. Do not skip any steps.
