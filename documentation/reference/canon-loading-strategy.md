@@ -11,10 +11,27 @@ This document contains proprietary and confidential information. Unauthorized re
 
 Skills are loaded through a 4-layer system:
 
-1. **Base Skills** - Core skills always loaded (clarity, simplicity, etc.)
+1. **Base Brain** - 10 foundational skills always loaded via SUMMARY.md (~4,200 tokens)
 2. **Profile Skills** - Language/framework specific skills from profile
 3. **Phase Skills** - Skills suited to current phase from `workflow-phases.yaml`
 4. **Keyword Skills** - Dynamically detected from task text via `keyword-detection.yaml`
+
+### The Base Brain (10 Skills)
+
+Every workflow loads these 10 skills:
+
+| # | Skill | Focus |
+|---|-------|-------|
+| 1 | clarity | No cleverness, obvious code |
+| 2 | pragmatism | Get it working first |
+| 3 | simplicity | Small interfaces, delete code |
+| 4 | composition | Unix philosophy, pipelines |
+| 5 | distributed | Failure handling |
+| 6 | data-first | Data structures before algorithms |
+| 7 | correctness | Formal discipline |
+| 8 | algorithms | Algorithmic rigor |
+| 9 | abstraction | Substitution principle |
+| 10 | optimization | Measure before optimizing |
 
 ---
 

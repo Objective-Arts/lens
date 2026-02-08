@@ -11,8 +11,8 @@ When you work, the system loads expert guidance through four layers.
 
 ```mermaid
 flowchart TB
-    subgraph L1["Layer 1: Base - Always on"]
-        BASE["clarity, pragmatism, simplicity,<br/>correctness, security-mindset, owasp..."]
+    subgraph L1["Layer 1: Base Brain - Always on (10 skills)"]
+        BASE["clarity, pragmatism, simplicity, composition,<br/>distributed, data-first, correctness,<br/>algorithms, abstraction, optimization"]
     end
 
     subgraph L2["Layer 2: Profile - Your project type"]
@@ -49,18 +49,24 @@ Loaded Skills = Base + Profile + Phase + Detected Keywords
 
 ---
 
-## Layer 1: Base (Always On)
+## Layer 1: Base Brain (Always On)
 
-Every software project gets these core skills automatically:
+Every software project gets the **Base Brain** — 10 foundational skills loaded automatically:
 
 | Skill | Focus |
 |-------|-------|
-| clarity | Clarity, readability |
-| pragmatism | Get it working first |
-| simplicity | Small interfaces |
-| correctness | Formal correctness |
-| security-mindset | Security thinking |
-| owasp | Vulnerability patterns |
+| clarity | Clarity, readability, no cleverness |
+| pragmatism | Get it working first, brute force is fine |
+| simplicity | Small interfaces, composition over inheritance |
+| composition | Unix philosophy, do one thing well |
+| distributed | Failure handling, distributed systems |
+| data-first | Data structures first, algorithms follow |
+| correctness | Formal discipline, correctness by construction |
+| algorithms | Algorithmic rigor, literate programming |
+| abstraction | Substitution principle, type contracts |
+| optimization | Performance, measure before optimizing |
+
+**Context cost:** ~4,200 tokens (~2% of context window)
 
 **File:** `profiles/software-base.yaml`
 
@@ -91,16 +97,16 @@ The 8 workflow phases, each with different skills:
 /refactor-check → /adversarial-review → /static-analysis → /doc-code
 ```
 
-| Phase | Skills | Focus |
-|-------|--------|-------|
-| **plan** | clarity, simplicity, data-first, correctness, abstraction, competition, strategy, resilience, failure, safety | Requirements, design |
-| **structure-first** | data-first, typescript, correctness, abstraction, java, design-patterns | Data structures, types |
-| **implement** | pragmatism, clarity, simplicity, composition, distributed, optimization | Write the code |
-| **build-tests** | test-doubles, test-strategy, react-test, angular-core, legacy | Write tests |
-| **refactor-check** | clarity, pragmatism, legacy, design-patterns, simplicity | Clean up |
-| **adversarial-review** | security-mindset, owasp, appsec, web-security, failure, safety, resilience | Security review |
-| **static-analysis** | java, abstraction, owasp, js-safety | Run analyzers |
-| **doc-code** | docs, brevity, prose, editing | Documentation |
+| Phase | Base Brain | Domain Skills | Focus |
+|-------|------------|---------------|-------|
+| **plan** | All 10 | abstraction | Requirements, design |
+| **structure-first** | All 10 | — | Data structures, types |
+| **implement** | All 10 | — | Write the code |
+| **build-tests** | All 10 | test-doubles, test-strategy | Write tests |
+| **refactor-check** | All 10 | design-patterns, refactoring | Clean up |
+| **adversarial-review** | — | security-mindset, owasp, web-security | Security review (external) |
+| **static-analysis** | — | — | Run analyzers (external) |
+| **doc-code** | All 10 | docs, brevity, prose | Documentation |
 
 > **Commands** = run one phase
 > **Ralph** = loop through all phases in order

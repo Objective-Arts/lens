@@ -165,6 +165,22 @@ An **interface** describes the shape of an object. A ConfigItem must have:
 
 You can't create a ConfigItem without all these fields. TypeScript enforces it.
 
+### The Skill Type
+
+Skills have both full content and a summary for efficient loading:
+
+```typescript
+export interface Skill {
+  name: string;
+  content: string;        // Full SKILL.md content
+  summary: string;        // SUMMARY.md (dense, structured)
+  checklist: readonly string[];  // Extracted enforcement items
+  source: 'profile' | 'dynamic';
+}
+```
+
+The `checklist` array contains items extracted from "## Checklist" and "## The X Test" sections — these become hard pass/fail gates in the enforcement model.
+
 ### The "Discriminated Union" Pattern
 
 This codebase uses a pattern for results that can be success OR failure:
@@ -271,6 +287,25 @@ if (projectPath) {
 
 Ralph runs code through 10 phases. Each phase is a class that extends BasePhase.
 
+### The Base Brain
+
+Every phase loads the **Base Brain** — 10 foundational expert skills:
+
+| # | Skill | Focus |
+|---|-------|-------|
+| 1 | clarity | No cleverness, obvious code |
+| 2 | pragmatism | Get it working first |
+| 3 | simplicity | Small interfaces, delete code |
+| 4 | composition | Unix philosophy, pipelines |
+| 5 | distributed | Failure handling |
+| 6 | data-first | Data structures before algorithms |
+| 7 | correctness | Formal discipline |
+| 8 | algorithms | Algorithmic rigor |
+| 9 | abstraction | Substitution principle |
+| 10 | optimization | Measure before optimizing |
+
+These are loaded via `SUMMARY.md` files (~4,200 tokens total).
+
 ### The Base Class
 
 Look at `src/ralph/phases/types.ts`:
@@ -287,6 +322,14 @@ export abstract class BasePhase implements Phase {
     return true;
   }
 
+  protected buildExpertGuidance(experts: readonly Skill[]): string {
+    // Builds prompt with SUMMARY.md content + enforcement checklist
+  }
+
+  protected validateAppliedPrinciples(output: string, experts: readonly Skill[]): string | null {
+    // Validates APPLIED section cites each expert with specific decisions
+  }
+
   protected success(message: string): PhaseResult {
     return { status: 'success', message };
   }
@@ -295,6 +338,28 @@ export abstract class BasePhase implements Phase {
     return { status: 'failed', error };
   }
 }
+```
+
+### The Enforcement Model
+
+Skills aren't just guidance — they're enforced:
+
+1. **Full Content**: `buildExpertGuidance()` loads complete `SUMMARY.md` files (not truncated)
+2. **Enforcement Checklist**: Extracts checklist items from skills, appends as hard pass/fail gates
+3. **APPLIED Validation**: `validateAppliedPrinciples()` checks that each expert is cited with specific decisions
+
+If the APPLIED section is missing, empty, or contains generic claims like "applied clarity principles", the phase fails.
+
+Valid APPLIED entry:
+```
+- clarity: used early returns to flatten nesting in parseConfig
+- simplicity: chose linear scan over hash map — only 12 items, O(n) is clearer
+```
+
+Invalid (will fail):
+```
+- clarity: applied clarity principles
+- simplicity: followed simplicity guidance
 ```
 
 Let's decode:
@@ -401,6 +466,43 @@ if (!output.success) {
 return this.success(`Plan saved to ${planPath}`);
 ```
 - Return a success result with a message
+
+---
+
+## Part 6b: The AI Smell Index
+
+When writing code, avoid patterns that look AI-generated. The `/ai-smell-scan` command measures this with weighted scoring:
+
+| Smell Type | Weight | What to Avoid |
+|------------|--------|---------------|
+| Over-abstraction | 3 | Factories/wrappers used once, single-use helpers |
+| Defensive paranoia | 3 | Null checks where null is impossible |
+| Speculative features | 3 | Config options nobody uses |
+| Enterprise patterns | 3 | Repository pattern for one entity |
+| Generic wrappers | 2 | `Result<T>` when you just throw |
+| Excessive structure | 2 | Single-method classes, deep nesting |
+| Comment spam | 1 | Comments that repeat the code |
+| Verbose naming | 1 | Names longer than 25 characters |
+
+**Index interpretation:**
+- 0-5: Clean (human-like code)
+- 6-15: Minor — a few AI fingerprints
+- 16-30: Moderate — needs attention
+- 31+: Heavy — run `/ai-smell-fix`
+
+**Example smell to avoid:**
+```typescript
+// BAD - principle citation in comment (AI smell)
+/**
+ * Following design-patterns: Strategy pattern for phases.
+ */
+export interface Phase { ... }
+
+// GOOD - just the interface
+export interface Phase { ... }
+```
+
+See [AI Smell Index Reference](reference/ai-smell-index.md) for full details.
 
 ---
 
@@ -805,6 +907,10 @@ console.log(result.items);  // works!
 | Add a new type | `src/types.ts` or `src/ralph/types.ts` |
 | See how tests are written | Any `*.test.ts` file |
 | Understand the config format | `config/workflow-phases.yaml` |
+| See how skills are loaded | `src/ralph/skills/loader.ts` |
+| See how enforcement works | `src/ralph/phases/types.ts` (BasePhase) |
+| Understand the Base Brain | `profiles/software-base.yaml` |
+| See workflow skill definitions | `workflow-skills/workflow/*/SKILL.md` |
 
 ---
 

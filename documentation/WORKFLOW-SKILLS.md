@@ -66,6 +66,29 @@ workflow-skills/
 
 ---
 
+## The Base Brain
+
+All core workflow skills load the **Base Brain** — 10 foundational skills via SUMMARY.md:
+
+| # | Skill | Focus |
+|---|-------|-------|
+| 1 | clarity | No cleverness, obvious code |
+| 2 | pragmatism | Get it working first |
+| 3 | simplicity | Small interfaces, delete code |
+| 4 | composition | Unix philosophy, pipelines |
+| 5 | distributed | Failure handling |
+| 6 | data-first | Data structures before algorithms |
+| 7 | correctness | Formal discipline |
+| 8 | algorithms | Algorithmic rigor |
+| 9 | abstraction | Substitution principle |
+| 10 | optimization | Measure before optimizing |
+
+**Context cost:** ~4,200 tokens (~2% of context window)
+
+See [How Skills Get Loaded](explanation/how-skills-load.md) for details.
+
+---
+
 ## Core Workflow Skills
 
 ### `/create-plan [task]`
@@ -77,7 +100,7 @@ workflow-skills/
 - Defines scope, files to create/modify, risks
 - Requires user approval before implementation
 
-**Expert lens:** clarity, simplicity, correctness, data-first
+**Expert lens:** Base Brain (all 10) + abstraction
 
 **Example:**
 ```
@@ -94,7 +117,7 @@ workflow-skills/
 - **Map mode** (existing code): Analyzes architecture, diagrams relationships, designs improvements
 - **Create mode** (from plan): Creates TypeScript interfaces, defines API contracts
 
-**Expert lens:** abstraction, typescript, data-first
+**Expert lens:** Base Brain (all 10)
 
 **Example:**
 ```
@@ -114,7 +137,7 @@ workflow-skills/
 - Enforces quality constraints (single responsibility, meaningful names, error handling)
 - Verifies code compiles/lints
 
-**Expert lens:** clarity, pragmatism, composition, design-patterns
+**Expert lens:** Base Brain (all 10)
 
 **Example:**
 ```
@@ -134,7 +157,7 @@ workflow-skills/
 - Dead code
 - Naming clarity
 
-**Expert lens:** clarity, legacy, design-patterns
+**Expert lens:** Base Brain (all 10) + design-patterns, refactoring
 
 **Example:**
 ```
@@ -347,24 +370,31 @@ workflow-skills/
 
 ### `/ai-smell-scan [path]`
 
-**Purpose:** Detect AI-generated code smells without making changes.
+**Purpose:** Detect AI-generated code smells without making changes. Calculates AI Smell Index.
 
 **What it finds:**
-- Over-abstraction
-- Defensive paranoia
-- Comment spam
-- Speculative features
-- Enterprise patterns in simple code
-- Generic wrapper abuse
-- Verbose naming
-- Excessive structure
+- Over-abstraction (weight: 3)
+- Defensive paranoia (weight: 3)
+- Speculative features (weight: 3)
+- Enterprise patterns (weight: 3)
+- Generic wrapper abuse (weight: 2)
+- Excessive structure (weight: 2)
+- Comment spam (weight: 1)
+- Verbose naming (weight: 1)
 
-**Output:** Report only—no files edited.
+**Output:** Report with AI_SMELL_INDEX score:
+- 0-5: Clean (human-like)
+- 6-15: Minor
+- 16-30: Moderate
+- 31-50: Heavy
+- 51+: Severe
 
 **Example:**
 ```
 /ai-smell-scan src/services/
 ```
+
+See [AI Smell Index Reference](reference/ai-smell-index.md) for full scoring details.
 
 ---
 
@@ -388,32 +418,37 @@ workflow-skills/
 
 ---
 
-## Targeted Quality Skills
+## Heavy Workflows (11 Phases)
 
-### `/phase-loop [path] [--rollback] [--dry-run]`
+### `/build [path|description] [--rollback] [--dry-run]`
 
-**Purpose:** Run 9-phase quality pipeline on any class, component, or directory.
+**Purpose:** Build a new feature from scratch with full 11-phase quality pipeline.
+
+**When to use:**
+- New feature from PRD
+- New component, service, or module
+- Greenfield code
 
 **Flags:**
 | Flag | Purpose |
 |------|---------|
-| `--dry-run` | Show what would change without modifying |
-| `--rollback` | Restore from last phase-loop stash |
+| `--dry-run` | Show the 11 phases without executing |
+| `--rollback` | Restore from last build stash |
 
-**The 9 Phases:**
+**The 11 Phases:**
 | # | Skill | Purpose |
 |---|-------|---------|
-| 1 | create-plan | Analyze target, identify issues |
-| 2 | structure-first | Map architecture, design improvements |
-| 3 | implement-plan | Apply fixes and improvements |
+| 1 | create-plan | Design feature scope and files |
+| 2 | structure-first | Define data structures and interfaces |
+| 3 | implement-plan | Write the code |
 | 4 | refactor-check-fix | Clean up, apply patterns |
 | 5 | dedupe-fix | Consolidate duplicated code |
 | 6 | gemini-fix | Gemini review, fix ALL issues |
 | 7 | qodana-fix | Static analysis, fix ALL issues |
 | 8 | adversarial-security-review | Security audit, fix vulnerabilities |
-| 9 | write-tests-run | Write/update tests, all must pass |
-
-**Skipped:** generate-docs (run separately if needed)
+| 9 | write-tests-run | Write/update tests |
+| 10 | ai-smell-fix | Remove AI-generated antipatterns |
+| 11 | write-tests-run | Re-verify after cleanup |
 
 **Rollback:** Creates git stash before changes. Use `--rollback` to restore.
 
@@ -421,10 +456,98 @@ workflow-skills/
 
 **Example:**
 ```
-/phase-loop src/components/Button.tsx
-/phase-loop src/services/auth/
-/phase-loop --rollback
+/build user authentication system
+/build src/components/DatePicker
+/build --rollback
 ```
+
+---
+
+### `/improve [path] [--rollback] [--dry-run]`
+
+**Purpose:** Improve existing code with full 11-phase quality pipeline.
+
+**When to use:**
+- Refactoring a module
+- Quality pass on a component
+- Technical debt cleanup
+- Pre-commit quality check
+
+**Flags:**
+| Flag | Purpose |
+|------|---------|
+| `--dry-run` | Show the 11 phases without executing |
+| `--rollback` | Restore from last improve stash |
+
+**The 11 Phases:** Same as `/build`, but focused on existing code analysis and improvement.
+
+**Rollback:** Creates git stash before changes. Use `--rollback` to restore.
+
+**Modifies Code:** Yes
+
+**Example:**
+```
+/improve src/components/Button.tsx
+/improve src/services/auth/
+/improve --rollback
+```
+
+---
+
+## Light Workflows (No Phases)
+
+### `/quick-edit [description]`
+
+**Purpose:** Simple changes done right. Add field, rename, small fix.
+
+**When to use:**
+- Add a field to a model/DTO
+- Rename something
+- Add a parameter
+- Small bug fix
+- Add a button/link
+
+**If the change touches 5+ files or has design decisions → use `/build` or `/improve` instead.**
+
+**Process:** Checklist-driven execution without planning phases.
+
+**Modifies Code:** Yes
+
+**Example:**
+```
+/quick-edit add email field to User model
+/quick-edit rename processData to parseUserInput
+```
+
+---
+
+### `/quick-clean [path]`
+
+**Purpose:** Fast cleanup for AI smells and common problems.
+
+**When to use:**
+- After `/quick-edit` or any code change
+- Before commit
+- Quick sanity check
+
+**What it fixes:**
+- Over-abstraction, defensive paranoia, comment spam
+- Vague names, magic numbers, dead code
+- Generic naming smells
+
+**If you need thorough analysis → use `/improve` instead.**
+
+**Modifies Code:** Yes
+
+**Example:**
+```
+/quick-clean src/services/
+/quick-clean
+```
+
+---
+
+## Other Quality Skills
 
 ---
 
@@ -432,7 +555,7 @@ workflow-skills/
 
 **Purpose:** Final refinement pass that prepares code for senior review.
 
-**Prerequisite:** Requires `/phase-loop` to have been run first on the target.
+**Prerequisite:** Requires `/build` or `/improve` to have been run first on the target.
 
 **What it checks:**
 - AI antipatterns (over-abstraction, defensive paranoia, comment spam)
@@ -529,6 +652,10 @@ workflow-skills/
 | Skill | When to Use | Modifies Code |
 |-------|-------------|---------------|
 | `/lens` | Start here — status and choices | No |
+| `/build` | New feature from scratch (11 phases) | Yes |
+| `/improve` | Refine existing code (11 phases) | Yes |
+| `/quick-edit` | Add field, rename, small fix | Yes |
+| `/quick-clean` | Fast AI smell cleanup | Yes |
 | `/create-plan` | Starting new feature | No |
 | `/structure-first` | Before implementation | Yes |
 | `/implement-plan` | Writing code | Yes |
@@ -540,8 +667,7 @@ workflow-skills/
 | `/adversarial-security-review` | Auth/data features | Yes |
 | `/write-tests-run` | After code works | Yes |
 | `/generate-docs` | After feature complete | Yes |
-| `/phase-loop` | Improve single file/component | Yes |
-| `/final-polish` | After phase-loop, before PR | Yes |
+| `/final-polish` | After build/improve, before PR | Yes |
 | `/gemini-scan` | Quick quality check | No |
 | `/qodana-scan` | Quick static analysis | No |
 | `/dedupe-scan` | Find duplicates | No |

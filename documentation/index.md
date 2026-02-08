@@ -100,13 +100,9 @@ See [Installation Reference](reference/installation.md) for complete setup guide
 | [Profiles](reference/profiles.md) | All available profiles and composition |
 | [Canon Catalog](reference/canon-catalog.md) | Complete list of skills by domain |
 | [Canon Loading Strategy](reference/canon-loading-strategy.md) | How skills are detected and loaded |
-| [Quality Flags](reference/flags.md) | All flags with parameters |
-| [API Design Standards](reference/api-design-standards.md) | API design principles from java skill |
-| [Framework Templates](reference/framework-templates.md) | D3, Angular, React, Node, Go, Java standards |
-| [Structural Standards](reference/structural-standards.md) | Universal code quality rules |
-| [Design Patterns](reference/patterns.md) | Canon Factory, Profile Builder, etc. |
+| [Use Cases](reference/use-cases.md) | All use cases with implementation code |
 | [Hooks](reference/hooks.md) | Pre-commit and quality gate hooks |
-| [Sample CLAUDE.md](reference/sample-claude-md.md) | Example generated configuration |
+| [AI Smell Index](reference/ai-smell-index.md) | Measuring AI-generated code patterns |
 
 ### Key Configuration Files
 
@@ -126,6 +122,8 @@ See [Installation Reference](reference/installation.md) for complete setup guide
 | Topic | Description |
 |-------|-------------|
 | [Why Expert Skills?](explanation/why-expert-skills.md) | The philosophy behind expert lenses |
+| [How Skills Get Loaded](explanation/how-skills-load.md) | The 4-layer loading system and Base Brain |
+| [Skill Enforcement Model](explanation/skill-enforcement-model.md) | How skills become hard gates, not suggestions |
 | [Two-Tier Review Architecture](explanation/two-tier-review.md) | Self-review vs external validation |
 
 ---

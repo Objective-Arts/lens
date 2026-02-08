@@ -117,7 +117,10 @@ Interactive skills for quality control:
 | `/ai-smell-scan` | Detect AI code smells | No |
 | `/write-tests-run` | Write and run tests | Yes |
 | `/generate-docs` | Generate Diátaxis documentation | Yes |
-| `/phase-loop` | Run 9 quality phases with rollback | Yes |
+| `/build` | Build new feature (11 phases) | Yes |
+| `/improve` | Improve existing code (11 phases) | Yes |
+| `/quick-edit` | Simple changes (add field, rename) | Yes |
+| `/quick-clean` | Fast AI smell cleanup | Yes |
 | `/final-polish` | Final refinement for senior review | Yes |
 
 Use individually or let Ralph Loop orchestrate them automatically.
