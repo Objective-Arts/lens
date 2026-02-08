@@ -26,5 +26,6 @@ export {
 export {
   printCanonSkillsByCategory,
   printSkillStatuses,
-  printVerifyResults
+  printVerifyResults,
+  printSkillInspection
 } from './canon.js';

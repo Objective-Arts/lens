@@ -1,7 +1,5 @@
 /**
  * Core types for Ralph - PRD-driven autonomous implementation tool.
- *
- * Following typescript: strict types, discriminated unions, no any.
  */
 
 /** PRD item status */
@@ -21,11 +19,7 @@ export interface Prd {
   raw: string;
 }
 
-/**
- * Phase names for the 8-phase workflow.
- * Following data-first: data structures first.
- * Following correctness: explicit, ordered sequence.
- */
+/** Phase names for the 8-phase workflow. */
 export type PhaseName =
   | 'plan'
   | 'structure-first'

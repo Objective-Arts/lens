@@ -77,6 +77,8 @@ export function createSkill(options: Partial<Skill> = {}): Skill {
   return {
     name: options.name ?? 'test-skill',
     content: options.content ?? '# Test Skill\n\nTest content.',
+    summary: options.summary ?? '',
+    checklist: options.checklist ?? [],
     source: options.source ?? 'profile',
   };
 }

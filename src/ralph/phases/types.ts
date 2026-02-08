@@ -1,26 +1,16 @@
 /**
  * Phase interface and types.
- *
- * Following java: design for extension.
- * Following design-patterns: Strategy pattern for phases.
- * Following abstraction: substitutable phase implementations.
  */
 
 import type { Session, PhaseName, Skill, PrdItem } from '../types.js';
 
-/**
- * Result of phase execution.
- * Following typescript: discriminated union for exhaustive handling.
- */
+/** Result of phase execution. */
 export type PhaseResult =
   | { readonly status: 'success'; readonly message: string; readonly metrics?: Readonly<Record<string, number>>; readonly rawOutput?: string }
   | { readonly status: 'failed'; readonly error: string }
   | { readonly status: 'skipped'; readonly reason: string };
 
-/**
- * Context passed to each phase.
- * Following simplicity: minimal interface, only what's needed.
- */
+/** Context passed to each phase. */
 export interface PhaseContext {
   readonly session: Session;
   readonly item: PrdItem;
@@ -31,11 +21,7 @@ export interface PhaseContext {
   correctivePrompt?: string;
 }
 
-/**
- * Phase interface - implemented by each phase.
- * Following Strategy pattern: uniform interface, different implementations.
- * Following abstraction: any Phase can be substituted for another.
- */
+/** Phase interface - implemented by each phase. */
 export interface Phase {
   /** Phase name matching PhaseName type */
   readonly name: PhaseName;
@@ -61,10 +47,7 @@ export interface Phase {
   shouldRun(context: PhaseContext): boolean;
 }
 
-/**
- * Base class for phases with common functionality.
- * Following design-patterns: Template Method pattern.
- */
+/** Base class for phases with common functionality. */
 export abstract class BasePhase implements Phase {
   abstract readonly name: PhaseName;
   abstract readonly icon: string;

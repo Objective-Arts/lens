@@ -7,6 +7,7 @@
 
 import chalk from 'chalk';
 import type { CanonListItem, SkillStatusInfo } from '../../canon/types.js';
+import type { Skill } from '../../ralph/types.js';
 
 /** Print canon skills grouped by category */
 export function printCanonSkillsByCategory(
@@ -150,5 +151,38 @@ function printVerifySummary(result: {
     console.log(chalk.green('\n✓ All canon skills are identical to source!'));
   } else {
     console.log(chalk.yellow('\n⚠ Some skills differ from source. Run `lens canon deploy --force` to sync.'));
+  }
+}
+
+/** Print skill inspection — shows exactly what ralph loads for a skill */
+export function printSkillInspection(skill: Skill): void {
+  const contentLines = skill.content.split('\n').length;
+  const summaryLines = skill.summary ? skill.summary.split('\n').length : 0;
+
+  console.log(chalk.bold(`\n${skill.name}`));
+  console.log(chalk.gray('─'.repeat(50)));
+
+  console.log(`  ${chalk.dim('source:')}    ${skill.source}`);
+  console.log(`  ${chalk.dim('SKILL.md:')} ${contentLines} lines`);
+  console.log(`  ${chalk.dim('SUMMARY:')}  ${summaryLines > 0 ? `${summaryLines} lines` : chalk.yellow('none')}`);
+
+  if (skill.checklist.length > 0) {
+    console.log(`  ${chalk.dim('checklist:')} ${chalk.green(skill.checklist.length.toString())} items`);
+    for (const item of skill.checklist) {
+      console.log(`    ${chalk.cyan('-')} ${item}`);
+    }
+  } else {
+    console.log(`  ${chalk.dim('checklist:')} ${chalk.yellow('none')}`);
+  }
+
+  if (skill.summary) {
+    console.log(`\n  ${chalk.dim('SUMMARY.md preview:')}`);
+    const preview = skill.summary.split('\n').slice(0, 8);
+    for (const line of preview) {
+      console.log(`    ${chalk.white(line)}`);
+    }
+    if (summaryLines > 8) {
+      console.log(chalk.gray(`    ... ${summaryLines - 8} more lines`));
+    }
   }
 }

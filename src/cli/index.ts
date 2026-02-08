@@ -31,7 +31,10 @@ ${chalk.bold.yellow('WORKFLOW SKILLS')} ${chalk.dim('(use inside Claude Code)')}
   ${chalk.cyan('/structure-first')} ${chalk.dim('feature')}   Define types and interfaces
   ${chalk.cyan('/implement-plan')}              Build from plan
   ${chalk.cyan('/gemini-scan')} ${chalk.dim('path')}          Adversarial code review
-  ${chalk.cyan('/phase-loop')} ${chalk.dim('path')}           Run 8 quality phases on file
+  ${chalk.cyan('/build')} ${chalk.dim('target')}              Build new feature (11 phases)
+  ${chalk.cyan('/improve')} ${chalk.dim('path')}             Improve existing code (11 phases)
+  ${chalk.cyan('/quick-edit')} ${chalk.dim('desc')}          Simple changes (field, rename)
+  ${chalk.cyan('/quick-clean')} ${chalk.dim('path')}         Fast AI smell cleanup
 
 ${chalk.bold.yellow('CLI COMMANDS')}
   ${chalk.cyan('lens profile apply')} ${chalk.dim('<profile>')}   Configure project

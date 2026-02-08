@@ -14,7 +14,8 @@ import {
   deployAllSkills,
   verifySkillsMatch
 } from '../../canon/index.js';
-import { printList, printCanonSkillsByCategory, printSkillStatuses, printVerifyResults } from '../display/index.js';
+import { loadSkills } from '../../ralph/skills/loader.js';
+import { printList, printCanonSkillsByCategory, printSkillStatuses, printVerifyResults, printSkillInspection } from '../display/index.js';
 import { validateProjectPath, getPathValidationError } from '../../utils/validation.js';
 
 export function registerCanonCommands(program: Command): void {
@@ -50,6 +51,10 @@ export function registerCanonCommands(program: Command): void {
     .option('-p, --project <path>', 'Project path', process.cwd())
     .option('-v, --verbose', 'Show all matches')
     .action(handleVerify);
+
+  canonCmd.command('inspect <skill...>').description('Show what ralph sees when loading a skill')
+    .option('-p, --project <path>', 'Project path', process.cwd())
+    .action(handleInspect);
 }
 
 function validatePath(path: string): string | null {
@@ -157,4 +162,20 @@ function handleVerify(options: { project: string; verbose?: boolean }): void {
   printVerifyResults(result, !!options.verbose);
 
   if (!result.allMatch) process.exit(1);
+}
+
+function handleInspect(skillNames: string[], options: { project: string }): void {
+  const projectPath = validatePath(options.project);
+  if (!projectPath) return;
+
+  const skills = loadSkills(projectPath, skillNames);
+
+  const notFound = skillNames.filter(name => !skills.some(s => s.name === name));
+  for (const name of notFound) {
+    console.log(chalk.red(`Skill not found: ${name}`));
+  }
+
+  for (const skill of skills) {
+    printSkillInspection(skill);
+  }
 }
