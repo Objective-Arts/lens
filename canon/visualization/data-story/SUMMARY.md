@@ -61,3 +61,11 @@ NO → Remove it
 - Presentation slides
 - Dashboard reviews
 - Chart selection
+
+## Concrete Checks (MUST ANSWER)
+
+- Does each visualization communicate exactly one clear insight (stated in the title as a finding, not a label)?
+- Are key data points annotated with text explaining why they matter?
+- Does the presentation follow a narrative arc: setup (context), tension (problem/opportunity), resolution (what to do)?
+- Is there exactly one visual element that is boldest/brightest, representing the main point?
+- Has every visual element been tested with "would removing this change the meaning?" -- if no, remove it.

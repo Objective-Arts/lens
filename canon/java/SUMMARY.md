@@ -47,3 +47,11 @@ Error handling                  → Item 69: Exceptions for exceptional
 - [ ] All fields are private
 - [ ] No mutator methods
 - [ ] Mutable components: defensive copy in, defensive copy out
+
+## Concrete Checks (MUST ANSWER)
+
+- [ ] Does every class with >4 constructor parameters use a Builder instead?
+- [ ] Do all methods returning mutable internal fields (List, Date, array) return defensive copies?
+- [ ] Are checked exceptions used only for recoverable conditions, and unchecked for programming errors?
+- [ ] Is every public class/method accessibility justified, or could it be package-private or private?
+- [ ] Are static factory methods used instead of public constructors where naming or caching benefits apply?

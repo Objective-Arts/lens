@@ -50,3 +50,12 @@
 - Dashboard design
 - Data visualization review
 - Choosing chart types
+
+## Concrete Checks (MUST ANSWER)
+
+- Does the entire dashboard render without scrolling on a standard 1920x1080 display?
+- Is the single most important metric/KPI positioned in the top-left quadrant?
+- Are there 7 or fewer widgets on the dashboard?
+- Does every summary number have a drill-down path to its underlying data?
+- Are gauges and pie charts absent (replaced with bullet graphs and bar charts)?
+- Is the default color palette grayscale, with bright color reserved only for alerts or thresholds?

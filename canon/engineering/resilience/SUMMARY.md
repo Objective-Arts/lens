@@ -62,3 +62,11 @@ Slack saves you. 100% utilization = fragile.
 - System resilience design
 - Architecture decisions
 - Risk assessment
+
+## Concrete Checks (MUST ANSWER)
+
+- [ ] **Gains from failure?** Name one specific way the system improves after encountering a small failure (e.g., circuit breaker learns, retry backoff adapts, alert triggers review). If nothing improves, the system is robust at best, not antifragile.
+- [ ] **Circuit breakers present?** For each external dependency, is there a mechanism that stops calling it after repeated failures and recovers automatically? If calls continue hammering a dead service, add a circuit breaker.
+- [ ] **Graceful degradation paths defined?** For each non-critical feature, what happens when it fails? Is there a fallback that preserves the core function? If a logging failure crashes the app, that is fragile.
+- [ ] **Provider lock-in check:** Is any critical function callable only through one provider's SDK with no interface abstraction? If swapping providers requires rewriting business logic, add an interface boundary.
+- [ ] **Utilization headroom:** Is any resource (CPU, memory, connections, rate limits) routinely above 80% utilization? Systems at capacity have no room to absorb spikes.

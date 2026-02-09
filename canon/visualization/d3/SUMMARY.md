@@ -81,10 +81,10 @@ d3.select("#viz").datum(data).call(barChart().width(500));
 - Creating reusable chart components
 - Debugging data join issues
 
-## Checklist
+## Concrete Checks (MUST ANSWER)
 
-- [ ] Data joins handle enter/update/exit explicitly
-- [ ] Key functions used for data that changes
-- [ ] Margin convention followed
-- [ ] Web standards embraced, not hidden
-- [ ] Transitions serve understanding, not decoration
+- Does every `.data()` call include a key function (e.g., `.data(data, d => d.id)`) rather than relying on index-based joins?
+- Does the code handle all three join states (enter, update, exit) explicitly via `.join()` or separate `.enter()` / `.exit()` calls?
+- Does the code follow the margin convention (margin object, inner `g` element with `translate`)?
+- Does every transition convey a data change (enter, exit, value update), not a purely decorative animation?
+- Are reusable chart components implemented as closures with getter-setter methods (not class constructors)?

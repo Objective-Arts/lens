@@ -43,11 +43,11 @@ Rules: Say what's wrong + how to fix it + place near problem + use icon (colorbl
 - Complex interaction patterns
 - Accessibility audits
 
-## Checklist
+## Concrete Checks (MUST ANSWER)
 
-- [ ] Every clickable element has hover/active states
-- [ ] All form fields have focus states
-- [ ] Errors appear at point of failure with fix instructions
-- [ ] Loading states for all async operations
-- [ ] Touch targets 44x44px minimum
-- [ ] Dangerous actions have confirmation
+- [ ] Does every interactive element (button, link, input) have visible affordances -- distinct hover, active, and focus states defined in CSS?
+- [ ] Does every error message state what went wrong AND how to fix it, positioned adjacent to the element that caused it?
+- [ ] Is there a loading/progress indicator shown within 100ms of every async operation starting?
+- [ ] Are all touch targets at least 44x44px with at least 8px spacing between adjacent targets?
+- [ ] Does the UI follow a consistent mental model -- does the logo link home, does X mean close, do breadcrumbs show location?
+- [ ] Do all destructive actions (delete, overwrite, send) require explicit confirmation before executing?

@@ -62,3 +62,11 @@ Complex   → Global Store (@ngrx/store)
 - Angular project structure
 - Module organization
 - Architecture decisions
+
+## Concrete Checks (MUST ANSWER)
+
+- [ ] Is every feature module configured for lazy loading via `loadChildren` or `loadComponent` in the route config?
+- [ ] Does each feature module import only what it needs, with zero imports from other feature modules?
+- [ ] Does the SharedModule contain only reusable, stateless components/pipes/directives -- no services, no business logic, no feature-specific code?
+- [ ] Is the CoreModule imported exactly once in AppModule, with a guard preventing re-import?
+- [ ] Does every container (smart) component have zero direct DOM rendering of business data -- delegating all display to presentational children via @Input/@Output?

@@ -56,11 +56,17 @@ return fmt.Errorf("loading config from %s: %w", path, err)
 5. Is the zero value useful?
 6. Could I delete something?
 
-## Checklist
+## Concrete Checks (MUST ANSWER)
 
-- [ ] No premature optimization (measured first?)
-- [ ] Simplest algorithm that works
-- [ ] Interfaces are small (1-3 methods)
-- [ ] Zero values are useful
-- [ ] Errors have context
-- [ ] Clear over clever
+1. **Interface method count:** List every interface/type you define. Does each one have 3 or fewer methods? If any has more, split it into composable single-purpose interfaces.
+2. **Optimization evidence:** For every non-trivial algorithm choice (hash map instead of array, caching layer, custom data structure), is there a benchmark showing the simpler alternative is measurably too slow for actual workload sizes? If no benchmark exists, use the simpler approach.
+3. **Zero value test:** For every struct/class/type, does `new T()` or the language's zero value produce a usable instance without calling a setup method? If construction requires mandatory initialization steps, redesign so defaults work.
+4. **Error context check:** For every error that propagates up, does it include what operation failed and what input caused it? Bare `throw err` or `return err` without wrapping fails this check.
+5. **Dependency direction:** Draw or trace the import graph. Does any core logic module import an I/O module (filesystem, network, database)? If yes, the architecture is inverted — I/O should import core, not the reverse.
+
+## HARD GATES (mandatory before writing code)
+
+- [ ] **Interface audit:** List every interface/type you plan to create. Does each one have ≤3 methods? If more, split it.
+- [ ] **Dependency direction:** Draw the dependency graph. Do all arrows point inward (toward core logic)? If core logic imports I/O modules, the architecture is inverted — fix it.
+- [ ] **Zero-config test:** Does your tool/library work with zero configuration? If it requires a config file to start, you've over-engineered it.
+- [ ] **Linear search first:** If you're implementing any search/lookup, start with linear scan. Only optimize after measuring with real data.

@@ -59,3 +59,11 @@ user$ = this.http.get<User>('/api/user').pipe(
 - RxJS patterns and anti-patterns
 - Async stream composition
 - Angular reactive programming
+
+## Concrete Checks (MUST ANSWER)
+
+- [ ] Is every subscription in a component cleaned up via `async` pipe, `takeUntilDestroyed()`, or `takeUntil(destroy$)` -- zero manual `unsubscribe()` calls in `ngOnDestroy`?
+- [ ] Are all stream transformations composed as flat operator chains (`switchMap`, `mergeMap`, `concatMap`) with zero nested `.subscribe()` calls inside another `.subscribe()`?
+- [ ] Does every shared observable use `shareReplay(1)` or equivalent to prevent duplicate HTTP requests from multiple subscribers?
+- [ ] Does every stream that can error have explicit error handling via `catchError` inside the pipe (not relying on the subscribe error callback)?
+- [ ] Is the correct flattening operator chosen for each use case (`switchMap` for cancellation, `exhaustMap` for ignoring, `concatMap` for ordering)?

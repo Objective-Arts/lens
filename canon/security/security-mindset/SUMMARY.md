@@ -66,3 +66,19 @@ return Deny(); // Default deny
 - Handling sensitive data
 - Processing user input
 - Security-focused code reviews
+
+## HARD GATES (mandatory before writing code)
+
+- [ ] **Error message audit:** List every error message in your code. Does any leak: file paths, stack traces, internal service names, SQL queries, or configuration details? If yes, sanitize to a generic message + opaque error ID.
+- [ ] **Log audit:** List every console.log/console.error/logger call. Does any log: passwords, API keys, tokens, PII, or raw error objects? If yes, remove or redact.
+- [ ] **Input boundary check:** List every point where external data enters your code (CLI args, HTTP params, file contents, env vars). Is each one validated before use? Untrusted data must never reach business logic unvalidated.
+- [ ] **Dependency audit:** List every npm/pip/cargo dependency. Check each for: last update >1 year ago? Known vulnerabilities? Excessive transitive dependencies? Each dependency is attack surface.
+- [ ] **Secret storage:** Are any secrets (API keys, passwords, tokens) hardcoded, logged, or stored in plaintext? If yes, fix immediately.
+
+## Concrete Checks (MUST ANSWER)
+
+1. **List every input boundary.** For each entry point (CLI arg, HTTP param, file read, env var, IPC message): what validation runs before the data reaches business logic? If the answer is "none," add validation now.
+2. **Do any error messages or log statements contain secrets?** Search for every `console.log`, `console.error`, `logger.*`, and `throw new Error`. Does any include: API keys, tokens, passwords, raw user data, file paths, or stack traces that reach the end user? If yes, redact.
+3. **Walk each auth path -- is there a bypass?** For every protected operation, trace the code path from entry to authorization check. Is there any code path that skips the check (early return, catch block, fallthrough, default case)?
+4. **Does every `catch` block fail closed?** For each try/catch around security-critical code (auth, validation, access control): does the catch block deny access, or does it fall through to allow? Fail-open catch blocks are the most common security bug.
+5. **What happens when an external dependency is unavailable?** For each external call (API, database, auth service): if it times out or errors, does the system deny by default or silently allow?

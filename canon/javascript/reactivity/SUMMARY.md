@@ -56,3 +56,11 @@ function debounce(fn, ms) {
 - Performance-critical applications
 - Framework selection decisions
 - Evaluating compile-time options (Svelte, SolidJS)
+
+## Concrete Checks (MUST ANSWER)
+
+- [ ] Are reactive declarations (`$:` in Svelte, `createMemo` in Solid, `computed` in Vue) used for every derived value instead of manually syncing state in event handlers or lifecycle hooks?
+- [ ] Are side effects (DOM manipulation, network calls, subscriptions) placed exclusively in proper lifecycle functions (`onMount`, `createEffect`, `$effect`) and not at module top-level or inside reactive declarations?
+- [ ] Does every third-party dependency added to the bundle justify its size -- can it be replaced by a <1KB hand-written utility or native API?
+- [ ] Is tree shaking verified by checking that unused exports are eliminated from the production bundle (via bundle analyzer or build output)?
+- [ ] Does the production build output zero runtime framework code that could have been resolved at compile time (no virtual DOM diffing for static content)?

@@ -59,3 +59,11 @@ Bad writing comes from fear:
 - Commit messages and comments
 - Any written communication
 - Editing and revising
+
+## Concrete Checks (MUST ANSWER)
+
+- [ ] **10% cut test:** Is the final draft at least 10% shorter than the first draft? Count the words. If not, keep cutting.
+- [ ] **Adverb hunt:** Search for words ending in "-ly". Can each one be replaced by a stronger verb or removed entirely?
+- [ ] **Darling detection:** Is there a phrase or sentence you are particularly proud of? Reread it critically -- does it serve the reader or your ego? If ego, cut it.
+- [ ] **Show-not-tell check:** Does any sentence claim something is "fast", "simple", "powerful", or "efficient" without evidence? Replace the adjective with a measurement or example.
+- [ ] **Hedge word scan:** Search for "basically", "essentially", "actually", "somewhat", "arguably". Remove every instance.

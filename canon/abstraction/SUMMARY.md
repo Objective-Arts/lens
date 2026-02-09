@@ -56,10 +56,17 @@ int indexOf(int[] arr, int target)
 - Reviewing OO design for substitutability
 - Creating abstract data types
 
-## Checklist
+## Concrete Checks (MUST ANSWER)
 
-- [ ] Can subtype replace supertype everywhere?
-- [ ] Subtypes preserve supertype invariants?
-- [ ] Method contracts (pre/post) honored?
-- [ ] Representation hidden (private fields)?
-- [ ] Could implementation change without breaking clients?
+1. **Inheritance justification:** For every `extends`/`implements`/subclass relationship, can the subtype be used in every place the supertype is used without the caller needing to know which subtype it has? If any caller checks the concrete type (instanceof, typeof, discriminated unions used for branching), the substitution is broken — use composition instead.
+2. **Abstraction consumer count:** For every interface or abstract class, list its concrete implementations. If there is only one implementation, delete the abstraction and use the concrete type directly. Abstractions with a single consumer are speculative complexity.
+3. **Leaky abstraction scan:** Does any consumer of an abstraction access implementation details (casting to concrete types, relying on internal state shape, calling methods not on the interface)? If yes, the abstraction is leaking — either widen the interface or remove the abstraction.
+4. **Hierarchy depth check:** Count the inheritance chain depth for every type. Is any chain deeper than 2 levels (A -> B -> C)? If yes, flatten it. Deep hierarchies create coupling that makes changes cascade unpredictably.
+5. **Contract preservation:** For every overridden method, does the override accept the same or wider inputs (weakened preconditions) and return the same or narrower outputs (strengthened postconditions)? If an override throws new exceptions, rejects previously valid inputs, or returns unexpected types, it violates the contract.
+
+## HARD GATES (mandatory before writing code)
+
+- [ ] **Consumer count:** For every interface/abstract class you create, list its consumers. If there's only one implementation, delete the abstraction and use the concrete type. Abstractions earn their existence through multiple consumers.
+- [ ] **Substitution test:** For every subtype, write a test that uses it through the base type's interface. If the test needs type-specific knowledge to pass, the substitution is broken.
+- [ ] **Depth check:** Count your inheritance/composition depth. If any chain is >2 levels, flatten it. Deep hierarchies are never worth the complexity.
+- [ ] **Wrapper audit:** List every wrapper/adapter/facade. Does each one add behavior, or does it just forward calls? Delete pure forwarding wrappers.

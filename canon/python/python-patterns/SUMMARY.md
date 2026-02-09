@@ -77,3 +77,11 @@ safe_division(10, 2, ignore_zero=True)  # Must use keyword
 - Writing idiomatic Python
 - Refactoring Python code
 - Code review checklists
+
+## Concrete Checks (MUST ANSWER)
+
+- [ ] Is tuple unpacking used to extract values instead of indexing (`x[0]`, `x[1]`)?
+- [ ] Is the walrus operator (`:=`) used where it eliminates a redundant computation or extra line in `while`/`if` conditions?
+- [ ] Are f-strings used instead of `str.format()` or `%` formatting in all string interpolation?
+- [ ] Do all functions with boolean-style optional parameters use keyword-only arguments (after `*`)?
+- [ ] Does every function with a mutable default argument use `None` as the sentinel instead?

@@ -62,10 +62,10 @@ merged = dict1 | dict2
 - Complex iteration patterns (groupby, product, permutations)
 - Context manager implementation
 
-## Checklist
+## Concrete Checks (MUST ANSWER)
 
-- [ ] Could this loop be a comprehension?
-- [ ] Is there an itertools function for this?
-- [ ] Using enumerate instead of range(len())?
-- [ ] Using Counter/defaultdict where appropriate?
-- [ ] Decorators preserve metadata with @wraps?
+- [ ] Is every `for i in range(len(x))` replaced with `enumerate(x)` or a comprehension?
+- [ ] Are `map()`/`filter()` calls replaced with list comprehensions or generator expressions?
+- [ ] Is `pathlib.Path` used instead of `os.path.join`, `os.path.exists`, and other `os.path` calls?
+- [ ] Is `Counter` used for counting and `defaultdict` for grouping instead of manual dict accumulation?
+- [ ] Do all decorators use `@functools.wraps` to preserve the wrapped function's metadata?

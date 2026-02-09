@@ -52,3 +52,11 @@ injection is a pattern where dependencies are provided...
 - Creating any documentation
 - Restructuring existing docs
 - Deciding where information belongs
+
+## Concrete Checks (MUST ANSWER)
+
+- [ ] **Single quadrant?** Does this document live in exactly one Diataxis quadrant (tutorial, how-to, reference, or explanation)? If it spans two, split it.
+- [ ] **No teaching in tutorials?** Does the tutorial stick to "do this, then this" steps without explaining why something works? Background explanations belong in a separate explanation doc.
+- [ ] **No tutorials in reference?** Does the reference section avoid step-by-step walkthroughs? If it contains "First, install..." or "Now, create...", move that to a how-to or tutorial.
+- [ ] **Completeness test for reference:** Does the reference doc cover every public function/option/parameter, or does it cherry-pick? Incomplete reference is worse than none.
+- [ ] **Task-oriented how-to?** Does the how-to start with the goal ("How to deploy to production") rather than the tool ("Using the deploy command")?

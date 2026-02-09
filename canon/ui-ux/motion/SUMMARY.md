@@ -72,3 +72,11 @@ items.forEach((item, i) => {
 - UI animation design
 - Transition timing
 - Motion choreography
+
+## Concrete Checks (MUST ANSWER)
+
+- [ ] Is every animation duration 300ms or less for standard UI transitions (only page transitions may reach 500ms)?
+- [ ] Does each animation communicate a specific hierarchy change, state change, or spatial relationship (not purely decorative)?
+- [ ] Is `@media (prefers-reduced-motion: reduce)` handled, either removing or replacing every animation?
+- [ ] Are exit animations faster than their corresponding enter animations (asymmetric timing)?
+- [ ] Is `linear` easing absent from all UI motion (ease-out for enter, ease-in for exit, ease-in-out for on-screen moves)?

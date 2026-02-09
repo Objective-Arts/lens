@@ -55,10 +55,10 @@ Organisms: descriptive (site-header, product-grid)
 - Component naming debates
 - Setting up Storybook
 
-## Checklist
+## Concrete Checks (MUST ANSWER)
 
-- [ ] Components categorized (atom/molecule/organism)
-- [ ] No component depends on its parent
-- [ ] Variants exist instead of one-off styles
-- [ ] All values use design tokens
-- [ ] Naming follows BEM convention
+- [ ] Does every atom component contain zero business logic -- no API calls, no conditional rendering based on application state, no imported services or stores?
+- [ ] Does every molecule compose only atoms (and native HTML elements) -- not importing or rendering other molecules or organisms?
+- [ ] Does every template component contain only layout (grid, flex, spacing) with slot/children placeholders -- zero hardcoded content, zero data fetching, zero business logic?
+- [ ] Does every component use design tokens (`var(--space-3)`, `var(--color-primary)`) for all spacing, color, and typography values -- zero hardcoded `px`, hex, or `rem` values?
+- [ ] Can every component render in isolation (e.g., in Storybook) without requiring a specific parent component or global state?

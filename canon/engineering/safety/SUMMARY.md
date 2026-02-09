@@ -61,3 +61,18 @@ await db.transaction(async (tx) => { ... });
 - Safety-critical systems
 - Incident analysis
 - System design reviews
+
+## HARD GATES (mandatory before writing code)
+
+- [ ] **Atomic operation check:** List every operation that modifies persistent state. Is each one atomic? If the process crashes mid-operation, is the state corrupted or consistent? Use write-to-temp-then-rename patterns for file operations.
+- [ ] **TOCTOU audit:** List every check-then-act sequence (if file exists → read file, if key exists → use key). Can the state change between check and act? If yes, use atomic operations or locking.
+- [ ] **Resource cleanup:** Every opened file, connection, or lock has a corresponding close/release in a finally block or equivalent. Resource leaks under error paths are the most common safety bug.
+- [ ] **Rollback capability:** If an operation fails partway through, can the system return to its previous state? If not, design for it (transactions, snapshots, or idempotent retry).
+
+## Concrete Checks (MUST ANSWER)
+
+- [ ] **Safety constraints listed?** Can you point to an explicit list of safety constraints in the code or design doc? If no list exists, write one before proceeding.
+- [ ] **STAMP control loop identified?** For each controller-process pair, have you identified: (1) what control actions it issues, (2) what feedback it receives, and (3) what process model it maintains? Missing feedback is the most common safety gap.
+- [ ] **Unsafe control action analysis done?** For each control action, have you checked all four columns: not providing causes hazard? Providing causes hazard? Too early/late causes hazard? Wrong duration causes hazard?
+- [ ] **Process model matches reality?** List every assumption the controller makes about system state (cache freshness, server health, file saved). For each one, what happens if the assumption is wrong? Is there a mechanism to detect the mismatch?
+- [ ] **No "user error" in failure analysis?** If any failure explanation blames the user, redesign the control so that user action cannot cause the hazard.

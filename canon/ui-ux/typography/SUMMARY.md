@@ -68,3 +68,11 @@ Remove all boxes, borders, colors. Does type alone still create hierarchy?
 - Typography systems
 - Content-first design
 - Fluent/Metro style interfaces
+
+## Concrete Checks (MUST ANSWER)
+
+- [ ] Is a type scale defined with explicit size tokens, and is body text at least 16px?
+- [ ] Are all prose/content containers constrained to 45-75 characters line length (e.g., `max-width: 65ch`)?
+- [ ] Is vertical rhythm consistent -- do all spacing values between text elements use the same base unit or multiples of it?
+- [ ] Are no more than 3 font weights used across the entire interface?
+- [ ] Does the hierarchy pass the squint test -- with all color and borders removed, can you identify heading levels by type alone?

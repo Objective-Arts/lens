@@ -67,3 +67,11 @@ Every component needs:
 - Component documentation
 - Token architecture
 - Release management
+
+## Concrete Checks (MUST ANSWER)
+
+- [ ] Are design tokens (not raw hex/px values) used for every color, spacing, and typography value in the codebase?
+- [ ] Is every token name semantic (describes purpose like `--color-primary`, `--spacing-card-padding`) rather than literal (like `--blue-500`, `--size-16`)?
+- [ ] Is a semver versioning strategy defined, with breaking changes (token renames/removals) gated behind major versions?
+- [ ] Does every new component have documented usage guidelines, props table, all states, and accessibility notes before release?
+- [ ] Are one-off style overrides rejected or added to the token system -- zero raw values outside the token layer?

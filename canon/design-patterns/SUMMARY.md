@@ -46,3 +46,11 @@ Undo/redo, queue operations     → Command
 | Use Singleton for everything | Hidden dependencies, testing nightmare | Dependency injection |
 | Inherit for code reuse | Tight coupling, fragile base class | Composition + delegation |
 | Pattern for pattern's sake | Complexity without benefit | Simple code first |
+
+## Concrete Checks (MUST ANSWER)
+
+- [ ] **Solving a real problem?** Can you name the specific problem this pattern solves in your code right now -- not a hypothetical future problem?
+- [ ] **Function replacement test:** Could a plain function (or two) replace this class/pattern with the same result and less code? If yes, use the function.
+- [ ] **Pattern count check:** Are you introducing more than one new pattern in this change? If yes, justify each independently -- bundled patterns signal ceremony, not necessity.
+- [ ] **Inheritance depth check:** Is the inheritance chain 2 levels or fewer? If deeper, refactor to composition.
+- [ ] **Name the force:** Can you state the specific "force" (constraint, requirement, trade-off) that makes this pattern the right choice over a simpler alternative?

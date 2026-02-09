@@ -58,3 +58,11 @@ Every word must earn its place. If removing it loses no meaning, remove it.
 - Code comments
 - Error messages
 - API documentation
+
+## Concrete Checks (MUST ANSWER)
+
+- [ ] **Word removal test:** Read each sentence and try removing one word at a time. Does any removal preserve the meaning? If yes, remove that word.
+- [ ] **Passive voice scan:** Search for "is/was/were/been + past participle" constructions. Can each one be rewritten in active voice?
+- [ ] **"In order to" check:** Search for "in order to", "due to the fact that", "whether or not", "the fact that". Replace every instance.
+- [ ] **"There is/are" check:** Search for sentences starting with "There is" or "There are". Rewrite each to lead with the subject.
+- [ ] **Noun stack check:** Does any phrase chain 3+ nouns without a verb (e.g., "user authentication token validation failure")? Break it up with verbs.

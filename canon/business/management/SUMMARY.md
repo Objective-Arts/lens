@@ -52,3 +52,11 @@ Listen to Cassandras, customers leaving, frontline employees.
 - Goal setting (OKRs)
 - Identifying leverage points
 - Strategic change detection
+
+## Concrete Checks (MUST ANSWER)
+
+- Is the leverage of this activity high (does it multiply the output of many people, not just one)?
+- Are the indicators being tracked leading (predict the future) rather than lagging (report the past)?
+- Does every recurring meeting end with explicit decisions or action items, not just discussion?
+- Does each OKR have quantitative key results that are measurable without subjective judgment?
+- Has the manager identified the single highest-leverage activity they could do this week?

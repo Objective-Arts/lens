@@ -80,3 +80,11 @@ class ExpensiveComponent {
 - Angular performance optimization
 - Bundle size reduction
 - Runtime efficiency
+
+## Concrete Checks (MUST ANSWER)
+
+- [ ] Does every `*ngFor` directive have a `trackBy` function that returns a unique, stable identifier (not the array index)?
+- [ ] Is `ChangeDetectionStrategy.OnPush` set on every component that receives data via `@Input`?
+- [ ] Are all feature routes configured with `loadChildren` or `loadComponent` for lazy loading (no eagerly imported feature modules)?
+- [ ] Does every list rendering 50+ items use `cdk-virtual-scroll-viewport` or equivalent virtual scrolling?
+- [ ] Are bundle budgets configured in `angular.json` with `maximumWarning` and `maximumError` thresholds for the initial bundle?

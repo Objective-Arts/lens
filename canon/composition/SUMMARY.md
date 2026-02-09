@@ -71,3 +71,25 @@ $
 - Building CLI tools and utilities
 - Designing filters and pipelines
 - Creating composable commands
+
+## Concrete Checks (MUST ANSWER)
+
+1. **Build-vs-library audit (CRITICAL):** List every component you are building from scratch (CLI parser, HTTP client, argument validator, file watcher, date formatter, etc.). For each one: does a maintained library with >1000 weekly downloads exist? If yes, use it or write a one-sentence justification why not.
+2. **One-thing test:** For each module/function, describe its purpose without using "and." If the description requires "and," it does two things — split it.
+3. **Composability check:** Can each module's output be consumed as input by another module without shared mutable state or special setup? If two modules must share global state to communicate, redesign to use explicit data passing.
+4. **Scriptability test:** Can every user-facing operation be invoked non-interactively (via flags, stdin, or environment variables)? If any operation requires interactive TTY input with no programmatic alternative, add one.
+5. **Monolith detection:** Does any single file contain both I/O handling (HTTP, filesystem, CLI parsing) and business logic (validation, transformation, computation)? If yes, separate them into distinct modules.
+
+## HARD GATES (mandatory before writing code)
+
+- [ ] **Existing tool audit (CRITICAL):** List every component you plan to build. For EACH one, search for an established library:
+  - CLI parsing → commander, yargs, cac, clipanion
+  - Interactive prompts → prompts, inquirer, enquirer
+  - Argument validation → zod, yup, joi
+  - File locking → proper-lockfile, lockfile
+  - HTTP server → express, fastify, hono
+  - Date/time → date-fns, dayjs, temporal
+  - **If a library with >1000 weekly downloads exists, use it.** Justify in writing if you choose to hand-roll instead.
+- [ ] **Pipe test:** Can each module's output feed another module's input? If modules require shared mutable state to communicate, redesign.
+- [ ] **Scriptability:** Can every operation run non-interactively? If the tool requires a TTY, add env var / stdin / flag alternatives.
+- [ ] **One-thing test:** Describe each module without "and." If you can't, split it.

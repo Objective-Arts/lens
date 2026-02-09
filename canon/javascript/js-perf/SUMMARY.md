@@ -71,11 +71,11 @@ import _ from 'lodash';
 import debounce from 'lodash/debounce';
 ```
 
-## Checklist
+## Concrete Checks (MUST ANSWER)
 
-- [ ] JS bundle < 200KB gzipped
-- [ ] Critical CSS inlined
-- [ ] Images in WebP/AVIF
-- [ ] Lazy loading below-fold
-- [ ] Code splitting by route
-- [ ] Third-party scripts async/defer
+- [ ] Have you identified hot loops or repeated DOM queries and confirmed they are necessary with a profiler (not guesswork)?
+- [ ] Are DOM reads grouped before DOM writes to avoid forced synchronous layout (no interleaved read/write sequences)?
+- [ ] Are scroll, resize, and input event handlers debounced or throttled with an explicit interval?
+- [ ] Does every `import` pull in only the specific function/module needed, not an entire library namespace?
+- [ ] Is the LCP element loaded with `fetchpriority="high"` and `loading="eager"` (not lazy)?
+- [ ] Have you verified bundle size impact of any new dependency with `bundlephobia` or equivalent before adding it?

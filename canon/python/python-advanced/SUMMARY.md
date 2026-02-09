@@ -71,3 +71,11 @@ class Point:
 - Async/await patterns
 - Memory-critical applications
 - Resource management
+
+## Concrete Checks (MUST ANSWER)
+
+- [ ] Do functions processing large sequences yield items via generators instead of returning full lists?
+- [ ] Is every file handle, database connection, and lock wrapped in a `with` statement or `@contextmanager`?
+- [ ] Are generator expressions used instead of list comprehensions inside `sum()`, `any()`, `all()`, `min()`, `max()`?
+- [ ] If metaclasses are used, is there a concrete reason ABCs, decorators, or `__init_subclass__` cannot achieve the same result?
+- [ ] Do high-instance-count classes define `__slots__` to reduce memory overhead?

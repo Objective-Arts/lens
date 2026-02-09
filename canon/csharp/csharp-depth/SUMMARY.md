@@ -81,3 +81,11 @@ Make structs immutable. Mutation causes subtle bugs.
 - Generics and variance
 - LINQ optimization
 - Nullable reference types
+
+## Concrete Checks (MUST ANSWER)
+
+- [ ] Is `#nullable enable` present at the project or file level?
+- [ ] Are collection operations using LINQ instead of manual for/foreach loops with accumulators?
+- [ ] Is `await` used instead of `.Result` or `.Wait()` on every Task?
+- [ ] Are all structs immutable (no settable fields or properties)?
+- [ ] Do closures in loops capture a local copy of the loop variable, not the loop variable itself?

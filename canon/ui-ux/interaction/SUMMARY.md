@@ -66,3 +66,11 @@ Bottom: Easy (thumb) → Primary actions
 - Mobile/touch interface design
 - Cross-platform input handling
 - Accessibility considerations
+
+## Concrete Checks (MUST ANSWER)
+
+- [ ] Does every user-initiated action (button click, form submit, toggle) produce visible feedback within 100ms (spinner, state change, animation, or disabled state)?
+- [ ] Does every destructive action (delete, discard, overwrite) either require confirmation or provide an undo mechanism with a minimum 5-second window?
+- [ ] Does every operation that takes >100ms show a loading indicator, and every operation >1 second show a progress indicator or skeleton screen?
+- [ ] Does every gesture-based interaction (swipe, long-press, drag) have a visible button or menu alternative that performs the same action?
+- [ ] Are all interactive elements reachable in the bottom 60% of the screen (thumb zone) on mobile, with infrequent actions placed in the top 40%?

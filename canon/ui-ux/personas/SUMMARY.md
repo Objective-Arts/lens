@@ -58,3 +58,11 @@ Level 4: Power user (keyboard shortcuts)
 - Interaction design decisions
 - Reducing user friction
 - Form and dialog design
+
+## Concrete Checks (MUST ANSWER)
+
+- Are persona goals stated as end goals (what users want to achieve) rather than demographics or task descriptions?
+- Has excise been identified and eliminated: are there navigation steps, re-entered data, or confirmation dialogs that could be removed?
+- Is the most common user path the easiest path (fewest clicks/taps, most prominent placement)?
+- Do destructive actions use undo instead of "Are you sure?" confirmation dialogs?
+- Are smart defaults provided for every input field where a reasonable guess can be made?

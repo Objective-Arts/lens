@@ -68,3 +68,11 @@ var older = person with { Age = 31 };  // Copy with change
 - API design decisions
 - Choosing language features
 - Understanding C# idioms
+
+## Concrete Checks (MUST ANSWER)
+
+- [ ] Does the type system encode domain constraints (e.g., `UserId` vs raw `string`, `PositiveInt` vs `int`) so invalid states are unrepresentable?
+- [ ] Are phantom types or branded types used where two values share a runtime type but must not be interchangeable (e.g., `Meters` vs `Feet`)?
+- [ ] Are union/discriminated-union types used instead of boolean flags to represent mutually exclusive states?
+- [ ] Does every nullable type have an explicit annotation (`?`, `Option`, `Maybe`) rather than relying on implicit null?
+- [ ] Is the simple case still simple -- does the added type safety not require users to understand generics/advanced features for basic usage?

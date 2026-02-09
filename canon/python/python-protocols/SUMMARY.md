@@ -64,3 +64,11 @@ class Deck:
 - Designing Python classes
 - Making objects Pythonic
 - Understanding special methods
+
+## Concrete Checks (MUST ANSWER)
+
+- [ ] Does every custom class implement `__repr__` returning a string that could reconstruct the object?
+- [ ] Are structural protocols (implementing `__len__`/`__getitem__`/`__iter__`) used instead of inheriting from `list`, `dict`, or ABCs?
+- [ ] If a class defines `__eq__`, does it also define `__hash__` (or explicitly set `__hash__ = None` for mutable types)?
+- [ ] Are descriptors used for validation/computed attributes that repeat across multiple classes, instead of copy-pasting `@property` definitions?
+- [ ] Do `__add__`, `__mul__`, and other binary dunder methods return `NotImplemented` (not raise `TypeError`) for unsupported operand types?

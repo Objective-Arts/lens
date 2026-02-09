@@ -51,9 +51,10 @@ Mock everything       → Mock at network boundary
 <div onClick>         → <button onClick>
 ```
 
-## Testing Checklist
+## Concrete Checks (MUST ANSWER)
 
-- [ ] Tests use accessible queries (getByRole, getByLabelText)?
-- [ ] Tests use userEvent, not fireEvent?
-- [ ] Tests check behavior, not implementation?
-- [ ] Error states tested?
+- [ ] Does every test query elements by `getByRole` or `getByLabelText` first -- with zero uses of `container.querySelector`, `getByTestId` as a primary query, or DOM structure traversal?
+- [ ] Does every test assert on visible output (rendered text, element presence, ARIA state) rather than internal state, hook return values, or component instance properties?
+- [ ] Does every user interaction use `userEvent` (e.g., `userEvent.click`, `userEvent.type`) with zero uses of `fireEvent` for clicks, typing, or form submission?
+- [ ] Are mocks limited to the network boundary (e.g., MSW, fetch mocks) -- not mocking child components, hooks, or internal modules?
+- [ ] Is every snapshot test justified by testing stable visual structure only -- with zero snapshot tests used to verify logic, state changes, or dynamic content?

@@ -51,3 +51,18 @@ ciw  - change inner word
 - Distributed systems spanning multiple machines
 - Systems that must handle network failure
 - Designing for scale and reliability
+
+## Concrete Checks (MUST ANSWER)
+
+1. **Stateless verification:** Does the server/service store any data in process memory between requests (in-memory caches, session objects, counters)? If yes, what happens when the process restarts? Move to external persistent storage or accept explicit data loss.
+2. **Idempotency test:** List every write operation (create, update, delete). If the same request is sent twice due to a network retry, does each operation produce the same result? If not, add idempotency keys, upsert patterns, or unique constraints.
+3. **Network failure handling:** For every external call (HTTP request, database query, filesystem operation), what happens when it (a) times out, (b) returns an error, (c) returns malformed data? If any of these three cases is unhandled, add explicit handling.
+4. **Concurrent safety:** If two instances of this code run simultaneously against the same data, does anything corrupt, duplicate, or lose data? If yes, add locking, atomic operations, or conflict resolution.
+5. **Retry safety:** Does every retried operation use exponential backoff with jitter? Does it cap the number of retries? Unbounded or fixed-interval retries cause cascading failures.
+
+## HARD GATES (mandatory before writing code)
+
+- [ ] **Idempotency check:** List every write operation. Can each one be safely retried? If not, make it idempotent (use upsert patterns, unique constraints, or idempotency keys).
+- [ ] **Failure mode audit:** For every external call (filesystem, network, database), document: what happens when it fails? What happens when it's slow? What happens when it returns garbage?
+- [ ] **Stateless check:** Does your server/service store any state in memory between requests? If yes, what happens when the process restarts? Move state to a persistent store.
+- [ ] **Concurrent access:** If two processes run your code simultaneously on the same data, what breaks? If anything, add locking or use atomic operations.

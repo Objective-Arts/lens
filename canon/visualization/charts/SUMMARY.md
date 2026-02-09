@@ -53,10 +53,10 @@ Area/volume encodings are dangerous (2x radius = 4x area!)
 - Presenting data to stakeholders
 - When a chart "feels cluttered"
 
-## Checklist
+## Concrete Checks (MUST ANSWER)
 
-- [ ] Can any visual element be removed?
-- [ ] Does Y-axis start at zero (for bars)?
-- [ ] Are gridlines subtle or absent?
-- [ ] Labels at data instead of legend?
-- [ ] Lie factor between 0.95-1.05?
+- Does every bar chart Y-axis start at zero, or is a non-zero baseline explicitly justified with a visible axis break?
+- Is the lie factor between 0.95 and 1.05 for every visual encoding (calculate: visual size change / data size change)?
+- Are there zero 3D effects, drop shadows, or gradient fills on data-encoding elements?
+- Can you remove any gridline, border, or label without losing information? If yes, remove it.
+- Is every color encoding data (not decoration), with non-data elements in gray?

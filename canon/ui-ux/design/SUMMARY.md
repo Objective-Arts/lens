@@ -42,10 +42,11 @@ HIERARCHY: One focal point per screen. If everything is bold, nothing is.
 - Auditing existing UI for clutter
 - Making "should we add this?" decisions
 
-## Checklist
+## Concrete Checks (MUST ANSWER)
 
-- [ ] Can any element be removed without loss of function?
-- [ ] Is there exactly ONE primary action visible?
-- [ ] Does spacing follow the 4px grid?
-- [ ] Are there 3 or fewer colors?
-- [ ] Would this look good in 5 years?
+- [ ] **Subtraction test:** Remove each UI element one at a time. Does the interface still work without it? If yes, the element is decoration -- remove it.
+- [ ] **Single focal point?** Point to the ONE primary action on the screen. If you cannot pick exactly one, or if two elements compete for attention, reduce until one wins.
+- [ ] **Spacing audit:** Are all spacing values from the scale (4, 8, 12, 16, 24, 32, 48, 64)? Search for any arbitrary pixel value not on the scale.
+- [ ] **Color count:** List every distinct color used (excluding grayscale). Are there 3 or fewer? If more, justify each or remove.
+- [ ] **Honesty check:** Does any UI element promise something the system cannot deliver (e.g., "Instant" when it takes seconds, progress bar that lies, disabled button with no explanation)? Fix every dishonest element.
+- [ ] **5-year test:** Replace any trendy visual treatment (gradient buttons, glassmorphism, current-year aesthetic) with a plain alternative. Does the plain version work just as well?

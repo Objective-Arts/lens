@@ -62,3 +62,11 @@ If browser doesn't match Figma:
 - Design-dev collaboration
 - Handoff process
 - Review checklists
+
+## Concrete Checks (MUST ANSWER)
+
+- Do the specs include all interaction states: default, hover, active, focus, disabled, loading, error, and empty?
+- Are responsive breakpoints defined with explicit behavior at each (mobile, tablet, desktop)?
+- Are animation/transition specs measurable (duration in ms, easing function named, property specified)?
+- Has truncation behavior been specified for every text element that could overflow?
+- Has the design been walked through with the developer (not thrown over the wall as a static file)?

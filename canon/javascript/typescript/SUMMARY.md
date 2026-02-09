@@ -51,3 +51,19 @@ type Result<T> =
 // Exhaustiveness check in switch:
 default: const _: never = result;
 ```
+
+## HARD GATES (mandatory before writing code)
+
+- [ ] **No `any` escape:** Search for `any` in your types. Each one is a type system bypass. Replace with `unknown` + type guard, or a proper generic. Zero `any` is the target.
+- [ ] **Strict mode:** Is `"strict": true` in tsconfig.json? If not, enable it. Non-strict TypeScript is a different (worse) language.
+- [ ] **Return type enforcement:** Every exported function has an explicit return type annotation. Inferred return types on public APIs leak implementation details.
+- [ ] **Readonly by default:** Every property and parameter that isn't mutated should be `readonly`. Every array that isn't mutated should be `ReadonlyArray<T>`.
+- [ ] **Discriminated unions over optional fields:** If an object can be in multiple states, use a discriminated union with a `kind`/`type` field, not a flat type with optional fields that create impossible combinations.
+
+## Concrete Checks (MUST ANSWER)
+
+1. **Search for `any` -- how many?** List every `any` in your types and type assertions (`as any`). For each one: can it be replaced with `unknown`, a generic, or a specific type? If you cannot justify it in one sentence, replace it.
+2. **Is a generic doing the job of a union?** For each generic parameter `<T>`, ask: does `T` actually vary across callers, or is it always one of 2-3 known types? If the latter, replace the generic with a union type.
+3. **Can you read each utility type aloud?** For every mapped, conditional, or template literal type: can a mid-level TypeScript developer understand it without hovering for IDE inference? If you need more than one `extends ? :` nesting level, extract into named types.
+4. **Are impossible states representable?** List every type with 2+ optional fields. Can you construct a value where field A is present but field B is absent in a way that makes no business sense? If yes, refactor to a discriminated union.
+5. **Does every exported function have an explicit return type?** Check each `export function` and `export const fn =`. If the return type is inferred, add it explicitly -- inferred return types on public APIs leak implementation details across module boundaries.

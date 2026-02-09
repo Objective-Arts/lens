@@ -47,3 +47,11 @@ Specific, coordinated activities that reinforce each other.
 - Strategy quality evaluation
 - Distinguishing good from bad strategy
 - Ensuring diagnosis-policy-action coherence
+
+## Concrete Checks (MUST ANSWER)
+
+- Is there a written diagnosis that names the specific critical challenge in concrete terms (not buzzwords)?
+- Is there a guiding policy that states what will and will NOT be done (explicit trade-offs)?
+- Are there 3 or more coherent actions listed, and does each action reinforce at least one other action?
+- Does the strategy pass the fluff test: could a competitor's strategy be swapped in and still make sense? If yes, it is too generic.
+- Is every element a decision or action, not a goal disguised as strategy (e.g., "be #1" or "grow 20%" are goals, not strategy)?

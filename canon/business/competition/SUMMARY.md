@@ -62,3 +62,11 @@ Warning signs:
 - Industry structure analysis
 - Competitive positioning
 - Value chain decisions
+
+## Concrete Checks (MUST ANSWER)
+
+- Have all 5 forces been explicitly analyzed (rivalry, new entrants, substitutes, supplier power, buyer power) with a strength rating for each?
+- Have substitute products/services been identified by name, not just acknowledged generically?
+- Has the analysis named a single generic strategy (cost leadership, differentiation, cost focus, or focused differentiation) with no "and" hedging?
+- Have explicit trade-offs been stated -- what is the company choosing NOT to do?
+- Does the analysis distinguish strategy (choosing different activities) from operational effectiveness (doing the same things better)?

@@ -56,3 +56,11 @@ Strip every sentence to its cleanest components. Every word that serves no funct
 - Error messages
 - Commit messages
 - Any technical prose
+
+## Concrete Checks (MUST ANSWER)
+
+- [ ] **First sentence hook?** Does the first sentence tell the reader what this is about and why they should care? If it starts with throat-clearing ("In this document, we will..."), rewrite it.
+- [ ] **Active voice throughout?** Search for passive constructions ("is created", "was handled", "are processed"). Rewrite each in active voice with a named subject.
+- [ ] **Concrete nouns test:** Does every key sentence contain a concrete noun (file, request, user, array) rather than only abstractions (process, implementation, solution)?
+- [ ] **Clutter word scan:** Search for "very", "really", "extremely", "quite", "somewhat", "basically", "essentially". Remove or replace every instance.
+- [ ] **"-tion" conversion:** Search for "-tion" nouns (implementation, configuration, validation). Can each one become a verb (implement, configure, validate)?

@@ -50,10 +50,10 @@
 - Unnecessary memoization (measure first)
 - Storing derived state
 
-## Checklist
+## Concrete Checks (MUST ANSWER)
 
-- [ ] State is minimal - no derived state stored
-- [ ] Effects have correct dependencies
-- [ ] Effects clean up subscriptions/timers
-- [ ] Event handlers in handlers, not effects
-- [ ] Composition preferred over config props
+- [ ] Is every piece of state stored in the component closest to where it is read -- not hoisted to a parent "just in case"?
+- [ ] Is every value computable from existing state/props calculated during render (e.g., `const fullName = first + ' ' + last`) rather than stored in `useState`?
+- [ ] Is every `useEffect` synchronizing with an external system (DOM, network, subscription) -- not reacting to state changes that belong in an event handler?
+- [ ] Is React Context used only for low-frequency, read-heavy data (theme, locale, auth) -- not as a general-purpose global store for frequently changing state?
+- [ ] Does every `useEffect` return a cleanup function for subscriptions, timers, or event listeners it creates?

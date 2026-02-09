@@ -41,3 +41,12 @@ For each claimed advantage:
 - Evaluating competitive moats
 - Strategic durability analysis
 - Investment decisions
+
+## Concrete Checks (MUST ANSWER)
+
+- Has the analysis identified which specific Power (of the 7) applies, by name?
+- For the claimed Power, has the Benefit been stated (how it creates differential returns)?
+- For the claimed Power, has the Barrier been stated (why competitors cannot replicate it)?
+- Is the Barrier durable -- would it still hold in 5 years if a well-funded competitor attacked it?
+- Has counter-positioning been evaluated: would the incumbent have to cannibalize their existing business to match?
+- Has the analysis avoided confusing growth, product quality, or culture with a named Power?

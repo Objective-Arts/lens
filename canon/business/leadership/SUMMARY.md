@@ -51,3 +51,11 @@
 - Hard personnel decisions
 - Wartime conditions
 - Building authentic culture
+
+## Concrete Checks (MUST ANSWER)
+
+- Has decision-making authority been assigned to a single named person for this crisis/situation?
+- Is there a defined communication chain: who tells whom, in what order, within what timeframe?
+- Has the wartime/peacetime mode been explicitly declared, and do current actions match that mode?
+- Does a fallback plan exist if the primary course of action fails?
+- For personnel decisions: has the question "what would I do if this person were not my friend?" been answered honestly?

@@ -63,11 +63,10 @@ Rules: Specific + show valid example + below field + don't clear input
 - Optimizing checkout flows
 - Responsive navigation decisions
 
-## Checklist
+## Concrete Checks (MUST ANSWER)
 
-- [ ] Semantic input types for all fields
-- [ ] Labels above inputs
-- [ ] Touch targets 44px minimum
-- [ ] Inline validation on blur
-- [ ] Error messages are specific
-- [ ] Works on 3G connection
+- [ ] Does every interactive element (button, link, icon-button, toggle) have a minimum touch target of 44x44px with at least 8px gap between adjacent targets?
+- [ ] Does every `<input>` use the most specific `type` attribute (`email`, `tel`, `url`, `number`, `date`) to trigger the correct mobile keyboard?
+- [ ] Are all form labels positioned above their inputs (not beside, not as placeholder-only) and visible at all viewport widths?
+- [ ] Is all content critical to the user's primary task visible above the fold on a 375px-wide viewport without scrolling?
+- [ ] Does the page load and become interactive within 3 seconds on a throttled 3G connection (verified via Lighthouse or DevTools network throttling)?

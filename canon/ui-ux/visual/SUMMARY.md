@@ -58,3 +58,11 @@
 - Visual design systems
 - Color and shadow decisions
 - Creating consistent UI
+
+## Concrete Checks (MUST ANSWER)
+
+- [ ] Is the spacing system consistent -- are all margins and padding values drawn from a defined scale (e.g., 4/8/12/16/24/32/48)?
+- [ ] Is the color palette limited to one accent color plus grayscale, with fixed semantic colors (success/error/warning) totaling 6 or fewer hues?
+- [ ] Can visual hierarchy (headings, sections, primary vs secondary actions) be understood without any color -- using only size, weight, and spacing?
+- [ ] Does the shadow system use a defined scale (e.g., shadow-1 through shadow-4) with increasing elevation, and are no ad-hoc shadow values present?
+- [ ] Are all border-radius values drawn from a defined scale, with nested elements using smaller radii than their parents?

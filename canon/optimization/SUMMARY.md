@@ -76,3 +76,21 @@ int approxDist = (dx > dy) ? dx + (dy >> 1) : dy + (dx >> 1);
 - Performance-critical code (games, graphics, real-time)
 - After profiling has identified bottlenecks
 - When you need to understand the machine level
+
+## Concrete Checks (MUST ANSWER)
+
+1. **I/O separation (CRITICAL):** For every function, does it read or write external state (filesystem, network, database, global/module-level variable)? If yes, can the computation be split from the I/O into a pure function that takes data and returns data, with the I/O caller wrapping it? If the split is possible, do it.
+2. **Purity ratio:** Classify every function as pure (deterministic, no side effects) or impure (performs I/O, mutates external state). Is the pure-to-impure ratio at least 2:1? If more than a third of functions are impure, extract pure logic from the impure functions.
+3. **Const/readonly audit:** Is every variable that is never reassigned declared as `const` (or language equivalent)? Is every function parameter that is not modified marked `readonly`? Search for `let` declarations and verify each one is actually reassigned.
+4. **Measurement before optimization:** For every optimization you are about to apply (caching, memoization, custom data structure, algorithm change), do you have a benchmark showing the current code is measurably too slow? If no benchmark exists, do not optimize.
+5. **Hot path identification:** Have you profiled the code to identify which functions consume the most time? Are your optimizations targeted at those functions specifically? Optimizing cold paths is wasted effort — verify with profiler output.
+
+## HARD GATES (mandatory before writing code)
+
+- [ ] **Functional core enforcement (CRITICAL):** List every module. Classify each function as pure (takes data, returns data, no side effects) or impure (calls I/O, modifies external state). If >30% of functions are impure, refactor: extract pure logic, push I/O to edges.
+  - Pure: `transformData(input) → output`
+  - Impure: `saveToFile(data)`, `readFromDB()`
+  - Architecture: impure shell calls pure core, never the reverse
+- [ ] **Const audit:** Every variable that is never reassigned must be `const` (or equivalent). Every function parameter that isn't modified should be `readonly`.
+- [ ] **Measurement before optimization:** If you're about to optimize something, show the benchmark that proves it's slow. No benchmark = no optimization.
+- [ ] **Cache-friendly access:** If processing collections, are you iterating in memory order? Random access patterns on large datasets are a hidden performance killer.

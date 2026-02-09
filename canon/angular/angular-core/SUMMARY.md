@@ -63,3 +63,11 @@ Hard to test             Easy to test
 - Angular architecture design
 - DI and testability patterns
 - Component design
+
+## Concrete Checks (MUST ANSWER)
+
+- [ ] Does every component use `ChangeDetectionStrategy.OnPush` in its `@Component` decorator?
+- [ ] Is every constructor limited to parameter assignment only -- zero method calls, zero subscriptions, zero conditional logic?
+- [ ] Are all services injected via constructor parameters (not instantiated with `new` or accessed via global/static references)?
+- [ ] Does every presentational component communicate exclusively through `@Input` and `@Output` -- no injected services, no direct state access?
+- [ ] Is each service provided at the correct scope (`providedIn: 'root'` for singletons, component-level providers for scoped instances)?

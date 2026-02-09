@@ -82,3 +82,18 @@ From Thompson's Turing lecture:
 | Delete aggressively | Simplify through design |
 
 Use **Thompson** for: exploring, prototyping, uncertain requirements.
+
+## Concrete Checks (MUST ANSWER)
+
+1. **YAGNI audit:** List every interface, config option, and extension point in the code. Is each one used by existing callers today (not "might be needed later")? If not, delete it.
+2. **Speculative code search:** Does the codebase contain any function, parameter, or branch that exists solely to handle a future scenario not yet requested? If yes, remove it.
+3. **Silent failure scan:** For every catch/error handler, does it either (a) re-throw with context, (b) return an error value the caller must handle, or (c) log and exit? If any handler swallows the error and continues silently, fix it.
+4. **Brute force justification:** For every algorithm more complex than linear scan or nested loop, is there a measured benchmark proving the simpler approach is too slow? If no measurement exists, revert to brute force.
+5. **Dependency count:** List every third-party dependency. Does each one save more than 20 lines of trivial code? If not, inline the logic and drop the dependency.
+
+## HARD GATES (mandatory before writing code)
+
+- [ ] **Library-first:** For every subsystem you plan to implement (CLI parsing, HTTP routing, validation, date handling, file locking, etc.), search npm/pypi/crates.io for a mature library first. Only hand-roll if the library would be heavier than your entire project OR you need <20 lines of trivial logic.
+- [ ] **Delete test:** For every file/function in your plan, ask: what breaks if I delete this? If nothing breaks, delete it.
+- [ ] **Ship test:** Could this ship today as-is? If not, what's the minimum cut to make it shippable?
+- [ ] **YAGNI enforcement:** List every feature/option/config in your plan. Is each one explicitly requested or provably needed? Remove anything speculative.

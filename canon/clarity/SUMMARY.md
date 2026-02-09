@@ -37,10 +37,17 @@ Before committing, ask:
 - Performance-critical code (use optimization)
 - Building CLI tools (use composition)
 
-## Checklist
+## Concrete Checks (MUST ANSWER)
 
-- [ ] Every function does one thing, name says what
-- [ ] No cleverness requiring explanation
-- [ ] Names are self-documenting
-- [ ] Control flow is obvious
-- [ ] No magic numbers or strings
+1. **Single responsibility:** For each function, describe what it does without using "and." If you need "and," the function does two things — split it.
+2. **Name sufficiency:** Read every function and variable name without reading the body/value. Does each name tell you what it returns or holds? If you would need a comment to understand the name, rename it.
+3. **Magic value audit:** Search the code for every string and number literal. Is each one either (a) assigned to a named constant, or (b) inherently obvious (0, 1, "", true/false)? If neither, extract a constant.
+4. **Control flow linearity:** Does every function have a single level of nesting for its primary logic? (Guard clauses that return early don't count.) If any function has nested if/else inside a loop inside a conditional, flatten it.
+5. **Cleverness test:** For each non-trivial expression, can a junior developer understand it in under 10 seconds without looking anything up? If not, rewrite it as straightforward code.
+
+## HARD GATES (mandatory before writing code)
+
+- [ ] **No reimplemented stdlib:** List every function you plan to write. Does the language stdlib or a standard library already do this? If yes, use it.
+- [ ] **Name test:** Read each function name aloud. Does it describe what the function does without reading the body? If not, rename it.
+- [ ] **One-sentence test:** Can you describe each module's purpose in one sentence without "and"? If not, it does too many things — split it.
+- [ ] **Magic-free:** Search your code for string/number literals. Each one either has a named constant or is self-evident (0, 1, "", true).
