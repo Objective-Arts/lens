@@ -33,6 +33,7 @@ export interface WorkflowManifest {
   installedAt: string;
   sourceCommit?: string;
   skills: Record<string, InstalledWorkflowInfo>;
+  scriptHash?: string;
 }
 
 /**

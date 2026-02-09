@@ -9,7 +9,7 @@ import type {
 } from './types.js';
 import { getGitCommit, getGitRemote } from '../utils/git.js';
 import { copyDirectorySync } from '../utils/fs.js';
-import { hashDirectoryContents } from '../utils/hash.js';
+import { hashDirectoryContents, hashFileContents } from '../utils/hash.js';
 
 /** Skills visible as slash commands in Claude Code */
 const USER_FACING_SKILLS = new Set([
@@ -253,6 +253,20 @@ export function installAllWorkflowSkills(
     }
   }
 
+  // Copy quality-gate script to target project
+  const sourcePath = getWorkflowSourcePath();
+  const gateSource = path.join(path.dirname(sourcePath), 'scripts', 'quality-gate.ts');
+  const gateTarget = path.join(projectPath, '.claude', 'scripts', 'quality-gate.ts');
+  if (fs.existsSync(gateSource)) {
+    fs.mkdirSync(path.dirname(gateTarget), { recursive: true });
+    fs.copyFileSync(gateSource, gateTarget);
+    const manifest = getWorkflowManifest(projectPath);
+    if (manifest) {
+      manifest.scriptHash = hashFileContents(gateSource);
+      saveWorkflowManifest(projectPath, manifest);
+    }
+  }
+
   return results;
 }
 
@@ -303,7 +317,7 @@ export function checkWorkflowStatus(projectPath: string): WorkflowStatusInfo[] {
   return Object.entries(manifest.skills).map(([skillName, info]) => {
     const subdir = USER_FACING_SKILLS.has(skillName) ? 'skills' : 'phases';
     const installedPath = path.join(projectPath, '.claude', subdir, skillName);
-    const sourceSkillPath = path.join(sourcePath, skillName);
+    const sourceSkillPath = findWorkflowSkillPath(skillName) ?? path.join(sourcePath, skillName);
     const status = determineSkillStatus(info, installedPath, sourceSkillPath, sourceInfo.commit);
     return { ...status, name: skillName };
   });
@@ -343,9 +357,27 @@ export function upgradeWorkflowSkills(
       ? path.join(projectPath, '.claude', 'skills')
       : path.join(projectPath, '.claude', 'phases');
     const result = installWorkflowSkill(status.name, projectPath, { force: true, targetDir });
-    result.success
-      ? results.upgraded.push(status.name)
-      : results.errors.push(`${status.name}: ${result.message}`);
+    if (result.success) {
+      results.upgraded.push(status.name);
+    } else {
+      results.errors.push(`${status.name}: ${result.message}`);
+    }
+  }
+
+  // Re-copy quality-gate script if outdated
+  const sourcePath = getWorkflowSourcePath();
+  const gateSource = path.join(path.dirname(sourcePath), 'scripts', 'quality-gate.ts');
+  const gateTarget = path.join(projectPath, '.claude', 'scripts', 'quality-gate.ts');
+  if (fs.existsSync(gateSource)) {
+    const currentHash = manifest.scriptHash;
+    const sourceHash = hashFileContents(gateSource);
+    if (currentHash !== sourceHash) {
+      fs.mkdirSync(path.dirname(gateTarget), { recursive: true });
+      fs.copyFileSync(gateSource, gateTarget);
+      manifest.scriptHash = sourceHash;
+      saveWorkflowManifest(projectPath, manifest);
+      results.upgraded.push('quality-gate.ts (script)');
+    }
   }
 
   return results;
