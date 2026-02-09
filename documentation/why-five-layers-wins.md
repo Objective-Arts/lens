@@ -154,3 +154,16 @@ Canon skills (64 SUMMARY.md files)
 ```
 
 The canon is the spec. The five layers are five different ways of enforcing it. Without the canon, the layers have nothing to check against. Without the layers, the canon is just suggestions that get ignored.
+
+## Giving the Canon Teeth
+
+The canon was always the right knowledge. The problem was never what the rules say — it was making anyone follow them. In an LLM world, you can't fire the developer for ignoring the rules. You can't embarrass them in code review. You can't put them on a performance plan. The LLM has no consequences.
+
+So you build consequences into the system:
+
+- Break a mechanical rule → build fails
+- Skip a check → checklist is incomplete, phase rejected
+- Rubber-stamp a review → canary catches you, review thrown out
+- Have a blind spot → two other models cover it
+
+The canon goes from "advice the AI should follow" to "rules the AI cannot ship without satisfying." The knowledge stays the same. The enforcement changes everything.
