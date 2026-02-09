@@ -124,3 +124,33 @@ The 45-point gap between 40% and 85% is what the five layers provide. None of it
 The remaining 15% gap to perfection — the pure LLM approach doesn't catch it either. Nobody does without a senior engineer. Lens doesn't lose ground there. It just doesn't gain it.
 
 On everything else, Lens wins. Every time.
+
+## How This Relates to Canon Skills
+
+The 64 canon skills are the source of truth for the entire system. Every layer traces back to them.
+
+```
+Canon skills (64 SUMMARY.md files)
+    │
+    ├── Machine gates pull rules from them
+    │   "No any" ← canon/typescript/SUMMARY.md
+    │   "Max 30 lines" ← canon/clarity/SUMMARY.md
+    │   "No hardcoded secrets" ← canon/security-mindset/SUMMARY.md
+    │
+    ├── Proxy checks approximate their judgment calls
+    │   "Clear names" ← canon/clarity/SUMMARY.md → flag params named "data"
+    │   "Do one thing" ← canon/composition/SUMMARY.md → flag 10+ exports
+    │
+    ├── Evidence checklists use their concrete checks as the questions
+    │   "List every function name" ← canon/clarity check #2
+    │   "List every error message" ← canon/security-mindset check #2
+    │
+    ├── Three-model vote evaluates the same canon checks independently
+    │   All three reviewers answer the same canon questions
+    │
+    └── Canary tests plant violations OF canon rules
+        A hardcoded secret violates security-mindset
+        A vague name violates clarity
+```
+
+The canon is the spec. The five layers are five different ways of enforcing it. Without the canon, the layers have nothing to check against. Without the layers, the canon is just suggestions that get ignored.
