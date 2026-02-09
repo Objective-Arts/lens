@@ -86,12 +86,12 @@ List what was fixed.
 
 ### Fixed
 
-| File:Line | Issue | What Was Done |
-|-----------|-------|---------------|
-| src/user.ts:45 | Over-abstraction | Inlined `UserFactory` - only created one type |
-| src/api.ts:23 | Defensive paranoia | Removed null check on required field |
-| src/utils.ts:12 | Vague name | Renamed `data` → `userInput` |
-| src/service.ts:67 | Comment spam | Deleted `// Get the user` above `getUser()` |
+| File:Line | Via | Issue | What Was Done |
+|-----------|-----|-------|---------------|
+| src/user.ts:45 | refactoring | Over-abstraction | Inlined `UserFactory` - only created one type |
+| src/api.ts:23 | clarity | Defensive paranoia | Removed null check on required field |
+| src/utils.ts:12 | clarity | Vague name | Renamed `data` → `userInput` |
+| src/service.ts:67 | refactoring | Comment spam | Deleted `// Get the user` above `getUser()` |
 
 ### Summary
 
@@ -137,7 +137,7 @@ Leave these for dedicated skills:
 
 | Workflow | When to Use | Overhead |
 |----------|-------------|----------|
-| `/build` | New feature from scratch | Heavy (11 phases) |
-| `/improve` | Refine existing code | Heavy (11 phases) |
+| `/build` | New feature from scratch | Heavy (12 phases) |
+| `/improve` | Refine existing code | Heavy (12 phases) |
 | `/quick-edit` | Add field, rename, small fix | Light (checklist only) |
 | `/quick-clean` | Fast AI smell cleanup | Light (review + fix) |

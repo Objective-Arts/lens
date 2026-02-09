@@ -62,6 +62,9 @@ You MUST follow these constraints EXACTLY:
 7. **MEANINGFUL NAMES** - Variables/functions must describe what they do.
 8. **NO HARDCODED VALUES** - Use constants or config for magic numbers/strings.
 9. **HANDLE ALL ERRORS** - Every operation that can fail must have error handling.
+10. **MINIMIZE FILES** — Combine related concerns into single files. A module that does load/save/encrypt for one data format is ONE file, not three. Only split when a file exceeds 300 lines or serves genuinely independent consumers.
+11. **MINIMIZE TYPES** — If a type is only used in one file, define it there. Shared types go in a types file only when 3+ files import them.
+12. **DIRECT DATA FLOW** — If a value must pass through >2 function signatures to reach where it's used, restructure. Data should flow naturally, not be threaded.
 
 ## FORBIDDEN (Phase will FAIL if detected):
 
@@ -98,7 +101,7 @@ Before starting, read these canon skills and apply their principles throughout:
 - Auth, tokens, passwords, encryption → also read `.claude/skills/security-mindset/SKILL.md` and `.claude/skills/owasp/SKILL.md`
 
 If a skill file doesn't exist (not installed in this project), skip it and continue.
-Reference loaded experts in your APPLIED output.
+List loaded experts in EXPERTS_LOADED. In EXPERT_DECISIONS, show each specific decision an expert drove with file:line.
 
 ### Step 0b: Learn From Past Mistakes
 
@@ -163,8 +166,9 @@ COMPLETED:
 REMAINING:
 - WI-5: [not started — reason]
 
-APPLIED:
-- [expert]: [decision]
+EXPERTS_LOADED: [list of skill names actually read]
+EXPERT_DECISIONS:
+- [expert-skill]: [specific decision it drove, with file:line]
 
 IMPLEMENT_COMPLETE
 ```

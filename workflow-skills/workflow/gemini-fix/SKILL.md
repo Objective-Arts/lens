@@ -44,6 +44,29 @@ After fixing, code should:
 
 ---
 
+## Scope Constraint (MANDATORY)
+
+Fix bugs and vulnerabilities IN PLACE. Do not restructure.
+
+ALLOWED:
+- Change logic within an existing function
+- Add validation/checks to existing code paths
+- Fix crypto/security bugs in existing implementations
+
+FORBIDDEN:
+- Adding new files
+- Adding new types/interfaces
+- Adding new exported functions
+- Splitting existing functions into multiple
+- Moving code between files
+- Adding new dependencies
+
+If a finding genuinely requires restructuring to fix, DO NOT fix it.
+Report it as DEFERRED_TO_HUMAN with a one-line explanation. These are
+the ONLY items allowed in UNFIXED.
+
+---
+
 ## Target
 
 If a path argument is provided, review that file/directory.
@@ -182,6 +205,38 @@ Read this file first. If the **general pattern** is already listed, skip. If it'
 ```
 
 If no new lessons were learned (already in both files), skip this step.
+
+## Evidence Checklists (MANDATORY)
+
+After fixing all issues, produce two evidence checklists. Write each to `.claude/evidence/` (create directory if needed).
+
+### Checklist 6a: Error Messages
+
+Review EVERY `console.error`, `console.log`, `throw new Error`, and `reject(` call. Write to `.claude/evidence/gemini-6a.md`:
+
+```markdown
+# Evidence: Gemini 6a — Error Messages
+
+| Location | Item | Verdict | Reasoning |
+|----------|------|---------|-----------|
+| src/auth.ts:15 | throw new Error("Invalid token") | PASS | Descriptive, no secrets leaked |
+| src/db.ts:42 | console.log(query) | FAIL | Logs raw query which may contain user data |
+```
+
+### Checklist 6b: Input Boundaries
+
+Review EVERY CLI arg read, `fs.readFile`, and `process.env` access. Write to `.claude/evidence/gemini-6b.md`:
+
+```markdown
+# Evidence: Gemini 6b — Input Boundaries
+
+| Location | Item | Verdict | Reasoning |
+|----------|------|---------|-----------|
+| src/cli.ts:8 | process.argv[2] | PASS | Validated before use |
+| src/config.ts:3 | process.env.API_KEY | FAIL | No fallback or error if missing |
+```
+
+Every row must have a PASS or FAIL verdict. No blanks. The machine gate validates row counts against codebase counters — incomplete checklists block the pipeline.
 
 ## Rules
 

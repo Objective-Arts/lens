@@ -63,6 +63,13 @@ mkdir -p .claude && echo '{"skill":"ai-smell-fix","started":"'$(date -Iseconds)'
 - `utils/helpers/formatters/stringFormatters.ts` → **flatten**
 - Re-exporting everything through index files → **import directly**
 
+### Architectural Bloat
+- More than 1 file per clear concern → **consolidate** (e.g., crypto.ts + keystore-io.ts doing load/save/encrypt = 1 concern)
+- Helper file with <5 functions all called from one place → **inline into caller**
+- Type defined in separate file but used by only 1 module → **colocate with module**
+- Data flows through >2 functions before doing work (A calls B calls C calls D) → **flatten call chain**
+- Same value threaded through >3 function signatures → **restructure so it's available naturally**
+
 ## Process
 
 1. **Scan** - Read all files in target

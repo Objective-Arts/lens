@@ -13,7 +13,7 @@ Multi-step processes that modify code. Each follows a scan → fix → verify pa
 | `/implement-plan` | Write code from approved plan |
 | `/write-tests-run` | Write and run tests |
 
-### Heavy Workflows (11 phases)
+### Heavy Workflows (12 phases)
 
 | Skill | Purpose |
 |-------|---------|
@@ -52,8 +52,8 @@ Multi-step processes that modify code. Each follows a scan → fix → verify pa
 /implement-plan               # Implement from plan
 /write-tests-run unit             # Write unit tests
 
-/build user-auth              # New feature (11 phases)
-/improve src/component.ts     # Improve existing (11 phases)
+/build user-auth              # New feature (12 phases)
+/improve src/component.ts     # Improve existing (12 phases)
 /quick-edit add email field   # Simple change
 /quick-clean src/             # Fast cleanup
 /refactor-check-fix src/      # Refactor with verification

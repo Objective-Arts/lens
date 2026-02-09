@@ -51,7 +51,7 @@ Before starting, read these canon skills and apply their principles throughout:
 3. `.claude/skills/simplicity/SKILL.md`
 
 If a skill file doesn't exist (not installed in this project), skip it and continue.
-Reference loaded experts in your APPLIED output.
+List loaded experts in EXPERTS_LOADED output.
 
 ### Step 0b: Learn From Past Mistakes
 
@@ -154,6 +154,8 @@ Document what was consolidated.
 
 - Build: ✅ Pass
 - Tests: ✅ Pass
+
+EXPERTS_LOADED: [list of skill names actually read]
 
 ---
 DUPLICATES_FOUND: N

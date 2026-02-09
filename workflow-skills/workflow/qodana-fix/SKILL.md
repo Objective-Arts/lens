@@ -42,6 +42,29 @@ After fixing, code should:
 
 ---
 
+## Scope Constraint (MANDATORY)
+
+Fix bugs and vulnerabilities IN PLACE. Do not restructure.
+
+ALLOWED:
+- Change logic within an existing function
+- Add validation/checks to existing code paths
+- Fix crypto/security bugs in existing implementations
+
+FORBIDDEN:
+- Adding new files
+- Adding new types/interfaces
+- Adding new exported functions
+- Splitting existing functions into multiple
+- Moving code between files
+- Adding new dependencies
+
+If a finding genuinely requires restructuring to fix, DO NOT fix it.
+Report it as DEFERRED_TO_HUMAN with a one-line explanation. These are
+the ONLY items allowed in UNFIXED.
+
+---
+
 ## ⚠️ STRICT REQUIREMENTS - NO EXCEPTIONS
 
 You MUST fix EVERY issue Qodana and lint find. ALL of them. No exceptions.

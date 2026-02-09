@@ -36,6 +36,16 @@ Project-specific lessons go in `.claude/lessons.md` (local to each project).
 - `path.startsWith(root)` without trailing separator matches too broadly: `/home/user` matches `/home/username`
 - Always use `startsWith(root + path.sep)` or `startsWith(root + '/')` for path containment checks
 
+### Symlink Bypass in Path Validation
+- `startsWith` checks on resolved paths are bypassed by symlinks pointing outside the allowed directory
+- Always resolve with `realpath` (or equivalent) AND then verify with `path.relative()` that the result doesn't start with `..`
+- Pattern: `const rel = path.relative(allowed, await realpath(target)); if (rel.startsWith('..')) reject;`
+
+### Secrets in CLI Arguments
+- Never accept secrets (API keys, passwords, tokens) as positional CLI arguments — they leak to `ps aux` and shell history
+- Accept secrets via `--value-file <path>`, stdin pipe, env var, or interactive prompt
+- Named flags like `--password` are marginally better (still in `ps aux`) but acceptable with documented risk
+
 ### XSS in Embedded JSON
 - `JSON.stringify` inside `<script type="application/json">` is vulnerable if data contains `</script>`
 - Always escape: `.replace(/<\//g, '<\\/')`
@@ -131,6 +141,20 @@ Project-specific lessons go in `.claude/lessons.md` (local to each project).
 - Functions over 30 lines should be decomposed by extracting validation, categorization, and recording steps into named helpers
 - Common offenders: install/upgrade/status functions that mix validation + action + reporting
 
+### Data Format Versioning
+- Any persisted data format (config files, keystores, databases) must include a schema version field
+- Without a version field, v2 code cannot distinguish v1 data from corrupted data
+- Plan migration paths: version field in format, validation on read, clear error for unsupported versions
+
+### Non-Happy-Path Test Coverage
+- Tests that only cover success paths miss corrupted files, lock contention, interrupted writes, and resource exhaustion
+- Require at least one test per failure category that applies: corrupted data, lock contention, interrupted writes, symlink escape, resource exhaustion
+- Skip categories that don't apply but document the skip
+
+### Operational UX for Data Tools
+- Tools that store user data need backup/restore, export/import, and lifecycle features (rotation, expiry)
+- create-plan should explicitly plan or consciously omit these — don't leave them unmentioned
+
 ## CODE_QUALITY Patterns
 
 ### Dead Exports
@@ -157,6 +181,12 @@ Project-specific lessons go in `.claude/lessons.md` (local to each project).
 - ESLint's `no-unused-vars` with default `args: 'after-used'` only flags unused params after the last used one — a leading unused param followed by a used one goes undetected
 - After refactoring a function to pull data from a different source (e.g., switching from `client` to `headerData`), grep the function body for each parameter name to verify all are still referenced
 - implement-plan should not pass arguments the callee does not use; if a param was needed earlier but a refactor consolidated its data into another param, remove it from both the signature and the call site
+
+### Exception Caught Locally (Re-wrapping Pattern)
+- Qodana flags `throw` statements inside a `try` block followed by `catch` that re-throws with wrapping as "exception caught locally"
+- This pattern anti-establishes control flow: validation checks and synchronous business logic should live OUTSIDE the try block; only actual I/O and async operations should be wrapped
+- Move validation checks before the try block or extract them into helper functions called outside try-catch
+- Only wrap errors that originate from async/I/O operations (file system, crypto, network) in try-catch; let validation errors bubble naturally
 
 ## DUPLICATION Patterns
 

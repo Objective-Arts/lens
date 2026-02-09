@@ -39,6 +39,67 @@ The plan should produce code that looks like it was written by a skilled human e
 
 **If your plan includes something a senior engineer would delete, remove it from the plan.**
 
+### Plan FOR Product Quality (MANDATORY)
+
+Code review catches bad code. This catches bad products built with good code.
+Before finalizing the plan, walk through these as a user would:
+
+**Defaults:** Every configurable value (paths, ports, URLs) must have a stable,
+sensible default that works without setup. No randomized paths, no timestamped
+filenames, no defaults that require the user to pass a flag every time. If the
+default needs a directory, plan to create it.
+
+**Interactive fallbacks:** Every required input (passwords, tokens, keys) must
+have a three-tier resolution: flag → env var → interactive prompt (when TTY).
+Non-TTY must fail with a clear message naming the flag and env var.
+
+**No orphaned features:** Every data model field and internal capability must
+be reachable from the user interface. If a type has an `expiresAt` field, there
+must be a flag or command that sets it. If it's intentionally internal, remove
+it from the type — don't ship unreachable features.
+
+**Error UX:** Every error the user can trigger (wrong password, missing file,
+invalid input) must produce a message that says what went wrong and what to do.
+Non-zero exit codes. No stack traces for end users.
+
+**Competitor parity:** If the tool has a clear category (CLI keystore, web server,
+etc.), match the basic UX expectations. Password managers prompt for passwords.
+Config tools have `init` commands. Web servers have `--port`.
+
+**Secrets in arguments:** Secrets (API keys, passwords, tokens) must NEVER be
+accepted as positional CLI arguments — they leak to shell history and process
+lists (`ps aux`). Accept secrets via `--value-file <path>`, stdin pipe, env var,
+or interactive prompt. If a `--password` flag exists, document the risk.
+
+**Data versioning:** Any persisted data format (config files, keystores,
+databases) must include a schema version field and a migration path. Plan what
+happens when v2 reads a v1 file. At minimum: version field in the format,
+validation on read, clear error if version is unsupported.
+
+**Operational UX:** For tools that store user data, plan backup/restore and
+lifecycle management features users expect: export, import, key rotation,
+data expiry. Not all are mandatory — but explicitly decide which to include
+and which to omit. Document omissions in the plan as conscious decisions.
+
+### Library Audit (MANDATORY)
+
+Before designing any component, check: **does a well-known library already solve this?**
+
+- CLI argument parsing → use `commander`, `yargs`, or `cac` — never hand-roll a parser
+- File locking → use `proper-lockfile` or `lockfile` — never hand-roll with mkdir/spin
+- Password prompts → use `prompts` or `inquirer` — never hand-roll with readline
+- Validation → use `zod`, `joi`, or framework validators — never hand-roll schema validation for complex inputs
+- Date handling → use `date-fns` or `dayjs` if needed — never hand-roll date math
+
+**The rule:** If a mature, maintained library exists for the subproblem, plan to use it. Hand-rolling is only justified when the library would be heavier than the entire project, or when you need <20 lines of logic that doesn't warrant a dependency.
+
+Document library choices in the plan under a **DEPENDENCIES:** section:
+```markdown
+## DEPENDENCIES:
+- commander: CLI argument parsing (replaces hand-rolled parser)
+- prompts: interactive password input
+```
+
 ---
 
 ## ⚠️ STRICT REQUIREMENTS - NO JUDGMENT CALLS
@@ -65,11 +126,19 @@ Before starting, read these canon skills and apply their principles throughout:
 9. `.claude/skills/abstraction/SUMMARY.md`
 10. `.claude/skills/optimization/SUMMARY.md`
 
+**Load if target is JavaScript/TypeScript:**
+- `.claude/skills/typescript/SUMMARY.md`
+- `.claude/skills/js-safety/SUMMARY.md`
+- `.claude/skills/async/SUMMARY.md`
+- `.claude/skills/functional/SUMMARY.md`
+- `.claude/skills/js-perf/SUMMARY.md`
+- `.claude/skills/js-internals/SUMMARY.md`
+
 **Load if applicable to target code:**
 - Auth, tokens, passwords, encryption → also read `.claude/skills/security-mindset/SKILL.md` and `.claude/skills/owasp/SKILL.md`
 
 If a skill file doesn't exist (not installed in this project), skip it and continue.
-Reference loaded experts in your APPLIED output.
+List loaded experts in EXPERTS_LOADED. In EXPERT_DECISIONS, show each specific planning decision an expert drove.
 
 ### Step 0b: Learn From Past Mistakes
 
@@ -117,6 +186,9 @@ If a file doesn't exist, skip it and continue.
 - TypeName: { field: Type, field2: Type }
 - AnotherType: { field: Type }
 
+## DEPENDENCIES:
+- library-name: what subproblem it solves (why not hand-roll)
+
 ## INVARIANTS:
 - Specific condition that must always be true
 - Another specific invariant
@@ -124,6 +196,11 @@ If a file doesn't exist, skip it and continue.
 ## SECURITY:
 - Specific security measure to implement
 - Another specific security consideration
+
+## UX:
+- Default config path: [exact path, e.g., ~/.toolname/config.json]
+- Required inputs: [input] → [flag] / [ENV_VAR] / [interactive prompt]
+- Error messages: [scenario] → [user-facing message]
 
 ## TESTS:
 - Specific test case: [what it verifies]
@@ -134,8 +211,9 @@ If a file doesn't exist, skip it and continue.
 - [ ] WI-2: [verb] [specific thing] in [file(s)] [S/M/L]
 - [ ] WI-3: [verb] [specific thing] in [file(s)] [S/M/L]
 
-## APPLIED:
-- [expert-name]: [specific planning decision based on their guidance]
+## EXPERTS_LOADED: [list of skill names actually read]
+## EXPERT_DECISIONS:
+- [expert-skill]: [specific planning decision it drove]
 
 PLAN_COMPLETE
 ```
@@ -164,7 +242,7 @@ WORK_ITEMS is the **implementation checklist**. Phases 3 and 4 iterate through i
 
 ## Validation (Phase will FAIL if violated)
 
-- Missing any of: FILES, FUNCTIONS, TYPES, INVARIANTS, SECURITY, TESTS, WORK_ITEMS
+- Missing any of: FILES, FUNCTIONS, TYPES, DEPENDENCIES, INVARIANTS, SECURITY, UX, TESTS, WORK_ITEMS
 - WORK_ITEMS is empty or has zero items
 - WORK_ITEMS contains items without size tags (S/M/L)
 - Contains "as needed", "if applicable", "TBD", "to be determined"

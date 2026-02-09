@@ -25,6 +25,7 @@ Tests must look like they were written by a skilled human engineer, not generate
 
 - Testing implementation details instead of behavior
 - Excessive mocking that makes tests brittle
+- **Mocking the system under test** — if you're testing storage and you mock storage, you're testing nothing. Mocks replace *dependencies*, never the thing being tested.
 - Tests that pass even when code is broken (useless assertions)
 - Copy-paste test code (extract helpers)
 - Testing obvious things (constructors, getters)
@@ -51,8 +52,29 @@ You MUST write and run tests. Not "consider testing" - WRITE TESTS.
 2. **HAPPY PATH** - Test the expected behavior works
 3. **ERROR CASES** - Test that errors are handled correctly
 4. **EDGE CASES** - Test boundary conditions
-5. **MUST RUN** - Execute tests with npm test/vitest/jest and verify they pass
-6. **ALL MUST PASS** - Zero failing tests allowed
+5. **NON-HAPPY-PATH** - Test failure and recovery scenarios (see below)
+6. **MUST RUN** - Execute tests with npm test/vitest/jest and verify they pass
+7. **ALL MUST PASS** - Zero failing tests allowed
+
+### Non-Happy-Path Categories (MANDATORY)
+
+For each category that applies to the target code, write at least one test:
+
+- **Corrupted data recovery** — What happens when persisted files contain
+  invalid JSON, truncated data, wrong version, or zero bytes? Test that the
+  code fails gracefully with a clear error, not a stack trace or silent corruption.
+- **Lock contention** — If the code uses file locks or mutexes, test what
+  happens when the lock is already held (timeout, retry, clear error message).
+- **Interrupted writes** — If the code writes files, test what happens when
+  the write is interrupted (temp file left behind, partial write). Verify
+  cleanup occurs.
+- **Symlink / path escape** — If the code validates paths, test that symlinks
+  pointing outside the allowed directory are rejected.
+- **Resource exhaustion** — If the code reads unbounded input (stdin, files),
+  test that size limits are enforced.
+
+Skip categories that genuinely don't apply (e.g., no file I/O means no
+corrupted data test). But document which categories you skipped and why.
 
 ## FORBIDDEN (Phase will FAIL if detected):
 
@@ -62,6 +84,7 @@ You MUST write and run tests. Not "consider testing" - WRITE TESTS.
 - Skipping error case testing
 - Writing trivial tests that don't verify behavior
 - Not running the tests
+- Mocking the module under test (mock dependencies, not the subject)
 
 ## Levels
 
@@ -84,14 +107,20 @@ Before starting, read these canon skills and apply their principles throughout:
 - Auth, tokens, passwords, encryption → also read `.claude/skills/security-mindset/SKILL.md`
 
 If a skill file doesn't exist (not installed in this project), skip it and continue.
-Reference loaded experts in your APPLIED output.
+List loaded experts in EXPERTS_LOADED. In EXPERT_DECISIONS, show each specific test decision an expert drove.
 
 ### Step 1: Find Code
 
 1. **Find Code** - Identify what needs testing
 2. **Write Tests** - Create test files with real assertions
-3. **Run Tests** - Execute and verify they pass
-4. **Report** - Document what was tested
+3. **Mock Audit** - Before running, review every mock/stub/spy in your tests:
+   - What module does this mock replace?
+   - Is that module the *thing being tested* or a *dependency of the thing being tested*?
+   - If you mocked the thing being tested, **delete the mock and test the real implementation**
+   - Example: testing `keychain.ts` → mock `crypto.ts` (dependency) ✓, mock `storage.ts` I/O (dependency) ✓, mock `keychain.ts` itself ✗
+   - For I/O-heavy code: use temp directories and real filesystem operations where possible. Integration tests that touch real I/O catch bugs that mocked tests hide.
+4. **Run Tests** - Execute and verify they pass
+5. **Report** - Document what was tested
 
 ## REQUIRED Output Format
 
@@ -107,12 +136,17 @@ TESTS_PASSED: N
 TESTS_FAILED: 0 (must be zero)
 TEST_COUNT: N
 
+MOCK_AUDIT:
+- [module under test]: mocks [dependency] ✓ | mocks self ✗ (FIXED)
+- [module under test]: no mocks, tests real implementation ✓
+
 COVERAGE:
 - createUser: tested (happy path, validation error, duplicate email)
 - validateToken: tested (valid, expired, malformed)
 
-APPLIED:
-- [expert]: [decision]
+EXPERTS_LOADED: [list of skill names actually read]
+EXPERT_DECISIONS:
+- [expert-skill]: [specific test decision it drove]
 
 TEST_COMPLETE
 ```

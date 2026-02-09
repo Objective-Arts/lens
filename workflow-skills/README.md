@@ -29,7 +29,7 @@ workflow-skills/
 /ralph-loop --resume          # Continue from last session
 ```
 
-### Heavy Workflow (11 phases)
+### Heavy Workflow (12 phases)
 
 ```bash
 /build user-auth             # New feature from scratch

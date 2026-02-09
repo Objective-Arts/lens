@@ -48,7 +48,7 @@ Before starting either mode, read these canon skills and apply their principles 
 - TypeScript files (.ts) → also read `.claude/skills/typescript/SKILL.md`
 
 If a skill file doesn't exist (not installed in this project), skip it and continue.
-Reference loaded experts in your APPLIED output.
+List loaded experts in EXPERTS_LOADED. In EXPERT_DECISIONS, show each specific structural decision an expert drove.
 
 ### Step 0b: Learn From Past Mistakes
 
@@ -98,6 +98,11 @@ DEPENDENCIES:
 
 ISSUES_FOUND:
 - [issue]: [why it matters]
+
+PURITY_CHECK:
+- [module]: pure ✓ | impure ✗ (calls [I/O function] directly)
+  For each impure module: can business logic be extracted into pure functions
+  that take data and return data, with I/O pushed to callers?
 ```
 
 ### Step 2: Apply Canon Wisdom
@@ -111,6 +116,7 @@ Review against principles from the masters:
 | **Single responsibility** | Does each class do one thing? |
 | **Interface segregation** | Are interfaces minimal? |
 | **Dependency inversion** | Depend on abstractions, not concretions? |
+| **Pure core / impure shell** | Is business logic free of I/O? Core functions should take data and return data — no direct calls to filesystem, network, or database. I/O belongs in a thin outer layer that calls the pure core. If a function both computes and persists, split it. |
 | **Impossible states** | Can invalid states be represented? |
 
 ### Step 3: Design Target State
@@ -133,8 +139,9 @@ CHANGES_NEEDED:
 - Create UserRepository interface
 - Inject dependencies via constructor
 
-APPLIED:
-- [principle]: [decision made]
+EXPERTS_LOADED: [list of skill names actually read]
+EXPERT_DECISIONS:
+- [expert-skill]: [specific structural decision it drove]
 ```
 
 ### Map Mode Output
@@ -157,8 +164,9 @@ CHANGES_NEEDED:
 - [change 1]
 - [change 2]
 
-APPLIED:
-- [principle]: [decision]
+EXPERTS_LOADED: [list of skill names actually read]
+EXPERT_DECISIONS:
+- [expert-skill]: [specific decision it drove]
 
 STRUCTURE_COMPLETE
 ```
@@ -201,6 +209,7 @@ Types must look like they were designed by a skilled human engineer:
 | **Orthogonal operations** | Operations compose cleanly |
 | **Interface over implementation** | Return `List<T>` not `ArrayList<T>` |
 | **Immutability by default** | Prefer readonly. Mutation is explicit. |
+| **Pure core / impure shell** | Business logic takes data, returns data. I/O is a separate layer. |
 | **Fail-fast** | Validate at boundaries |
 
 ### Create Mode Output
@@ -218,8 +227,9 @@ INVARIANTS_DOCUMENTED:
 - User: email must be unique, password_hash never exposed
 - AuthToken: expires_at must be in future
 
-APPLIED:
-- [principle]: [decision]
+EXPERTS_LOADED: [list of skill names actually read]
+EXPERT_DECISIONS:
+- [expert-skill]: [specific decision it drove]
 
 STRUCTURE_COMPLETE
 ```

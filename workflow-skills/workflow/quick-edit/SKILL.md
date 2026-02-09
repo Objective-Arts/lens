@@ -140,8 +140,8 @@ Before marking complete, verify ALL that apply:
 CHANGE_TYPE: [add-field | rename | add-param | bug-fix | other]
 
 CHANGED:
-- path/to/file.ts: [what changed]
-- path/to/other.ts: [what changed]
+- path/to/file.ts: [what changed] (via [expert-skill])
+- path/to/other.ts: [what changed] (via [expert-skill])
 
 CHECKLIST:
 - [x] Model updated
@@ -190,7 +190,7 @@ Use `/build` or `/improve` instead if:
 
 | Workflow | When to Use | Overhead |
 |----------|-------------|----------|
-| `/build` | New feature from scratch | Heavy (11 phases) |
-| `/improve` | Refine existing code | Heavy (11 phases) |
+| `/build` | New feature from scratch | Heavy (12 phases) |
+| `/improve` | Refine existing code | Heavy (12 phases) |
 | `/quick-edit` | Add field, rename, small fix | Light (checklist only) |
 | `/quick-clean` | Fast AI smell cleanup | Light (review + fix) |

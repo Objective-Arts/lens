@@ -41,6 +41,29 @@ Security fixes must be clean, not band-aids. The result should look like it was 
 
 ---
 
+## Scope Constraint (MANDATORY)
+
+Fix bugs and vulnerabilities IN PLACE. Do not restructure.
+
+ALLOWED:
+- Change logic within an existing function
+- Add validation/checks to existing code paths
+- Fix crypto/security bugs in existing implementations
+
+FORBIDDEN:
+- Adding new files
+- Adding new types/interfaces
+- Adding new exported functions
+- Splitting existing functions into multiple
+- Moving code between files
+- Adding new dependencies
+
+If a finding genuinely requires restructuring to fix, DO NOT fix it.
+Report it as DEFERRED_TO_HUMAN with a one-line explanation. These are
+the ONLY items allowed in UNFIXED.
+
+---
+
 ## ⚠️ STRICT REQUIREMENTS - NO EXCEPTIONS
 
 You MUST fix EVERY issue Gemini identifies. ALL of them. No exceptions.
@@ -68,7 +91,7 @@ Before starting, read these canon skills and apply their principles throughout:
 3. `.claude/skills/web-security/SKILL.md`
 
 If a skill file doesn't exist (not installed in this project), skip it and continue.
-Reference loaded experts in your APPLIED output.
+List loaded experts in EXPERTS_LOADED. Tag each fix with `(via [expert-skill])` showing which expert drove it.
 
 ### Step 1: Find Code to Review
 
@@ -76,13 +99,33 @@ Find recently modified files using git diff or git log.
 Look in: src/, lib/, app/, migrations/, db/, and project root.
 If NO code exists, output "no code to review" and stop.
 
+### Step 1b: Mandatory Attack Surface Checks
+
+Before calling Gemini, manually verify these common-miss patterns. These are
+frequently missed by AI reviewers and must be checked explicitly:
+
+**Symlink / path traversal:**
+- Every user-supplied path must be resolved with `realpath` (or equivalent) AND
+  then checked with `path.relative()` to confirm it stays within the allowed
+  directory. `startsWith` is insufficient — symlinks bypass it.
+
+**Secrets in process lists:**
+- Check if any secret (API key, password, token) can be passed as a positional
+  CLI argument. If so, it leaks to `ps aux` and shell history. Flag as HIGH.
+  Fix: accept via file path, stdin, env var, or interactive prompt instead.
+
+**Data integrity:**
+- If persisted data has a version/schema field, verify it is checked on read
+  and that unsupported versions produce a clear error (not silent corruption).
+- If no version field exists in persisted data, flag as MEDIUM.
+
 ### Step 2: Call Gemini (MANDATORY)
 
 ```
 mcp__gemini-reviewer__gemini_review
   code: <paste the source code>
   focus: "adversarial"
-  context: "Adversarial code review. Think like an attacker. Find: security vulnerabilities, race conditions, edge cases that crash, input validation bypasses, resource exhaustion, privilege escalation. Be hostile and thorough."
+  context: "Adversarial code review. Think like an attacker. Find: security vulnerabilities, race conditions, edge cases that crash, input validation bypasses, resource exhaustion, privilege escalation. Be hostile and thorough. Specifically check: (1) symlink bypass in path validation, (2) secrets exposed in process lists via CLI args, (3) data format versioning/migration safety."
 ```
 
 If tool unavailable, output: GEMINI_ERROR: tool not available
@@ -105,10 +148,11 @@ ISSUES_FOUND:
 [SEVERITY] description (file:line)
 
 ISSUES_FIXED:
-[SEVERITY] description - FIXED
+[SEVERITY] description - FIXED (via [expert-skill])
 
 UNFIXED: 0 (must be zero or phase fails)
 
+EXPERTS_LOADED: [list of skill names actually read]
 REVIEW_ISSUES: N
 VERIFIED_CLEAN: yes
 ```
@@ -147,6 +191,25 @@ Common security findings that indicate earlier-phase gaps:
 - TOCTOU races → implement-plan should use try-catch, not existsSync+readFileSync
 
 If no new lessons were learned (already in both files), skip this step.
+
+## Evidence Checklist (MANDATORY)
+
+After fixing all issues, produce an evidence checklist. Write to `.claude/evidence/` (create directory if needed).
+
+### Checklist 9a: Attack Surface
+
+Review EVERY entry point: exported CLI commands, file I/O with external paths, `createReadStream`, `createWriteStream`, `readFileSync`, `writeFileSync`. Write to `.claude/evidence/adversarial-9a.md`:
+
+```markdown
+# Evidence: Adversarial 9a — Attack Surface
+
+| Location | Item | Verdict | Reasoning |
+|----------|------|---------|-----------|
+| src/cli.ts:add | CLI command 'add' validates input | PASS | Path is sanitized before use |
+| src/store.ts:12 | writeFileSync with user path | FAIL | No path traversal protection |
+```
+
+Every row must have a PASS or FAIL verdict. No blanks. The machine gate validates row counts against codebase counters — incomplete checklists block the pipeline.
 
 ## Validation (Phase will FAIL if violated)
 

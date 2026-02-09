@@ -90,7 +90,7 @@ Before starting, read these canon skills and apply their principles throughout:
 12. `.claude/skills/refactoring/SUMMARY.md`
 
 If a skill file doesn't exist (not installed in this project), skip it and continue.
-Reference loaded experts in your APPLIED output.
+List loaded experts in EXPERTS_LOADED. Tag each fix with `(via [expert-skill])` showing which expert drove it.
 
 ### Step 0b: Learn From Past Mistakes
 
@@ -123,8 +123,8 @@ ISSUES_IDENTIFIED:
 - [file:line] [issue type] [description]
 
 REFACTORED:
-- [file:line] [issue type] - FIXED: [what was done]
-- [file:line] [issue type] - FIXED: [what was done]
+- [file:line] [issue type] - FIXED: [what was done] (via [expert-skill])
+- [file:line] [issue type] - FIXED: [what was done] (via [expert-skill])
 
 ISSUES_REMAINING: 0 (must be zero)
 
@@ -132,11 +132,55 @@ REFACTOR_COUNT: N
 
 TESTS_PASS: yes
 
-APPLIED:
-- [expert]: [decision]
+EXPERTS_LOADED: [list of skill names actually read]
 
 REFACTOR_COMPLETE
 ```
+
+## Evidence Checklists (MANDATORY)
+
+After refactoring, produce three evidence checklists. Write each to `.claude/evidence/` (create directory if needed).
+
+### Checklist 4a: Name Sufficiency
+
+Review EVERY exported function and constant. Write to `.claude/evidence/refactor-4a.md`:
+
+```markdown
+# Evidence: Refactor 4a — Name Sufficiency
+
+| Location | Item | Verdict | Reasoning |
+|----------|------|---------|-----------|
+| src/foo.ts:barFunction | Name describes behavior | PASS | Name clearly indicates what it does |
+| src/baz.ts:processData | Vague name | FAIL | 'processData' says nothing about what processing occurs |
+```
+
+### Checklist 4b: Single Responsibility
+
+Review EVERY exported function. Write to `.claude/evidence/refactor-4b.md`:
+
+```markdown
+# Evidence: Refactor 4b — Single Responsibility
+
+| Location | Item | Verdict | Reasoning |
+|----------|------|---------|-----------|
+| src/foo.ts:createUser | Does one thing | PASS | Only creates user record |
+| src/bar.ts:handleRequest | Multiple concerns | FAIL | Validates, transforms, saves, and logs |
+```
+
+### Checklist 4c: Magic Values
+
+Review for magic numbers and strings. Write to `.claude/evidence/refactor-4c.md`:
+
+```markdown
+# Evidence: Refactor 4c — Magic Values
+
+| Location | Item | Verdict | Reasoning |
+|----------|------|---------|-----------|
+| src/config.ts:10 | Timeout 5000 | PASS | Named constant TIMEOUT_MS |
+| src/auth.ts:24 | Literal "admin" | FAIL | Role string should be a constant |
+```
+
+Every row must have a PASS or FAIL verdict. No blanks. The machine gate validates row counts against codebase counters — incomplete checklists block the pipeline.
 
 ## Validation (Phase will FAIL if violated)
 
@@ -145,6 +189,7 @@ REFACTOR_COMPLETE
 - Issues identified but not in REFACTORED section
 - Any file > 300 lines after refactoring
 - Any function with cyclomatic complexity > 10 after refactoring
+- Evidence checklists missing or incomplete
 
 ## 🛑 MANDATORY STOP
 
