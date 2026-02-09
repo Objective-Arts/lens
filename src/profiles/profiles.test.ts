@@ -5,13 +5,12 @@
 import { describe, it, expect, beforeEach, afterEach } from 'vitest';
 import * as fs from 'fs';
 import * as path from 'path';
-import { tmpdir, homedir } from 'os';
+import { tmpdir } from 'os';
 import {
   parseProfileString,
   combineProfiles,
   getSkillLibraryPaths,
   listProfiles,
-  getProfile,
   applyComposableProfile,
   PHASE_CONFIG_SOURCE_DIR
 } from './index.js';
@@ -358,7 +357,7 @@ describe('applyComposableProfile - config deployment', () => {
       }
     };
 
-    const result = await applyComposableProfile(profile, tempDir);
+    const _result = await applyComposableProfile(profile, tempDir);
 
     // Config should be in .claude/config/, not ./config/
     const correctPath = path.join(tempDir, '.claude', 'config');

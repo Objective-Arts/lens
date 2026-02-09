@@ -45,6 +45,11 @@ jobs:
         working-directory: ${{ steps.pkg.outputs.dir }}
         run: npm ci
 
+      - name: Quality Gate
+        working-directory: ${{ steps.pkg.outputs.dir }}
+        run: npm run check
+        if: steps.pkg.outputs.dir == '.'
+
       - name: Build
         working-directory: ${{ steps.pkg.outputs.dir }}
         run: npm run build --if-present

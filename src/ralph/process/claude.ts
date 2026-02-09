@@ -67,7 +67,7 @@ function buildClaudeResult(output: string, code: number | null, jsonPath: string
 }
 
 /** Spawn Claude process with args. */
-function spawnClaudeProcess(args: string[], projectPath: string) {
+function spawnClaudeProcess(args: string[], projectPath: string): ReturnType<typeof spawn> {
   return spawn('claude', args, {
     cwd: projectPath,
     env: { ...process.env },

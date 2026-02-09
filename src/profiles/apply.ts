@@ -128,7 +128,7 @@ async function copySkillToProject(
 }
 
 /** Get or create canon manifest for project */
-function getOrCreateManifest(projectPath: string, canonPath: string) {
+function getOrCreateManifest(projectPath: string, canonPath: string): ReturnType<typeof createManifest> {
   const manifest = readManifest(projectPath);
   if (manifest) return manifest;
   return createManifest({

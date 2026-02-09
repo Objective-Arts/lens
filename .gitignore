@@ -28,3 +28,7 @@ node_modules/
 
 # Generated/installed skills (source is in canon/ and workflow-skills/)
 .claude/skills/
+
+# Quality gate artifacts
+.claude/evidence/
+.claude/canary-manifest.json

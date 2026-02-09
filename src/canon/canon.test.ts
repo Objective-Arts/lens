@@ -462,7 +462,7 @@ describe('Auto-Invoke Coverage', () => {
 
     // Using generic names
     const expectedSecuritySkills = ['security-mindset', 'owasp', 'threat-model', 'web-security', 'appsec'];
-    const missing = expectedSecuritySkills.filter(s => !invokedSkills.has(s));
+    const _missing = expectedSecuritySkills.filter(s => !invokedSkills.has(s));
 
     // At least some security skills should be invoked
     expect(invokedSkills.size).toBeGreaterThan(0);

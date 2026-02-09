@@ -7,15 +7,15 @@
 | Command | Description |
 |---------|-------------|
 | `/ralph-loop [prd-file] [--max N] [--resume]` | Autonomous PRD implementation loop |
-| `/build [path] [--rollback] [--dry-run]` | Build new feature with 11-phase quality pipeline |
-| `/improve [path] [--rollback] [--dry-run]` | Improve existing code with 11-phase quality pipeline |
+| `/build [path] [--rollback] [--dry-run]` | Build new feature with 12-phase quality pipeline |
+| `/improve [path] [--rollback] [--dry-run]` | Improve existing code with 12-phase quality pipeline |
 | `/quick-edit [description]` | Simple changes (add field, rename, small fix) |
-| `/quick-clean [path]` | Fast AI smell cleanup before commit |
+| `/quick-clean [path]` | Surface tidy post quick-edit. Invokes clarity + refactoring + style skills |
 | `/create-plan [task]` | Create implementation plan before coding |
 | `/structure-first [path]` | Map architecture or design data structures |
 | `/implement-plan [target]` | Implement code from plan |
 | `/refactor-check-fix [target]` | Systematic code cleanup |
-| `/ai-smell-fix [path]` | Remove AI-generated code patterns |
+| `/ai-smell-fix [path]` | Phase 5b: deep AI smell removal → writes lessons that train phases 1-5 |
 | `/dedupe-fix [path]` | Consolidate duplicated code |
 | `/gemini-fix [path]` | Gemini review + fix all issues |
 | `/qodana-fix [path]` | Static analysis + fix all issues |

@@ -131,9 +131,11 @@ export function upgradeSkills(
     }
 
     const copyResult = copySkill(skillName, projectPath, { force: true });
-    copyResult.success
-      ? result.upgraded.push(skillName)
-      : result.errors.push(`${skillName}: ${copyResult.message}`);
+    if (copyResult.success) {
+      result.upgraded.push(skillName);
+    } else {
+      result.errors.push(`${skillName}: ${copyResult.message}`);
+    }
   }
 
   return result;

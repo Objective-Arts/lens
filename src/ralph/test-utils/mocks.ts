@@ -119,7 +119,14 @@ export function createMockFileSystem(
  * Create mock stage execution tracker.
  * Useful for verifying stage calls and order.
  */
-export function createStageTracker() {
+export function createStageTracker(): {
+  calls: Array<{ stage: string; context: unknown }>;
+  track: (stage: string, context: unknown) => void;
+  getCallsForStage: (stage: string) => Array<{ stage: string; context: unknown }>;
+  wasCalled: (stage: string) => boolean;
+  getCallOrder: () => string[];
+  reset: () => void;
+} {
   const calls: Array<{ stage: string; context: unknown }> = [];
 
   return {
@@ -145,7 +152,15 @@ export function createStageTracker() {
 /**
  * Mock console for capturing output in tests.
  */
-export function createMockConsole() {
+export function createMockConsole(): {
+  logs: string[];
+  errors: string[];
+  warns: string[];
+  log: (...args: unknown[]) => void;
+  error: (...args: unknown[]) => void;
+  warn: (...args: unknown[]) => void;
+  reset: () => void;
+} {
   const logs: string[] = [];
   const errors: string[] = [];
   const warns: string[] = [];
@@ -181,7 +196,11 @@ export function wait(ms: number): Promise<void> {
 /**
  * Create a deferred promise for testing async flows.
  */
-export function createDeferred<T>() {
+export function createDeferred<T>(): {
+  promise: Promise<T>;
+  resolve: (value: T) => void;
+  reject: (error: Error) => void;
+} {
   let resolve!: (value: T) => void;
   let reject!: (error: Error) => void;
 

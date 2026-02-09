@@ -9,11 +9,12 @@
 import * as fs from 'fs';
 import * as path from 'path';
 import { fileURLToPath } from 'node:url';
-import { getCanonSourcePath } from './index.js';
+import { homedir } from 'os';
 
 /** Project root (works from both src/ and dist/) */
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const NAMING_PROJECT_ROOT = path.resolve(__dirname, '..', '..');
+const DEFAULT_CANON_PATH = path.join(homedir(), 'local-tech-projects', 'lens', 'canon');
 
 interface SkillNaming {
   tribute: string;
@@ -33,7 +34,7 @@ let genericToTribute: Map<string, string> | null = null;
 function loadNamingConfig(): NamingConfig | null {
   if (namingConfig !== null) return namingConfig;
 
-  const canonPath = getCanonSourcePath();
+  const canonPath = process.env.CANON_SKILLS_PATH || DEFAULT_CANON_PATH;
   const candidates = [
     path.join(canonPath, 'naming.json'),
     path.join(NAMING_PROJECT_ROOT, 'canon', 'naming.json')

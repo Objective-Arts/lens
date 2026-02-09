@@ -1,6 +1,5 @@
-import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
+import { describe, it, expect, beforeEach } from 'vitest';
 import * as path from 'path';
-import * as childProcess from 'child_process';
 
 // We test the module's internal functions via the exported registerDedupeCommands
 // But since most functions are private, we test behavior through runDedupe indirectly

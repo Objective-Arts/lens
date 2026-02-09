@@ -21,7 +21,7 @@ function hashFile(filePath: string): string {
 export function hashSkillDirectory(skillPath: string): string {
   const hashes: string[] = [];
 
-  function walkDir(dir: string) {
+  function walkDir(dir: string): void {
     const entries = fs.readdirSync(dir, { withFileTypes: true });
 
     // Sort for consistent ordering

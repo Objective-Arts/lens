@@ -2,19 +2,14 @@
  * Tests for MCP registry operations
  */
 
-import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
-import * as fs from 'fs';
-import * as path from 'path';
-import { tmpdir } from 'os';
+import { describe, it, expect, beforeEach, afterEach } from 'vitest';
 import {
   loadRegistry,
   getServer,
   listServers,
   listCategories,
   checkRequiredEnv,
-  resolveEnvVars,
-  addServerToRegistry,
-  removeServerFromRegistry
+  resolveEnvVars
 } from './registry.js';
 import type { MCPServerDefinition } from './types.js';
 

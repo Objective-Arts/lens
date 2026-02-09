@@ -11,7 +11,6 @@ import {
   StageSummary,
   GeminiSummary,
   QodanaSummary,
-  TestSummary,
   RefactorSummary,
   Issue,
   IssueSeverity,

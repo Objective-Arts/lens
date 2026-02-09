@@ -75,7 +75,7 @@ export function isToolInstalled(name: string): boolean {
  */
 export function installTool(
   name: string,
-  options: { force?: boolean; projectDir?: string } = {}
+  _options: { force?: boolean; projectDir?: string } = {}
 ): ToolInstallResult {
   if (name === 'ralph') {
     return {

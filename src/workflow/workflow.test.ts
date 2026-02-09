@@ -8,14 +8,13 @@
  * 4. Status checking and upgrade categorization
  */
 
-import { describe, it, expect, beforeAll, afterAll } from 'vitest';
+import { describe, it, expect, afterAll } from 'vitest';
 import * as fs from 'fs';
 import * as path from 'path';
 import { tmpdir } from 'os';
 import {
   installWorkflowSkill,
   listWorkflowSkills,
-  installAllWorkflowSkills,
   checkWorkflowStatus,
   upgradeWorkflowSkills,
   getWorkflowSourceInfo

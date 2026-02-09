@@ -8,7 +8,6 @@ import {
   listHooks,
   listPresets,
   setupPreset,
-  removePreset,
   hasWorkflowMarkerHook,
 } from "./index.js";
 
