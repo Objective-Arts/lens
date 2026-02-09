@@ -41,7 +41,7 @@ Every workflow loads these 10 skills:
 
 **Location**: `config/workflow-phases.yaml`
 
-Defines the 8-phase Ralph workflow and skills for each phase.
+Defines the 12-phase Ralph workflow and skills for each phase.
 
 ```yaml
 phases:
@@ -66,14 +66,18 @@ phases:
       - distributed
 
 ralph-sequence:
-  - plan
+  - create-plan
   - structure-first
-  - implement
-  - build-tests
-  - refactor-check
-  - adversarial-review
-  - static-analysis
-  - doc-code
+  - implement-plan
+  - refactor-check-fix
+  - dedupe-fix
+  - gemini-fix
+  - qodana-fix
+  - adversarial-security-review
+  - write-tests-run
+  - ai-smell-fix
+  - codex-check
+  - write-tests-run
 ```
 
 ### keyword-detection.yaml
@@ -121,18 +125,25 @@ From profile.yaml       From phase config      From task text
 
 ---
 
-## The 8-Phase Workflow
+## The 12-Phase Workflow
 
-| Phase | Description | Key Skills |
-|-------|-------------|------------|
-| plan | Understand requirements | clarity, simplicity, correctness, resilience, safety |
-| structure-first | Design types and data structures | data-first, typescript, java, design-patterns |
-| implement | Write the code | pragmatism, clarity, simplicity, composition |
-| build-tests | Write tests | test-doubles, test-strategy, react-test, legacy |
-| refactor-check | Simplify and clean | clarity, pragmatism, legacy |
-| adversarial-review | Attack your code | security-mindset, owasp, failure, safety |
-| static-analysis | Run analyzers | java, abstraction, owasp |
-| doc-code | Document the work | docs, brevity, prose |
+| # | Phase | Description | Key Skills |
+|---|-------|-------------|------------|
+| 1 | create-plan | Understand requirements | clarity, simplicity, correctness, resilience, safety |
+| 2 | structure-first | Design types and data structures | data-first, typescript, java, design-patterns |
+| 3 | implement-plan | Write the code | pragmatism, clarity, simplicity, composition |
+| | **Machine Gate** | `npm run build && npm test` | |
+| 4 | refactor-check-fix | Simplify and clean | clarity, pragmatism, design-patterns |
+| 5 | dedupe-fix | Remove duplication | composition, clarity, simplicity |
+| 6 | gemini-fix | External code review | (Gemini MCP) |
+| 7 | qodana-fix | Static analysis | (Qodana MCP) |
+| | **Machine Gate** | `npm run build && npm test` | |
+| 8 | adversarial-security-review | Attack your code | security-mindset, owasp, failure, safety |
+| 9 | write-tests-run | Write and run tests | test-doubles, test-strategy |
+| 10 | ai-smell-fix | Remove AI patterns | (antipattern detection) |
+| 11 | codex-check | Fast pattern scan | (pattern matching) |
+| | **Machine Gate** | `npm run build && npm test` | |
+| 12 | write-tests-run | Re-verify tests | test-doubles, test-strategy |
 
 ---
 

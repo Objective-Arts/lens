@@ -188,7 +188,7 @@ function scanProjectItems(projectPath?: string): ConfigItem[] {
 
 ## 3. Manage Canon Skills
 
-Canon skills are 70+ expert lenses (clarity, security-mindset, etc.). Full lifecycle: list, deploy, verify integrity, check for updates, upgrade.
+Canon skills are 75 expert lenses (clarity, security-mindset, etc.). Full lifecycle: list, deploy, verify integrity, check for updates, upgrade.
 
 ```bash
 lens canon list                    # All available skills
@@ -494,7 +494,7 @@ function traceKeywordConfig(projectPath: string, taskText?: string): YamlSource 
 
 ## 6. Autonomous PRD Implementation (Ralph Loop)
 
-Fully autonomous loop that takes a PRD file and implements every item through an 8-phase quality pipeline. No human intervention between items.
+Fully autonomous loop that takes a PRD file and implements every item through a 12-phase quality pipeline. No human intervention between items.
 
 ```
 /ralph-loop requirements.md --max 30
@@ -540,7 +540,7 @@ export function isAllComplete(prd: Prd): boolean {
 
 ### Main Runner
 
-The runner iterates over incomplete PRD items, running 8 phases per item, then post-loop validation:
+The runner iterates over incomplete PRD items, running 12 phases per item, then post-loop validation:
 
 ```typescript
 // src/ralph/runner.ts
@@ -596,7 +596,7 @@ async function processAllItems(ctx: RunContext): Promise<void> {
 
 ### Single Item: Phase Execution
 
-Each item runs through all 8 phases. On success, the PRD file is atomically updated:
+Each item runs through all 12 phases. On success, the PRD file is atomically updated:
 
 ```typescript
 // src/ralph/runner.ts
@@ -778,7 +778,7 @@ export async function runClaude(options: ClaudeOptions): Promise<ClaudeOutput> {
 
 ## 7. Build/Improve Pipeline
 
-Build a new feature or improve existing code through an 11-phase quality pipeline. Each phase is a workflow skill invoked as a Claude subagent.
+Build a new feature or improve existing code through a 12-phase quality pipeline. Each phase is a workflow skill invoked as a Claude subagent.
 
 ```
 /build src/notifications

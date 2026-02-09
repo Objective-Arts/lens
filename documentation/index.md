@@ -108,7 +108,7 @@ See [Installation Reference](reference/installation.md) for complete setup guide
 
 | File | Location | Purpose |
 |------|----------|---------|
-| workflow-phases.yaml | `config/workflow-phases.yaml` | 8-phase workflow with experts |
+| workflow-phases.yaml | `config/workflow-phases.yaml` | 12-phase workflow with experts |
 | keyword-detection.yaml | `config/keyword-detection.yaml` | Dynamic keyword-based expert detection |
 | Profiles | `profiles/*.yaml` | Project type configurations |
 | Canon Skills | `canon/*/SKILL.md` | Expert guidance content |
@@ -125,6 +125,9 @@ See [Installation Reference](reference/installation.md) for complete setup guide
 | [How Skills Get Loaded](explanation/how-skills-load.md) | The 4-layer loading system and Base Brain |
 | [Skill Enforcement Model](explanation/skill-enforcement-model.md) | How skills become hard gates, not suggestions |
 | [Two-Tier Review Architecture](explanation/two-tier-review.md) | Self-review vs external validation |
+| [Why Five Layers Wins](why-five-layers-wins.md) | Competitive analysis of five-layer enforcement |
+| [Canon Enforcement Map](canon-enforcement-map.md) | All 418 canon checks mapped to enforcement layers |
+| [Quality Gate Spec](quality-gate-spec.md) | Machine gate specification |
 
 ---
 
@@ -134,4 +137,4 @@ See [Installation Reference](reference/installation.md) for complete setup guide
 - **Setting up a project?** See [Apply a Profile](how-to/apply-profile.md)
 - **Looking up a specific skill?** Check [Canon Catalog](reference/canon-catalog.md)
 - **Building UI/UX?** Apply `frontend` profile for 12 UI/UX experts
-- **Want to understand the philosophy?** Read [Why Expert Skills?](explanation/why-expert-skills.md)Let
+- **Want to understand the philosophy?** Read [Why Expert Skills?](explanation/why-expert-skills.md)

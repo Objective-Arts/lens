@@ -1,4 +1,4 @@
-# Skill Hierarchy Map v1
+# Skill Hierarchy Map v3
 
 Complete map of Lens skill architecture: orchestrators, phases, canon skills, and their interconnections.
 
@@ -9,9 +9,9 @@ Complete map of Lens skill architecture: orchestrators, phases, canon skills, an
 ```
 TIER 1: Workflow Orchestrators (user-invoked commands)
   |
-  +---> TIER 2: Phase Skills (11 sequential phases per pipeline)
+  +---> TIER 2: Phase Skills (12 sequential phases per pipeline + 3 machine gates)
           |
-          +---> TIER 3: Canon Skills (master-sourced expertise loaded by phases)
+          +---> TIER 3: Canon Skills (75 master-sourced expertise loaded by phases)
                   |
                   +---> Authorities: Books, frameworks, and masters behind each skill
 ```
@@ -22,7 +22,7 @@ TIER 1: Workflow Orchestrators (user-invoked commands)
 
 Top-level commands. These are what users invoke directly.
 
-### Heavy Workflows (11-phase pipelines)
+### Heavy Workflows (12-phase pipelines)
 
 | Command | Purpose |
 |---------|---------|
@@ -33,14 +33,14 @@ Top-level commands. These are what users invoke directly.
 
 | Command | Purpose |
 |---------|---------|
-| `/ralph-loop` | PRD-driven implementation (10 phases per item, up to 50 iterations) |
+| `/ralph-loop` | PRD-driven implementation (6 phases per item, up to 50 iterations) |
 
 ### Light Workflows (no pipeline)
 
 | Command | Purpose |
 |---------|---------|
 | `/quick-edit` | Add a field, rename, small fix |
-| `/quick-clean` | Fast cleanup before commit |
+| `/quick-clean` | Surface tidy post quick-edit (smells + naming) |
 | `/final-polish` | Pre-review refinement |
 
 ### Read-Only Scans
@@ -63,27 +63,32 @@ Top-level commands. These are what users invoke directly.
 | `/write-tests-run` | Write and run tests |
 | `/explain-skill` | Explain what a skill does |
 | `/session-status` | Show active primitives |
+| `/skill-usage-report` | Report on skill usage |
 | `/lens` | Home base, status and help |
 
 ---
 
 ## Tier 2: Phase Skills
 
-The 11 phases that `/build` and `/improve` run in sequence. Each phase must pass its gate before the next begins.
+The 12 phases that `/build` and `/improve` run in sequence. Each phase must pass its gate before the next begins. Machine gates run `npm run build && npm test` between phase groups.
 
 | # | Phase Skill | Gate Marker | Purpose |
 |---|-------------|-------------|---------|
 | 1 | `create-plan` | PLAN_COMPLETE | Design approach, scope, files, risks |
 | 2 | `structure-first` | STRUCTURE_COMPLETE | Define data structures and interfaces |
 | 3 | `implement-plan` | IMPLEMENT_COMPLETE | Write the code |
+| 3.5 | *machine-gate* | exit code 0 | `npm run build && npm test` |
 | 4 | `refactor-check-fix` | REFACTOR_COMPLETE | Enforce constraints (30 lines/fn, 300 lines/file) |
 | 5 | `dedupe-fix` | DEDUPE_COMPLETE | Consolidate duplicated code |
 | 6 | `gemini-fix` | FIX_COMPLETE | External code review via Gemini MCP |
 | 7 | `qodana-fix` | VERIFIED_CLEAN | Static analysis via Qodana MCP |
+| 7.5 | *machine-gate* | exit code 0 | `npm run build && npm test` |
 | 8 | `adversarial-security-review` | VERIFIED_CLEAN | Security audit (attacker mindset) |
 | 9 | `write-tests-run` | TEST_COMPLETE | Write and run tests |
-| 10 | `ai-smell-fix` | AI_SMELL_COMPLETE | Remove AI-generated antipatterns |
-| 11 | `write-tests-run` | TEST_COMPLETE | Re-verify tests after ai-smell cleanup |
+| 10 | `ai-smell-fix` | AI_SMELL_COMPLETE | Deep AI smell removal → writes lessons that train phases 1-5 |
+| 11 | `codex-check` | CODEX_CHECK_COMPLETE | Fast pattern scan + targeted fixes |
+| 11.5 | *machine-gate* | exit code 0 | `npm run build && npm test` |
+| 12 | `write-tests-run` | TEST_COMPLETE | Re-verify tests after cleanup |
 
 ---
 
@@ -158,7 +163,10 @@ Phase 9: write-tests-run
 Phase 10: ai-smell-fix
   NO CANON (algorithmic antipattern detection)
 
-Phase 11: write-tests-run (re-verify)
+Phase 11: codex-check
+  NO CANON (pattern scan against quality-gate rules)
+
+Phase 12: write-tests-run (re-verify)
   ALWAYS: test-doubles (SKILL.md)
   ALWAYS: test-strategy (SKILL.md)
 ```
@@ -221,7 +229,7 @@ ralph-loop auto-invoke (conditional):
 
 ## Tier 3: Complete Canon Skill Directory
 
-All canon skills organized by category, with their master authority and source.
+All 75 canon skills organized by category, with their master authority and source.
 
 ### Computing Fundamentals (10 skills) — The Base Brain
 
@@ -271,6 +279,12 @@ All canon skills organized by category, with their master authority and source.
 | `safety` | Nancy Leveson | *Engineering a Safer World* | STAMP framework; accidents emerge from system interactions |
 | `style` | Google | Google Coding Standards | Optimize for reader clarity; consistency across languages |
 
+### Documentation (1 skill)
+
+| Skill | Master | Source | One-Liner |
+|-------|--------|--------|-----------|
+| `docs` | Daniele Procida | Diataxis framework | Split into tutorials, how-to, reference, explanation |
+
 ### Writing (3 skills)
 
 | Skill | Master | Source | One-Liner |
@@ -278,12 +292,6 @@ All canon skills organized by category, with their master authority and source.
 | `brevity` | William Strunk Jr. | *The Elements of Style* | Omit needless words, active voice |
 | `prose` | William Zinsser | *On Writing Well* | Strip to cleanest components, no clutter |
 | `editing` | Stephen King | *On Writing* | Kill your darlings, show don't tell |
-
-### Documentation (1 skill)
-
-| Skill | Master | Source | One-Liner |
-|-------|--------|--------|-----------|
-| `docs` | Daniele Procida | Diataxis framework | Split into tutorials, how-to, reference, explanation |
 
 ### JavaScript / TypeScript (8 skills)
 
@@ -302,7 +310,7 @@ All canon skills organized by category, with their master authority and source.
 
 | Skill | Master | Source | One-Liner |
 |-------|--------|--------|-----------|
-| `csharp-depth` | Microsoft C# team | *C# Player's Guide* | Value vs reference, pattern matching, LINQ execution |
+| `csharp-depth` | Microsoft C# team | *C# in Depth* | Value vs reference, pattern matching, LINQ execution |
 | `async` | Stephen Cleary | C# async best practices | Async all the way down; never block on async code |
 | `type-systems` | Anders Hejlsberg | C# language design | Progressive complexity, opt-in features, safe by default |
 
@@ -346,13 +354,13 @@ All canon skills organized by category, with their master authority and source.
 | `personas` | Alan Cooper | *About Face* | Goal-directed design, eliminate excise |
 | `visual` | Material Design | Google Material Design | Shadow system, color discipline, minimalism |
 | `typography` | Typography experts | Typography principles | Type-first hierarchy, scale, line length |
+| `frontend-design` | Design thinking | Frontend best practices | Bold aesthetic direction, production-grade interfaces |
 | `motion` | Animation principles | Animation best practices | Motion communicates meaning; easing and stagger |
 | `interaction` | Don Norman | *The Design of Everyday Things* | Touch constraints, Fitts's Law, thumb zones |
 | `mobile` | Mobile-first design | Mobile best practices | Mobile first, forms as conversations |
 | `components` | Brad Frost | *Atomic Design* | Atoms, molecules, organisms; BEM naming |
 | `tokens` | Design systems | Design systems practice | Token hierarchy, semantic versioning, governance |
 | `handoff` | Design-dev collaboration | Design systems practice | Hot potato process, component checklists |
-| `frontend-design` | Design thinking | Frontend best practices | Bold aesthetic direction, production-grade interfaces |
 
 ### Visualization (4 skills)
 
@@ -414,6 +422,9 @@ All canon skills organized by category, with their master authority and source.
 │   ├── [if auth] security-mindset
 │   └── [if auth] owasp
 │
+├── Phase 3.5: machine-gate
+│   └── npm run build && npm test
+│
 ├── Phase 4: refactor-check-fix
 │   ├── (Base Brain x10)
 │   ├── design-patterns (Gang of Four)
@@ -430,6 +441,9 @@ All canon skills organized by category, with their master authority and source.
 ├── Phase 7: qodana-fix
 │   └── (Qodana MCP — no canon)
 │
+├── Phase 7.5: machine-gate
+│   └── npm run build && npm test
+│
 ├── Phase 8: adversarial-security-review
 │   ├── security-mindset
 │   ├── owasp (OWASP Foundation)
@@ -443,7 +457,13 @@ All canon skills organized by category, with their master authority and source.
 ├── Phase 10: ai-smell-fix
 │   └── (no canon — algorithmic detection)
 │
-└── Phase 11: write-tests-run (re-verify)
+├── Phase 11: codex-check
+│   └── (no canon — pattern scan against quality-gate rules)
+│
+├── Phase 11.5: machine-gate
+│   └── npm run build && npm test
+│
+└── Phase 12: write-tests-run (re-verify)
     ├── test-doubles (Meszaros)
     └── test-strategy (Cohn)
 ```
@@ -552,19 +572,21 @@ Profiles stack via composition. A project applies `software-base` + a tech profi
 
 Includes: Base Brain (10) + design-patterns + security-mindset + owasp + failure + safety + resilience + docs + prose + brevity + editing + react-test + legacy + test-doubles + test-strategy
 
+**Total: 24 canon skills**
+
 ### Tech Profiles
 
 | Profile | Canon Skills Added |
 |---------|-------------------|
 | `typescript-cli` | typescript, type-systems, js-safety, js-internals, js-perf, functional, async, composition, simplicity |
-| `javascript` | typescript, js-safety, js-internals, js-perf, functional |
-| `react` | react-state, react-test, reactivity, components |
+| `javascript` | js-internals, react-state, functional, typescript, js-safety, react-test, reactivity, js-perf, components, visual, usability, mobile, motion, interaction, tokens, typography, design |
+| `react` | react-state (extends javascript) |
 | `java` | java |
 | `python` | python-idioms, python-patterns, python-advanced, python-protocols |
-| `csharp` | csharp-depth, async, type-systems |
-| `angular` | angular-core, angular-perf, angular-arch, rxjs |
-| `sql` | sql, sql-perf |
-| `d3` | d3, charts, dashboards, data-story |
+| `csharp` | csharp-depth, async, type-systems, java |
+| `angular` | angular-core, angular-perf, angular-arch, rxjs (extends javascript) |
+| `sql` | sql, sql-perf, java, security-mindset |
+| `d3` | d3, charts, dashboards, data-story (extends javascript) |
 
 ### Specialty Profiles
 
@@ -572,7 +594,7 @@ Includes: Base Brain (10) + design-patterns + security-mindset + owasp + failure
 |---------|-------------------|
 | `frontend` | frontend-design, design, usability, personas, visual, typography, motion, interaction, mobile, components, tokens, handoff |
 | `security` | security-mindset, owasp, appsec, web-security, safety, resilience, failure |
-| `business-base` | competition, leadership, management, moats, strategy, platforms |
+| `business-base` | management, competition, strategy, leadership, moats |
 | `ralph-integration` | (no canon — adds iteration discipline, quality gates, agents) |
 
 ---
@@ -581,13 +603,90 @@ Includes: Base Brain (10) + design-patterns + security-mindset + owasp + failure
 
 | Category | Count |
 |----------|-------|
-| Workflow orchestrators (Tier 1) | 6 |
-| Phase skills (Tier 2) | 11 |
+| Workflow orchestrators (Tier 1) | 6 (`build`, `improve`, `ralph-loop`, `quick-edit`, `quick-clean`, `final-polish`) |
+| Phase skills (Tier 2) | 12 (+ 3 machine gates) |
 | Read-only scan skills | 6 |
-| Utility skills | 6 |
-| Canon skills total | ~67 |
+| Utility skills | 7 (`generate-docs`, `run-tests`, `write-tests-run`, `explain-skill`, `session-status`, `skill-usage-report`, `lens`) |
+| Canon skills total | 75 |
 | Profiles | 14 |
 | Unique master authorities referenced | ~40 |
+
+---
+
+## Expert Attribution Model
+
+Every phase that loads canon skills must make expert influence **visible in output**. Two mechanisms:
+
+### Per-Finding Attribution
+
+Fix/change phases tag each finding with the expert that drove it:
+
+```
+REFACTORED:
+- src/api.ts:45 long-function - FIXED: split into 3 helpers (via refactoring)
+- src/api.ts:12 vague-name - FIXED: renamed `data` → `requestPayload` (via clarity)
+
+ISSUES_FIXED:
+[HIGH] path traversal in profile create - FIXED (via security-mindset)
+```
+
+Applies to: `refactor-check-fix`, `adversarial-security-review`, `quick-clean`, `quick-edit`
+
+### Per-Decision Attribution
+
+Planning/creation phases list which expert drove each design decision:
+
+```
+EXPERTS_LOADED: clarity, simplicity, composition, data-first, correctness, typescript
+EXPERT_DECISIONS:
+- data-first: chose flat array over nested tree — profiles are always iterated linearly
+- composition: split scanner into parse + validate + emit, each independently testable
+- security-mindset: validate profile name before path.join to prevent traversal
+```
+
+Applies to: `create-plan`, `structure-first`, `implement-plan`, `write-tests-run`
+
+### Summary
+
+| Output Field | What It Shows | Where |
+|---|---|---|
+| `EXPERTS_LOADED` | Which skill files were actually read | All phases that load canon |
+| `(via [expert])` | Which expert drove a specific fix | Fix phases |
+| `EXPERT_DECISIONS` | Which expert drove a specific design choice | Plan/create phases |
+
+---
+
+## Self-Learning Feedback Loop
+
+Phases 6-10 **write lessons** that phases 1-5 **read** on future runs. This creates a feedback loop where quality phases teach planning phases about recurring mistakes.
+
+### Writers (late phases -> lesson files)
+
+| Phase | Writes To | Categories |
+|---|---|---|
+| 6: `gemini-fix` | `.claude/lessons.md` + `workflow-skills/lessons.md` | LOGIC, DESIGN, CODE_QUALITY, DUPLICATION, AI_SMELL + false positives |
+| 7: `qodana-fix` | `.claude/lessons.md` + `workflow-skills/lessons.md` | LOGIC, DESIGN, CODE_QUALITY, DUPLICATION |
+| 8: `adversarial-security-review` | `.claude/lessons.md` + `workflow-skills/lessons.md` | LOGIC, DESIGN |
+| 10: `ai-smell-fix` | `.claude/lessons.md` + `workflow-skills/lessons.md` | DESIGN, CODE_QUALITY, AI_SMELL |
+
+### Readers (early phases <- lesson files)
+
+| Phase | Reads | What It Learns |
+|---|---|---|
+| 1: `create-plan` | Both lesson files | LOGIC, DESIGN, CODE_QUALITY, DUPLICATION, AI_SMELL |
+| 2: `structure-first` | Both lesson files | DESIGN, LOGIC, AI_SMELL |
+| 3: `implement-plan` | Both lesson files | LOGIC, CODE_QUALITY, DESIGN, AI_SMELL (most impactful reader) |
+| 4: `refactor-check-fix` | Both lesson files | CODE_QUALITY, LOGIC, AI_SMELL |
+| 5: `dedupe-fix` | Both lesson files | DUPLICATION, LOGIC, AI_SMELL |
+
+### Two-Tier Knowledge
+
+| File | Scope | Travels With |
+|---|---|---|
+| `workflow-skills/lessons.md` | Universal patterns (e.g., "never use execSync with template literals") | Skills repo — applies to all projects |
+| `.claude/lessons.md` | Project-specific instances (e.g., "src/scanner/dedupe.ts:45 had shell injection") | Project — stays local |
+
+Late phases check the universal file first and only append NEW general patterns not already covered.
 
 ---
 
@@ -606,3 +705,9 @@ Includes: Base Brain (10) + design-patterns + security-mindset + owasp + failure
 6. **Ralph loop maps skills to phases.** Unlike the `/build` pipeline which loads skills per-phase from SKILL.md instructions, ralph-loop uses the profile's `ralph.skills` mapping to assign specific canon skills to plan/build/refactor/test/review/doc phases.
 
 7. **Light workflows load minimal canon.** `/quick-edit` loads only 3 base skills plus language-specific ones. `/quick-clean` loads 3. `/final-polish` loads none. This keeps fast operations fast.
+
+8. **Expert attribution is mandatory.** Every phase must show which experts were loaded (`EXPERTS_LOADED`) and which expert drove each fix or decision (`via` tags or `EXPERT_DECISIONS`). No silent expert influence.
+
+9. **Late phases teach early phases.** The self-learning feedback loop means phases 6-10 write lessons that phases 1-5 read. Over time, the system stops generating the same mistakes.
+
+10. **Machine gates enforce correctness.** Three machine gates (after phases 3, 7, and 11) run `npm run build && npm test`, catching regressions that LLM-only review might miss. See `quality-gate-spec.md` for details.

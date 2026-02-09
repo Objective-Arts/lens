@@ -90,26 +90,27 @@ Set once when you configure the project:
 
 ## Layer 3: Phase (What You're Doing)
 
-The 8 workflow phases, each with different skills:
+The `/build` and `/improve` pipelines run 12 phases, each with different skills:
 
-```
-/plan → /structure-first → /implement → /build-tests →
-/refactor-check → /adversarial-review → /static-analysis → /doc-code
-```
+| # | Phase | Base Brain | Domain Skills | Focus |
+|---|-------|------------|---------------|-------|
+| 1 | **create-plan** | All 10 | [if auth] security-mindset, owasp | Requirements, design |
+| 2 | **structure-first** | All 10 | [if TS] typescript | Data structures, types |
+| 3 | **implement-plan** | All 10 | [if TS] typescript, [if auth] security | Write the code |
+| 4 | **refactor-check-fix** | All 10 | design-patterns, refactoring | Clean up |
+| 5 | **dedupe-fix** | — | composition, clarity, simplicity | Remove duplication |
+| 6 | **gemini-fix** | — | — | External review (Gemini MCP) |
+| 7 | **qodana-fix** | — | — | Static analysis (Qodana MCP) |
+| 8 | **adversarial-security-review** | — | security-mindset, owasp, web-security | Security review |
+| 9 | **write-tests-run** | — | test-doubles, test-strategy | Write tests |
+| 10 | **ai-smell-fix** | — | — | Remove AI patterns |
+| 11 | **codex-check** | — | — | Fast pattern scan |
+| 12 | **write-tests-run** | — | test-doubles, test-strategy | Re-verify tests |
 
-| Phase | Base Brain | Domain Skills | Focus |
-|-------|------------|---------------|-------|
-| **plan** | All 10 | abstraction | Requirements, design |
-| **structure-first** | All 10 | — | Data structures, types |
-| **implement** | All 10 | — | Write the code |
-| **build-tests** | All 10 | test-doubles, test-strategy | Write tests |
-| **refactor-check** | All 10 | design-patterns, refactoring | Clean up |
-| **adversarial-review** | — | security-mindset, owasp, web-security | Security review (external) |
-| **static-analysis** | — | — | Run analyzers (external) |
-| **doc-code** | All 10 | docs, brevity, prose | Documentation |
+Machine gates run `npm run build && npm test` between phases 3-4, 7-8, and 11-12.
 
 > **Commands** = run one phase
-> **Ralph** = loop through all phases in order
+> **Ralph** = iterates plan → build → refactor → test → review → doc per PRD item
 
 **File:** `config/workflow-phases.yaml`
 
@@ -150,12 +151,12 @@ Keywords in your prompt trigger additional skills:
 ## Implementation
 
 The loading logic is in:
-- `cli/src/ralph/phases/loader.ts` - Loads YAML, compiles rules
-- `cli/src/ralph/phases/index.ts` - Phase factory
-- `cli/src/ralph/types.ts` - Type definitions
+- `src/ralph/phases/loader.ts` - Loads YAML, compiles rules
+- `src/ralph/phases/index.ts` - Phase factory
+- `src/ralph/types.ts` - Type definitions
 
 Key functions:
 - `loadPhaseConfig()` - Load workflow-phases.yaml
 - `loadKeywordRules()` - Load keyword-detection.yaml
 - `detectSkills()` - Combine all 4 layers
-- `createPhases()` - Create the 8 phase instances
+- `createPhases()` - Create the 12 phase instances

@@ -107,14 +107,18 @@ Skills organize into three layers:
 
 ### Baseline Brain (Always Active)
 
-Six core skills that shape HOW you think:
+Ten core skills that shape HOW you think:
 
 - **clarity**: Clear code above all
 - **pragmatism**: Get it working first
 - **simplicity**: Small interfaces, composition
+- **composition**: Unix philosophy, do one thing well
 - **distributed**: Design for failure
 - **data-first**: Data structures first
 - **correctness**: Correctness by construction
+- **algorithms**: Algorithmic rigor, literate programming
+- **abstraction**: Substitution principle, type contracts
+- **optimization**: Measure before optimizing
 
 These provide **productive tensions**:
 - pragmatism (get it working) vs. correctness (rigor)
