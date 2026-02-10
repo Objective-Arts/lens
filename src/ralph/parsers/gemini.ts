@@ -42,9 +42,6 @@ export function parseGeminiOutput(raw: string): GeminiResult {
   };
 }
 
-/**
- * Check if output contains valid Gemini review markers.
- */
 export function isValidGeminiOutput(raw: string): boolean {
   return PATTERNS.reviewComplete.test(raw) || PATTERNS.totalIssues.test(raw);
 }

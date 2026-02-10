@@ -269,9 +269,6 @@ export function traceSkillConfig(projectPath: string, skillName: string, taskTex
   return { skill: skillName, phase, yamlStack, resolvedConfig };
 }
 
-/**
- * Format trace result for terminal output.
- */
 export function formatTrace(trace: TraceResult): string {
   const lines: string[] = [];
 
@@ -318,9 +315,6 @@ export function formatTrace(trace: TraceResult): string {
   return lines.join('\n');
 }
 
-/**
- * Print trace to console.
- */
 export function printTrace(projectPath: string, skillName: string, taskText?: string): void {
   const trace = traceSkillConfig(projectPath, skillName, taskText);
   console.log(formatTrace(trace));

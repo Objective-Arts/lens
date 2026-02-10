@@ -16,15 +16,13 @@ import {
   hasNoCode, NO_CODE_INDICATORS, parseMcpPhaseOutput,
   GEMINI_EVIDENCE,
 } from './mcp-helpers.js';
+import {
+  parseIssuesFromOutput,
+  parseFixedFromOutput,
+  parseCannotFixFromOutput,
+  type GeminiIssue,
+} from './review-parsers.js';
 import chalk from 'chalk';
-
-/** Issue structure for passing between steps */
-interface GeminiIssue {
-  severity: string;
-  description: string;
-  file?: string;
-  line?: number;
-}
 
 /** Keywords that trigger code review - broad to catch most real work */
 const REVIEW_TRIGGER_KEYWORDS = [
@@ -271,7 +269,7 @@ export class IndependentReviewPhase extends BasePhase {
     }
 
     // Parse issues from output
-    const issues = this.parseIssuesFromOutput(output.result);
+    const issues = parseIssuesFromOutput(output.result);
 
     // Debug: show if Gemini returned content but parsing found nothing
     const rawIssueLines = output.result.split('\n').filter(l =>
@@ -343,8 +341,8 @@ export class IndependentReviewPhase extends BasePhase {
 
     // Fallback: fuzzy match if no numbers found
     if (fixedIndices.size === 0 && cannotFixIndices.size === 0) {
-      const fixedParsed = this.parseFixedFromOutput(output.result, issues);
-      const cannotFixParsed = this.parseCannotFixFromOutput(output.result, issues);
+      const fixedParsed = parseFixedFromOutput(output.result, issues);
+      const cannotFixParsed = parseCannotFixFromOutput(output.result, issues);
       for (const f of fixedParsed) {
         const idx = issues.findIndex(i => i === f);
         if (idx >= 0) fixedIndices.add(idx);
@@ -370,102 +368,5 @@ export class IndependentReviewPhase extends BasePhase {
     }
 
     return { fixed, unfixed, cannotFix, rawOutput: output.result };
-  }
-
-  /** Parse issues from identify step output */
-  private parseIssuesFromOutput(output: string): GeminiIssue[] {
-    const issues: GeminiIssue[] = [];
-    // Standard severities only - ERROR/WARNING can appear in descriptions and cause false matches
-    const severities = 'CRITICAL|HIGH|MEDIUM|MODERATE|LOW|INFO';
-
-    // Patterns ordered from most specific to most general
-    const patterns = [
-      // Gemini's actual format: - **[SEVERITY]** description (file:line)
-      new RegExp(`^[-*•]\\s*\\*\\*\\[(${severities})\\]\\*\\*\\s+(.+?)(?:\\s+\\(([^:)]+?)(?::(\\d+(?:-\\d+)?))?\\))?$`, 'gmi'),
-      // [SEVERITY] description (file:line) - brackets are unambiguous
-      new RegExp(`\\[(${severities})\\]\\s+(.+?)(?:\\s+\\(([^:)]+?)(?::(\\d+))?\\))?$`, 'gmi'),
-      // **SEVERITY**: description or **SEVERITY** description
-      new RegExp(`\\*\\*(${severities})\\*\\*[:\\s]+(.+?)(?:\\s+\\(([^:)]+?)(?::(\\d+))?\\))?$`, 'gmi'),
-      // - [SEVERITY] or - **SEVERITY**: list items with clear markers
-      new RegExp(`^[-*•]\\s*(?:\\[|\\*\\*)(${severities})(?:\\]|\\*\\*)[:\\s]+(.+?)(?:\\s+\\(([^:)]+?)(?::(\\d+))?\\))?$`, 'gmi'),
-      // Numbered: 1. [SEVERITY] or 1. **SEVERITY**
-      new RegExp(`^\\d+\\.\\s*(?:\\[|\\*\\*)(${severities})(?:\\]|\\*\\*)[:\\s]+(.+?)(?:\\s+\\(([^:)]+?)(?::(\\d+))?\\))?$`, 'gmi'),
-      // Gemini markdown: - **SEVERITY:** description (colon inside bold)
-      new RegExp(`^[-*•]\\s*\\*\\*(${severities}):\\*\\*\\s*(.+?)(?:\\s+\\(([^:)]+?)(?::(\\d+))?\\))?$`, 'gmi'),
-      // Severity in backticks: `SEVERITY` description
-      new RegExp(`\`(${severities})\`[:\\s]+(.+?)(?:\\s+\\(([^:)]+?)(?::(\\d+))?\\))?$`, 'gmi'),
-      // Start of line only: SEVERITY: description (requires colon, no loose dash matching)
-      new RegExp(`^(${severities}):\\s+(.+?)(?:\\s+\\(([^:)]+?)(?::(\\d+))?\\))?$`, 'gmi'),
-    ];
-
-    const seen = new Set<string>();
-
-    for (const pattern of patterns) {
-      let match;
-      while ((match = pattern.exec(output)) !== null) {
-        const rawSeverity = match[1].toUpperCase();
-        const severity = rawSeverity === 'MEDIUM' ? 'MODERATE' :
-                        rawSeverity === 'WARNING' ? 'LOW' :
-                        rawSeverity === 'ERROR' ? 'HIGH' : rawSeverity;
-        const description = match[2].trim();
-
-        const key = `${severity}:${description.toLowerCase().slice(0, 50)}`;
-        if (!seen.has(key)) {
-          seen.add(key);
-          issues.push({
-            severity,
-            description,
-            file: match[3],
-            line: match[4] ? parseInt(match[4], 10) : undefined,
-          });
-        }
-      }
-    }
-
-    return issues;
-  }
-
-  /** Parse fixed issues from fix step output */
-  private parseFixedFromOutput(output: string, original: GeminiIssue[]): GeminiIssue[] {
-    const fixed: GeminiIssue[] = [];
-    const pattern = /\[(CRITICAL|HIGH|MEDIUM|MODERATE|LOW)\]\s+(.+?)\s*-\s*FIXED/gmi;
-
-    let match;
-    while ((match = pattern.exec(output)) !== null) {
-      const desc = match[2].trim().toLowerCase();
-      const orig = original.find(i => i.description.toLowerCase().includes(desc) || desc.includes(i.description.toLowerCase()));
-      if (orig) {
-        fixed.push(orig);
-      } else {
-        fixed.push({
-          severity: match[1] === 'MEDIUM' ? 'MODERATE' : match[1],
-          description: match[2].trim(),
-        });
-      }
-    }
-
-    return fixed;
-  }
-
-  /** Parse cannot-fix issues from fix step output */
-  private parseCannotFixFromOutput(output: string, original: GeminiIssue[]): GeminiIssue[] {
-    const cannotFix: GeminiIssue[] = [];
-    const pattern = /\[(CRITICAL|HIGH|MEDIUM|MODERATE|LOW)\]\s+(.+?)\s*-\s*REASON:/gmi;
-
-    let match;
-    while ((match = pattern.exec(output)) !== null) {
-      const desc = match[2].trim().toLowerCase();
-      const orig = original.find(i => i.description.toLowerCase().includes(desc) || desc.includes(i.description.toLowerCase()));
-      if (orig) {
-        cannotFix.push(orig);
-      } else {
-        cannotFix.push({
-          severity: match[1] === 'MEDIUM' ? 'MODERATE' : match[1],
-          description: match[2].trim(),
-        });
-      }
-    }
-
-    return cannotFix;
   }
 }

@@ -16,25 +16,16 @@ const __dirname = path.dirname(__filename);
 /** Fixtures directory path */
 export const FIXTURES_DIR = path.join(__dirname, '..', '__fixtures__');
 
-/**
- * Load a fixture file by name.
- */
 export function loadFixture(filename: string): string {
   const filepath = path.join(FIXTURES_DIR, filename);
   return fs.readFileSync(filepath, 'utf-8');
 }
 
-/**
- * Load JSON fixture file.
- */
 export function loadJsonFixture<T>(filename: string): T {
   const content = loadFixture(filename);
   return JSON.parse(content) as T;
 }
 
-/**
- * Create a PRD for testing.
- */
 export function createPrd(options: Partial<Prd> = {}): Prd {
   return {
     filepath: options.filepath ?? '/test/prd.md',
@@ -43,9 +34,6 @@ export function createPrd(options: Partial<Prd> = {}): Prd {
   };
 }
 
-/**
- * Create a PRD item for testing.
- */
 export function createPrdItem(options: Partial<PrdItem> = {}): PrdItem {
   return {
     lineNumber: options.lineNumber ?? 1,
@@ -54,9 +42,6 @@ export function createPrdItem(options: Partial<PrdItem> = {}): PrdItem {
   };
 }
 
-/**
- * Create a session for testing.
- */
 export function createSession(options: Partial<Session> = {}): Session {
   return {
     id: options.id ?? 'test-session-123',
@@ -70,9 +55,6 @@ export function createSession(options: Partial<Session> = {}): Session {
   };
 }
 
-/**
- * Create a skill for testing.
- */
 export function createSkill(options: Partial<Skill> = {}): Skill {
   return {
     name: options.name ?? 'test-skill',
@@ -83,9 +65,6 @@ export function createSkill(options: Partial<Skill> = {}): Skill {
   };
 }
 
-/**
- * Create a successful stage result.
- */
 export function createSuccessResult(message: string = 'Success'): StageResult {
   return {
     status: 'success',
@@ -93,9 +72,6 @@ export function createSuccessResult(message: string = 'Success'): StageResult {
   };
 }
 
-/**
- * Create a failed stage result.
- */
 export function createFailedResult(error: string = 'Error'): StageResult {
   return {
     status: 'failed',
@@ -103,9 +79,6 @@ export function createFailedResult(error: string = 'Error'): StageResult {
   };
 }
 
-/**
- * Create a skipped stage result.
- */
 export function createSkippedResult(reason: string = 'Skipped'): StageResult {
   return {
     status: 'skipped',
@@ -113,9 +86,6 @@ export function createSkippedResult(reason: string = 'Skipped'): StageResult {
   };
 }
 
-/**
- * Create a test PRD file in a temp directory.
- */
 export function createTempPrd(
   tempDir: string,
   content: string,
@@ -126,9 +96,6 @@ export function createTempPrd(
   return prdPath;
 }
 
-/**
- * Create a test project structure in a temp directory.
- */
 export function createTestProject(tempDir: string): void {
   // Create basic project structure
   fs.mkdirSync(path.join(tempDir, '.claude', 'ralph-logs'), { recursive: true });

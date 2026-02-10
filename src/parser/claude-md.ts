@@ -6,11 +6,12 @@ import * as fs from 'fs';
 import type { ClaudeMdParsed, ClaudeMdAutoInvoke, ConfigScope } from '../types.js';
 
 export async function parseClaudeMd(filePath: string, scope: ConfigScope): Promise<ClaudeMdParsed | null> {
-  if (!fs.existsSync(filePath)) {
+  let content: string;
+  try {
+    content = fs.readFileSync(filePath, 'utf-8');
+  } catch {
     return null;
   }
-
-  const content = fs.readFileSync(filePath, 'utf-8');
   const autoInvokes = extractAutoInvokes(content);
   const skillReferences = extractSkillReferences(content);
   const commandReferences = extractCommandReferences(content);

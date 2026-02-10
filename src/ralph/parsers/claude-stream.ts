@@ -33,15 +33,14 @@ const FAILURE_MARKERS = [
 ] as const;
 
 export function extractResult(jsonPath: string): string {
-  if (!fs.existsSync(jsonPath)) {
+  try {
+    const content = fs.readFileSync(jsonPath, 'utf-8');
+    return extractResultFromContent(content);
+  } catch {
     return '';
   }
-
-  const content = fs.readFileSync(jsonPath, 'utf-8');
-  return extractResultFromContent(content);
 }
 
-/** Extract all text values from JSON stream content. */
 function extractAllTextBlocks(content: string): string[] {
   const blocks: string[] = [];
   const pattern = /"text"\s*:\s*"((?:[^"\\]|\\.)*)"/g;

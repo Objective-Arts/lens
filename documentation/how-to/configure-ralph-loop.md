@@ -49,7 +49,7 @@ ralph-sequence:
   - adversarial-security-review
   - write-tests-run
   - ai-smell-fix
-  - codex-check
+  - codex-fix
   - write-tests-run
 ```
 
@@ -117,16 +117,10 @@ With options:
 Ralph runs this 12-phase pipeline for each PRD item:
 
 ```
-create-plan → structure-first → implement-plan → [machine gate] → refactor-check-fix → dedupe-fix → gemini-fix → qodana-fix → [machine gate] → adversarial-security-review → write-tests-run → ai-smell-fix → codex-check → [machine gate] → write-tests-run
+create-plan → structure-first → implement-plan → [machine gate] → refactor-check-fix → dedupe-fix → gemini-fix → qodana-fix → [machine gate] → adversarial-security-review → write-tests-run → ai-smell-fix → codex-fix → [machine gate] → write-tests-run
 ```
 
 Machine gates run `npm run build && npm test` between phase groups.
-
-At each phase:
-1. Profile skills are loaded (static)
-2. Phase skills from `workflow-phases.yaml` are added
-3. Keyword detection adds skills based on PRD item text (dynamic)
-4. Phase executes with combined skills
 
 ## Troubleshooting
 
@@ -144,9 +138,7 @@ Change `review_threshold` from "clean" to "no_critical".
 
 ### Wrong skills being loaded
 
-Check your configuration:
-- `config/workflow-phases.yaml` - Are skills correct for each phase?
-- `config/keyword-detection.yaml` - Are patterns matching your task text?
+Check `config/workflow-phases.yaml` and `config/keyword-detection.yaml`.
 
 ### Gemini/Qodana not running
 

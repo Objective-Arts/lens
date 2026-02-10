@@ -33,7 +33,6 @@ const SEVERITY_COLORS: Record<IssueSeverity, (s: string) => string> = {
   INFO: chalk.dim,
 };
 
-/** Print a single issue with icon and location */
 function printIssue(issue: PhaseIssue): void {
   const icon = SEVERITY_ICONS[issue.severity];
   const color = SEVERITY_COLORS[issue.severity];
@@ -41,7 +40,6 @@ function printIssue(issue: PhaseIssue): void {
   console.log(chalk.dim(`           ${issue.file}:${issue.line}`));
 }
 
-/** Print issues list with header and truncation */
 function printIssuesList(
   issues: PhaseIssue[],
   maxIssues: number,
@@ -62,7 +60,6 @@ function printIssuesList(
   console.log('');
 }
 
-/** Print fixed issues section */
 function printFixedSection(fixed: PhaseIssue[]): void {
   console.log(`      Issues Fixed (${fixed.length}):`);
   for (const issue of fixed) {
@@ -71,7 +68,6 @@ function printFixedSection(fixed: PhaseIssue[]): void {
   console.log('');
 }
 
-/** Print phase results to terminal */
 export function printPhaseResults(
   phaseName: string,
   output: PhaseOutput,
@@ -93,7 +89,6 @@ export function printPhaseResults(
   }
 }
 
-/** Build summary parts from output */
 function buildSummaryParts(output: PhaseOutput, total: number): string[] {
   const parts: string[] = [];
 
@@ -117,7 +112,6 @@ function buildSummaryParts(output: PhaseOutput, total: number): string[] {
   return parts;
 }
 
-/** Get a compact summary string for phase results */
 export function getPhaseResultSummary(output: PhaseOutput): string {
   // Use fixed.length only when no unfixed issues (avoids double-counting)
   const total = output.issues.length > 0

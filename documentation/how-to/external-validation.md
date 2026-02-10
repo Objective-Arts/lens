@@ -11,14 +11,7 @@ This document contains proprietary and confidential information. Unauthorized re
 
 ## Why External Validation?
 
-Lens uses a two-tier review architecture:
-
-1. **Self-Review** (Tier 1): Claude reviews its own code using canon standards
-2. **External Validation** (Tier 2): Different tools catch blind spots
-
-External validation uses:
-- **Gemini**: Different AI model with different biases
-- **Qodana**: Static analysis catches mechanical issues
+Different tools catch blind spots Claude misses: Gemini provides a second AI opinion, Qodana runs static analysis.
 
 ## Prerequisites
 
@@ -72,9 +65,7 @@ When using `ralph-integration` profile, the CLI automatically creates `.mcp.json
 lens profile apply "javascript+ralph-integration" -p .
 ```
 
-This creates `.mcp.json` with Gemini and Qodana server configs.
-
-**Important**: The servers inherit environment variables from your shell, so `GEMINI_API_KEY` must be set before starting Claude Code.
+This creates `.mcp.json` with Gemini and Qodana server configs. The servers inherit environment variables from your shell, so `GEMINI_API_KEY` must be set before starting Claude Code.
 
 ### Manual Installation
 
@@ -103,17 +94,6 @@ Check that everything is configured:
 
 ```bash
 lens mcp check --all -p .
-```
-
-Expected output:
-
-```
-Environment Check Results:
-
-  ✓ gemini-reviewer: All env vars set
-  ✓ qodana: All env vars set
-
-All servers have required env vars set.
 ```
 
 If you see missing variables, ensure they're exported in your shell profile.
@@ -190,11 +170,6 @@ This runs Gemini + Qodana as post-loop validation after all PRD items complete.
 │  Per PRD item:                                   │
 │      implement → test → /gemini-fix → commit     │
 │                                                  │
-│  Self-review catches:                            │
-│      - Pattern violations                        │
-│      - Security basics                           │
-│      - Style issues                              │
-│                                                  │
 └─────────────────────────────────────────────────┘
                       │
                       ▼
@@ -203,9 +178,6 @@ This runs Gemini + Qodana as post-loop validation after all PRD items complete.
 │                                                  │
 │  Gemini: Second opinion, edge cases              │
 │  Qodana: Static analysis, deep checks            │
-│                                                  │
-│  Output: .claude/ext-validation-findings.md      │
-│  Action: Human decides to fix or ship            │
 │                                                  │
 └─────────────────────────────────────────────────┘
 ```
@@ -297,11 +269,8 @@ lens mcp list --enabled -p .
 
 ## Best Practices
 
-1. **Run external validation at milestones**, not every commit
-2. **Review findings thoughtfully** — not all issues need fixing
-3. **Promote recurring patterns** to CLAUDE.md to prevent future issues
-4. **Use `--external` flag** with Ralph Loop for autonomous runs
-5. **Keep Docker images updated** for latest Qodana checks
+1. Run external validation at milestones, not every commit
+2. Promote recurring patterns to CLAUDE.md to prevent future issues
 
 ---
 

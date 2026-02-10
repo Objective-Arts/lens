@@ -48,14 +48,12 @@ describe('resolveEnvVars', () => {
     expect(resolved.NUMBER).toBe('123');
   });
 
-  it('returns empty string for missing env vars', () => {
+  it('throws for missing env vars', () => {
     const env = {
       MISSING: '${DOES_NOT_EXIST}'
     };
 
-    const resolved = resolveEnvVars(env);
-
-    expect(resolved.MISSING).toBe('');
+    expect(() => resolveEnvVars(env)).toThrow('Required environment variable not set: DOES_NOT_EXIST');
   });
 });
 

@@ -22,9 +22,6 @@ const typeIcons: Record<ConfigItemType, string> = {
   mcp: '🔌'
 };
 
-/**
- * Print list of config items with token usage
- */
 export function printItemList(items: ConfigItem[], totalTokens: number): void {
   if (items.length === 0) {
     console.log(chalk.gray('No items found'));
@@ -50,9 +47,6 @@ export function printItemList(items: ConfigItem[], totalTokens: number): void {
   }
 }
 
-/**
- * Print detailed view of a single item
- */
 export function printItemDetails(item: ConfigItem, result: ScanResult): void {
   console.log(chalk.bold(`\n${item.name}`));
   console.log(chalk.gray('─'.repeat(50)));

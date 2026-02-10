@@ -384,10 +384,10 @@ lens profile apply javascript+react+d3 -p .
 
 ### Composition Rules
 
-1. Language profiles extend software-base (no need to stack)
-2. Framework profiles extend language (no need to stack language)
-3. Meta profiles (ralph-integration) can stack with anything
-4. Domain canon accumulates (no conflicts)
+- Language profiles extend software-base (no need to stack)
+- Framework profiles extend language (no need to stack language)
+- Meta profiles (ralph-integration) can stack with anything
+- Domain canon accumulates (no conflicts)
 
 ---
 

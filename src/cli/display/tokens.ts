@@ -6,18 +6,12 @@ import chalk from 'chalk';
 import { formatTokens, tokenPercentage } from '../../utils/tokens.js';
 import type { ConfigScope, ScanResult } from '../../types.js';
 
-/**
- * Create a visual bar for progress/percentage
- */
 function createBar(value: number, max: number, width: number): string {
   const filled = Math.round((value / max) * width);
   const empty = width - filled;
   return chalk.magenta('█'.repeat(filled)) + chalk.gray('░'.repeat(empty));
 }
 
-/**
- * Print detailed token usage breakdown
- */
 export function printTokenBreakdown(result: ScanResult): void {
   const { summary, items } = result;
 

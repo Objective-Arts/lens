@@ -32,8 +32,14 @@ export function generateSummaryHtml(summary: RunSummary, outputDir: string): str
   }
 
   // Embed data as script tag - MUST be before the render script runs
-  // Escape </ sequences to prevent breaking out of the script tag (XSS prevention)
-  const safeJson = JSON.stringify(summary, null, 2).replace(/<\//g, '<\\/');
+  // Escape sequences that could break out of script context (XSS prevention):
+  // - </ prevents closing script tag
+  // - <!-- prevents opening HTML comment inside script
+  // - ]]> prevents closing CDATA section
+  const safeJson = JSON.stringify(summary, null, 2)
+    .replace(/</g, '\\u003c')
+    .replace(/>/g, '\\u003e')
+    .replace(/&/g, '\\u0026');
   const dataScript = `<script id="ralph-summary-data" type="application/json">\n${safeJson}\n</script>`;
 
   // Insert BEFORE the main script (which calls render()), not at end of body

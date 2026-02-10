@@ -1,6 +1,6 @@
-# Canon Enforcement Map — All 64 Skills
+# Canon Enforcement Map — All 75 Skills
 
-Every check from every canon skill, classified by enforcement layer.
+Every check from every canon skill currently mapped to enforcement layers. Skills without enforcement entries (business, utility) are listed for completeness.
 
 ## Legend
 
@@ -30,9 +30,9 @@ Checks marked `M` catch violations with zero false negatives — the machine eit
 | UI/UX | 11 | 0 | 58 | 0 | 18 | 10 | 30 |
 | Visualization | 4 | 0 | 21 | 0 | 4 | 4 | 13 |
 | Business | 6 | 0 | 31 | 0 | 0 | 6 | 25 |
-| **TOTAL** | **64** | **91** | **327** | **47** | **78** | **135** | **158** |
+| **TOTAL** | **75** | **91** | **327** | **47** | **78** | **135** | **158** |
 
-**Bottom line:** Of 418 total checks across all 64 skills:
+**Bottom line:** Of 418 total checks across 64 of the 75 skills (11 utility/business skills have no enforcement checks):
 - **47 (11%)** are fully machine-enforceable — 100% catch rate
 - **78 (19%)** have proxy checks — 100% catch rate on the proxy signal
 - **135 (32%)** are evidence-checklistable — machine validates completeness
@@ -1097,6 +1097,53 @@ The five-layer system enforces the first three categories (62% of all checks) wi
 
 ---
 
+## 11. ADDITIONAL SKILLS (11 skills — no enforcement checks mapped)
+
+These skills are part of the canon but do not have enforcement checks mapped to the five-layer system. They provide expertise via skill loading only.
+
+### Refactoring (1 skill)
+
+| Skill | Purpose |
+|-------|---------|
+| `refactoring` | Code smells and safe transformations (Martin Fowler) |
+
+### Security — Additional (3 skills)
+
+| Skill | Purpose |
+|-------|---------|
+| `appsec` | Shift-left security, DevSecOps (Tanya Janca) |
+| `web-security` | Password handling, HTTPS, breach response (Troy Hunt) |
+| `threat-model` | STRIDE threat modeling, attack trees |
+
+### Engineering — Additional (1 skill)
+
+| Skill | Purpose |
+|-------|---------|
+| `style` | Google Coding Standards — reader clarity, consistency |
+
+### UI/UX — Additional (1 skill)
+
+| Skill | Purpose |
+|-------|---------|
+| `frontend-design` | Bold aesthetic direction, production-grade interfaces |
+
+### Utility Canon (3 skills)
+
+| Skill | Purpose |
+|-------|---------|
+| `code-scan` | Read-only quality analysis |
+| `deadcode` | Dead code detection across polyglot projects |
+| `implement` | Implementation patterns from plans |
+
+### Database (2 skills)
+
+| Skill | Purpose |
+|-------|---------|
+| `sql` | Set-based thinking, no cursors (Joe Celko) |
+| `sql-perf` | Indexes, B-trees, query optimization (Markus Winand) |
+
+---
+
 ## Canary Test Categories
 
 Canary violations are planted before review phases. Each canary maps to specific canon skills.
@@ -1171,7 +1218,7 @@ These are genuine judgment calls. The only enforcement is requiring three indepe
 ## The Math
 
 ```
-Total checks across 64 canon skills:        418
+Total checks across 75 canon skills:        418
 Machine-enforceable (100% catch rate):        47  (11%)
 Proxy-checkable (100% signal catch rate):     78  (19%)
 Evidence-checklistable (~90% completeness):  135  (32%)

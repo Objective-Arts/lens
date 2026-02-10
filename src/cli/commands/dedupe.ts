@@ -100,7 +100,6 @@ function analyzeDuplications(searchPath: string): DuplicationResult[] {
   return results;
 }
 
-/** Generate recommendation based on pattern */
 function generateRecommendation(patternName: string, findings: Finding[]): string {
   const fileCount = new Set(findings.map(f => f.file)).size;
 
@@ -122,7 +121,6 @@ function generateRecommendation(patternName: string, findings: Finding[]): strin
   return recommendations[patternName] || `Found in ${fileCount} files - review for consolidation`;
 }
 
-/** Format a single result entry with its files and recommendation. */
 function formatResultEntry(result: DuplicationResult, index: number): string[] {
   const lines: string[] = [];
   const uniqueFiles = [...new Set(result.findings.map(f => f.file))];
@@ -143,7 +141,6 @@ function formatResultEntry(result: DuplicationResult, index: number): string[] {
   return lines;
 }
 
-/** Format the top-N consolidation priority list. */
 function formatPriorityList(results: DuplicationResult[]): string[] {
   const lines: string[] = ['CONSOLIDATION_PRIORITY:'];
   for (let i = 0; i < Math.min(results.length, 5); i++) {
@@ -155,7 +152,6 @@ function formatPriorityList(results: DuplicationResult[]): string[] {
   return lines;
 }
 
-/** Format report */
 function formatReport(results: DuplicationResult[], searchPath: string): string {
   const lines: string[] = [
     `## Deduplication Report: ${searchPath}`, '',
@@ -194,7 +190,6 @@ function runDedupe(targetPath: string = '.'): string {
   }
 }
 
-/** Register dedupe commands */
 export function registerDedupeCommands(program: import('commander').Command): void {
   program
     .command('dedupe [path]')

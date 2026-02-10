@@ -86,7 +86,7 @@ The 12 phases that `/build` and `/improve` run in sequence. Each phase must pass
 | 8 | `adversarial-security-review` | VERIFIED_CLEAN | Security audit (attacker mindset) |
 | 9 | `write-tests-run` | TEST_COMPLETE | Write and run tests |
 | 10 | `ai-smell-fix` | AI_SMELL_COMPLETE | Deep AI smell removal → writes lessons that train phases 1-5 |
-| 11 | `codex-check` | CODEX_CHECK_COMPLETE | Fast pattern scan + targeted fixes |
+| 11 | `codex-fix` | CODEX_CHECK_COMPLETE | Fast pattern scan + targeted fixes |
 | 11.5 | *machine-gate* | exit code 0 | `npm run build && npm test` |
 | 12 | `write-tests-run` | TEST_COMPLETE | Re-verify tests after cleanup |
 
@@ -163,7 +163,7 @@ Phase 9: write-tests-run
 Phase 10: ai-smell-fix
   NO CANON (algorithmic antipattern detection)
 
-Phase 11: codex-check
+Phase 11: codex-fix
   NO CANON (pattern scan against quality-gate rules)
 
 Phase 12: write-tests-run (re-verify)
@@ -457,7 +457,7 @@ All 75 canon skills organized by category, with their master authority and sourc
 ├── Phase 10: ai-smell-fix
 │   └── (no canon — algorithmic detection)
 │
-├── Phase 11: codex-check
+├── Phase 11: codex-fix
 │   └── (no canon — pattern scan against quality-gate rules)
 │
 ├── Phase 11.5: machine-gate

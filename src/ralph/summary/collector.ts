@@ -115,7 +115,6 @@ export class SummaryCollector {
   }
 }
 
-/** Extract issues matching a pattern from output. */
 function extractIssues(output: string, pattern: RegExp, hasLineInMatch4: boolean): Issue[] {
   const issues: Issue[] = [];
   let match;
@@ -131,7 +130,6 @@ function extractIssues(output: string, pattern: RegExp, hasLineInMatch4: boolean
   return issues;
 }
 
-/** Build summary from issues and parsed output markers. */
 function buildIssueSummary(output: string, issues: Issue[], prefix: string): GeminiSummary | QodanaSummary {
   const totalMatch = output.match(new RegExp(`${prefix}_?ISSUES:\\s*(\\d+)`, 'i'));
   const criticalMatch = output.match(new RegExp(`${prefix}_?CRITICAL_HIGH:\\s*(\\d+)`, 'i'));
@@ -148,21 +146,18 @@ function buildIssueSummary(output: string, issues: Issue[], prefix: string): Gem
   };
 }
 
-/** Parse Gemini issues from Claude output */
 export function parseGeminiIssues(output: string): GeminiSummary {
   const pattern = /\[(\w+)\]\s+(.+?)(?:\s+\(([^:]+):?(\d+)?\))?(?:\s*-\s*(FIXED|fixed))?$/gm;
   const issues = extractIssues(output, pattern, true);
   return buildIssueSummary(output, issues, 'GEMINI') as GeminiSummary;
 }
 
-/** Parse Qodana issues from Claude output */
 export function parseQodanaIssues(output: string): QodanaSummary {
   const pattern = /(\w+):\s+(.+?)\s+at\s+([^:]+):(\d+)(?:\s*-\s*(FIXED|fixed))?/gm;
   const issues = extractIssues(output, pattern, true);
   return buildIssueSummary(output, issues, 'QODANA') as QodanaSummary;
 }
 
-/** Parse refactor improvements from output */
 export function parseRefactorResults(output: string): RefactorSummary {
   const improvements: string[] = [];
 
@@ -185,7 +180,6 @@ export function parseRefactorResults(output: string): RefactorSummary {
   return { improvements };
 }
 
-/** Normalize severity string to IssueSeverity */
 function normalizeSeverity(severity: string): IssueSeverity {
   const upper = severity.toUpperCase();
   if (upper === 'CRITICAL' || upper === 'CRIT') return 'CRITICAL';

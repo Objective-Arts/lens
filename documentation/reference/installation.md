@@ -7,10 +7,6 @@ This document contains proprietary and confidential information. Unauthorized re
 
 # Installation Reference
 
-Complete installation and configuration reference for Lens.
-
----
-
 ## System Requirements
 
 | Component | Minimum | Recommended |
@@ -27,16 +23,12 @@ Complete installation and configuration reference for Lens.
 
 ### Claude Code CLI
 
-The AI coding assistant that uses the canon configuration.
-
 ```bash
 npm install -g @anthropic-ai/claude-code
 claude --version
 ```
 
 ### Docker
-
-Required for Qodana static analysis.
 
 - **macOS**: [Docker Desktop](https://www.docker.com/products/docker-desktop/)
 - **Linux**: `sudo apt install docker.io` or [official install](https://docs.docker.com/engine/install/)
@@ -69,7 +61,7 @@ If you have repository access:
 
 ```bash
 git clone <repository-url> lens
-cd lens/cli
+cd lens
 npm install
 npm run build
 npm link
@@ -81,13 +73,13 @@ lens --version
 Run without global install:
 
 ```bash
-cd lens/cli
+cd lens
 npm install
 npm run build
 node dist/cli/index.js --version
 ```
 
-Or with npx:
+Or with tsx:
 
 ```bash
 npx tsx src/cli/index.ts --version
@@ -98,8 +90,6 @@ npx tsx src/cli/index.ts --version
 ## API Key Configuration
 
 ### Gemini API Key
-
-**Purpose**: External code review by a different AI model (catches blind spots)
 
 1. Visit [Google AI Studio](https://aistudio.google.com/apikey)
 2. Sign in with Google account
@@ -113,16 +103,12 @@ Add to shell profile:
 export GEMINI_API_KEY="AIza..."
 ```
 
-**Verify**:
+Reload shell:
 ```bash
 source ~/.zshrc
-echo $GEMINI_API_KEY | head -c 10
-# Should show: AIza...
 ```
 
 ### Qodana Token (Optional)
-
-**Purpose**: Cloud-based static analysis reports and history
 
 1. Visit [Qodana Cloud](https://qodana.cloud)
 2. Create account (JetBrains account works)
@@ -136,7 +122,7 @@ Add to shell profile:
 export QODANA_TOKEN="eyJ..."
 ```
 
-**Note**: Qodana works locally without a token. The token enables cloud features.
+Qodana works locally without a token. The token enables cloud features.
 
 ---
 
@@ -207,14 +193,15 @@ After installation, your system will have:
 ├── settings.json                   # Global settings
 └── profiles/                       # Custom profiles (optional)
 
-/path/to/lens/                   # Source repository
-├── cli/                            # lens CLI source
-│   ├── dist/                       # Compiled CLI
-│   └── src/                        # Source code
-├── canon/                          # Canon skill definitions
-├── profiles/                       # Profile definitions
-├── workflow-skills/                # Workflow skills (ralph-loop, etc.)
-└── mcp-servers/                    # MCP server implementations
+/path/to/lens/                      # Source repository
+├── src/                            # TypeScript source code
+├── dist/                           # Compiled output
+├── canon/                          # 75 canon skill definitions
+├── profiles/                       # 14 profile definitions
+├── workflow-skills/                # 29 workflow + utility skills
+├── mcp-servers/                    # MCP server implementations
+├── config/                         # Workflow phases, keyword detection
+└── scripts/                        # Quality gate scripts
 
 /path/to/your-project/              # Your project
 └── .claude/
@@ -227,20 +214,15 @@ After installation, your system will have:
 
 ## Verification Checklist
 
-Run these commands to verify your installation:
-
 ```bash
 # 1. lens CLI
 lens --version
-# Expected: 0.1.0 (or current version)
 
 # 2. Claude Code
 claude --version
-# Expected: Version number
 
 # 3. Docker
 docker --version
-# Expected: Docker version 20+
 
 # 4. Gemini API Key
 [ -n "$GEMINI_API_KEY" ] && echo "✓ GEMINI_API_KEY set" || echo "✗ GEMINI_API_KEY missing"
@@ -250,7 +232,6 @@ docker --version
 
 # 6. Profile listing
 lens profile list
-# Expected: List of available profiles
 ```
 
 ---
@@ -261,7 +242,7 @@ lens profile list
 
 ```bash
 # Re-link the CLI
-cd /path/to/lens/cli
+cd /path/to/lens
 npm run build
 npm link
 
@@ -326,7 +307,7 @@ curl -s "https://generativelanguage.googleapis.com/v1/models?key=$GEMINI_API_KEY
 npm install -g ./lens-X.X.X.tgz  # new version
 
 # If installed from source
-cd lens/cli
+cd lens
 git pull
 npm install
 npm run build
@@ -349,7 +330,7 @@ lens canon upgrade -p /path/to/project
 
 ```bash
 # Remove global CLI
-npm uninstall -g lens
+npm uninstall -g @objective-arts/lens
 
 # Remove project configuration
 rm -rf /path/to/project/.claude

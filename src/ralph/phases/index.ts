@@ -34,9 +34,6 @@ import { DocCodePhase } from './doc-code.js';
 import { ProductionReadinessPhase } from './production-readiness.js';
 import { SecurityReviewPhase } from './security-review.js';
 
-/**
- * Create all phases in execution order.
- */
 export function createPhases(): Phase[] {
   return [
     new PlanPhase(),
@@ -50,9 +47,6 @@ export function createPhases(): Phase[] {
   ];
 }
 
-/**
- * Get a specific phase by name.
- */
 export function getPhase(name: PhaseName): Phase | null {
   const phases: Record<PhaseName, Phase> = {
     'plan': new PlanPhase(),
@@ -70,9 +64,6 @@ export function getPhase(name: PhaseName): Phase | null {
   return phases[name] ?? null;
 }
 
-/**
- * Get phase icon for display.
- */
 export function getPhaseIcon(name: PhaseName): string {
   const icons: Partial<Record<PhaseName, string>> = {
     'plan': '📝',

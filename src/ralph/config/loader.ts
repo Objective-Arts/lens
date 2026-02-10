@@ -55,9 +55,6 @@ export function loadConfig(projectPath: string): RalphConfig {
   };
 }
 
-/**
- * Check if ralph config exists in project.
- */
 export function hasConfig(projectPath: string): boolean {
   const configPath = path.join(projectPath, '.claude', 'ralph-config.yaml');
   return fs.existsSync(configPath);

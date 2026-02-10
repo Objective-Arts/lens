@@ -7,10 +7,6 @@ This document contains proprietary and confidential information. Unauthorized re
 
 # Workflow Skills
 
-> Interactive commands for improving code quality at each development phase.
-
-These skills guide Claude through a structured development process. Each loads expert knowledge appropriate to the task.
-
 ---
 
 ## Directory Structure
@@ -28,12 +24,7 @@ workflow-skills/
 
 ### `/lens`
 
-**Purpose:** Lens home base — status, help, and guided choices.
-
-**What it does:**
-- Shows quick status (profile, skills, MCP servers, issues)
-- Presents choices: check status, apply profile, view skills, quick start, fix issues
-- Guides you to the right workflow
+**Purpose:** Lens home base. Shows quick status (profile, skills, MCP servers, issues), presents guided choices (check status, apply profile, view skills, quick start, fix issues), and guides you to the right workflow.
 
 **Modifies Code:** No
 
@@ -55,7 +46,7 @@ workflow-skills/
 │                                                                             │
 │ → [machine-gate] → /adversarial-security-review → /write-tests-run         │
 │                                                                             │
-│ → /ai-smell-fix → /codex-check → [machine-gate] → /write-tests-run (final) │
+│ → /ai-smell-fix → /codex-fix → [machine-gate] → /write-tests-run (final) │
 │                                                                             │
 └─────────────────────────────────────────────────────────────────────────────┘
 ```
@@ -89,12 +80,7 @@ See [How Skills Get Loaded](explanation/how-skills-load.md) for details.
 
 ### `/create-plan [task]`
 
-**Purpose:** Design approach before writing code.
-
-**What it does:**
-- Creates a plan file (`.claude/plans/{feature}.md`)
-- Defines scope, files to create/modify, risks
-- Requires user approval before implementation
+**Purpose:** Design approach before writing code. Creates a plan file (`.claude/plans/{feature}.md`), defines scope, files to create/modify, risks, and requires user approval before implementation.
 
 **Expert lens:** Base Brain (all 10) + abstraction
 
@@ -125,13 +111,7 @@ See [How Skills Get Loaded](explanation/how-skills-load.md) for details.
 
 ### `/implement-plan [target]`
 
-**Purpose:** Write code from the approved plan.
-
-**What it does:**
-- Loads expert skills for quality guidance
-- Creates files/functions defined in the plan
-- Enforces quality constraints (single responsibility, meaningful names, error handling)
-- Verifies code compiles/lints
+**Purpose:** Write code from the approved plan. Loads expert skills for quality guidance, creates files/functions defined in the plan, enforces quality constraints (single responsibility, meaningful names, error handling), and verifies code compiles/lints.
 
 **Expert lens:** Base Brain (all 10)
 
@@ -146,7 +126,7 @@ See [How Skills Get Loaded](explanation/how-skills-load.md) for details.
 
 **Purpose:** Systematically clean up and simplify code.
 
-**What it checks:**
+**Checks:**
 - Function length (< 30 lines)
 - Single responsibility
 - DRY violations
@@ -166,7 +146,7 @@ See [How Skills Get Loaded](explanation/how-skills-load.md) for details.
 
 **Purpose:** Remove AI-generated code patterns. Make code look human-written.
 
-**What it catches:**
+**Catches:**
 - Over-abstraction (factories/wrappers used once)
 - Defensive paranoia (null checks where null impossible)
 - Comment spam (`// increment counter`)
@@ -185,12 +165,7 @@ See [How Skills Get Loaded](explanation/how-skills-load.md) for details.
 
 ### `/dedupe-fix [path]`
 
-**Purpose:** Find duplicated code and consolidate it.
-
-**What it does:**
-- Identifies duplicated code patterns
-- Extracts shared functions/utilities
-- Updates all call sites
+**Purpose:** Find duplicated code and consolidate it. Identifies duplicated code patterns, extracts shared functions/utilities, and updates all call sites.
 
 **Example:**
 ```
@@ -203,7 +178,7 @@ See [How Skills Get Loaded](explanation/how-skills-load.md) for details.
 
 **Purpose:** Hard-ass code review via Gemini. ALL issues must be fixed.
 
-**What it catches:**
+**Catches:**
 - Bugs and edge cases
 - Performance issues
 - Readability problems
@@ -223,7 +198,7 @@ See [How Skills Get Loaded](explanation/how-skills-load.md) for details.
 
 **Purpose:** Run Qodana static analysis and fix ALL issues found.
 
-**What it catches:**
+**Catches:**
 - Code smells
 - Potential bugs
 - Style violations
@@ -242,7 +217,7 @@ See [How Skills Get Loaded](explanation/how-skills-load.md) for details.
 
 **Purpose:** Adversarial security review via Gemini. ALL issues must be fixed.
 
-**What it catches:**
+**Catches:**
 - Auth bypasses
 - Injection flaws (SQL, XSS, command)
 - Data exposure risks
@@ -286,7 +261,7 @@ See [How Skills Get Loaded](explanation/how-skills-load.md) for details.
 
 **Purpose:** Generate documentation using Diátaxis framework.
 
-**Output types:**
+**Output:**
 - **Tutorials** — Learning-oriented walkthroughs
 - **How-to guides** — Task-oriented instructions
 - **Reference** — Information-oriented API docs
@@ -307,7 +282,7 @@ See [How Skills Get Loaded](explanation/how-skills-load.md) for details.
 
 **Purpose:** External code review via Gemini without fixes.
 
-**What it catches:**
+**Catches:**
 - Bugs and edge cases
 - Logic errors
 - Performance problems
@@ -368,7 +343,7 @@ See [How Skills Get Loaded](explanation/how-skills-load.md) for details.
 
 **Purpose:** Detect AI-generated code smells without making changes. Calculates AI Smell Index.
 
-**What it finds:**
+**Finds:**
 - Over-abstraction (weight: 3)
 - Defensive paranoia (weight: 3)
 - Speculative features (weight: 3)
@@ -398,7 +373,7 @@ See [AI Smell Index Reference](reference/ai-smell-index.md) for full scoring det
 
 **Purpose:** Review names for clarity using clarity principles.
 
-**What it checks:**
+**Checks:**
 - Vague names (processData, handle, doStuff)
 - Jargon and insider terms
 - Inconsistent patterns (get vs fetch, create vs new)
@@ -444,7 +419,7 @@ See [AI Smell Index Reference](reference/ai-smell-index.md) for full scoring det
 | 8 | adversarial-security-review | Security audit, fix vulnerabilities |
 | 9 | write-tests-run | Write/update tests |
 | 10 | ai-smell-fix | Remove AI-generated antipatterns |
-| 11 | codex-check | Fast pattern scan + targeted fixes |
+| 11 | codex-fix | Fast pattern scan + targeted fixes |
 | 12 | write-tests-run | Re-verify after cleanup |
 
 **Rollback:** Creates git stash before changes. Use `--rollback` to restore.
@@ -527,7 +502,7 @@ See [AI Smell Index Reference](reference/ai-smell-index.md) for full scoring det
 - Before commit
 - Quick sanity check
 
-**What it fixes:**
+**Fixes:**
 - Over-abstraction, defensive paranoia, comment spam
 - Vague names, magic numbers, dead code
 - Generic naming smells
@@ -554,7 +529,7 @@ See [AI Smell Index Reference](reference/ai-smell-index.md) for full scoring det
 
 **Prerequisite:** Requires `/build` or `/improve` to have been run first on the target.
 
-**What it checks:**
+**Checks:**
 - AI antipatterns (over-abstraction, defensive paranoia, comment spam)
 - Naming clarity — every name earns its place
 - Remaining complexity that can be reduced
@@ -575,14 +550,7 @@ See [AI Smell Index Reference](reference/ai-smell-index.md) for full scoring det
 
 ### `/session-status`
 
-**Purpose:** Show what Claude Code primitives are active in this session.
-
-**Shows:**
-- Active skills and their sources
-- Auto-invoke rules from CLAUDE.md
-- Available commands
-- MCP servers
-- Any issues detected
+**Purpose:** Show what Claude Code primitives are active in this session (active skills and their sources, auto-invoke rules from CLAUDE.md, available commands, MCP servers, any issues detected).
 
 **Example:**
 ```
@@ -593,11 +561,7 @@ See [AI Smell Index Reference](reference/ai-smell-index.md) for full scoring det
 
 ### `/skill-usage-report`
 
-**Purpose:** Generate a D3 visualization of skill invocations.
-
-**What it creates:**
-- `.claude/canon-masters.json` — Structured data
-- `.claude/skill-usage-report.html` — Interactive D3 visualization
+**Purpose:** Generate a D3 visualization of skill invocations. Creates `.claude/canon-masters.json` (structured data) and `.claude/skill-usage-report.html` (interactive D3 visualization).
 
 **Example:**
 ```
@@ -623,7 +587,7 @@ See [AI Smell Index Reference](reference/ai-smell-index.md) for full scoring det
 
 **Purpose:** Autonomous implementation loop through all phases.
 
-**Process:**
+**Steps:**
 1. Parse PRD items
 2. For each item: plan → build → refactor → test → review → doc
 3. Each phase loads relevant canon skills from profile's `ralph.skills` mapping
@@ -654,7 +618,7 @@ See [AI Smell Index Reference](reference/ai-smell-index.md) for full scoring det
 | `/improve` | Refine existing code (12 phases) | Yes |
 | `/quick-edit` | Add field, rename, small fix | Yes |
 | `/quick-clean` | Fast AI smell cleanup | Yes |
-| `/codex-check` | Fast pattern scan + targeted fixes | Yes |
+| `/codex-fix` | Fast pattern scan + targeted fixes | Yes |
 | `/create-plan` | Starting new feature | No |
 | `/structure-first` | Before implementation | Yes |
 | `/implement-plan` | Writing code | Yes |

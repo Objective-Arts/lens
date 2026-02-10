@@ -5,13 +5,11 @@
  */
 
 import { describe, it, expect } from 'vitest';
-import { IndependentReviewPhase } from './independent-review.js';
+import { parseIssuesFromOutput } from './review-parsers.js';
 
-// Access private method for testing
-const phase = new IndependentReviewPhase();
-const parseIssues = (output: string) => (phase as any).parseIssuesFromOutput(output);
+const parseIssues = parseIssuesFromOutput;
 
-describe('IndependentReviewPhase.parseIssuesFromOutput', () => {
+describe('parseIssuesFromOutput', () => {
   describe('standard formats', () => {
     it('parses [SEVERITY] format', () => {
       const output = `

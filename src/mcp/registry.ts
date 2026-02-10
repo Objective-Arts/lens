@@ -12,18 +12,12 @@ import type {
 
 const REGISTRY_DIR = path.join(homedir(), '.claude', 'mcp-registry', 'servers');
 
-/**
- * Ensure registry directory exists
- */
 export function ensureRegistryDir(): void {
   if (!fs.existsSync(REGISTRY_DIR)) {
     fs.mkdirSync(REGISTRY_DIR, { recursive: true });
   }
 }
 
-/**
- * Load all server definitions from the registry
- */
 export function loadRegistry(): MCPRegistry {
   ensureRegistryDir();
 
@@ -50,17 +44,11 @@ export function loadRegistry(): MCPRegistry {
   return { servers };
 }
 
-/**
- * Get a specific server definition by name
- */
 export function getServer(name: string): MCPServerDefinition | null {
   const registry = loadRegistry();
   return registry.servers.get(name) || null;
 }
 
-/**
- * List all servers, optionally filtered
- */
 export function listServers(filters?: MCPListFilters): MCPServerDefinition[] {
   const registry = loadRegistry();
   let servers = Array.from(registry.servers.values());
@@ -84,9 +72,6 @@ export function listServers(filters?: MCPListFilters): MCPServerDefinition[] {
   return servers.sort((a, b) => a.name.localeCompare(b.name));
 }
 
-/**
- * List all available categories
- */
 export function listCategories(): MCPServerCategory[] {
   const registry = loadRegistry();
   const categories = new Set<MCPServerCategory>();
@@ -98,9 +83,6 @@ export function listCategories(): MCPServerCategory[] {
   return Array.from(categories).sort();
 }
 
-/**
- * Check if required environment variables are set
- */
 export function checkRequiredEnv(server: MCPServerDefinition): EnvCheckResult {
   const missing: string[] = [];
   const found: string[] = [];
@@ -123,11 +105,16 @@ export function checkRequiredEnv(server: MCPServerDefinition): EnvCheckResult {
   };
 }
 
-/**
- * Add a custom server to the registry
- */
+function isValidServerName(name: string): boolean {
+  return /^[a-z0-9][a-z0-9._-]*$/i.test(name) && !name.includes('..');
+}
+
 export function addServerToRegistry(server: MCPServerDefinition): void {
   ensureRegistryDir();
+
+  if (!isValidServerName(server.name)) {
+    throw new Error(`Invalid server name: ${server.name}. Use only alphanumeric, dash, dot, underscore.`);
+  }
 
   const filename = `${server.name}.yaml`;
   const filePath = path.join(REGISTRY_DIR, filename);
@@ -135,10 +122,10 @@ export function addServerToRegistry(server: MCPServerDefinition): void {
   fs.writeFileSync(filePath, stringifyYaml(server), 'utf-8');
 }
 
-/**
- * Remove a server from the registry
- */
 export function removeServerFromRegistry(name: string): boolean {
+  if (!isValidServerName(name)) {
+    return false;
+  }
   const filePath = path.join(REGISTRY_DIR, `${name}.yaml`);
 
   if (fs.existsSync(filePath)) {
@@ -166,7 +153,11 @@ export function resolveEnvVars(env: Record<string, string>): Record<string, stri
   for (const [key, value] of Object.entries(env)) {
     if (value.startsWith('${') && value.endsWith('}')) {
       const envVarName = value.slice(2, -1);
-      resolved[key] = process.env[envVarName] || '';
+      const envValue = process.env[envVarName];
+      if (envValue === undefined) {
+        throw new Error(`Required environment variable not set: ${envVarName}`);
+      }
+      resolved[key] = envValue;
     } else {
       resolved[key] = value;
     }

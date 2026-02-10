@@ -7,9 +7,7 @@ This document contains proprietary and confidential information. Unauthorized re
 
 # Skill Loading Strategy
 
-## Overview
-
-Skills are loaded through a 4-layer system:
+## 4-Layer Skill Loading
 
 1. **Base Brain** - 10 foundational skills always loaded via SUMMARY.md (~4,200 tokens)
 2. **Profile Skills** - Language/framework specific skills from profile
@@ -76,7 +74,7 @@ ralph-sequence:
   - adversarial-security-review
   - write-tests-run
   - ai-smell-fix
-  - codex-check
+  - codex-fix
   - write-tests-run
 ```
 
@@ -110,7 +108,7 @@ rules:
 
 ---
 
-## How Skills Are Selected
+## Skill Selection
 
 ```
 Profile Skills     +    Phase Skills       +    Keyword Skills
@@ -141,7 +139,7 @@ From profile.yaml       From phase config      From task text
 | 8 | adversarial-security-review | Attack your code | security-mindset, owasp, failure, safety |
 | 9 | write-tests-run | Write and run tests | test-doubles, test-strategy |
 | 10 | ai-smell-fix | Remove AI patterns | (antipattern detection) |
-| 11 | codex-check | Fast pattern scan | (pattern matching) |
+| 11 | codex-fix | Fast pattern scan | (pattern matching) |
 | | **Machine Gate** | `npm run build && npm test` | |
 | 12 | write-tests-run | Re-verify tests | test-doubles, test-strategy |
 
@@ -149,34 +147,13 @@ From profile.yaml       From phase config      From task text
 
 ## Tiered Skill Loading
 
-Each skill has two files:
-
-```
-canon/java/
-├── SKILL.md          # Full content (~2000 tokens)
-└── SUMMARY.md        # Essential items (~300 tokens)
-```
-
-### Loading Protocol
-
-**Phase 1: Load Summaries First** (~1,000-1,500 tokens)
-- Summaries provide essential items and trigger conditions
-- Always loaded for relevant skills
-
-**Phase 2: Load Full When Needed**
-- When applying specific item not in summary
-- When deep dive into pattern required
-- When user explicitly requests
-
-### Token Cost Comparison
-
 | Approach | Tokens | When |
 |----------|--------|------|
 | Load Everything | 10,000-15,000 | Every task |
 | Tiered Loading | 1,000-2,000 | Most tasks |
 | Tiered + Full | 3,000-5,000 | Complex tasks |
 
-**Savings: 60-80% reduction**
+**Savings: 60-80% reduction** using SUMMARY.md files (~300 tokens each) vs full SKILL.md files (~2000 tokens each).
 
 ---
 

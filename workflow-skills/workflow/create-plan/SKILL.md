@@ -206,6 +206,11 @@ If a file doesn't exist, skip it and continue.
 - Specific test case: [what it verifies]
 - Another test case: [what it verifies]
 
+## CONSTRUCTION_CHECKS:
+- FILE: path/to/new-file.ts
+- EXPORT_FUNCTION: functionName IN path/to/file.ts
+- EXPORT_TYPE: TypeName IN path/to/file.ts
+
 ## WORK_ITEMS:
 - [ ] WI-1: [verb] [specific thing] in [file(s)] [S/M/L]
 - [ ] WI-2: [verb] [specific thing] in [file(s)] [S/M/L]
@@ -242,7 +247,7 @@ WORK_ITEMS is the **implementation checklist**. Phases 3 and 4 iterate through i
 
 ## Validation (Phase will FAIL if violated)
 
-- Missing any of: FILES, FUNCTIONS, TYPES, DEPENDENCIES, INVARIANTS, SECURITY, UX, TESTS, WORK_ITEMS
+- Missing any of: FILES, FUNCTIONS, TYPES, DEPENDENCIES, INVARIANTS, SECURITY, UX, TESTS, CONSTRUCTION_CHECKS, WORK_ITEMS
 - WORK_ITEMS is empty or has zero items
 - WORK_ITEMS contains items without size tags (S/M/L)
 - Contains "as needed", "if applicable", "TBD", "to be determined"

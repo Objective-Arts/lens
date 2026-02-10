@@ -11,9 +11,6 @@ const CANON_SKILLS = [
   'threat-model', 'web-security', 'react-state', 'web-perf'
 ];
 
-/**
- * Print Claude-Optimal pattern checks
- */
 function printPatternChecks(result: ScanResult, projectSkills: string[]): void {
   console.log(`\n${chalk.cyan('Claude-Optimal Patterns')}:`);
 
@@ -46,9 +43,6 @@ function printPatternChecks(result: ScanResult, projectSkills: string[]): void {
   }
 }
 
-/**
- * Print quality flag checks from CLAUDE.md
- */
 function printQualityFlags(claudeMdContent: string): void {
   const hasStructureFirst = claudeMdContent.includes('--structure-first');
   const hasReviewHard = claudeMdContent.includes('--adversarial-review');
@@ -64,9 +58,6 @@ function printQualityFlags(claudeMdContent: string): void {
   }
 }
 
-/**
- * Print conflicts section
- */
 function printConflicts(result: ScanResult): void {
   const { summary } = result;
 
@@ -84,9 +75,6 @@ function printConflicts(result: ScanResult): void {
   }
 }
 
-/**
- * Print missing references section
- */
 function printMissingRefs(result: ScanResult): void {
   const { summary } = result;
 
@@ -101,9 +89,6 @@ function printMissingRefs(result: ScanResult): void {
   }
 }
 
-/**
- * Print project skills summary by category
- */
 function printSkillsSummary(projectSkills: string[]): void {
   console.log(`\n${chalk.cyan('Project Skills')} (${projectSkills.length} total):`);
   if (projectSkills.length === 0) return;
@@ -125,9 +110,6 @@ function printSkillsSummary(projectSkills: string[]): void {
   }
 }
 
-/**
- * Print CLAUDE.md analysis
- */
 function printClaudeMdAnalysis(result: ScanResult): void {
   console.log(`\n${chalk.cyan('CLAUDE.md Analysis')}:`);
   for (const claudeMd of result.claudeMds) {

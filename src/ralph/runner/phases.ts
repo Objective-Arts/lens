@@ -26,14 +26,12 @@ async function canRecoverFromTimeout(error: string, projectPath: string, hash: s
   return hasNewCommitsSince(projectPath, hash);
 }
 
-/** Map phase result status to summary status. */
 function mapResultStatus(status: string): 'done' | 'skipped' | 'failed' {
   if (status === 'success') return 'done';
   if (status === 'skipped') return 'skipped';
   return 'failed';
 }
 
-/** Print refactorings applied. */
 function printRefactorings(rawOutput: string): void {
   const refactorResults = parseRefactorResults(rawOutput);
   if (refactorResults.improvements.length > 0) {
@@ -44,7 +42,6 @@ function printRefactorings(rawOutput: string): void {
   }
 }
 
-/** Handle successful phase completion. */
 function handlePhaseSuccess(
   result: { message: string; rawOutput?: string },
   phase: Phase, durationMs: number, phaseStatus: Map<string, PhaseStatus>
@@ -71,7 +68,6 @@ function handlePhaseSuccess(
   printAppliedSkills(result.rawOutput);
 }
 
-/** Handle phase error with timeout recovery. */
 async function handlePhaseError(
   error: string, phase: Phase, durationMs: number, projectPath: string, commitHash: string | null,
   phaseStatus: Map<string, PhaseStatus>, collector: SummaryCollector
@@ -89,7 +85,6 @@ async function handlePhaseError(
   return true;
 }
 
-/** Process phase result and update status. Returns true if failed. */
 function processPhaseResult(
   result: { status: string; message?: string; error?: string; reason?: string; rawOutput?: string; metrics?: Record<string, unknown> },
   phase: Phase, durationMs: number, context: PhaseContext, phaseStatus: Map<string, PhaseStatus>,
@@ -123,7 +118,6 @@ interface RetryAttemptResult {
   result?: PhaseResult;
 }
 
-/** Execute a single retry attempt. */
 async function executeRetryAttempt(
   phase: Phase, context: PhaseContext, attempt: number
 ): Promise<RetryAttemptResult> {
@@ -139,7 +133,6 @@ async function executeRetryAttempt(
   return { done: false, failed: false, error };
 }
 
-/** Execute phase with retry logic. */
 async function executePhaseWithRetry(
   phase: Phase, context: PhaseContext, phaseStatus: Map<string, PhaseStatus>,
   collector: SummaryCollector, itemNum: number
@@ -161,7 +154,6 @@ async function executePhaseWithRetry(
   return true;
 }
 
-/** Check if phase should be skipped. */
 function shouldSkipPhase(phase: Phase, context: PhaseContext, skipReview?: boolean): string | null {
   if (skipReview && (phase.name === 'independent-review' || phase.name === 'static-analysis')) {
     return 'review skipped';
@@ -172,7 +164,6 @@ function shouldSkipPhase(phase: Phase, context: PhaseContext, skipReview?: boole
   return null;
 }
 
-/** Run a single phase with spinner and tracing. */
 async function runSinglePhase(
   phase: Phase, phaseIndex: number, phases: Phase[], context: PhaseContext,
   config: RalphConfig, item: PrdItem, projectPath: string,
@@ -202,7 +193,6 @@ async function runSinglePhase(
   }
 }
 
-/** Run all phases for an item. */
 export async function runItemPhases(
   phases: Phase[], item: PrdItem, session: Session, config: RalphConfig, projectPath: string,
   skipReview: boolean | undefined, verbose: boolean | undefined, phaseStatus: Map<string, PhaseStatus>,

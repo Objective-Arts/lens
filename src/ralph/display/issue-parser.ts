@@ -42,13 +42,11 @@ interface SectionState {
   inSkipSection: boolean;
 }
 
-/** Normalize severity (MEDIUM -> MODERATE) */
 function normalizeSeverity(sev: string): IssueSeverity {
   const upper = sev.toUpperCase();
   return upper === 'MEDIUM' ? 'MODERATE' : upper as IssueSeverity;
 }
 
-/** Clean description text - remove FIXED markers and trailing junk */
 function cleanDescription(desc: string): string {
   return desc
     .replace(FIXED_MARKER, '')
@@ -57,7 +55,6 @@ function cleanDescription(desc: string): string {
     .trim();
 }
 
-/** Create issue from match groups */
 function createIssue(
   severity: string,
   description: string,
@@ -99,7 +96,6 @@ function tryParseWithLocation(line: string, inIssuesFixed: boolean): PhaseIssue 
   return createIssue(match[1], match[2], match[3], parseInt(match[4], 10), isFixed);
 }
 
-/** Try parsing as format without location */
 function tryParseWithoutLocation(line: string, inIssuesFixed: boolean): PhaseIssue | null {
   const match = line.match(ISSUE_PATTERNS.withoutLocation);
   if (!match) return null;
@@ -107,7 +103,6 @@ function tryParseWithoutLocation(line: string, inIssuesFixed: boolean): PhaseIss
   return createIssue(match[1], match[2], 'unknown', 0, isFixed);
 }
 
-/** Parse a single issue line using strategy chain. Returns null if not an issue. */
 function parseIssueLine(line: string, inIssuesFixed: boolean): PhaseIssue | null {
   const hasFixed = HAS_FIXED.test(line) || inIssuesFixed;
 
@@ -118,7 +113,6 @@ function parseIssueLine(line: string, inIssuesFixed: boolean): PhaseIssue | null
     ?? tryParseWithoutLocation(line, inIssuesFixed);
 }
 
-/** Update section state based on line content */
 function updateSectionState(line: string, state: SectionState): SectionState {
   if (SECTION_PATTERNS.issuesFound.test(line)) {
     return { inIssuesFound: true, inIssuesFixed: false, inSkipSection: false };
@@ -135,13 +129,11 @@ function updateSectionState(line: string, state: SectionState): SectionState {
   return state;
 }
 
-/** Parse verified clean status from raw output */
 function parseVerifiedClean(raw: string): boolean {
   const match = raw.match(SUMMARY_PATTERNS.verifiedClean);
   return match ? ['yes', 'true'].includes(match[1].toLowerCase()) : false;
 }
 
-/** Parse remaining/unfixed count from raw output */
 function parseRemainingCount(raw: string, fallback: number): number {
   const unfixedMatch = raw.match(SUMMARY_PATTERNS.unfixed);
   if (unfixedMatch) return parseInt(unfixedMatch[1], 10);
@@ -150,7 +142,6 @@ function parseRemainingCount(raw: string, fallback: number): number {
   return remainingMatch ? parseInt(remainingMatch[1], 10) : fallback;
 }
 
-/** Categorize issue into appropriate bucket */
 function categorizeIssue(
   issue: PhaseIssue,
   issues: PhaseIssue[],
@@ -166,7 +157,6 @@ function categorizeIssue(
   }
 }
 
-/** Parse raw phase output into structured PhaseOutput */
 export function parsePhaseOutput(raw: string): PhaseOutput {
   const issues: PhaseIssue[] = [];
   const fixed: PhaseIssue[] = [];

@@ -2,13 +2,11 @@ import * as fs from 'fs';
 import * as path from 'path';
 import { createHash } from 'crypto';
 
-/** Hash a single file's contents. Returns truncated 16-char hex hash. */
 export function hashFileContents(filePath: string): string {
   const content = fs.readFileSync(filePath);
   return createHash('sha256').update(content).digest('hex').slice(0, 16);
 }
 
-/** Includes directory markers and file contents. Returns truncated 16-char hash. */
 export function hashDirectoryContents(dirPath: string): string {
   const hash = createHash('sha256');
 

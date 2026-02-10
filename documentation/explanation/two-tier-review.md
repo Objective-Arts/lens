@@ -7,19 +7,11 @@ This document contains proprietary and confidential information. Unauthorized re
 
 # Two-Tier Review Architecture
 
-*Understanding the separation between fast self-review and thorough external validation.*
-
 ---
 
 ## The Problem
 
-External validation tools like Gemini and Qodana provide valuable feedback. But if we run them during every iteration of an autonomous loop, we create problems:
-
-1. **Cost**: Each external API call has a cost
-2. **Latency**: Network calls slow iteration
-3. **Nested loops**: If external review finds issues, we might re-enter the loop, which triggers another external review, creating recursion
-
-We needed an architecture that gets the benefits of external validation without these costs.
+Running external validators on every iteration creates cost, latency, and nested loops. We needed an architecture that gets the benefits of external validation without these costs.
 
 ---
 
@@ -90,33 +82,9 @@ These catch what self-review misses:
 
 ---
 
-## Why This Works
-
-### Cost Efficiency
-
-| Approach | External Calls | With 10 Iterations |
-|----------|---------------|-------------------|
-| Every iteration | 10 | 10+ API calls |
-| Post-loop only | 1 | 1 API call |
-
-### Speed
-
-Self-review is instantaneous. External validation can take 30+ seconds. In a 10-iteration loop:
-
-| Approach | Added Latency |
-|----------|--------------|
-| Every iteration | 300+ seconds |
-| Post-loop only | 30 seconds |
-
-### No Recursion
-
-External validation can't create nested loops because it runs after the loop ends. The human decides what to do with findings.
-
----
-
 ## The Learning Loop
 
-External validation findings aren't wasted—they improve future self-review:
+External validation findings improve future self-review:
 
 ```
 External Finding
@@ -132,34 +100,7 @@ Add to CLAUDE.md standards
 Promote to profile standards
 ```
 
-### Example
-
-**Day 1**: Qodana flags "async method without CancellationToken"
-
-**Action**: Add to ext-validation-findings.md
-```markdown
-## Pattern: Async Without Cancellation
-- **Source**: Qodana (2024-01-15)
-- **Occurrences**: 1
-- **Fix**: Always use CancellationToken with async methods
-```
-
-**Day 3**: Same pattern flagged again
-
-**Action**: Update occurrences count
-```markdown
-- **Occurrences**: 2
-```
-
-**Day 5**: Third occurrence
-
-**Action**: Promote to CLAUDE.md
-```markdown
-## C# Standards
-- Always pass CancellationToken through async chains
-```
-
-Now self-review catches this pattern without external validation.
+**Example**: Qodana flags "async method without CancellationToken" three times. After the third occurrence, promote to CLAUDE.md: "Always pass CancellationToken through async chains." Now self-review catches this pattern without external validation.
 
 ---
 
@@ -181,31 +122,6 @@ post_loop_validation:
   findings_file: .claude/ext-validation-findings.md
   promote_threshold: 3          # How many times before promoting
 ```
-
----
-
-## Trade-offs
-
-### What Self-Review Catches
-
-- Explicit standard violations
-- Pattern inconsistencies
-- Known anti-patterns
-- Size/complexity issues
-
-### What External Validation Catches
-
-- Novel issues not in standards
-- Deep static analysis (type inference)
-- Cross-project consistency
-- Emerging patterns
-
-### When to Run External More Often
-
-Consider running external validation more frequently if:
-- High-stakes code (security, payments)
-- New team/domain (standards incomplete)
-- Learning phase (building up findings)
 
 ---
 

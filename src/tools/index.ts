@@ -26,9 +26,6 @@ export interface ToolInstallResult {
 
 const DEFAULT_BIN_DIR = path.join(homedir(), '.local', 'bin');
 
-/**
- * Get the bin directory for tool installation.
- */
 export function getBinDir(): string {
   return process.env.CC_BIN_DIR || DEFAULT_BIN_DIR;
 }
@@ -43,9 +40,6 @@ const AVAILABLE_TOOLS: Record<string, { description: string }> = {
   },
 };
 
-/**
- * List all available tools.
- */
 export function listTools(): ToolInfo[] {
   const binDir = getBinDir();
 
@@ -62,17 +56,11 @@ export function listTools(): ToolInfo[] {
   });
 }
 
-/**
- * Check if a specific tool is installed.
- */
 export function isToolInstalled(name: string): boolean {
   const binDir = getBinDir();
   return fs.existsSync(path.join(binDir, name));
 }
 
-/**
- * Install a tool. For ralph, recommends using npm link instead.
- */
 export function installTool(
   name: string,
   _options: { force?: boolean; projectDir?: string } = {}
@@ -90,9 +78,6 @@ export function installTool(
   };
 }
 
-/**
- * Uninstall a tool from the user's bin directory.
- */
 export function uninstallTool(name: string): ToolInstallResult {
   const binDir = getBinDir();
   const toolPath = path.join(binDir, name);
@@ -112,9 +97,6 @@ export function uninstallTool(name: string): ToolInstallResult {
   };
 }
 
-/**
- * Get the path where a tool would be installed.
- */
 export function getToolPath(name: string): string {
   return path.join(getBinDir(), name);
 }

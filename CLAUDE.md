@@ -33,6 +33,7 @@
 | `/refactor-scan [path]` | Refactoring opportunities (report only) |
 | `/ai-smell-scan [path]` | AI code patterns (report only) |
 | `/dedupe-scan [path]` | Duplicate code (report only) |
+| `/codex-scan [path]` | Codex pattern scan (report only) |
 | `/naming-review [path]` | Name clarity check |
 
 **Utilities:**

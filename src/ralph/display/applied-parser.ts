@@ -17,7 +17,6 @@ const NUMBERED_PATTERN = /^\d+\.\s/;
 /** Pattern to match expert name format */
 const EXPERT_NAME_PATTERN = /^\[?[a-z][a-z0-9-]*\]?:/i;
 
-/** Extract APPLIED section content from raw output */
 function extractAppliedBlock(rawOutput: string): string | null {
   const match = rawOutput.match(APPLIED_SECTION_PATTERN);
   if (match) return match[1].trim();
@@ -26,12 +25,10 @@ function extractAppliedBlock(rawOutput: string): string | null {
   return fallback ? fallback[1].trim() : null;
 }
 
-/** Check if line is a valid bullet point */
 function isBulletLine(line: string): boolean {
   return BULLET_PATTERN.test(line) || NUMBERED_PATTERN.test(line);
 }
 
-/** Clean bullet and markdown from line */
 function cleanBulletLine(line: string): string {
   return line
     .replace(/^[-•*]\s*/, '')
@@ -40,14 +37,12 @@ function cleanBulletLine(line: string): string {
     .trim();
 }
 
-/** Check if content is a valid APPLIED entry */
 function isValidAppliedEntry(content: string): boolean {
   if (!content || !content.includes(':')) return false;
   if (content.startsWith('`') || content.startsWith('(')) return false;
   return EXPERT_NAME_PATTERN.test(content);
 }
 
-/** Clean expert name format (remove brackets) */
 function cleanExpertEntry(content: string): string {
   return content.replace(/^\[([^\]]+)\]:/, '$1:');
 }

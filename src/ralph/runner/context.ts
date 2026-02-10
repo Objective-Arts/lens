@@ -16,7 +16,6 @@ import {
 /** Phases that use MCP tools instead of Claude experts. */
 const MCP_PHASES: readonly PhaseName[] = ['independent-review', 'static-analysis'];
 
-/** Build phase execution context. */
 export function buildPhaseContext(
   session: Session, item: PrdItem, config: RalphConfig, phase: Phase, projectPath: string
 ): PhaseContext {
@@ -29,7 +28,6 @@ export function buildPhaseContext(
   return { session, item, experts: skills, projectPath, logsDir: session.logsDir };
 }
 
-/** Get profile experts for a phase. */
 function getProfileExpertsForPhase(config: RalphConfig, phaseName: PhaseName): string[] {
   if (phaseName === 'independent-review' || phaseName === 'static-analysis') return [];
   if (phaseName === 'production-readiness' || phaseName === 'security-review') return [];
@@ -41,22 +39,16 @@ function getProfileExpertsForPhase(config: RalphConfig, phaseName: PhaseName): s
   return config.skills[mapping[phaseName] ?? 'review'] ?? [];
 }
 
-/** Parse independent-review metrics. Returns updated summary. */
 function parseAdversarialMetrics(summary: StageSummary, logsDir: string, itemNum: number): StageSummary {
   const rawPath = path.join(logsDir, `item${itemNum}-independent-review.raw`);
   const qodanaPath = path.join(logsDir, `item${itemNum}-static-analysis-qodana.raw`);
   let result = { ...summary };
 
-  if (fs.existsSync(rawPath)) {
-    result = { ...result, gemini: parseGeminiIssues(fs.readFileSync(rawPath, 'utf-8')) };
-  }
-  if (fs.existsSync(qodanaPath)) {
-    result = { ...result, qodana: parseQodanaIssues(fs.readFileSync(qodanaPath, 'utf-8')) };
-  }
+  try { result = { ...result, gemini: parseGeminiIssues(fs.readFileSync(rawPath, 'utf-8')) }; } catch { /* file not found */ }
+  try { result = { ...result, qodana: parseQodanaIssues(fs.readFileSync(qodanaPath, 'utf-8')) }; } catch { /* file not found */ }
   return result;
 }
 
-/** Parse phase-specific metrics into summary. */
 export function parsePhaseMetrics(
   summary: StageSummary, name: PhaseName, logsDir: string, itemNum: number, metrics: Record<string, unknown>
 ): StageSummary {
@@ -75,14 +67,11 @@ export function parsePhaseMetrics(
   }
   if (name === 'refactor-check') {
     const rawPath = path.join(logsDir, `item${itemNum}-refactor-check.raw`);
-    if (fs.existsSync(rawPath)) {
-      return { ...summary, refactor: parseRefactorResults(fs.readFileSync(rawPath, 'utf-8')) };
-    }
+    try { return { ...summary, refactor: parseRefactorResults(fs.readFileSync(rawPath, 'utf-8')) }; } catch { /* file not found */ }
   }
   return summary;
 }
 
-/** Get detection info for phase header. */
 export function getDetectionInfo(
   config: RalphConfig, phase: Phase, item: PrdItem, projectPath: string
 ): SkillDetection {
@@ -94,7 +83,6 @@ export function getDetectionInfo(
   return { skills: detection.experts as string[], keywords: detection.matchedKeywords as string[] };
 }
 
-/** Create a new session. */
 export function createSession(prdPath: string, projectPath: string, totalItems: number, completedCount: number): Session {
   const id = generateSessionId();
   const logsDir = path.join(projectPath, '.claude', 'ralph-logs');
@@ -105,12 +93,10 @@ export function createSession(prdPath: string, projectPath: string, totalItems: 
   };
 }
 
-/** Generate a unique session ID. */
 function generateSessionId(): string {
   return crypto.randomUUID();
 }
 
-/** Validate and resolve project path to prevent path traversal. */
 export function validateProjectPath(projectPath: string): string {
   const resolved = path.resolve(projectPath);
   if (!fs.existsSync(resolved)) {
@@ -122,7 +108,6 @@ export function validateProjectPath(projectPath: string): string {
   return resolved;
 }
 
-/** Create workflow marker to allow Edit/Write through hooks. */
 export function createWorkflowMarker(projectPath: string): void {
   const markerDir = path.join(projectPath, '.claude');
   const markerPath = path.join(markerDir, 'active-workflow.json');
@@ -139,16 +124,13 @@ export function createWorkflowMarker(projectPath: string): void {
   fs.renameSync(tempPath, markerPath);
 }
 
-/** Detect project type from package.json or files. */
 export function detectProjectType(projectPath: string): string {
   const pkgPath = path.join(projectPath, 'package.json');
-  if (fs.existsSync(pkgPath)) {
-    try {
-      const pkg = JSON.parse(fs.readFileSync(pkgPath, 'utf-8'));
-      if (pkg.devDependencies?.typescript || pkg.dependencies?.typescript) return 'TypeScript';
-      return 'JavaScript';
-    } catch { /* ignore */ }
-  }
+  try {
+    const pkg = JSON.parse(fs.readFileSync(pkgPath, 'utf-8'));
+    if (pkg.devDependencies?.typescript || pkg.dependencies?.typescript) return 'TypeScript';
+    return 'JavaScript';
+  } catch { /* ignore */ }
   if (fs.existsSync(path.join(projectPath, 'tsconfig.json'))) return 'TypeScript';
   if (fs.existsSync(path.join(projectPath, 'pyproject.toml'))) return 'Python';
   if (fs.existsSync(path.join(projectPath, 'go.mod'))) return 'Go';

@@ -46,9 +46,6 @@ export function createMockClaudeRunner(
   };
 }
 
-/**
- * Create a successful Claude output.
- */
 export function createSuccessfulClaudeOutput(
   result: string = 'BUILD_COMPLETE: Task finished successfully'
 ): ClaudeOutput {
@@ -61,9 +58,6 @@ export function createSuccessfulClaudeOutput(
   };
 }
 
-/**
- * Create a failed Claude output.
- */
 export function createFailedClaudeOutput(
   error: string = 'BUILD_FAILED: Could not complete task'
 ): ClaudeOutput {
@@ -86,9 +80,6 @@ export interface FileSystem {
   mkdir(path: string, options?: { recursive?: boolean }): Promise<void>;
 }
 
-/**
- * Create an in-memory file system mock for testing.
- */
 export function createMockFileSystem(
   initialFiles: Map<string, string> = new Map()
 ): FileSystem & { files: Map<string, string> } {
@@ -149,9 +140,6 @@ export function createStageTracker(): {
   };
 }
 
-/**
- * Mock console for capturing output in tests.
- */
 export function createMockConsole(): {
   logs: string[];
   errors: string[];
@@ -193,9 +181,6 @@ export function wait(ms: number): Promise<void> {
   return new Promise(resolve => setTimeout(resolve, ms));
 }
 
-/**
- * Create a deferred promise for testing async flows.
- */
 export function createDeferred<T>(): {
   promise: Promise<T>;
   resolve: (value: T) => void;

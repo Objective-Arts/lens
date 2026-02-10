@@ -15,12 +15,10 @@ import { USER_PROFILES_DIR, BUILTIN_PROFILES_DIR, DEBUG } from './paths.js';
 /** Config files that are not profiles */
 const CONFIG_FILES = new Set(['keyword-detection.yaml', 'workflow-phases.yaml']);
 
-/** Merge arrays with deduplication */
 function mergeArrays<T>(target: T[], source: T[]): T[] {
   return [...new Set([...target, ...source])];
 }
 
-/** Merge hooks from two profiles */
 function mergeHooks(
   parent: ProfileHooksConfig | undefined,
   child: ProfileHooksConfig | undefined
@@ -63,7 +61,6 @@ function mergeRalphSkills(
   return { ...parent, ...child, skills: mergedSkills };
 }
 
-/** Merge two profiles */
 function mergeProfiles(parent: ComposableProfile, child: ComposableProfile): ComposableProfile {
   return {
     name: child.name,
@@ -92,7 +89,6 @@ function mergeProfiles(parent: ComposableProfile, child: ComposableProfile): Com
   };
 }
 
-/** Resolve a profile's extends chain */
 function resolveProfileExtends(
   profile: ComposableProfile,
   allProfiles: ComposableProfile[],
@@ -116,7 +112,6 @@ function resolveProfileExtends(
   return mergeProfiles(resolvedParent, profile);
 }
 
-/** Load profiles from a directory (sync) */
 function loadProfilesFromDir(dir: string): ComposableProfile[] {
   if (!fs.existsSync(dir)) {
     if (DEBUG) console.debug(`Profile directory not found: ${dir}`);
@@ -151,7 +146,6 @@ function loadProfilesFromDir(dir: string): ComposableProfile[] {
   return profiles;
 }
 
-/** Load profiles from a directory (async) */
 async function loadProfilesFromDirAsync(dir: string): Promise<ComposableProfile[]> {
   try {
     await fsPromises.access(dir);
@@ -195,7 +189,6 @@ async function loadProfilesFromDirAsync(dir: string): Promise<ComposableProfile[
   return profiles;
 }
 
-/** List all available profiles (sync) */
 export function listProfiles(): ComposableProfile[] {
   const builtinProfiles = loadProfilesFromDir(BUILTIN_PROFILES_DIR);
   const userProfiles = loadProfilesFromDir(USER_PROFILES_DIR);
@@ -207,7 +200,6 @@ export function listProfiles(): ComposableProfile[] {
   return Array.from(profileMap.values());
 }
 
-/** List all available profiles (async) */
 export async function listProfilesAsync(): Promise<ComposableProfile[]> {
   const [builtinProfiles, userProfiles] = await Promise.all([
     loadProfilesFromDirAsync(BUILTIN_PROFILES_DIR),
@@ -221,7 +213,6 @@ export async function listProfilesAsync(): Promise<ComposableProfile[]> {
   return Array.from(profileMap.values());
 }
 
-/** Get a single profile by name (sync) */
 export function getProfile(name: string): ComposableProfile | null {
   const profiles = listProfiles();
   const profile = profiles.find(p => p.name === name) ?? null;
@@ -229,7 +220,6 @@ export function getProfile(name: string): ComposableProfile | null {
   return resolveProfileExtends(profile, profiles, new Set());
 }
 
-/** Get a single profile by name (async) */
 export async function getProfileAsync(name: string): Promise<ComposableProfile | null> {
   const profiles = await listProfilesAsync();
   const profile = profiles.find(p => p.name === name) ?? null;

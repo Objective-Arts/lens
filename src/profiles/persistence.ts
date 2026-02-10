@@ -11,9 +11,6 @@ import { stringify as stringifyYaml } from 'yaml';
 import type { ComposableProfile } from '../types.js';
 import { USER_PROFILES_DIR } from './paths.js';
 
-/**
- * Save a profile to the user profiles directory (sync).
- */
 export function saveProfile(profile: ComposableProfile): void {
   if (!fs.existsSync(USER_PROFILES_DIR)) {
     fs.mkdirSync(USER_PROFILES_DIR, { recursive: true });
@@ -26,9 +23,6 @@ export function saveProfile(profile: ComposableProfile): void {
   fs.writeFileSync(filepath, content, 'utf-8');
 }
 
-/**
- * Save a profile to the user profiles directory (async).
- */
 export async function saveProfileAsync(profile: ComposableProfile): Promise<void> {
   await fsPromises.mkdir(USER_PROFILES_DIR, { recursive: true });
 

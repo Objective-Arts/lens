@@ -7,8 +7,6 @@ This document contains proprietary and confidential information. Unauthorized re
 
 # Why Expert Skills?
 
-*Understanding the philosophy behind expert lenses.*
-
 ---
 
 ## The Problem We're Solving
@@ -29,46 +27,23 @@ This isn't a capability problem. Claude *knows* about single responsibility, sep
 
 ## Knowledge vs. Perspective
 
-Here's the deeper insight: even with explicit requirements, Claude's code remains **generic**. It follows the letter of the rules without the spirit.
-
-Consider two developers who have both read Effective Java:
-
-**Developer A** read it once, remembers some items, applies them when consciously thinking about it.
-
-**Developer B** has internalized that perspective. When they see code, they automatically think: "Would this survive a rigorous API review? What best practices apply here?"
-
-Developer B produces better Java—not because they know more, but because they've adopted a **lens** that filters all their decisions.
-
-Claude has access to more knowledge than any developer. But without a lens, that knowledge remains inert—available but not applied.
+Even with explicit requirements, Claude's code remains **generic**—following the letter without the spirit. A developer who has internalized Effective Java produces better code not because they know more, but because they've adopted a **lens** that filters every decision. Claude has access to more knowledge than any developer. But without a lens, that knowledge remains inert.
 
 ---
 
 ## What a Lens Does
 
-A lens does three things:
-
 ### 1. Focuses Attention
 
-You see what the lens reveals, not everything equally.
-
-With the java skill active, Claude sees:
-- Opportunities for static factories
-- The need for ThreadLocal with SimpleDateFormat
-- The wrongness of mutable return values
-
-Without it, these patterns exist in Claude's knowledge but don't surface.
+With the java skill active, Claude sees opportunities for static factories, the need for ThreadLocal with SimpleDateFormat, and the wrongness of mutable return values. Without it, these patterns exist in Claude's knowledge but don't surface.
 
 ### 2. Shapes Interpretation
 
-The same code looks different through different lenses.
-
-A constructor through the java lens: "Should this be a static factory instead?"
+A constructor through the java lens: "Should this be a static factory?"
 A data structure through the data-first lens: "Is this the right data representation?"
 An API through the simplicity lens: "Is this interface minimal and composable?"
 
 ### 3. Guides Decisions
-
-When choices arise, the lens provides criteria.
 
 Without a lens: "Both approaches work, I'll pick one."
 With the java lens: "Best practice says prefer ThreadLocal—I'll use that."
@@ -89,15 +64,13 @@ Skills provide **concrete, actionable principles** with examples and rationale.
 
 ### What Makes a Good Skill?
 
-Skills must meet criteria:
-
 | Criterion | Why It Matters |
 |-----------|----------------|
-| **Published, citable principles** | We encode what experts wrote, not interpretation |
-| **Demonstrated impact** | Validated by widespread adoption |
-| **Specific techniques** | Not just philosophy—implementation patterns |
-| **Clear scope** | Known domain of expertise |
-| **No vibes** | If we can't cite it, we don't include it |
+| **Published, citable principles** | Encode what experts wrote |
+| **Demonstrated impact** | Widespread adoption |
+| **Specific techniques** | Implementation patterns |
+| **Clear scope** | Known domain |
+| **No vibes** | Citable or excluded |
 
 ---
 

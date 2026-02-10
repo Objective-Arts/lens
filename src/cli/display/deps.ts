@@ -6,9 +6,6 @@ import chalk from 'chalk';
 import { formatTokens } from '../../utils/tokens.js';
 import type { ScanResult } from '../../types.js';
 
-/**
- * Print dependency graph for CLAUDE.md references
- */
 export function printDependencies(result: ScanResult): void {
   console.log(chalk.bold('\nDependency Graph'));
   console.log(chalk.gray('═'.repeat(50)));

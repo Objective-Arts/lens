@@ -9,7 +9,6 @@ import chalk from 'chalk';
 import type { CanonListItem, SkillStatusInfo } from '../../canon/types.js';
 import type { Skill } from '../../ralph/types.js';
 
-/** Print canon skills grouped by category */
 export function printCanonSkillsByCategory(
   skills: CanonListItem[],
   sourceInfo: { path: string; commit?: string }
@@ -33,7 +32,6 @@ export function printCanonSkillsByCategory(
   console.log(chalk.gray(`\nTotal: ${skills.length} skills`));
 }
 
-/** Group skills by category */
 function groupByCategory(skills: CanonListItem[]): Map<string, CanonListItem[]> {
   const byCategory = new Map<string, CanonListItem[]>();
   for (const skill of skills) {
@@ -61,7 +59,6 @@ const STATUS_LABELS: Record<string, string> = {
   unknown: '? unknown'
 };
 
-/** Print skill status list */
 export function printSkillStatuses(
   statuses: SkillStatusInfo[],
   sourceInfo: { path: string; commit?: string },
@@ -84,7 +81,6 @@ export function printSkillStatuses(
   printStatusSummary(statuses, projectPath);
 }
 
-/** Print status summary with upgrade hints */
 function printStatusSummary(statuses: SkillStatusInfo[], projectPath: string): void {
   const outdated = statuses.filter(s => s.status === 'outdated').length;
   const modified = statuses.filter(s => s.status === 'modified').length;
@@ -97,7 +93,6 @@ function printStatusSummary(statuses: SkillStatusInfo[], projectPath: string): v
   }
 }
 
-/** Print verification results */
 export function printVerifyResults(
   result: {
     matches: string[];
@@ -135,7 +130,6 @@ export function printVerifyResults(
   printVerifySummary(result);
 }
 
-/** Print verification summary */
 function printVerifySummary(result: {
   matches: string[];
   differs: Array<{ name: string; reason: string }>;
@@ -154,7 +148,6 @@ function printVerifySummary(result: {
   }
 }
 
-/** Print skill inspection — shows exactly what ralph loads for a skill */
 export function printSkillInspection(skill: Skill): void {
   const contentLines = skill.content.split('\n').length;
   const summaryLines = skill.summary ? skill.summary.split('\n').length : 0;

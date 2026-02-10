@@ -7,22 +7,20 @@ This document contains proprietary and confidential information. Unauthorized re
 
 # AI Smell Index Reference
 
-The AI Smell Index measures how much code looks AI-generated vs human-written.
-
 ---
 
 ## Scoring System
 
 | Smell Type | Weight | Why |
 |------------|--------|-----|
-| Over-abstraction | 3 | Adds complexity, hides logic |
-| Defensive paranoia | 3 | Implies distrust in own code |
-| Speculative features | 3 | Dead code, maintenance burden |
-| Enterprise patterns | 3 | Massive overkill for simple code |
-| Generic wrappers | 2 | Indirection without value |
+| Over-abstraction | 3 | Complexity, hidden logic |
+| Defensive paranoia | 3 | Distrust of own code |
+| Speculative features | 3 | Dead code |
+| Enterprise patterns | 3 | Overkill |
+| Generic wrappers | 2 | Valueless indirection |
 | Excessive structure | 2 | Navigation overhead |
-| Comment spam | 1 | Noise, but harmless |
-| Verbose naming | 1 | Annoying but functional |
+| Comment spam | 1 | Noise |
+| Verbose naming | 1 | Annoying |
 
 ---
 
@@ -131,14 +129,7 @@ Output includes:
 
 ## Integration with Build/Improve
 
-The AI Smell Index can track whether skill configurations increase or decrease AI smells:
-
-1. Run `/ai-smell-scan` before `/build` or `/improve`
-2. Run `/build` or `/improve` with full base brain
-3. Run `/ai-smell-scan` after
-4. Compare indices
-
-If the index increases significantly, the skill configuration may be encouraging over-engineering.
+Run `/ai-smell-scan` before and after `/build` or `/improve` to track index changes. Significant increases suggest skill configuration encourages over-engineering.
 
 ---
 

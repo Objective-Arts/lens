@@ -96,7 +96,7 @@ The `/build` and `/improve` commands run a 12-phase quality pipeline with machin
 | 8 | `adversarial-security-review` | Security audit (attacker mindset) |
 | 9 | `write-tests-run` | Write and run tests |
 | 10 | `ai-smell-fix` | Deep AI smell removal |
-| 11 | `codex-check` | Fast pattern scan + targeted fixes |
+| 11 | `codex-fix` | Fast pattern scan + targeted fixes |
 | 11.5 | *machine-gate* | `npm run build && npm test` |
 | 12 | `write-tests-run` | Re-verify tests after cleanup |
 
@@ -159,7 +159,7 @@ Interactive skills for quality control:
 | `/quick-edit` | Simple changes (add field, rename) | Yes |
 | `/quick-clean` | Fast AI smell cleanup | Yes |
 | `/final-polish` | Final refinement for senior review | Yes |
-| `/codex-check` | Fast pattern scan + targeted fixes | Yes |
+| `/codex-fix` | Fast pattern scan + targeted fixes | Yes |
 
 Use individually or let Ralph Loop orchestrate them automatically.
 
@@ -257,7 +257,7 @@ lens scan                      # Discover all configuration
 
 ```bash
 # Install globally
-npm install -g lens
+npm install -g @objective-arts/lens
 
 # Configure a project
 cd /your/project

@@ -116,6 +116,21 @@ ISSUES_FOUND:
 IDENTIFICATION_COMPLETE: yes
 ```
 
+### Step 1e: Product Quality Review (MANDATORY)
+
+After the code review, do a separate product-level review. This catches bad products built with good code.
+
+Call Gemini again with focus "adversarial":
+
+```
+mcp__gemini-reviewer__gemini_review
+  code: <paste the main entry point / CLI / config code>
+  focus: "adversarial"
+  context: "Review as a USER, not a developer. Check: (1) Do all configurable values have sensible defaults that work without setup? No randomized paths or timestamped filenames. (2) Does every required input have flag → env var → interactive prompt fallback? (3) Are there data model fields or internal capabilities not reachable from the user interface? (4) Does every user-triggerable error say what went wrong and what to do? No stack traces for end users. (5) Are secrets accepted only via file/stdin/env/prompt — never as positional CLI args? Flag any UX papercuts a real user would hit."
+```
+
+Add any product quality issues to the ISSUES_FOUND list with severity [HIGH] or [MODERATE].
+
 ### Step 2: FIX All Issues
 
 #### For EACH issue:

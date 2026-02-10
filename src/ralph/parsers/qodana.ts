@@ -71,9 +71,6 @@ export function parseQodanaSarif(sarif: unknown): QodanaResult {
   };
 }
 
-/**
- * Parse a single SARIF result into a QodanaIssue.
- */
 function parseSarifResult(result: SarifResult): QodanaIssue | null {
   if (!result.ruleId) {
     return null;
@@ -91,16 +88,10 @@ function parseSarifResult(result: SarifResult): QodanaIssue | null {
   };
 }
 
-/**
- * Format issue for display.
- */
 export function formatIssue(issue: QodanaIssue): string {
   return `${issue.file}:${issue.line} - ${issue.ruleId}: ${issue.message}`;
 }
 
-/**
- * Get summary string for display.
- */
 export function getQodanaSummary(result: QodanaResult): string {
   const parts: string[] = [];
 

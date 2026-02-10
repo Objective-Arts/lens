@@ -58,9 +58,6 @@ export function validateProjectPath(projectPath: string, allowedRoot?: string): 
   return absolutePath;
 }
 
-/**
- * Get validation error message for invalid name
- */
 export function getNameValidationError(name: string, fieldName: string = 'name'): string {
   if (!name) {
     return `${fieldName} is required`;
@@ -73,9 +70,6 @@ export function getNameValidationError(name: string, fieldName: string = 'name')
   return `${fieldName} must contain only letters, numbers, hyphens, and underscores`;
 }
 
-/**
- * Get validation error message for invalid path
- */
 export function getPathValidationError(projectPath: string): string {
   if (!projectPath) {
     return 'Project path is required';

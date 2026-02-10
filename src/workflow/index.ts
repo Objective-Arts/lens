@@ -58,7 +58,6 @@ export function getWorkflowSourceInfo(): WorkflowSource & { commit?: string; rem
   };
 }
 
-/** Try to read SKILL.md and extract description. Returns null if file missing. */
 function readSkillDescription(skillFile: string): { exists: true; description?: string } | null {
   try {
     const content = fs.readFileSync(skillFile, 'utf-8');
@@ -95,9 +94,6 @@ export function listWorkflowSkills(): WorkflowSkillInfo[] {
   return skills;
 }
 
-/**
- * Get the workflow manifest for a project
- */
 function getWorkflowManifest(projectPath: string): WorkflowManifest | null {
   const manifestPath = path.join(projectPath, '.claude', 'workflow-manifest.json');
   try {
@@ -107,9 +103,6 @@ function getWorkflowManifest(projectPath: string): WorkflowManifest | null {
   }
 }
 
-/**
- * Save the workflow manifest for a project
- */
 function saveWorkflowManifest(projectPath: string, manifest: WorkflowManifest): void {
   const claudeDir = path.join(projectPath, '.claude');
   if (!fs.existsSync(claudeDir)) {
@@ -120,9 +113,6 @@ function saveWorkflowManifest(projectPath: string, manifest: WorkflowManifest): 
   fs.writeFileSync(manifestPath, JSON.stringify(manifest, null, 2));
 }
 
-/**
- * Create initial workflow manifest
- */
 function createWorkflowManifest(): WorkflowManifest {
   const sourceInfo = getWorkflowSourceInfo();
 
@@ -143,14 +133,12 @@ function isValidSkillName(name: string): boolean {
   return !name.includes('/') && !name.includes('\\') && !name.includes('..');
 }
 
-/** Find a workflow skill's source path by name (searches nested subdirectories) */
 function findWorkflowSkillPath(skillName: string): string | null {
   const skills = listWorkflowSkills();
   const found = skills.find(s => s.name === skillName);
   return found?.path ?? null;
 }
 
-/** Validate skill source exists and has SKILL.md */
 function validateSkillSource(
   skillName: string,
   _sourcePath: string
@@ -165,7 +153,6 @@ function validateSkillSource(
   return { valid: true, skillSourcePath };
 }
 
-/** Record skill installation in manifest */
 function recordSkillInstall(
   projectPath: string,
   skillName: string,
@@ -188,9 +175,6 @@ function recordSkillInstall(
   saveWorkflowManifest(projectPath, manifest);
 }
 
-/**
- * Install a workflow skill to a project
- */
 export function installWorkflowSkill(
   skillName: string,
   projectPath: string,
@@ -270,7 +254,6 @@ export function installAllWorkflowSkills(
   return results;
 }
 
-/** Determine status of a single installed workflow skill */
 function determineSkillStatus(
   info: { hash: string; installedCommit?: string },
   installedPath: string,
@@ -304,9 +287,6 @@ function determineSkillStatus(
   return { ...base, status, sourceCommit, modified };
 }
 
-/**
- * Check the status of installed workflow skills
- */
 export function checkWorkflowStatus(projectPath: string): WorkflowStatusInfo[] {
   const manifest = getWorkflowManifest(projectPath);
   if (!manifest) return [];

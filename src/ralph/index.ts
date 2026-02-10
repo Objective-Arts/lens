@@ -13,7 +13,6 @@ import { printError } from './display/terminal.js';
 import { hasConfig } from './config/loader.js';
 import { isClaudeAvailable } from './process/claude.js';
 
-/** Validate inputs and return resolved paths. Returns null and exits if invalid. */
 function validateInputs(options: ParsedArgs): { prdPath: string; projectPath: string } | null {
   if (options.help) { printHelp(); process.exit(0); }
   if (!options.prdPath) { printError('PRD file path required. Usage: ralph <PRD.md>'); process.exit(1); }
@@ -22,7 +21,6 @@ function validateInputs(options: ParsedArgs): { prdPath: string; projectPath: st
   return { prdPath, projectPath: path.dirname(prdPath) };
 }
 
-/** Check prerequisites are met. Exits if not. */
 async function checkPrerequisites(projectPath: string): Promise<void> {
   if (!hasConfig(projectPath)) {
     printError('Ralph config not found.\nRun: lens profile apply <profile>+ralph-integration -p .');
@@ -34,7 +32,6 @@ async function checkPrerequisites(projectPath: string): Promise<void> {
   }
 }
 
-/** Run ralph with error handling. */
 async function runWithErrorHandling(runOptions: RunnerOptions): Promise<void> {
   try {
     await run(runOptions);

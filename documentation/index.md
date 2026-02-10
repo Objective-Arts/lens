@@ -85,7 +85,7 @@ See [Installation Reference](reference/installation.md) for complete setup guide
 ### Development Workflows
 | Guide | Description |
 |-------|-------------|
-| [Use Quality Flags](how-to/use-quality-flags.md) | --test, --review-hard, --plan |
+| [Use the Build/Improve Pipeline](how-to/use-quality-flags.md) | /build, /improve, and individual phase skills |
 | [Set Up External Validation](how-to/external-validation.md) | Gemini and Qodana integration |
 
 ---

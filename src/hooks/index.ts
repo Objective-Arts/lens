@@ -12,18 +12,12 @@ import type {
 
 export * from "./types.js";
 
-/** Get path to global Claude settings.json */
 export function getSettingsPath(): string {
   return path.join(os.homedir(), ".claude", "settings.json");
 }
 
-/** Read settings.json, return empty object if not found */
 export function readSettings(): ClaudeSettings {
   const settingsPath = getSettingsPath();
-
-  if (!fs.existsSync(settingsPath)) {
-    return {};
-  }
 
   try {
     const content = fs.readFileSync(settingsPath, "utf-8");
@@ -33,7 +27,6 @@ export function readSettings(): ClaudeSettings {
   }
 }
 
-/** Write settings.json with optional backup */
 function writeSettings(
   settings: ClaudeSettings,
   options: { backup?: boolean } = {}
@@ -62,7 +55,7 @@ function writeSettings(
 }
 
 /** Workflow marker hook command - validates .claude/active-workflow.json exists and is fresh */
-const WORKFLOW_MARKER_COMMAND = `marker=".claude/active-workflow.json"; if [ -f "$marker" ] && find "$marker" -mmin -60 2>/dev/null | grep -q .; then exit 0; fi; echo "ERROR: No active workflow detected."; echo "Invoke a workflow skill first: /implement, /plan, /structure-first, /adversarial-review, /refactor-check, or /test"; exit 1`;
+const WORKFLOW_MARKER_COMMAND = `marker=".claude/active-workflow.json"; if [ -f "$marker" ] && [ "$(find "$marker" -mmin -60 2>/dev/null)" ]; then exit 0; fi; echo "ERROR: No active workflow detected."; echo "Invoke a workflow skill first: /implement, /plan, /structure-first, /adversarial-review, /refactor-check, or /test"; exit 1`;
 
 /** Workflow marker hook definition */
 const WORKFLOW_MARKER_HOOK: HookEntry = {
@@ -75,7 +68,6 @@ const WORKFLOW_MARKER_HOOK: HookEntry = {
   ],
 };
 
-/** Check if workflow marker hook is already installed */
 export function hasWorkflowMarkerHook(settings: ClaudeSettings): boolean {
   const preToolUse = settings.hooks?.PreToolUse;
   if (!preToolUse) return false;
@@ -89,7 +81,6 @@ export function hasWorkflowMarkerHook(settings: ClaudeSettings): boolean {
   );
 }
 
-/** Setup the workflow marker hook */
 function setupWorkflowMarkerHook(): HookSetupResult {
   const settings = readSettings();
 
@@ -127,7 +118,6 @@ function setupWorkflowMarkerHook(): HookSetupResult {
   };
 }
 
-/** Remove a hook by ID (event:index format) */
 export function removeHook(hookId: string): HookSetupResult {
   const [event, indexStr] = hookId.split(":");
   const index = parseInt(indexStr, 10);
@@ -176,7 +166,6 @@ export function removeHook(hookId: string): HookSetupResult {
   };
 }
 
-/** Remove workflow marker hook specifically */
 function removeWorkflowMarkerHook(): HookSetupResult {
   const settings = readSettings();
 
@@ -212,7 +201,6 @@ function removeWorkflowMarkerHook(): HookSetupResult {
   };
 }
 
-/** List all hooks with descriptions */
 export function listHooks(): ListedHook[] {
   const settings = readSettings();
   const result: ListedHook[] = [];
@@ -265,7 +253,6 @@ export function listHooks(): ListedHook[] {
   return result;
 }
 
-/** Get available hook presets */
 export function listPresets(): Array<{ name: HookPreset; description: string; installed: boolean }> {
   const settings = readSettings();
 
@@ -278,7 +265,6 @@ export function listPresets(): Array<{ name: HookPreset; description: string; in
   ];
 }
 
-/** Setup a hook preset */
 export function setupPreset(preset: HookPreset): HookSetupResult {
   switch (preset) {
     case "workflow-marker":
@@ -291,7 +277,6 @@ export function setupPreset(preset: HookPreset): HookSetupResult {
   }
 }
 
-/** Remove a hook preset */
 export function removePreset(preset: HookPreset): HookSetupResult {
   switch (preset) {
     case "workflow-marker":

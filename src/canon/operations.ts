@@ -92,7 +92,10 @@ export function copySkill(
   updateSkillInManifest(manifest, skillName, {
     installedCommit: getGitCommit(canonPath),
     installedAt: new Date().toISOString(),
-    sourceFile: path.relative(canonPath, sourcePath) || skillName,
+    sourceFile: (() => {
+      const rel = path.relative(canonPath, sourcePath);
+      return rel.startsWith('..') ? skillName : (rel || skillName);
+    })(),
     hash: hashSkillDirectory(targetPath),
     modified: false
   });

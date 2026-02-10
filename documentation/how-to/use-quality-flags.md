@@ -5,131 +5,181 @@ This document contains proprietary and confidential information. Unauthorized re
 
 ---
 
-# How to Use Quality Flags
+# How to Use the Build/Improve Pipeline
 
 ## Prerequisites
 
 - Claude Code CLI installed
 - Project configured with a profile
+- Workflow skills installed (`lens workflow install`)
 
-## Available Flags
+## Choosing Your Workflow
+
+| Situation | Command | Phases |
+|-----------|---------|--------|
+| New feature from scratch | `/build` | 12 phases |
+| Improve existing code | `/improve` | 12 phases |
+| Simple change (add field, rename) | `/quick-edit` | Checklist only |
+| Post-edit cleanup | `/quick-clean` | Smell check only |
+| Pre-PR polish | `/final-polish` | Review checklist |
+
+## Using /build
+
+Build a new feature through the full 12-phase quality pipeline:
+
+```
+/build user authentication system
+/build src/components/DatePicker
+```
+
+### What Happens
+
+| # | Phase | Purpose |
+|---|-------|---------|
+| 1 | create-plan | Design approach, scope, files, risks |
+| 2 | structure-first | Define data structures and interfaces |
+| 3 | implement-plan | Write the code |
+| 3.5 | *machine gate* | `npm run build && npm test` |
+| 4 | refactor-check-fix | Enforce constraints (30 lines/fn, 300 lines/file) |
+| 5 | dedupe-fix | Consolidate duplicated code |
+| 6 | gemini-fix | External code review via Gemini |
+| 7 | qodana-fix | Static analysis via Qodana |
+| 7.5 | *machine gate* | `npm run build && npm test` |
+| 8 | adversarial-security-review | Security audit (attacker mindset) |
+| 9 | write-tests-run | Write and run tests |
+| 10 | ai-smell-fix | Remove AI-generated antipatterns |
+| 11 | codex-fix | Fast pattern scan + targeted fixes |
+| 11.5 | *machine gate* | `npm run build && npm test` |
+| 12 | write-tests-run | Re-verify tests after cleanup |
+
+### Flags
 
 | Flag | Purpose |
 |------|---------|
-| `--structure-first` | Plan before implementing |
-| `--plan` | Full plan mode with .plan.md file |
-| `--test [level]` | Write tests after implementation |
-| `--review-hard` | Adversarial self-review |
-| `--doc-code` | Generate documentation |
-| `--refactor-check` | Systematic decomposition |
+| `--dry-run` | Show the 12 phases without executing |
+| `--rollback` | Restore from last build stash |
 
-## Using Flags
+### Dry Run
 
-### Basic Usage
-
-Add flags at the end of your request:
+Preview what will happen:
 
 ```
-Build the user dashboard --structure-first
+/build user dashboard --dry-run
 ```
 
-### Combining Flags
+### Rollback
 
-Flags compose. Order matters:
-
-```
-Build feature X --structure-first --test all --review-hard
-```
-
-Execution order:
-1. `--structure-first` - Plan shown, wait for approval
-2. Implement per plan
-3. `--test all` - Write tests at all levels
-4. `--review-hard` - Adversarial review
-
-## Common Combinations
-
-### Normal Feature Development
+If the build produces unwanted changes:
 
 ```
-Build login form --structure-first --test unit
+/build --rollback
 ```
 
-### High-Stakes Feature
+This restores from the git stash created at the start.
+
+## Using /improve
+
+Same 12-phase pipeline, but focused on existing code:
 
 ```
-Build payment processing --plan --test all --review-hard
+/improve src/services/auth/
+/improve src/components/Button.tsx
 ```
 
-### Refactoring
+| Flag | Purpose |
+|------|---------|
+| `--dry-run` | Show the 12 phases without executing |
+| `--rollback` | Restore from last improve stash |
+
+## Using Individual Phase Skills
+
+You can run any phase skill directly without the full pipeline:
 
 ```
-Clean up UserService.js --refactor-check --test unit
+/create-plan add password reset feature
+/structure-first src/services/
+/implement-plan PasswordResetService
+/refactor-check-fix src/features/auth
+/dedupe-fix src/services/
+/gemini-fix src/features/auth
+/qodana-fix src/
+/adversarial-security-review src/features/auth
+/write-tests-run unit
+/ai-smell-fix src/services/
 ```
 
-### Before PR
+## Using Read-Only Scans
+
+Assess code quality without making changes:
 
 ```
---review-hard
+/gemini-scan src/features/auth    # Gemini review (report only)
+/qodana-scan src/                 # Static analysis (report only)
+/ai-smell-scan src/services/      # AI code patterns (report only)
+/refactor-scan src/services/      # Refactoring opportunities
+/dedupe-scan src/services/        # Duplicate code detection
+/naming-review src/app/           # Name clarity check
 ```
 
-## Flag Details
+## Quick Workflows
 
-### --structure-first
+### /quick-edit
 
-Shows a structure plan and waits for approval before implementing.
-
-```
-> Build user list --structure-first
-
-## Structure Plan
-
-### Functions:
-1. fetchUsers() - API call
-2. transformForDisplay(users) - data shaping
-3. UserList - container component
-4. UserCard - presentational component
-
-Ready to implement?
-```
-
-### --test [level]
-
-Writes tests at specified level:
-
-- `--test unit` - Unit tests with mocks
-- `--test integration` - Integration tests
-- `--test e2e` - End-to-end tests
-- `--test all` - Analyze and write at all appropriate levels
-
-### --review-hard
-
-Reviews all written code against standards:
+For simple changes that don't need the full pipeline:
 
 ```
-> --review-hard
-
-## Adversarial Review
-
-### Issues Fixed:
-1. Long function (45 lines) → Split into 3 functions
-2. Missing error handling → Added try/catch
-3. Inline object in JSX → Moved to useMemo
-
-### Verification:
-- [x] No function over 30 lines
-- [x] Error states handled
-- [x] No inline objects
+/quick-edit add email field to User model
+/quick-edit rename processData to parseUserInput
 ```
 
-## Troubleshooting
+If the change touches 5+ files or has design decisions, use `/build` or `/improve` instead.
 
-### "Flag not recognized"
+### /quick-clean
 
-Flags go at the end of requests:
-- Correct: `Build X --structure-first`
-- Wrong: `--structure-first Build X`
+Fast AI smell cleanup after code changes:
 
-### "Flag seems ignored"
+```
+/quick-clean src/services/
+```
 
-Check for typos: `--structure-frist` won't work.
+## Typical Development Session
+
+```bash
+# 1. Plan the work
+/create-plan add user password reset
+
+# 2. Design types first
+/structure-first
+
+# 3. Implement from plan
+/implement-plan PasswordResetService
+
+# 4. Clean up
+/refactor-check-fix src/features/password-reset
+/ai-smell-fix src/features/password-reset
+
+# 5. External validation
+/gemini-fix src/features/password-reset
+/qodana-fix src/features/password-reset
+
+# 6. Security check
+/adversarial-security-review src/features/password-reset
+
+# 7. Test
+/write-tests-run unit
+
+# 8. Document
+/generate-docs src/features/password-reset
+```
+
+Or use the pipeline to do it all in one command:
+
+```
+/build user password reset
+```
+
+## See Also
+
+- [Workflow Skills Reference](../../WORKFLOW-SKILLS.md)
+- [Configure Ralph Loop](configure-ralph-loop.md) — for autonomous PRD implementation
+- [Canon Loading Strategy](../reference/canon-loading-strategy.md)

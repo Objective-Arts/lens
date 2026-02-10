@@ -12,6 +12,16 @@ import {
   checkPathTraversal,
   checkCircularImports,
   checkRawErrorOutput,
+  checkToctou,
+  checkVerificationReads,
+  checkDangerousEval,
+  checkFalsyNumericGuard,
+  checkCommentSpam,
+  startPipelineMetrics,
+  recordPhaseMetrics,
+  reportMetrics,
+  parseConstructionChecks,
+  validateConstruction,
   runGate,
 } from './quality-gate.js';
 
@@ -327,7 +337,7 @@ describe('checkRawErrorOutput', () => {
 
 describe('runGate', () => {
   it('passes clean TypeScript project', () => {
-    writeFile('src/app.ts', 'export const x = 1;');
+    writeFile('src/index.ts', 'export const x = 1;');
     const result = runGate(tempDir, true);
     expect(result.passed).toBe(true);
     expect(result.languages).toContain('typescript');
@@ -406,5 +416,231 @@ describe('runGate', () => {
     writeFile('src/app.test.ts', 'const password = "SuperSecret123456";');
     const result = runGate(tempDir, true);
     expect(result.passed).toBe(true);
+  });
+});
+
+// ─── TOCTOU ─────────────────────────────────────────────────────────────────
+
+describe('checkToctou', () => {
+  it('catches existsSync then readFileSync on same path', () => {
+    const f = writeFile('src/load.ts', [
+      'if (fs.existsSync(configPath)) {',
+      '  const data = fs.readFileSync(configPath, "utf-8");',
+      '}',
+    ].join('\n'));
+    const v = checkToctou([f], tempDir);
+    expect(v).toHaveLength(1);
+    expect(v[0].check).toBe('toctou');
+  });
+
+  it('passes when paths differ', () => {
+    const f = writeFile('src/load.ts', [
+      'if (fs.existsSync(lockPath)) {',
+      '  const data = fs.readFileSync(configPath, "utf-8");',
+      '}',
+    ].join('\n'));
+    expect(checkToctou([f], tempDir)).toHaveLength(0);
+  });
+
+  it('passes try/catch pattern', () => {
+    const f = writeFile('src/load.ts', [
+      'try {',
+      '  const data = fs.readFileSync(configPath, "utf-8");',
+      '} catch {',
+      '  return defaults;',
+      '}',
+    ].join('\n'));
+    expect(checkToctou([f], tempDir)).toHaveLength(0);
+  });
+});
+
+// ─── Verification Reads ─────────────────────────────────────────────────────
+
+describe('checkVerificationReads', () => {
+  it('catches writeFileSync then readFileSync on same path', () => {
+    const f = writeFile('src/save.ts', [
+      'fs.writeFileSync(outputPath, content, "utf-8");',
+      'const written = fs.readFileSync(outputPath, "utf-8");',
+    ].join('\n'));
+    const v = checkVerificationReads([f], tempDir);
+    expect(v).toHaveLength(1);
+    expect(v[0].check).toBe('verification-read');
+  });
+
+  it('passes when paths differ', () => {
+    const f = writeFile('src/save.ts', [
+      'fs.writeFileSync(outputPath, content, "utf-8");',
+      'const other = fs.readFileSync(inputPath, "utf-8");',
+    ].join('\n'));
+    expect(checkVerificationReads([f], tempDir)).toHaveLength(0);
+  });
+});
+
+// ─── Dangerous Eval ─────────────────────────────────────────────────────────
+
+describe('checkDangerousEval', () => {
+  it('catches eval()', () => {
+    const f = writeFile('src/run.ts', 'const result = eval(userCode);');
+    const v = checkDangerousEval([f], tempDir);
+    expect(v).toHaveLength(1);
+    expect(v[0].check).toBe('dangerous-eval');
+  });
+
+  it('catches innerHTML assignment', () => {
+    const f = writeFile('src/dom.ts', 'element.innerHTML = content;');
+    expect(checkDangerousEval([f], tempDir)).toHaveLength(1);
+  });
+
+  it('catches document.write', () => {
+    const f = writeFile('src/page.ts', 'document.write("<script>alert(1)</script>");');
+    expect(checkDangerousEval([f], tempDir)).toHaveLength(1);
+  });
+
+  it('skips comments', () => {
+    const f = writeFile('src/run.ts', '// eval(code) is dangerous');
+    expect(checkDangerousEval([f], tempDir)).toHaveLength(0);
+  });
+
+  it('passes safe alternatives', () => {
+    const f = writeFile('src/dom.ts', 'element.textContent = content;');
+    expect(checkDangerousEval([f], tempDir)).toHaveLength(0);
+  });
+});
+
+// ─── Falsy Numeric Guard ────────────────────────────────────────────────────
+
+describe('checkFalsyNumericGuard', () => {
+  it('catches truthy check on optional number parameter', () => {
+    const f = writeFile('src/calc.ts', [
+      'function calc(count?: number) {',
+      '  if (count) { return count * 2; }',
+      '}',
+    ].join('\n'));
+    const v = checkFalsyNumericGuard([f], tempDir);
+    expect(v).toHaveLength(1);
+    expect(v[0].check).toBe('falsy-numeric-guard');
+  });
+
+  it('catches truthy check on number | undefined', () => {
+    const f = writeFile('src/calc.ts', [
+      'let limit: number | undefined;',
+      'if (limit) { doWork(); }',
+    ].join('\n'));
+    expect(checkFalsyNumericGuard([f], tempDir)).toHaveLength(1);
+  });
+
+  it('passes non-numeric optional', () => {
+    const f = writeFile('src/greet.ts', [
+      'function greet(name?: string) {',
+      '  if (name) { return `Hi ${name}`; }',
+      '}',
+    ].join('\n'));
+    expect(checkFalsyNumericGuard([f], tempDir)).toHaveLength(0);
+  });
+});
+
+// ─── Comment Spam ───────────────────────────────────────────────────────────
+
+describe('checkCommentSpam', () => {
+  it('catches JSDoc that restates function name', () => {
+    const f = writeFile('src/parser.ts', [
+      '/** Parse checklist rows */',
+      'export function parseChecklistRows(content: string) {}',
+    ].join('\n'));
+    const v = checkCommentSpam([f], tempDir);
+    expect(v).toHaveLength(1);
+    expect(v[0].check).toBe('comment-spam');
+  });
+
+  it('passes JSDoc with substantive info', () => {
+    const f = writeFile('src/parser.ts', [
+      '/** Extracts markdown table rows, skipping headers. Returns EvidenceRow array with location, item, verdict, and reasoning columns parsed from pipe-delimited content. */',
+      'export function parseChecklistRows(content: string) {}',
+    ].join('\n'));
+    expect(checkCommentSpam([f], tempDir)).toHaveLength(0);
+  });
+
+  it('passes single-word function names', () => {
+    const f = writeFile('src/util.ts', [
+      '/** Parse the input */',
+      'export function parse(input: string) {}',
+    ].join('\n'));
+    expect(checkCommentSpam([f], tempDir)).toHaveLength(0);
+  });
+});
+
+// ─── Pipeline Metrics ───────────────────────────────────────────────────────
+
+describe('pipeline metrics', () => {
+  it('creates, records, and reports metrics', () => {
+    const metricsDir = path.join(tempDir, '.claude', 'metrics');
+    startPipelineMetrics('build', 'src/', metricsDir);
+
+    const activePath = path.join(metricsDir, 'active-metrics.json');
+    expect(fs.existsSync(activePath)).toBe(true);
+
+    recordPhaseMetrics(metricsDir, 'create-plan', 0, 0, 1500);
+    recordPhaseMetrics(metricsDir, 'implement-plan', 3, 3, 5000);
+
+    const metrics = JSON.parse(fs.readFileSync(activePath, 'utf-8'));
+    expect(metrics.phases).toHaveLength(2);
+    expect(metrics.phases[1].issuesFound).toBe(3);
+
+    reportMetrics(metricsDir);
+    expect(fs.existsSync(activePath)).toBe(false);
+    const archives = fs.readdirSync(metricsDir).filter(f => f.startsWith('build-'));
+    expect(archives).toHaveLength(1);
+  });
+});
+
+// ─── Construction Validation ────────────────────────────────────────────────
+
+describe('construction validation', () => {
+  it('parses construction checks from plan', () => {
+    const checks = parseConstructionChecks([
+      '## CONSTRUCTION_CHECKS:',
+      '- FILE: src/auth/index.ts',
+      '- EXPORT_FUNCTION: validateToken IN src/auth/validate.ts',
+      '- EXPORT_TYPE: AuthConfig IN src/auth/types.ts',
+      '## TESTS:',
+    ].join('\n'));
+    expect(checks).toHaveLength(3);
+    expect(checks[0]).toEqual({ type: 'file', name: 'src/auth/index.ts' });
+    expect(checks[1]).toEqual({ type: 'export_function', name: 'validateToken', file: 'src/auth/validate.ts' });
+    expect(checks[2]).toEqual({ type: 'export_type', name: 'AuthConfig', file: 'src/auth/types.ts' });
+  });
+
+  it('validates existing files and exports', () => {
+    writeFile('src/auth/validate.ts', 'export function validateToken(token: string) { return true; }');
+    writeFile('src/auth/types.ts', 'export interface AuthConfig { secret: string; }');
+    const plan = writeFile('plan.md', [
+      '## CONSTRUCTION_CHECKS:',
+      '- FILE: src/auth/validate.ts',
+      '- EXPORT_FUNCTION: validateToken IN src/auth/validate.ts',
+      '- EXPORT_TYPE: AuthConfig IN src/auth/types.ts',
+    ].join('\n'));
+    const result = validateConstruction(plan, tempDir);
+    expect(result.passed).toBe(true);
+    expect(result.results).toHaveLength(3);
+    expect(result.results.every(r => r.found)).toBe(true);
+  });
+
+  it('fails when file is missing', () => {
+    const plan = writeFile('plan.md', [
+      '## CONSTRUCTION_CHECKS:',
+      '- FILE: src/missing/file.ts',
+    ].join('\n'));
+    const result = validateConstruction(plan, tempDir);
+    expect(result.passed).toBe(false);
+  });
+
+  it('fails when export is missing', () => {
+    writeFile('src/auth.ts', 'function privateFunc() {}');
+    const plan = writeFile('plan.md', [
+      '## CONSTRUCTION_CHECKS:',
+      '- EXPORT_FUNCTION: validateToken IN src/auth.ts',
+    ].join('\n'));
+    const result = validateConstruction(plan, tempDir);
+    expect(result.passed).toBe(false);
   });
 });

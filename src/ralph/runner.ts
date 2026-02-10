@@ -43,7 +43,6 @@ interface RunContext {
   trace?: boolean;
 }
 
-/** Handle early exit when PRD is already complete. */
 async function handleAlreadyComplete(prd: Prd, collector: SummaryCollector, logsDir: string): Promise<void> {
   printAllComplete();
   for (let i = 0; i < prd.items.length; i++) {
@@ -53,7 +52,6 @@ async function handleAlreadyComplete(prd: Prd, collector: SummaryCollector, logs
   await finalizeSummary(collector, logsDir);
 }
 
-/** Generate and open summary. */
 async function finalizeSummary(collector: SummaryCollector, logsDir: string): Promise<void> {
   const summary = collector.build();
   const summaryPath = generateSummaryHtml(summary, logsDir);
@@ -61,7 +59,6 @@ async function finalizeSummary(collector: SummaryCollector, logsDir: string): Pr
   await openSummary(summaryPath);
 }
 
-/** Atomically update PRD file with completed item. */
 function updatePrdFile(prd: Prd, item: PrdItem, prdPath: string): Prd {
   const updatedContent = markItemComplete(prd, item);
   const tempPath = prdPath + '.tmp';
@@ -70,7 +67,6 @@ function updatePrdFile(prd: Prd, item: PrdItem, prdPath: string): Prd {
   return parsePrd(prdPath, updatedContent);
 }
 
-/** Process a single PRD item. */
 async function processItem(ctx: RunContext, item: PrdItem, itemNum: number): Promise<boolean> {
   ctx.session.currentItem = itemNum;
   ctx.collector.startItem(itemNum, item.text);
@@ -96,7 +92,6 @@ async function processItem(ctx: RunContext, item: PrdItem, itemNum: number): Pro
   return failed;
 }
 
-/** Process all incomplete items in the PRD. */
 async function processAllItems(ctx: RunContext): Promise<void> {
   const attemptedItems = new Set<number>();
   let itemNum = 0;

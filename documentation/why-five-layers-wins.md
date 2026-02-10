@@ -127,10 +127,10 @@ On everything else, Lens wins. Every time.
 
 ## How This Relates to Canon Skills
 
-The 64 canon skills are the source of truth for the entire system. Every layer traces back to them.
+The 75 canon skills are the source of truth for the entire system. Every layer traces back to them.
 
 ```
-Canon skills (64 SUMMARY.md files)
+Canon skills (75 SUMMARY.md files)
     │
     ├── Machine gates pull rules from them
     │   "No any" ← canon/typescript/SUMMARY.md

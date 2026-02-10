@@ -42,7 +42,7 @@ npm install -g @objective-arts/lens
 
 ```bash
 git clone <provided-repository-url> lens
-cd lens/cli
+cd lens
 npm install
 npm run build
 npm link
@@ -53,8 +53,6 @@ Verify the installation:
 ```bash
 lens --version
 ```
-
-You should see a version number displayed.
 
 ## Step 2: Configure API Keys
 
@@ -94,7 +92,7 @@ Change to your project directory:
 cd /path/to/your/project
 ```
 
-For this tutorial, we'll use a JavaScript/React project. If you don't have one, create a simple one:
+If you don't have a project, create one:
 
 ```bash
 mkdir my-react-app
@@ -105,7 +103,7 @@ git init
 
 ## Step 4: Apply a Profile
 
-Profiles bundle together the right expert skills, standards, and auto-invoke rules. Apply the JavaScript + React profile:
+Apply the JavaScript + React profile:
 
 ```bash
 lens profile apply javascript+react -p .
@@ -193,17 +191,11 @@ Claude should show the active skills, standards, and agents.
 
 ## Step 8: Write Some Code
 
-Now let's see the canon in action. Ask Claude to build something:
+Ask Claude to build something:
 
 ```
-Build a simple counter component --structure-first
+/build a simple counter component
 ```
-
-Notice how Claude:
-1. Plans the structure before implementing
-2. Separates concerns (state hook vs presentation)
-3. Follows React patterns (react-state skill)
-4. Keeps functions focused (clarity skill)
 
 ## Step 9: Run an Audit
 
@@ -231,5 +223,5 @@ You've successfully:
 
 - [Adding a Canon Skill](adding-canon-skill.md) - Create your own expert lens
 - [Running Ralph Loop](ralph-loop-basics.md) - Autonomous development with PRDs
-- [How to Use Quality Flags](../how-to/use-quality-flags.md) - Enforce quality at key moments
+- [How to Use the Build/Improve Pipeline](../how-to/use-quality-flags.md) - Run the 12-phase quality pipeline
 - [Why Expert Skills?](../explanation/why-expert-skills.md) - Understand the philosophy

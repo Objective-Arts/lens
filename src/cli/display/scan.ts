@@ -6,9 +6,6 @@ import chalk from 'chalk';
 import { formatTokens } from '../../utils/tokens.js';
 import type { ConfigItemType, ConfigScope, ScanResult } from '../../types.js';
 
-/**
- * Print scan results summary
- */
 export function printScanSummary(result: ScanResult): void {
   const { summary } = result;
 

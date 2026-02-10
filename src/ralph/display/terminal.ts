@@ -23,9 +23,6 @@ const STAGE_ICONS: Record<string, string> = {
   'doc-code': '📚',
 };
 
-/**
- * Print the ralph header.
- */
 export function printHeader(prdPath: string, remaining: number, projectType: string): void {
   console.log(`${chalk.cyan('Ralph')} — ${prdPath}`);
   console.log(chalk.dim(`${remaining} items remaining | ${projectType || 'Unknown project'}`));
@@ -96,14 +93,12 @@ const EXTERNAL_TOOLS: Record<string, string> = {
   'static-analysis': ' (+ Qodana)',
 };
 
-/** Format progress indicator */
 function formatProgress(stageIndex?: number, totalStages?: number): string {
   return (stageIndex !== undefined && totalStages !== undefined)
     ? chalk.dim(` (${stageIndex + 1}/${totalStages})`)
     : '';
 }
 
-/** Print stage header with skills info */
 export function printStageHeader(
   stage: string,
   detection: SkillDetection,
@@ -126,9 +121,6 @@ export function printStageHeader(
 }
 
 
-/**
- * Print how skills were actually applied (substantive usage).
- */
 export function printAppliedSkills(rawOutput: string | undefined): void {
   if (!rawOutput) return;
 
@@ -141,32 +133,20 @@ export function printAppliedSkills(rawOutput: string | undefined): void {
   }
 }
 
-/**
- * Print stage completion.
- */
 export function printStageComplete(stage: string, durationSec: number, message?: string): void {
   const time = formatDuration(durationSec);
   const suffix = message ? ` - ${message}` : '';
   console.log(`  ${chalk.green('\u2713')} ${capitalize(stage)} done (${time})${suffix}`);
 }
 
-/**
- * Print stage failure.
- */
 export function printStageFailed(stage: string, error: string): void {
   console.log(`  ${chalk.red('\u2717')} ${capitalize(stage)} failed: ${error}`);
 }
 
-/**
- * Print stage skipped.
- */
 export function printStageSkipped(stage: string, reason: string): void {
   console.log(`  ${chalk.yellow('\u25cb')} ${capitalize(stage)} skipped: ${reason}`);
 }
 
-/**
- * Print item completion.
- */
 export function printItemComplete(itemNum: number, remaining: number): void {
   console.log('');
   console.log(chalk.green(`  \u2713 Item ${itemNum} complete. ${remaining} remaining.`));
@@ -180,30 +160,18 @@ export function printAllComplete(): void {
   console.log(chalk.green.bold('\u2713 All PRD items complete!'));
 }
 
-/**
- * Print error message.
- */
 export function printError(message: string): void {
   console.error(chalk.red(`Error: ${message}`));
 }
 
-/**
- * Print warning message.
- */
 export function printWarning(message: string): void {
   console.warn(chalk.yellow(`Warning: ${message}`));
 }
 
-/**
- * Print info message.
- */
 export function printInfo(message: string): void {
   console.log(chalk.dim(message));
 }
 
-/**
- * Format duration in mm:ss.
- */
 function formatDuration(seconds: number): string {
   const mins = Math.floor(seconds / 60);
   const secs = Math.floor(seconds % 60);

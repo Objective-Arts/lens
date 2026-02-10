@@ -16,13 +16,8 @@ export function getGitCommit(repoPath: string): string | undefined {
   }
 }
 
-/** Reads .git/config directly instead of spawning `git remote`. */
 export function getGitRemote(repoPath: string): string | undefined {
   const configPath = path.join(repoPath, '.git', 'config');
-
-  if (!fs.existsSync(configPath)) {
-    return undefined;
-  }
 
   try {
     const content = fs.readFileSync(configPath, 'utf-8');

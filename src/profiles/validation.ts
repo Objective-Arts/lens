@@ -12,7 +12,6 @@ export function isRecord(value: unknown): value is Record<string, unknown> {
   return typeof value === 'object' && value !== null && !Array.isArray(value);
 }
 
-/** Type guard for string arrays */
 export function isStringArray(value: unknown): value is string[] {
   return Array.isArray(value) && value.every(item => typeof item === 'string');
 }
@@ -30,7 +29,6 @@ export interface ValidationResult {
   errors: string[];
 }
 
-/** Validate skills object */
 function validateSkills(skills: unknown, filename: string): string[] {
   if (skills === undefined) return [];
   if (!isRecord(skills)) return [`${filename}: 'skills' must be an object`];
@@ -45,7 +43,6 @@ function validateSkills(skills: unknown, filename: string): string[] {
   return errors;
 }
 
-/** Validate claudeMd object */
 function validateClaudeMd(claudeMd: unknown, filename: string): string[] {
   if (claudeMd === undefined) return [];
   if (!isRecord(claudeMd)) return [`${filename}: 'claudeMd' must be an object`];
@@ -71,7 +68,6 @@ function validateClaudeMd(claudeMd: unknown, filename: string): string[] {
   return errors;
 }
 
-/** Validate hooks object */
 function validateHooks(hooks: unknown, filename: string): string[] {
   if (hooks === undefined) return [];
   if (!isRecord(hooks)) return [`${filename}: 'hooks' must be an object`];
@@ -89,9 +85,6 @@ function validateHooks(hooks: unknown, filename: string): string[] {
   return errors;
 }
 
-/**
- * Validate a parsed YAML object against the ComposableProfile schema.
- */
 export function validateProfileSchema(data: unknown, filename: string): ValidationResult {
   if (!isRecord(data)) {
     return { valid: false, errors: [`${filename}: Profile must be an object`] };

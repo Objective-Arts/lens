@@ -8,7 +8,6 @@
 import chalk from 'chalk';
 import type { ComposableProfile } from '../../types.js';
 
-/** Print a labeled list of items (clarity: reusable helper) */
 export function printList(
   title: string,
   items: string[],
@@ -39,7 +38,6 @@ export function printDryRun(profile: ComposableProfile, targetPath: string): voi
   }
 }
 
-/** Print deployed skills in columns */
 export function printDeployedSkills(skillNames: string[], columns: number = 4): void {
   const sorted = skillNames.sort();
   for (let i = 0; i < sorted.length; i += columns) {
@@ -48,7 +46,6 @@ export function printDeployedSkills(skillNames: string[], columns: number = 4): 
   }
 }
 
-/** Print profile application results */
 export function printApplyResults(
   result: { created: string[]; linked: string[]; skipped: string[]; errors: string[] }
 ): void {
@@ -60,7 +57,6 @@ export function printApplyResults(
   printList('Errors', result.errors, chalk.red, '✗');
 }
 
-/** Print profile not found error with available profiles */
 export function printProfileNotFound(profileName: string, available: string[]): void {
   console.log(chalk.red(`Profile not found: ${profileName}`));
   console.log(chalk.gray(`Available: ${available.join(', ')}`));

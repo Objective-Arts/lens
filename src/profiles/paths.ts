@@ -50,7 +50,6 @@ export const SKILL_LIBRARY_PATHS: SkillLibraryPaths = {
   global: process.env.CC_SKILLS_GLOBAL ?? path.join(homedir(), '.claude', 'skills')
 };
 
-/** Get skill library paths (copy to prevent mutation) */
 export function getSkillLibraryPaths(): SkillLibraryPaths {
   return { ...SKILL_LIBRARY_PATHS };
 }

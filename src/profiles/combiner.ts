@@ -9,14 +9,10 @@ import { getProfile } from './loader.js';
 import { mergeArrays, mergeHooks, mergeRalphSkills } from './loader.js';
 import { SKILL_CATEGORIES } from './validation.js';
 
-/**
- * Parse a profile string that may contain `+` for composition.
- */
 export function parseProfileString(profileString: string): string[] {
   return profileString.split('+').map(s => s.trim()).filter(Boolean);
 }
 
-/** Create empty combined profile structure */
 function createEmptyCombined(profileNames: string[]): ComposableProfile {
   return {
     name: profileNames.join(' + '),
@@ -29,7 +25,6 @@ function createEmptyCombined(profileNames: string[]): ComposableProfile {
   };
 }
 
-/** Merge skills by category */
 function mergeSkillsInto(combined: ComposableProfile, skills: ComposableProfile['skills']): void {
   if (!skills) return;
   for (const category of SKILL_CATEGORIES) {
@@ -53,7 +48,6 @@ function mergeClaudeMdInto(combined: ComposableProfile, claudeMd: ComposableProf
   }
 }
 
-/** Merge MCP servers */
 function mergeMcpServersInto(combined: ComposableProfile, mcpServers: ComposableProfile['mcpServers']): void {
   if (!mcpServers) return;
   if (!combined.mcpServers) {
@@ -67,9 +61,6 @@ function mergeMcpServersInto(combined: ComposableProfile, mcpServers: Composable
   }
 }
 
-/**
- * Combine multiple profiles into one.
- */
 export function combineProfiles(profileNames: string[]): ComposableProfile | null {
   const profiles = profileNames
     .map(name => getProfile(name))

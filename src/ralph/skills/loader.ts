@@ -10,7 +10,6 @@ import * as path from 'path';
 import { Skill } from '../types.js';
 import { resolveSkillName, formatSkillName } from '../../canon/naming.js';
 
-/** Extract enforcement items from Checklist and "The X Test" sections. */
 function extractChecklist(content: string): string[] {
   const items: string[] = [];
 

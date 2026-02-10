@@ -104,7 +104,7 @@ The `/build` and `/improve` pipelines run 12 phases, each with different skills:
 | 8 | **adversarial-security-review** | — | security-mindset, owasp, web-security | Security review |
 | 9 | **write-tests-run** | — | test-doubles, test-strategy | Write tests |
 | 10 | **ai-smell-fix** | — | — | Remove AI patterns |
-| 11 | **codex-check** | — | — | Fast pattern scan |
+| 11 | **codex-fix** | — | — | Fast pattern scan |
 | 12 | **write-tests-run** | — | test-doubles, test-strategy | Re-verify tests |
 
 Machine gates run `npm run build && npm test` between phases 3-4, 7-8, and 11-12.

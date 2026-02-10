@@ -33,12 +33,10 @@ const CORRECTABLE_PATTERNS = [
   /no.*TESTS_WRITTEN/i,
 ];
 
-/** Check if a failure is correctable (validation failure vs hard error). */
 export function isCorrectableFailure(error: string): boolean {
   return CORRECTABLE_PATTERNS.some(p => p.test(error));
 }
 
-/** Sanitize error message to prevent prompt injection. */
 function sanitizeErrorForPrompt(error: string): string {
   return error
     .replace(/```[\s\S]*?```/g, '[code removed]')
@@ -95,7 +93,6 @@ Verify: npx tsc --noEmit shows no errors`;
   return 'Review the error above and fix the specific issue mentioned.';
 }
 
-/** Build corrective prompt for retry. */
 export function buildCorrectivePrompt(error: string, attempt: number, phaseName?: string): string {
   const sanitizedError = sanitizeErrorForPrompt(error);
   const phaseGuidance = phaseName ? getPhaseSpecificGuidance(phaseName, error) : '';

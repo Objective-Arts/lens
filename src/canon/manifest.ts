@@ -8,9 +8,6 @@ import type { CanonManifest, CanonSource, InstalledSkillInfo } from './types.js'
 
 const MANIFEST_FILENAME = 'canon-manifest.json';
 
-/**
- * Get the manifest file path for a project
- */
 function getManifestPath(projectPath: string): string {
   return path.join(projectPath, '.claude', MANIFEST_FILENAME);
 }
@@ -29,9 +26,6 @@ export function readManifest(projectPath: string): CanonManifest | null {
   }
 }
 
-/**
- * Write the canon manifest to a project
- */
 export function writeManifest(projectPath: string, manifest: CanonManifest): void {
   const manifestPath = getManifestPath(projectPath);
   const claudeDir = path.dirname(manifestPath);
@@ -44,9 +38,6 @@ export function writeManifest(projectPath: string, manifest: CanonManifest): voi
   fs.writeFileSync(manifestPath, JSON.stringify(manifest, null, 2) + '\n', 'utf-8');
 }
 
-/**
- * Create a new manifest with default values
- */
 export function createManifest(source: CanonSource): CanonManifest {
   return {
     source,
@@ -55,9 +46,6 @@ export function createManifest(source: CanonSource): CanonManifest {
   };
 }
 
-/**
- * Add or update a skill in the manifest
- */
 export function updateSkillInManifest(
   manifest: CanonManifest,
   skillName: string,

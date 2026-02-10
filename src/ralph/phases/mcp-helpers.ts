@@ -7,7 +7,6 @@
 
 import { parsePhaseOutput, getPhaseResultSummary, PhaseOutput } from '../display/phase-output.js';
 
-/** Check if output indicates no code to analyze. */
 export function hasNoCode(output: string, indicators: readonly string[]): boolean {
   const lower = output.toLowerCase();
   return indicators.some(indicator => lower.includes(indicator));
@@ -17,7 +16,6 @@ export function hasNoCode(output: string, indicators: readonly string[]): boolea
 export const NO_CODE_INDICATORS = ['no code', 'nothing to review', 'no files', 'no implementation', 'nonexistent code'] as const;
 export const NO_ANALYSIS_INDICATORS = ['no code', 'nothing to analyze', 'no files', 'no implementation'] as const;
 
-/** Parse MCP tool status from output. */
 function parseToolStatus(
   output: string,
   statusKey: string,
@@ -41,7 +39,6 @@ export const GEMINI_EVIDENCE = ['gemini_review', 'mcp__gemini', 'gemini found', 
 /** Evidence patterns for Qodana. */
 export const QODANA_EVIDENCE = ['qodana_scan', 'qodana_problems', 'mcp__qodana', 'qodana found', 'qodana reported'] as const;
 
-/** Parse issue count from output (with markdown handling). */
 function parseIssueCount(output: string, key: string, fallback: number): number {
   const regex = new RegExp(`\\*?\\*?${key}:?\\*?\\*?\\s*(\\d+)`);
   const match = output.match(regex);
@@ -67,7 +64,6 @@ export function buildPhaseMetrics(phaseOutput: PhaseOutput, toolCalled: boolean)
   };
 }
 
-/** Format success message with tool status. */
 export function formatSuccessMessage(summary: string, toolName: string, toolStatus: string): string {
   return `${summary} [${toolName}: ${toolStatus}]`;
 }
@@ -81,7 +77,6 @@ export interface MpcPhaseResult {
   issueCount: number;
 }
 
-/** Parse common MCP phase output. */
 export function parseMcpPhaseOutput(
   output: string,
   statusKey: string,

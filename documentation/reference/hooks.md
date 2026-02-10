@@ -24,10 +24,6 @@ Hooks enforce quality gates automatically. Unlike flags (which are advisory), ho
 
 ## Test Verification Hook
 
-### Purpose
-
-Ensure that code changes have corresponding tests before commit.
-
 ### Configuration
 
 Add to `.claude/settings.local.json`:
@@ -221,34 +217,7 @@ Test:    src/app/components/user/user.component.spec.ts
 
 ## Integration with --test-complete Flag
 
-The hook and flag work together:
-
-```
-Developer writes code
-        ↓
-Runs --test-complete flag
-        ↓
-Claude writes appropriate tests
-        ↓
-Developer commits
-        ↓
-Hook verifies tests exist ✓
-        ↓
-Commit succeeds
-```
-
-**Without flag:**
-```
-Developer writes code
-        ↓
-Developer commits
-        ↓
-Hook finds missing tests ✗
-        ↓
-Commit blocked
-        ↓
-"Run --test-complete to generate tests"
-```
+Use `--test-complete` flag to generate tests before commit. Hook verifies tests exist, blocking commit if missing.
 
 ---
 
@@ -318,8 +287,6 @@ Commit blocked
 
 ## Best Practices
 
-1. **Start with warnings** - Let developers get used to it
-2. **Block on critical checks** - Security, tests for critical paths
-3. **Allow bypass** - `--no-verify` for emergencies
-4. **Keep hooks fast** - < 10 seconds or developers will bypass
-5. **Clear error messages** - Tell them HOW to fix, not just WHAT failed
+- **Block on critical checks** - Security, tests for critical paths
+- **Allow bypass** - `--no-verify` for emergencies
+- **Clear error messages** - Tell them HOW to fix, not just WHAT failed

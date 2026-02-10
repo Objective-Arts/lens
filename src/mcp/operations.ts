@@ -17,9 +17,6 @@ import { getServer, checkRequiredEnv, resolveEnvVars } from './registry.js';
 
 const GLOBAL_CLAUDE_DIR = path.join(homedir(), '.claude');
 
-/**
- * Resolve paths for MCP config based on scope
- */
 function resolvePaths(projectPath?: string): {
   mcpJsonPath: string;
   settingsJsonPath: string;
@@ -59,10 +56,6 @@ function resolvePaths(projectPath?: string): {
 function loadMcpJson(projectPath?: string): Record<string, MCPServerConfig> {
   const { mcpJsonPath } = resolvePaths(projectPath);
 
-  if (!fs.existsSync(mcpJsonPath)) {
-    return {};
-  }
-
   try {
     const content = fs.readFileSync(mcpJsonPath, 'utf-8');
     const parsed = JSON.parse(content);
@@ -90,15 +83,8 @@ function saveMcpJson(servers: Record<string, MCPServerConfig>, projectPath?: str
   fs.writeFileSync(mcpJsonPath, JSON.stringify(content, null, 2), 'utf-8');
 }
 
-/**
- * Load settings.json
- */
 function loadSettings(projectPath?: string): Record<string, unknown> {
   const { settingsJsonPath } = resolvePaths(projectPath);
-
-  if (!fs.existsSync(settingsJsonPath)) {
-    return {};
-  }
 
   try {
     const content = fs.readFileSync(settingsJsonPath, 'utf-8');
@@ -108,9 +94,6 @@ function loadSettings(projectPath?: string): Record<string, unknown> {
   }
 }
 
-/**
- * Save settings.json
- */
 function saveSettings(settings: Record<string, unknown>, projectPath?: string): void {
   const { settingsJsonPath } = resolvePaths(projectPath);
 
@@ -123,25 +106,16 @@ function saveSettings(settings: Record<string, unknown>, projectPath?: string): 
   fs.writeFileSync(settingsJsonPath, JSON.stringify(settings, null, 2), 'utf-8');
 }
 
-/**
- * Get list of enabled MCP servers from settings.json
- */
 function getEnabledServers(projectPath?: string): string[] {
   const settings = loadSettings(projectPath);
   return (settings.enabledMcpjsonServers as string[]) || [];
 }
 
-/**
- * Check if a server is installed (exists in mcp.json)
- */
 export function isServerInstalled(name: string, projectPath?: string): boolean {
   const mcpJson = loadMcpJson(projectPath);
   return name in mcpJson;
 }
 
-/**
- * Check if a server is enabled (in settings.json enabledMcpjsonServers)
- */
 export function isServerEnabled(name: string, projectPath?: string): boolean {
   return getEnabledServers(projectPath).includes(name);
 }
@@ -224,7 +198,15 @@ export function installServer(
 
   // Resolve env var references to actual values
   if (server.env) {
-    config.env = resolveEnvVars(server.env);
+    try {
+      config.env = resolveEnvVars(server.env);
+    } catch (err) {
+      return {
+        success: false,
+        message: err instanceof Error ? err.message : 'Failed to resolve environment variables',
+        server: name
+      };
+    }
   }
 
   mcpJson[name] = config;
@@ -237,9 +219,6 @@ export function installServer(
   };
 }
 
-/**
- * Uninstall a server (remove from mcp.json)
- */
 export function uninstallServer(name: string, projectPath?: string): MCPOperationResult {
   const { scope } = resolvePaths(projectPath);
   const mcpJson = loadMcpJson(projectPath);
@@ -321,9 +300,6 @@ export function enableServer(name: string, projectPath?: string): MCPOperationRe
   };
 }
 
-/**
- * Disable a server (remove from settings.json enabledMcpjsonServers)
- */
 export function disableServer(name: string, projectPath?: string): MCPOperationResult {
   const { scope } = resolvePaths(projectPath);
   const settings = loadSettings(projectPath);
@@ -348,9 +324,6 @@ export function disableServer(name: string, projectPath?: string): MCPOperationR
   };
 }
 
-/**
- * Check a server's env vars
- */
 export function checkServer(name: string): EnvCheckResult {
   const server = getServer(name);
 
@@ -366,9 +339,6 @@ export function checkServer(name: string): EnvCheckResult {
   return checkRequiredEnv(server);
 }
 
-/**
- * Check all installed servers' env vars
- */
 export function checkAllServers(projectPath?: string): EnvCheckResult[] {
   const mcpJson = loadMcpJson(projectPath);
   const results: EnvCheckResult[] = [];
@@ -380,9 +350,6 @@ export function checkAllServers(projectPath?: string): EnvCheckResult[] {
   return results;
 }
 
-/**
- * List installed servers with their status
- */
 export function listInstalledServers(projectPath?: string): Array<{
   name: string;
   enabled: boolean;
@@ -423,9 +390,6 @@ export function installAndEnableServer(
   };
 }
 
-/**
- * Get the path where MCP config will be written
- */
 export function getMcpConfigPath(projectPath?: string): string {
   const { mcpJsonPath } = resolvePaths(projectPath);
   return mcpJsonPath;

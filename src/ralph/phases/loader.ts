@@ -10,6 +10,7 @@ import type {
   ExpertDetection,
 } from '../types.js';
 import { resolveSkillName } from '../../canon/naming.js';
+import { getDefaultPhaseConfig, getDefaultKeywordRules } from './loader-defaults.js';
 
 // =============================================================================
 // CACHES
@@ -22,112 +23,9 @@ let cachedKeywordRules: readonly CompiledKeywordRule[] | null = null;
 let cachedKeywordRulesPath: string | null = null;
 
 // =============================================================================
-// DEFAULT CONFIGURATIONS
-// =============================================================================
-
-/** Default phase experts when YAML not available. */
-function getDefaultPhaseConfig(): WorkflowPhasesConfig {
-  return {
-    phases: {
-      'plan': {
-        description: 'Understand requirements, design approach',
-        experts: ['clarity', 'simplicity', 'data-first', 'correctness', 'abstraction'],
-      },
-      'structure-first': {
-        description: 'Design data structures and types before code',
-        experts: ['data-first', 'typescript', 'correctness', 'abstraction', 'java', 'design-patterns'],
-      },
-      'implement': {
-        description: 'Write the code',
-        experts: ['pragmatism', 'clarity', 'simplicity', 'composition', 'distributed', 'optimization'],
-      },
-      'test': {
-        description: 'Write tests for implemented code',
-        experts: ['test-doubles', 'test-strategy', 'react-test', 'angular-core', 'legacy'],
-      },
-      'refactor-check': {
-        description: 'Simplify and clean up, verify still works',
-        experts: ['clarity', 'pragmatism', 'legacy', 'design-patterns', 'simplicity'],
-      },
-      'independent-review': {
-        description: 'Independent code review via Gemini, fix issues found',
-        experts: [],  // Uses Gemini MCP, not Claude experts
-      },
-      'static-analysis': {
-        description: 'Run analyzers, fix issues found',
-        experts: ['style'],  // Universal style principles for fixing issues
-      },
-      'doc-code': {
-        description: 'Document the completed work',
-        experts: ['docs', 'brevity', 'prose', 'editing'],
-      },
-      'production-readiness': {
-        description: 'Final production readiness check (post-loop)',
-        experts: [],  // Uses its own prompts, not Claude experts
-      },
-      'security-review': {
-        description: 'Adversarial security review (post-loop)',
-        experts: [],  // Uses Gemini MCP with security focus
-      },
-    },
-    'ralph-sequence': [
-      'plan',
-      'structure-first',
-      'implement',
-      'test',
-      'refactor-check',
-      'independent-review',
-      'static-analysis',
-      'doc-code',
-    ],
-  };
-}
-
-/**
- * Default keyword rules when YAML not available.
- */
-function getDefaultKeywordRules(): readonly CompiledKeywordRule[] {
-  return [
-    {
-      category: 'security',
-      pattern: /\b(auth|password|login|token|jwt|oauth|credential|secret|encrypt|hash|session|permission|csrf|xss|injection)\b/i,
-      experts: ['security-mindset', 'owasp', 'appsec', 'web-security'],
-    },
-    {
-      category: 'testing',
-      pattern: /\b(test|spec|mock|stub|coverage|unit|integration|e2e|jest|vitest|pytest)\b/i,
-      experts: ['test-doubles', 'test-strategy', 'react-test', 'angular-core'],
-    },
-    {
-      category: 'api',
-      pattern: /\b(api|endpoint|rest|graphql|route|controller|middleware|http)\b/i,
-      experts: ['java', 'simplicity'],
-    },
-    {
-      category: 'performance',
-      pattern: /\b(performance|optimize|cache|memory|latency|benchmark)\b/i,
-      experts: ['optimization', 'algorithms'],
-    },
-    {
-      category: 'typescript',
-      pattern: /\b(typescript|type|interface|generic|inference)\b/i,
-      experts: ['typescript', 'type-systems'],
-    },
-    {
-      category: 'react',
-      pattern: /\b(react|hook|component|state|props|redux)\b/i,
-      experts: ['react-state', 'react-test'],
-    },
-  ];
-}
-
-// =============================================================================
 // PHASE CONFIG LOADING
 // =============================================================================
 
-/**
- * Load phase configuration from workflow-phases.yaml.
- */
 export function loadPhaseConfig(projectPath: string): WorkflowPhasesConfig {
   const configPath = path.join(projectPath, 'config', 'workflow-phases.yaml');
 
@@ -165,17 +63,11 @@ export function loadPhaseConfig(projectPath: string): WorkflowPhasesConfig {
   }
 }
 
-/**
- * Get experts for a specific phase.
- */
 export function getPhaseExperts(projectPath: string, phase: PhaseName): readonly string[] {
   const config = loadPhaseConfig(projectPath);
   return config.phases[phase]?.experts ?? [];
 }
 
-/**
- * Get the Ralph execution sequence.
- */
 export function getRalphSequence(projectPath: string): readonly PhaseName[] {
   const config = loadPhaseConfig(projectPath);
   return config['ralph-sequence'] ?? getDefaultPhaseConfig()['ralph-sequence'];
@@ -202,7 +94,6 @@ function buildRegexFromPatterns(patterns: readonly string[]): RegExp {
   return new RegExp(`\\b(${sorted.join('|')})\\b`, 'i');
 }
 
-/** Compile a single keyword rule from config. Returns null if invalid. */
 function compileKeywordRule(category: string, rule: KeywordRule): CompiledKeywordRule | null {
   if (!Array.isArray(rule.patterns) || rule.patterns.length === 0) {
     console.warn(`Skipping keyword rule "${category}": missing patterns`);
@@ -215,7 +106,6 @@ function compileKeywordRule(category: string, rule: KeywordRule): CompiledKeywor
   return { category, pattern: buildRegexFromPatterns(rule.patterns), experts: [...rule.experts] };
 }
 
-/** Compile all rules from parsed config. */
 function compileRulesFromConfig(parsed: KeywordDetectionConfig): CompiledKeywordRule[] {
   const rules: CompiledKeywordRule[] = [];
   for (const [category, rule] of Object.entries(parsed.rules)) {
@@ -225,19 +115,15 @@ function compileRulesFromConfig(parsed: KeywordDetectionConfig): CompiledKeyword
   return rules;
 }
 
-/** Set cached keyword rules and return them. */
 function setCachedRules(rules: readonly CompiledKeywordRule[], configPath: string): readonly CompiledKeywordRule[] {
   cachedKeywordRules = rules;
   cachedKeywordRulesPath = configPath;
   return cachedKeywordRules;
 }
 
-/** Load keyword detection rules from keyword-detection.yaml. */
 export function loadKeywordRules(projectPath: string): readonly CompiledKeywordRule[] {
   const configPath = path.join(projectPath, 'config', 'keyword-detection.yaml');
   if (cachedKeywordRules && cachedKeywordRulesPath === configPath) return cachedKeywordRules;
-  if (!fs.existsSync(configPath)) return setCachedRules(getDefaultKeywordRules(), configPath);
-
   try {
     const parsed = yaml.parse(fs.readFileSync(configPath, 'utf-8')) as KeywordDetectionConfig;
     if (!parsed?.rules || typeof parsed.rules !== 'object') {
@@ -273,7 +159,6 @@ function addExperts(
   }
 }
 
-/** Find keyword matches and add their experts. */
 function addKeywordExperts(
   experts: Set<string>,
   sources: Record<string, ExpertSource>,
@@ -290,7 +175,6 @@ function addKeywordExperts(
   }
 }
 
-/** Detect experts for a phase + task text. Combines phase, profile, and keyword experts. */
 export function detectExperts(
   projectPath: string, phase: PhaseName, taskText: string, profileExperts: readonly string[] = []
 ): ExpertDetection {
@@ -319,16 +203,10 @@ export function clearPhaseLoaderCaches(): void {
   cachedKeywordRulesPath = null;
 }
 
-/**
- * Check if custom phase config exists.
- */
 export function hasCustomPhaseConfig(projectPath: string): boolean {
   return fs.existsSync(path.join(projectPath, 'config', 'workflow-phases.yaml'));
 }
 
-/**
- * Check if custom keyword rules exist.
- */
 export function hasCustomKeywordRules(projectPath: string): boolean {
   return fs.existsSync(path.join(projectPath, 'config', 'keyword-detection.yaml'));
 }

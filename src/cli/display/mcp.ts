@@ -8,14 +8,12 @@
 import chalk from 'chalk';
 import type { MCPServerDefinition } from '../../mcp/types.js';
 
-/** Format server status for display */
 function formatServerStatus(installed: boolean, enabled: boolean): string {
   if (enabled) return chalk.green(' [enabled]');
   if (installed) return chalk.blue(' [installed]');
   return '';
 }
 
-/** Print installed servers list */
 export function printInstalledServers(
   servers: Array<{ name: string; enabled: boolean; config: { type: string; command?: string; url?: string } }>,
   filterEnabled: boolean
@@ -33,7 +31,6 @@ export function printInstalledServers(
   }
 }
 
-/** Print registry servers grouped by category */
 export function printRegistryServers(
   servers: MCPServerDefinition[],
   isInstalled: (name: string) => boolean,
@@ -72,7 +69,6 @@ export function printRegistryServers(
   }
 }
 
-/** Print server details */
 export function printServerDetails(
   server: MCPServerDefinition,
   installed: boolean,
@@ -130,7 +126,6 @@ function printEnvVarStatus(
   }
 }
 
-/** Print installation status */
 function printInstallStatus(installed: boolean, enabled: boolean, configPath: string): void {
   console.log(chalk.cyan('\nStatus:'));
   console.log(`  Installed: ${installed ? chalk.green('yes') : chalk.gray('no')}`);
@@ -138,7 +133,6 @@ function printInstallStatus(installed: boolean, enabled: boolean, configPath: st
   console.log(`  Config:    ${chalk.gray(configPath)}`);
 }
 
-/** Print env check results */
 export function printEnvCheckResults(
   results: Array<{ server: string; ok: boolean; missing: string[]; found: string[] }>
 ): void {

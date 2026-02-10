@@ -22,8 +22,6 @@ See what a profile includes before applying:
 lens profile show javascript+react
 ```
 
-Output shows canon stack, standards, and auto-invoke rules.
-
 ### 2. Apply the profile
 
 Apply to your project:
@@ -46,11 +44,6 @@ Check that files were created:
 ls -la .claude/
 ```
 
-You should see:
-- `CLAUDE.md` - Standards and rules
-- `settings.json` - Profile configuration
-- `skills/` - Symlinked canon skills
-
 ### 4. Test with Claude
 
 Open Claude and check status:
@@ -72,14 +65,7 @@ lens profile apply java+frontend -p .
 lens profile apply javascript+react+frontend -p .
 ```
 
-This adds skills for:
-- Visual design (design, visual)
-- Interaction (usability, personas, interaction)
-- Typography (typography)
-- Motion (motion)
-- Components (components, mobile)
-- Governance (tokens, handoff)
-- Data visualization (charts)
+Adds 12 UI/UX skills: visual design, interaction, typography, motion, components, governance, and data visualization.
 
 ## Dry Run Mode
 
@@ -109,7 +95,7 @@ lens profile list
 
 ### "Permission denied"
 
-Ensure write access to the project directory.
+Check write permissions on the project directory.
 
 ### "CLAUDE.md already exists"
 

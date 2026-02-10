@@ -1,32 +1,29 @@
 ---
 name: improve
-description: Improve existing code. 12-phase quality pipeline with rollback support.
+description: Improve existing code. 9-phase quality pipeline with rollback support.
 ---
 
 # /improve [path] [--rollback] [--dry-run]
 
-Improve existing code using the full 12-phase quality pipeline. Same rigor as `/build`, but for code that already exists.
+Improve existing code using the full 9-phase quality pipeline. Same rigor as `/build`, but for code that already exists.
 
 > **No arguments?** Describe this skill and stop. Do not execute.
 
 ## What Is This?
 
-`/improve` is the **heavy workflow** for refining existing code. It runs 12 phases in sequence:
+`/improve` is the **heavy workflow** for refining existing code. It runs 9 phases in sequence:
 
 1. **create-plan** — Analyze what needs improvement, identify issues
 2. **structure-first** — Map current architecture, design improvements
 3. **implement-plan** — Apply the improvements
 4. **refactor-check-fix** — Clean up, enforce constraints
 5. **dedupe-fix** — Consolidate duplicated code
-6. **gemini-fix** — External code review via Gemini
-7. **qodana-fix** — Static analysis fixes
-8. **adversarial-security-review** — Security audit
-9. **write-tests-run** — Write and run tests
-10. **ai-smell-fix** — Remove AI-generated antipatterns
-11. **codex-check** — Fast pattern scan + targeted fixes
-12. **write-tests-run** — Re-verify tests after cleanup
+6. **gemini-fix** — External code review via Gemini + product quality review
+7. **adversarial-security-review** — Security audit
+8. **write-tests-run** — Write and run tests
+9. **ai-smell-fix** — Remove AI-generated antipatterns
 
-Each phase must pass its gate before the next begins. A rollback point is created before any changes.
+Script gates at 3.5, 6.5, and 9.5 run lint, quality checks, and Qodana without burning AI context. Each phase must pass its gate before the next begins. A rollback point is created before any changes.
 
 **Context cost:** ~4,200 tokens (Base Brain) + phase-specific skills
 
@@ -55,7 +52,7 @@ Each phase must pass its gate before the next begins. A rollback point is create
 
 | Flag | Purpose |
 |------|---------|
-| `--dry-run` | Show the 12 phases without executing |
+| `--dry-run` | Show the 9 phases without executing |
 | `--rollback` | Restore from last improve stash |
 
 ## Orchestrator Rules
@@ -65,6 +62,7 @@ Each phase must pass its gate before the next begins. A rollback point is create
 3. **NEVER proceed without gate marker** — the subagent result must contain the marker string
 4. **ALWAYS present Phase 1 plan to user for approval** before continuing
 5. **ALWAYS create rollback point first** before any phase runs
+6. **ALWAYS record metrics** after each phase completes
 
 ## Rollback
 
@@ -89,20 +87,23 @@ If `--dry-run` flag is set, print the phase table below and stop. Do not run any
 | 1 | create-plan | sonnet | PLAN_COMPLETE | Pause for user approval |
 | 2 | structure-first | sonnet | STRUCTURE_COMPLETE | Map existing, design changes |
 | 3 | implement-plan | opus | IMPLEMENT_COMPLETE | Only phase needing Opus |
-| 3.5 | **machine-gate** | **none** | exit code 0 | `tsx .claude/scripts/quality-gate.ts {TARGET}` — no agent |
+| 3.5 | **machine-gate** | **none** | exit code 0 | quality-gate + construction check |
 | 4 | refactor-check-fix | sonnet | REFACTOR_COMPLETE | |
 | 5 | dedupe-fix | haiku | DEDUPE_COMPLETE | Pattern-match and apply |
-| 6 | gemini-fix | sonnet | FIX_COMPLETE | Gemini reviews, agent applies |
-| 7 | qodana-fix | haiku | VERIFIED_CLEAN | Tool finds issues, agent applies |
-| 7.5 | **machine-gate** | **none** | exit code 0 | `tsx .claude/scripts/quality-gate.ts {TARGET}` — re-verify |
-| 8 | adversarial-security-review | sonnet | VERIFIED_CLEAN | Gemini reviews, agent applies |
-| 9 | write-tests-run | sonnet | TEST_COMPLETE | |
-| 10 | ai-smell-fix | haiku | AI_SMELL_COMPLETE | Pattern-match and apply |
-| 11 | codex-check | haiku | CODEX_CHECK_COMPLETE | Fast pattern scan + fixes |
-| 11.5 | **machine-gate** | **none** | exit code 0 | `tsx .claude/scripts/quality-gate.ts {TARGET}` — final |
-| 12 | write-tests-run | haiku | TEST_COMPLETE | Re-verify after cleanup |
+| 6 | gemini-fix | sonnet | FIX_COMPLETE | Gemini code + product quality review |
+| 6.5 | **machine-gate** | **none/haiku** | exit code 0 | Qodana scan; Haiku fixer only if issues found |
+| 7 | adversarial-security-review | sonnet | VERIFIED_CLEAN | Gemini reviews, agent applies |
+| 8 | write-tests-run | sonnet | TEST_COMPLETE | |
+| 9 | ai-smell-fix | haiku | AI_SMELL_COMPLETE | Pattern-match and apply |
+| 9.5 | **machine-gate** | **none** | exit code 0 | npm test + quality-gate (final) |
 
 ## Execution
+
+### Step 0: Start Metrics
+
+```bash
+tsx scripts/quality-gate.ts start-metrics improve {TARGET}
+```
 
 ### Step 1: Create Rollback Point
 
@@ -116,9 +117,17 @@ Report the stash ref to the user.
 
 For each phase in the table above, spawn a **single Task subagent** (`subagent_type: "general-purpose"`) with the `model` parameter set to the value in the Phase Table's Model column.
 
+Record the start time before spawning each subagent. After each phase completes, record metrics:
+
+```bash
+tsx scripts/quality-gate.ts record-metrics {PHASE_NAME} {ISSUES_FOUND} {ISSUES_FIXED} {DURATION_MS} {TARGET}
+```
+
+Parse `ISSUES_FOUND` and `ISSUES_FIXED` from the subagent output when available (e.g., gemini-fix reports these). For phases that don't report counts, use 0 for both.
+
 #### Subagent Prompt Template
 
-For phases 1-3, 9, 12 (early phases and test phases, no MCP tools needed):
+For phases 1-3, 8 (no MCP tools needed):
 
 ```
 Read the skill file at .claude/phases/{SKILL_NAME}/SKILL.md
@@ -131,7 +140,7 @@ Follow every step in the skill. Do not skip any steps.
 When complete, end your final message with the marker: {GATE_MARKER}
 ```
 
-For phases 4-5, 10-11 (review phases, no MCP tools) — add complexity budget:
+For phases 4-5, 9 (review phases, no MCP tools) — add complexity budget:
 
 ```
 Read the skill file at .claude/phases/{SKILL_NAME}/SKILL.md
@@ -153,7 +162,7 @@ For phase 6 (gemini-fix) — add to prompt:
 
 ```
 You have access to the mcp__gemini-reviewer__gemini_review tool for code review.
-Use it as instructed by the skill.
+Use it as instructed by the skill. This includes the product quality review step.
 
 COMPLEXITY BUDGET: Review phases must not increase overall complexity.
 After your changes, the codebase must have the same or fewer: files,
@@ -161,19 +170,7 @@ exported functions, types/interfaces, and total lines. If your fix
 adds lines, find lines elsewhere to remove. Net-zero or net-negative.
 ```
 
-For phase 7 (qodana-fix) — add to prompt:
-
-```
-You have access to Qodana MCP tools (mcp__qodana__qodana_scan, mcp__qodana__qodana_problems, etc).
-Use them as instructed by the skill.
-
-COMPLEXITY BUDGET: Review phases must not increase overall complexity.
-After your changes, the codebase must have the same or fewer: files,
-exported functions, types/interfaces, and total lines. If your fix
-adds lines, find lines elsewhere to remove. Net-zero or net-negative.
-```
-
-For phase 8 (adversarial-security-review) — add to prompt:
+For phase 7 (adversarial-security-review) — add to prompt:
 
 ```
 You have access to the mcp__gemini-reviewer__gemini_review tool for security review.
@@ -185,20 +182,59 @@ exported functions, types/interfaces, and total lines. If your fix
 adds lines, find lines elsewhere to remove. Net-zero or net-negative.
 ```
 
-For phase 12 (write-tests-run, second run) — add to prompt:
+#### Machine Gate 3.5 (Post-Implementation)
 
+Run via Bash tool (no subagent):
+
+1. **Lint + quality gate:**
+   ```bash
+   tsx scripts/quality-gate.ts {TARGET}
+   ```
+   For the Lens project itself, also run `npm run lint` before the quality gate script.
+
+2. **Construction check** (if plan has CONSTRUCTION_CHECKS section):
+   ```bash
+   tsx scripts/quality-gate.ts validate-construction .claude/create-plans/{PLAN_SLUG}.md {TARGET}
+   ```
+   Report pass/fail to user. Failures are informational (do not halt pipeline) — they indicate Phase 3 didn't follow the plan.
+
+If quality gate returns non-zero exit, pass the error output to Phase 3 for correction (max 2 retries). If still failing after 2 retries, halt the pipeline and report the failures to the user.
+
+#### Machine Gate 6.5 (Qodana + Quality Gate)
+
+Run via Bash tool (no subagent):
+
+1. **Qodana scan:**
+   ```bash
+   qodana scan --linter qodana-js --project-dir {PROJECT_ROOT} --print-problems 2>&1 || true
+   ```
+   If `qodana` CLI is not installed, skip with a note.
+
+2. **If Qodana finds issues:** Spawn a **single Haiku subagent** to fix them:
+   ```
+   Qodana found these issues:
+   {QODANA_OUTPUT}
+
+   Fix each issue in the listed files. Do not restructure code — fix in place.
+   When complete, end with: QODANA_FIXED
+   ```
+
+3. **If Qodana is clean:** No subagent needed. Proceed.
+
+4. **Quality gate re-verify:**
+   ```bash
+   tsx scripts/quality-gate.ts {TARGET}
+   ```
+
+#### Machine Gate 9.5 (Final)
+
+Run via Bash tool (no subagent):
+
+```bash
+npm test && tsx scripts/quality-gate.ts {TARGET}
 ```
-This is a re-verification run after ai-smell-fix (phase 10) and codex-check (phase 11).
-If tests fail, fix the code that phases 10-11 broke, not the tests.
-```
 
-#### Machine Gate (Phases 3.5, 7.5, 11.5)
-
-Machine gates are NOT subagent phases. Run `tsx .claude/scripts/quality-gate.ts {TARGET}` directly via Bash tool. The script auto-detects project language and runs the appropriate linter (ESLint for JS/TS, Qodana for Java/C#/Python/Go/Rust/PHP/Ruby) plus universal custom checks (secrets, shell injection, etc.).
-
-If non-zero exit, pass the error output to the PREVIOUS phase for correction (max 2 retries). If still failing after 2 retries, halt the pipeline and report the failures to the user.
-
-For the Lens project itself (`{TARGET}` is `.` or `src/`), also run `npm run lint` before the quality gate script.
+If non-zero exit, pass error output to Phase 9 for correction (max 2 retries).
 
 #### Gate Check
 
@@ -238,24 +274,14 @@ Phase 4 (refactor-check-fix) must address ALL files that exceed constraints. Aft
    - Report remaining issues to user
    - Continue to Phase 5 (remaining phases may catch some issues)
 
-#### Canary Wrapping (Phases 6 and 11)
+#### Canary Wrapping (Phase 6)
 
-Phases 6 (gemini-fix) and 11 (codex-check) are wrapped with canary pre/post steps. This is NOT optional — it tests whether the review agent is actually reading code.
+Phase 6 (gemini-fix) is wrapped with canary pre/post steps. This is NOT optional — it tests whether the review agent is actually reading code.
 
-**Phase 6 (gemini-fix) execution:**
-
-1. **Pre:** `tsx .claude/scripts/quality-gate.ts insert-canaries gemini {TARGET}`
+1. **Pre:** `tsx scripts/quality-gate.ts insert-canaries gemini {TARGET}`
 2. **Run:** Spawn the gemini-fix subagent (same prompt as above)
-3. **Post:** `tsx .claude/scripts/quality-gate.ts validate-canaries gemini {TARGET}`
+3. **Post:** `tsx scripts/quality-gate.ts validate-canaries gemini {TARGET}`
 4. If canaries missed: re-run Phase 6 once (with note: "Previous run missed planted violations. Read ALL code carefully.")
-5. If missed again: halt pipeline and report to user
-
-**Phase 11 (codex-check) execution:**
-
-1. **Pre:** `tsx .claude/scripts/quality-gate.ts insert-canaries codex {TARGET}`
-2. **Run:** Spawn the codex-check subagent (same prompt as above)
-3. **Post:** `tsx .claude/scripts/quality-gate.ts validate-canaries codex {TARGET}`
-4. If canaries missed: re-run Phase 11 once (with note: "Previous run missed planted violations. Read ALL code carefully.")
 5. If missed again: halt pipeline and report to user
 
 #### Evidence Validation Gates
@@ -264,34 +290,28 @@ After review phases that produce evidence checklists, run the evidence validator
 
 **After Phase 4 (refactor-check-fix):**
 ```bash
-tsx .claude/scripts/quality-gate.ts validate-evidence refactor {TARGET}
+tsx scripts/quality-gate.ts validate-evidence refactor {TARGET}
 ```
 If incomplete: re-run Phase 4 with "You missed N items in checklist X. Review ALL items."
 
 **After Phase 6 (gemini-fix):**
 ```bash
-tsx .claude/scripts/quality-gate.ts validate-evidence gemini {TARGET}
+tsx scripts/quality-gate.ts validate-evidence gemini {TARGET}
 ```
 If incomplete: re-run Phase 6 with "You missed N items in checklist X. Review ALL items."
 
-**After Phase 8 (adversarial-security-review):**
+**After Phase 7 (adversarial-security-review):**
 ```bash
-tsx .claude/scripts/quality-gate.ts validate-evidence adversarial {TARGET}
+tsx scripts/quality-gate.ts validate-evidence adversarial {TARGET}
 ```
-If incomplete: re-run Phase 8 with "You missed N items in checklist X. Review ALL items."
+If incomplete: re-run Phase 7 with "You missed N items in checklist X. Review ALL items."
 
-**After Phase 11 (codex-check):**
-```bash
-tsx .claude/scripts/quality-gate.ts validate-evidence codex {TARGET}
-```
-If incomplete: re-run Phase 11 with "You missed N items in checklist X. Review ALL items."
-
-#### Vote Reconciliation (After Phase 11 Evidence Gate)
+#### Vote Reconciliation (After Phase 7 Evidence Gate)
 
 After all evidence gates pass, run the three-model vote reconciliation:
 
 ```bash
-tsx .claude/scripts/quality-gate.ts reconcile-votes {TARGET}
+tsx scripts/quality-gate.ts reconcile-votes {TARGET}
 ```
 
 If disagreements exist, the command writes a report to `.claude/evidence/vote-disagreements.md` and exits non-zero. Spawn a final reconciliation subagent (model: sonnet, subagent_type: "general-purpose"):
@@ -323,18 +343,17 @@ Do not proceed to Phase 2 until the user explicitly approves.
 
 ### Step 3: Cleanup
 
-After all 12 phases complete, remove evidence artifacts:
+After all 9 phases complete, remove evidence artifacts:
 
 ```bash
 rm -rf {TARGET}/.claude/evidence/
 rm -f {TARGET}/.claude/canary-manifest.json
 ```
 
-### Step 4: Log Completion
-
-After all 12 phases complete:
+### Step 4: Report Metrics + Log Completion
 
 ```bash
+tsx scripts/quality-gate.ts report-metrics {TARGET}
 echo "improve:complete:{TARGET}:$(date +%Y-%m-%dT%H:%M:%S)" >> .claude/improve.log
 ```
 
@@ -352,12 +371,9 @@ Improve: {TARGET}
   4. refactor-check-fix → {one-line summary}
   5. dedupe-fix → {one-line summary}
   6. gemini-fix → {one-line summary}
-  7. qodana-fix → {one-line summary}
-  8. adversarial-security-review → {one-line summary}
-  9. write-tests-run → {one-line summary}
-  10. ai-smell-fix → {one-line summary}
-  11. codex-check → {one-line summary}
-  12. write-tests-run → {one-line summary}
+  7. adversarial-security-review → {one-line summary}
+  8. write-tests-run → {one-line summary}
+  9. ai-smell-fix → {one-line summary}
   Done
 
 Rollback available: /improve --rollback
@@ -367,8 +383,8 @@ Rollback available: /improve --rollback
 
 | Workflow | When to Use | Phases |
 |----------|-------------|--------|
-| `/build` | New feature from scratch | 12 |
-| `/improve` | Refine existing code | 12 |
+| `/build` | New feature from scratch | 9 |
+| `/improve` | Refine existing code | 9 |
 | `/quick-edit` | Add field, rename, small fix | 0 |
 | `/quick-clean` | Fast AI smell cleanup | 0 |
 | `/ralph-loop` | Full PRD implementation | 10 per item |

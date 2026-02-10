@@ -82,7 +82,7 @@ You're not a member of the objective-arts organization. Contact your admin.
 
 ## For Admins: Publishing a New Release
 
-1. Update version in `cli/package.json`
+1. Update version in `package.json`
 2. Commit and push
 3. Create a GitHub Release with tag `vX.Y.Z`
 4. GitHub Actions automatically publishes to GitHub Packages
@@ -90,7 +90,6 @@ You're not a member of the objective-arts organization. Contact your admin.
 Or manually:
 
 ```bash
-cd cli
 npm run build
 npm test
 npm publish

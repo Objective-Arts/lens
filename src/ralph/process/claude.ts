@@ -30,14 +30,21 @@ export interface ClaudeOptions {
   stream?: StreamCallbacks;
 }
 
-/** Ensure log directory exists. */
 function ensureLogDir(logDir: string): void {
   if (!fs.existsSync(logDir)) {
     fs.mkdirSync(logDir, { recursive: true });
   }
 }
 
-/** Build Claude CLI arguments. */
+function validateToolNames(tools: string[]): void {
+  const VALID_TOOL_NAME = /^[a-zA-Z0-9_-]+$/;
+  for (const tool of tools) {
+    if (!VALID_TOOL_NAME.test(tool)) {
+      throw new Error(`Invalid tool name: ${tool}. Only alphanumeric, dash, underscore allowed.`);
+    }
+  }
+}
+
 function buildClaudeArgs(prompt: string, allowedTools: string[]): string[] {
   const args = [
     '--output-format', 'stream-json',
@@ -46,12 +53,12 @@ function buildClaudeArgs(prompt: string, allowedTools: string[]): string[] {
     '-p', prompt,
   ];
   if (allowedTools.length > 0) {
+    validateToolNames(allowedTools);
     args.push('--allowedTools', allowedTools.join(','));
   }
   return args;
 }
 
-/** Write output files and build result. */
 function buildClaudeResult(output: string, code: number | null, jsonPath: string, rawPath: string, startTime: number): ClaudeOutput {
   fs.writeFileSync(jsonPath, output);
   const result = extractResult(jsonPath);
@@ -66,7 +73,6 @@ function buildClaudeResult(output: string, code: number | null, jsonPath: string
   };
 }
 
-/** Spawn Claude process with args. */
 function spawnClaudeProcess(args: string[], projectPath: string): ReturnType<typeof spawn> {
   return spawn('claude', args, {
     cwd: projectPath,
@@ -76,7 +82,6 @@ function spawnClaudeProcess(args: string[], projectPath: string): ReturnType<typ
   });
 }
 
-/** Parse streaming JSON line for tool events. */
 function parseStreamLine(line: string, callbacks?: StreamCallbacks): void {
   if (!callbacks || !line.trim()) return;
   try {
@@ -102,7 +107,6 @@ function parseStreamLine(line: string, callbacks?: StreamCallbacks): void {
   }
 }
 
-/** Run Claude with a prompt and capture output. */
 export async function runClaude(options: ClaudeOptions): Promise<ClaudeOutput> {
   const { prompt, projectPath, logDir, logPrefix, allowedTools = [], timeout = 1800000, stream } = options;
   ensureLogDir(logDir);
@@ -139,7 +143,6 @@ export async function runClaude(options: ClaudeOptions): Promise<ClaudeOutput> {
   });
 }
 
-/** Check if Claude CLI is available. */
 export async function isClaudeAvailable(): Promise<boolean> {
   return new Promise((resolve) => {
     const child = spawn('which', ['claude']);
@@ -148,7 +151,6 @@ export async function isClaudeAvailable(): Promise<boolean> {
   });
 }
 
-/** Get the current git commit hash. */
 export async function getGitCommitHash(projectPath: string): Promise<string | null> {
   return new Promise((resolve) => {
     const child = spawn('git', ['rev-parse', 'HEAD'], { cwd: projectPath });
@@ -159,7 +161,6 @@ export async function getGitCommitHash(projectPath: string): Promise<string | nu
   });
 }
 
-/** Check if there are new commits since a given hash. */
 export async function hasNewCommitsSince(projectPath: string, sinceHash: string): Promise<boolean> {
   const currentHash = await getGitCommitHash(projectPath);
   return currentHash !== null && currentHash !== sinceHash;

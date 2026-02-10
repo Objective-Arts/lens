@@ -168,7 +168,7 @@ Canon: `security-mindset/SUMMARY.md` hard gate #3
 - Gemini lists: every input boundary, what validation runs before business logic
 - Validation: row count must equal input boundary count
 
-#### Phase 7: codex-check
+#### Phase 7: codex-fix
 
 Produces 1 checklist:
 
@@ -229,7 +229,7 @@ Phase 6: gemini-fix
 Gate 6.5: npm run quality-gate validate-evidence gemini
   → same validation
 
-Phase 7: codex-check
+Phase 7: codex-fix
   → writes .claude/evidence/codex-7a.md
 
 Gate 7.5: npm run quality-gate validate-evidence codex
@@ -373,7 +373,7 @@ Phase 6: gemini-fix
   → if missed: rerun Phase 6 once
   → if missed again: halt
 
-Phase 7: codex-check
+Phase 7: codex-fix
   Pre:  quality-gate insert-canaries codex (plants 3-5 violations, writes manifest)
   Run:  Codex reviews and writes evidence checklist
   Post: quality-gate validate-canaries codex (checks detection, restores files)

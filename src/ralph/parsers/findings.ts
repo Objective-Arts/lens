@@ -55,7 +55,6 @@ export function parseFindings(output: string): Finding[] {
   return findings;
 }
 
-/** Add file/line from Evidence: or File: lines after match */
 function addFileLocation(finding: Finding, output: string, startIndex: number): void {
   const afterMatch = output.slice(startIndex, startIndex + 200);
 
@@ -72,7 +71,6 @@ function addFileLocation(finding: Finding, output: string, startIndex: number): 
   }
 }
 
-/** Normalize severity string */
 function normalizeSeverity(raw: string): Finding['severity'] {
   const upper = raw.toUpperCase();
   if (upper === 'MODERATE') return 'MEDIUM';
@@ -82,9 +80,6 @@ function normalizeSeverity(raw: string): Finding['severity'] {
   return 'INFO';
 }
 
-/**
- * Parse fixes from FIXES_APPLIED section.
- */
 export function parseFixes(output: string): Fix[] {
   const fixes: Fix[] = [];
   const section = output.match(/FIXES_APPLIED:([\s\S]*?)(?:DOCS_UPDATED:|FIX_COMPLETE|SECURITY_FIXES_COMPLETE|$)/i);
@@ -117,9 +112,6 @@ export function parseFixes(output: string): Fix[] {
   return fixes;
 }
 
-/**
- * Parse documentation issues from DOC_ISSUES section.
- */
 export function parseDocIssues(output: string): string[] {
   const issues: string[] = [];
   const section = output.match(/DOC_ISSUES:([\s\S]*?)(?:AUDIT_COMPLETE|$)/i);
@@ -134,9 +126,6 @@ export function parseDocIssues(output: string): string[] {
   return issues;
 }
 
-/**
- * Parse updated docs from DOCS_UPDATED section.
- */
 export function parseDocsUpdated(output: string): string[] {
   const docs: string[] = [];
   const section = output.match(/DOCS_UPDATED:([\s\S]*?)(?:FIX_COMPLETE|$)/i);
@@ -151,7 +140,6 @@ export function parseDocsUpdated(output: string): string[] {
   return docs;
 }
 
-/** Count findings by severity */
 export function countBySeverity(findings: Finding[]): Record<string, number> {
   return {
     critical: findings.filter(f => f.severity === 'CRITICAL').length,

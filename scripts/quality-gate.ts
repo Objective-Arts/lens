@@ -47,6 +47,32 @@ export interface LintResult {
   output: string;
 }
 
+export interface PhaseMetric {
+  phase: string;
+  issuesFound: number;
+  issuesFixed: number;
+  durationMs: number;
+}
+
+export interface PipelineMetrics {
+  pipeline: string;
+  target: string;
+  startedAt: string;
+  completedAt?: string;
+  phases: PhaseMetric[];
+}
+
+export interface ConstructionCheck {
+  type: 'file' | 'export_function' | 'export_type';
+  name: string;
+  file?: string;
+}
+
+export interface ConstructionResult {
+  check: ConstructionCheck;
+  found: boolean;
+}
+
 export const QODANA_LINTERS: Record<Exclude<Language, 'typescript'>, string> = {
   java: 'qodana-jvm-community',
   csharp: 'qodana-dotnet',
@@ -328,6 +354,122 @@ export function checkRawErrorOutput(files: string[], base: string): Violation[] 
           check: 'raw-error-output',
           message: 'Raw error object passed to console.error — use error.message instead',
         });
+      }
+    }
+  }
+  return violations;
+}
+
+// ─── Lesson-Learned Checks (from phase-loop findings) ────────────────────────
+
+export function checkToctou(files: string[], base: string): Violation[] {
+  const violations: Violation[] = [];
+  for (const file of files) {
+    const lines = fs.readFileSync(file, 'utf-8').split('\n');
+    for (let i = 0; i < lines.length; i++) {
+      const m = lines[i].match(/\b(?:existsSync|accessSync)\s*\(\s*([^)]+)\)/);
+      if (!m) continue;
+      const pathArg = m[1].trim();
+      for (let j = i + 1; j < Math.min(i + 6, lines.length); j++) {
+        if (/\b(?:readFileSync|readFile|createReadStream)\b/.test(lines[j]) && lines[j].includes(pathArg)) {
+          violations.push({ file: relativeTo(base, file), line: i + 1, check: 'toctou', message: `existsSync() then read on line ${j + 1} — use try/catch around the read instead` });
+          break;
+        }
+      }
+    }
+  }
+  return violations;
+}
+
+export function checkVerificationReads(files: string[], base: string): Violation[] {
+  const violations: Violation[] = [];
+  for (const file of files) {
+    const lines = fs.readFileSync(file, 'utf-8').split('\n');
+    for (let i = 0; i < lines.length; i++) {
+      const m = lines[i].match(/\bwriteFileSync\s*\(\s*([^,]+)/);
+      if (!m) continue;
+      const pathArg = m[1].trim();
+      for (let j = i + 1; j < Math.min(i + 4, lines.length); j++) {
+        if (/\breadFileSync\b/.test(lines[j]) && lines[j].includes(pathArg)) {
+          violations.push({ file: relativeTo(base, file), line: j + 1, check: 'verification-read', message: 'readFileSync() right after writeFileSync() on same path — write succeeded if no throw' });
+          break;
+        }
+      }
+    }
+  }
+  return violations;
+}
+
+export function checkDangerousEval(files: string[], base: string): Violation[] {
+  const violations: Violation[] = [];
+  const patterns = [
+    { pattern: /\beval\s*\(/, name: 'eval()' },
+    { pattern: /\.innerHTML\s*=/, name: 'innerHTML assignment' },
+    { pattern: /\bdocument\.write\s*\(/, name: 'document.write()' },
+  ];
+  for (const file of files) {
+    const lines = fs.readFileSync(file, 'utf-8').split('\n');
+    for (let i = 0; i < lines.length; i++) {
+      const trimmed = lines[i].trimStart();
+      if (trimmed.startsWith('//') || trimmed.startsWith('*')) continue;
+      for (const { pattern, name } of patterns) {
+        if (pattern.test(lines[i])) {
+          violations.push({ file: relativeTo(base, file), line: i + 1, check: 'dangerous-eval', message: `${name} — use safe alternatives` });
+        }
+      }
+    }
+  }
+  return violations;
+}
+
+export function checkFalsyNumericGuard(files: string[], base: string): Violation[] {
+  const violations: Violation[] = [];
+  for (const file of files) {
+    const lines = fs.readFileSync(file, 'utf-8').split('\n');
+    const numVars = new Set<string>();
+    for (const line of lines) {
+      const m1 = line.match(/(\w+)\s*\?:\s*number/);
+      if (m1) numVars.add(m1[1]);
+      const m2 = line.match(/(\w+)\s*:\s*number\s*\|\s*undefined/);
+      if (m2) numVars.add(m2[1]);
+    }
+    if (numVars.size === 0) continue;
+    for (let i = 0; i < lines.length; i++) {
+      for (const v of numVars) {
+        if (new RegExp(`\\bif\\s*\\(\\s*${v}\\s*\\)`).test(lines[i])) {
+          violations.push({ file: relativeTo(base, file), line: i + 1, check: 'falsy-numeric-guard', message: `Truthy check on optional number '${v}' — 0 is falsy, use '!== undefined'` });
+        }
+      }
+    }
+  }
+  return violations;
+}
+
+export function checkCommentSpam(files: string[], base: string): Violation[] {
+  const violations: Violation[] = [];
+  for (const file of files) {
+    const lines = fs.readFileSync(file, 'utf-8').split('\n');
+    for (let i = 0; i < lines.length; i++) {
+      if (!/^\s*\/\*\*/.test(lines[i])) continue;
+      let doc = '', j = i, jsdocLines = 0;
+      while (j < lines.length) {
+        doc += ' ' + lines[j].replace(/^\s*\/?[*]+\s*/, '').replace(/\*\/\s*$/, '');
+        jsdocLines++;
+        if (lines[j].includes('*/')) { j++; break; }
+        j++;
+      }
+      if (jsdocLines > 3 || j >= lines.length) continue;
+      const fnMatch = lines[j]?.match(/(?:export\s+)?(?:async\s+)?function\s+(\w+)/);
+      if (!fnMatch) continue;
+      const fnName = fnMatch[1];
+      const nameWords = fnName.replace(/([a-z])([A-Z])/g, '$1 $2').toLowerCase().split(/\s+/).filter(w => w.length > 2);
+      if (nameWords.length < 2) continue;
+      const cleanDoc = doc.toLowerCase().replace(/@\w+/g, '').replace(/[^a-z\s]/g, '').trim();
+      if (cleanDoc.length > 80) continue;
+      const docWords = new Set(cleanDoc.split(/\s+/).filter(w => w.length > 2));
+      const overlap = nameWords.filter(w => docWords.has(w));
+      if (overlap.length >= nameWords.length - 1) {
+        violations.push({ file: relativeTo(base, file), line: i + 1, check: 'comment-spam', message: `JSDoc restates function name '${fnName}' — remove or add non-obvious info` });
       }
     }
   }
@@ -684,6 +826,11 @@ export function runProxyChecks(projectDir: string): Violation[] {
     ...checkTypesBeforeFunctions(tsFiles, projectDir),
     ...checkMagicNumbers(tsFiles, projectDir),
     ...checkMagicStrings(tsFiles, projectDir),
+    ...checkToctou(tsFiles, projectDir),
+    ...checkVerificationReads(tsFiles, projectDir),
+    ...checkDangerousEval(tsFiles, projectDir),
+    ...checkFalsyNumericGuard(tsFiles, projectDir),
+    ...checkCommentSpam(tsFiles, projectDir),
   ];
 }
 
@@ -920,6 +1067,82 @@ export function reconcileVotes(targetDir: string): void {
   process.exit(1);
 }
 
+// ─── Pipeline Metrics ────────────────────────────────────────────────────────
+
+export function startPipelineMetrics(pipeline: string, target: string, metricsDir: string): void {
+  const metrics: PipelineMetrics = { pipeline, target, startedAt: new Date().toISOString(), phases: [] };
+  fs.mkdirSync(metricsDir, { recursive: true });
+  fs.writeFileSync(path.join(metricsDir, 'active-metrics.json'), JSON.stringify(metrics, null, 2), 'utf-8');
+}
+
+export function recordPhaseMetrics(metricsDir: string, phase: string, issuesFound: number, issuesFixed: number, durationMs: number): void {
+  const metricsPath = path.join(metricsDir, 'active-metrics.json');
+  const metrics: PipelineMetrics = JSON.parse(fs.readFileSync(metricsPath, 'utf-8'));
+  metrics.phases.push({ phase, issuesFound, issuesFixed, durationMs });
+  fs.writeFileSync(metricsPath, JSON.stringify(metrics, null, 2), 'utf-8');
+}
+
+export function reportMetrics(metricsDir: string): void {
+  const metricsPath = path.join(metricsDir, 'active-metrics.json');
+  const metrics: PipelineMetrics = JSON.parse(fs.readFileSync(metricsPath, 'utf-8'));
+  metrics.completedAt = new Date().toISOString();
+  const archiveName = `${metrics.pipeline}-${metrics.startedAt.replace(/[:.]/g, '-')}.json`;
+  fs.writeFileSync(path.join(metricsDir, archiveName), JSON.stringify(metrics, null, 2), 'utf-8');
+  fs.unlinkSync(metricsPath);
+  console.log(`\nPipeline: ${metrics.pipeline} → ${metrics.target}`);
+  for (const p of metrics.phases) {
+    console.log(`  ${p.phase}: ${p.issuesFound} found, ${p.issuesFixed} fixed (${p.durationMs}ms)`);
+  }
+  const totalFound = metrics.phases.reduce((s, p) => s + p.issuesFound, 0);
+  const totalFixed = metrics.phases.reduce((s, p) => s + p.issuesFixed, 0);
+  console.log(`Total: ${totalFound} found, ${totalFixed} fixed`);
+}
+
+// ─── Construction Validation ─────────────────────────────────────────────────
+
+export function parseConstructionChecks(planContent: string): ConstructionCheck[] {
+  const checks: ConstructionCheck[] = [];
+  const lines = planContent.split('\n');
+  let inSection = false;
+  for (const line of lines) {
+    if (/^##\s*CONSTRUCTION_CHECKS/i.test(line)) { inSection = true; continue; }
+    if (inSection && /^##\s/.test(line)) break;
+    if (!inSection) continue;
+    const fileMatch = line.match(/^-\s*FILE:\s*(.+)/i);
+    if (fileMatch) { checks.push({ type: 'file', name: fileMatch[1].trim() }); continue; }
+    const fnMatch = line.match(/^-\s*EXPORT_FUNCTION:\s*(\w+)\s+IN\s+(.+)/i);
+    if (fnMatch) { checks.push({ type: 'export_function', name: fnMatch[1], file: fnMatch[2].trim() }); continue; }
+    const typeMatch = line.match(/^-\s*EXPORT_TYPE:\s*(\w+)\s+IN\s+(.+)/i);
+    if (typeMatch) { checks.push({ type: 'export_type', name: typeMatch[1], file: typeMatch[2].trim() }); continue; }
+  }
+  return checks;
+}
+
+export function validateConstruction(planPath: string, projectDir: string): { passed: boolean; results: ConstructionResult[] } {
+  const planContent = fs.readFileSync(planPath, 'utf-8');
+  const checks = parseConstructionChecks(planContent);
+  const results: ConstructionResult[] = [];
+  for (const check of checks) {
+    let found = false;
+    if (check.type === 'file') {
+      found = fs.existsSync(path.join(projectDir, check.name));
+    } else if (check.file) {
+      const filePath = path.join(projectDir, check.file);
+      if (fs.existsSync(filePath)) {
+        const content = fs.readFileSync(filePath, 'utf-8');
+        if (check.type === 'export_function') {
+          found = new RegExp(`export\\s+(?:async\\s+)?function\\s+${check.name}\\b`).test(content) ||
+                  new RegExp(`export\\s+const\\s+${check.name}\\s*=`).test(content);
+        } else {
+          found = new RegExp(`export\\s+(?:type|interface)\\s+${check.name}\\b`).test(content);
+        }
+      }
+    }
+    results.push({ check, found });
+  }
+  return { passed: results.every(r => r.found), results };
+}
+
 // ─── Orchestrator ────────────────────────────────────────────────────────────
 
 export interface GateResult {
@@ -1043,6 +1266,47 @@ function main(): void {
       const target = args[1];
       if (!target) { console.error('Usage: quality-gate reconcile-votes <target-dir>'); process.exit(1); }
       reconcileVotes(path.resolve(target));
+      break;
+    }
+    case 'start-metrics': {
+      const pipeline = args[1];
+      const target = args[2];
+      if (!pipeline || !target) { console.error('Usage: quality-gate start-metrics <pipeline> <target>'); process.exit(1); }
+      const metricsDir = path.join(path.resolve(target), '.claude', 'metrics');
+      startPipelineMetrics(pipeline, target, metricsDir);
+      console.log(`Metrics started: ${pipeline} → ${target}`);
+      break;
+    }
+    case 'record-metrics': {
+      const phase = args[1];
+      const found = parseInt(args[2] ?? '', 10);
+      const fixed = parseInt(args[3] ?? '', 10);
+      const ms = parseInt(args[4] ?? '', 10);
+      const tgt = args[5] ?? '.';
+      if (!phase || isNaN(found) || isNaN(fixed) || isNaN(ms)) {
+        console.error('Usage: quality-gate record-metrics <phase> <found> <fixed> <ms> [target]');
+        process.exit(1);
+      }
+      recordPhaseMetrics(path.join(path.resolve(tgt), '.claude', 'metrics'), phase, found, fixed, ms);
+      break;
+    }
+    case 'report-metrics': {
+      const tgt = args[1] ?? '.';
+      reportMetrics(path.join(path.resolve(tgt), '.claude', 'metrics'));
+      break;
+    }
+    case 'validate-construction': {
+      const planFile = args[1];
+      const projectDir = args[2];
+      if (!planFile || !projectDir) { console.error('Usage: quality-gate validate-construction <plan-file> <project-dir>'); process.exit(1); }
+      const result = validateConstruction(path.resolve(planFile), path.resolve(projectDir));
+      for (const r of result.results) {
+        const status = r.found ? 'PASS' : 'FAIL';
+        const detail = r.check.file ? `${r.check.name} in ${r.check.file}` : r.check.name;
+        console.log(`  ${status}: ${r.check.type} ${detail}`);
+      }
+      if (result.passed) { console.log('\nConstruction check: all items present'); }
+      else { console.error('\nConstruction check: FAILED — missing items'); process.exit(1); }
       break;
     }
     default:

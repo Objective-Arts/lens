@@ -1,12 +1,12 @@
 # Developer Guide: Learning to Code in lens
 
-This guide teaches you how to understand and write code in this codebase. No deep TypeScript knowledge required—we explain everything as we go.
+Guide to understanding and writing code in this codebase.
 
 ---
 
 ## Overview
 
-**lens** sets up Claude Code projects with expert skills and configuration profiles, while **ralph** autonomously implements features by running code through a 12-phase workflow (plan → structure → implement → refactor → review → analyze → test → document → security → production-readiness). This reflects Deming's principle of building quality in rather than inspecting it at the end—expert guidance shapes the code from the first line, and quality gates at each phase catch issues when they're cheap to fix, not after the feature is "done." The result is code that is much more reviewable and much closer to production ready.
+**lens** sets up Claude Code projects with expert skills and configuration profiles. **ralph** autonomously implements features through a 12-phase workflow. Quality gates at each phase catch issues when they're cheap to fix, not after the feature is "done."
 
 ---
 
@@ -42,7 +42,7 @@ const program = new Command();
 program
   .name('lens')
   .description('Claude Code configuration manager')
-  .version('0.1.0');
+  .version('0.2.0');
 
 // Register all command groups
 registerScanCommands(program);
@@ -52,18 +52,16 @@ registerProfileCommands(program);
 program.parse();
 ```
 
-Let's break this down:
-
-| Line | What It Does |
-|------|--------------|
+| Line | Purpose |
+|------|---------|
 | `#!/usr/bin/env node` | Tells the system to run this with Node.js |
 | `import { Command } from 'commander'` | Loads the Commander library that handles CLI arguments |
 | `const program = new Command()` | Creates a new command-line program |
 | `program.name('lens')` | Sets the program name |
-| `registerScanCommands(program)` | Adds the "scan" command (we'll see how below) |
+| `registerScanCommands(program)` | Adds the "scan" command |
 | `program.parse()` | Reads what the user typed and runs the right command |
 
-**Key insight**: The entry point is tiny. It just imports and registers commands. The real work happens in separate files.
+The entry point is tiny. It imports and registers commands. The real work happens in separate files.
 
 ---
 
@@ -92,8 +90,6 @@ export function registerScanCommands(program: Command): void {
     });
 }
 ```
-
-Breaking this down:
 
 ```typescript
 export function registerScanCommands(program: Command): void {
@@ -250,11 +246,10 @@ export async function scan(options: ScanOptions = {}): Promise<ScanResult> {
   const { projectPath, includePlugins = true } = options;
 ```
 
-Let's decode this:
 - `async function` — This function does slow stuff (file I/O)
 - `options: ScanOptions = {}` — If no options given, use empty object
 - `: Promise<ScanResult>` — Returns a Promise that eventually gives a ScanResult
-- `const { projectPath, includePlugins = true } = options` — **Destructuring**: pulls out `projectPath` and `includePlugins` from options. If `includePlugins` isn't set, default to `true`.
+- `const { projectPath, includePlugins = true } = options` — Destructuring: pulls out `projectPath` and `includePlugins` from options. If `includePlugins` isn't set, default to `true`.
 
 ```typescript
 const items: ConfigItem[] = [];
@@ -362,8 +357,6 @@ Invalid (will fail):
 - simplicity: followed simplicity guidance
 ```
 
-Let's decode:
-
 - `abstract class` — You can't create a BasePhase directly; you must extend it
 - `abstract readonly name` — Subclasses MUST define this
 - `readonly` — Can't be changed after creation
@@ -411,8 +404,6 @@ export class PlanPhase extends BasePhase {
   }
 }
 ```
-
-Breaking it down:
 
 ```typescript
 export class PlanPhase extends BasePhase {
@@ -613,7 +604,6 @@ export function registerHelloCommand(program: Command): void {
 }
 ```
 
-What each part does:
 - `[name]` — Square brackets mean optional argument
 - `options.loud` — Will be `true` if user passed `--loud`
 - `chalk.green()` — Makes the text green
@@ -757,30 +747,51 @@ src/
 │   │   ├── index.ts          # Exports all command functions
 │   │   ├── scan.ts           # scan, list, show commands
 │   │   ├── profile.ts        # profile commands
-│   │   └── ...
+│   │   ├── canon.ts          # canon skill commands
+│   │   ├── workflow.ts       # workflow commands
+│   │   ├── mcp.ts            # MCP server commands
+│   │   ├── trace.ts          # trace command
+│   │   └── dedupe.ts         # dedupe commands
 │   └── display/              # Output formatting
 │
 ├── ralph/                    # Autonomous implementation
 │   ├── index.ts              # Ralph entry point
 │   ├── runner.ts             # Orchestrates phases
-│   ├── types.ts              # Ralph-specific types
+│   ├── runner/               # Runner internals (context, phases, retry)
+│   ├── config/               # Configuration loading
 │   ├── phases/               # One file per phase
 │   │   ├── types.ts          # Phase interface & base class
 │   │   ├── plan.ts           # Plan phase
 │   │   ├── implement.ts      # Implement phase
 │   │   └── ...
-│   ├── prd/                  # PRD parsing
-│   └── parsers/              # Output parsing
+│   ├── skills/               # Skill loading for Ralph
+│   ├── prd/                  # PRD parsing and updating
+│   ├── parsers/              # Output parsing (Gemini, Qodana, Claude)
+│   ├── display/              # Phase output display
+│   ├── summary/              # Run summary generation
+│   └── test-utils/           # Test utilities
 │
 ├── scanner/                  # Configuration discovery
 │   └── index.ts              # Main scan function
 │
 ├── profiles/                 # Profile management
-│   └── index.ts              # Load & apply profiles
+│   ├── index.ts              # Load & apply profiles
+│   ├── combiner.ts           # Profile composition
+│   ├── validation.ts         # Path validation
+│   └── persistence.ts        # Profile saving
 │
 ├── canon/                    # Skill management
 │   ├── index.ts              # Copy skills
-│   └── manifest.ts           # Track versions
+│   ├── manifest.ts           # Track versions
+│   ├── deployment.ts         # Deploy skills to projects
+│   └── source.ts             # Source skill discovery
+│
+├── hooks/                    # Git hooks
+├── tools/                    # MCP tools
+├── mcp/                      # MCP server (registry, operations)
+├── parser/                   # CLAUDE.md and settings parsing
+├── trace/                    # Configuration tracing
+├── utils/                    # Shared utilities (fs, git, tokens, validation)
 │
 └── types.ts                  # Shared types (used everywhere)
 ```
