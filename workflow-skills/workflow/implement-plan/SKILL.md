@@ -124,9 +124,59 @@ If a file doesn't exist, skip it and continue.
 
 1. **Load Plan** - Read plan from `.claude/plans/` or context
 2. **Check Structure** - Verify types/interfaces exist from `/structure-first`
-3. **Implement** - Write code following the plan EXACTLY
-4. **Verify** - Ensure code compiles/lints
-5. **Dead Code Cleanup** - Remove any dead code introduced (see below)
+3. **Extract Units** - Break the plan into implementation units
+   (one file or one logical group of tightly-coupled functions)
+
+### Step 2: Compile Loop (Unit by Unit)
+
+Phase 3 is a builder AND a quality compiler. Code isn't done until it compiles clean.
+
+For each unit from the plan:
+
+#### 2a. Canon refresh
+Before writing this unit, reread the ONE canon SUMMARY.md most relevant
+to what this unit does:
+- File I/O, errors, external calls → `.claude/skills/correctness/SUMMARY.md`
+- API surface, public types → `.claude/skills/simplicity/SUMMARY.md`
+- Data structures, schemas → `.claude/skills/data-first/SUMMARY.md`
+- Multi-module interaction → `.claude/skills/composition/SUMMARY.md`
+- Auth, secrets, user input → `.claude/skills/security-mindset/SKILL.md`
+- Performance-critical → `.claude/skills/optimization/SUMMARY.md`
+- Complex algorithms → `.claude/skills/algorithms/SUMMARY.md`
+- General / unclear → `.claude/skills/clarity/SUMMARY.md`
+
+This is not optional. Read the file. 50 lines, <1 second.
+It refreshes the design principle before you write, not after.
+
+#### 2b. Write the unit
+Implement the code for this unit following all constraints above.
+
+#### 2c. Compile check
+After writing each unit, run:
+```bash
+npx tsc --noEmit 2>&1 | head -30
+tsx scripts/quality-gate.ts {FILES_JUST_WRITTEN}
+```
+Also self-check: no function > 30 lines, no file > 300 lines.
+
+#### 2d. Fix or proceed
+- **Clean:** Move to the next unit.
+- **Errors:** Fix them NOW. You have full context — this is when fixing
+  is cheapest. Re-run checks. Max 2 fix attempts per unit.
+- **Still failing after 2 attempts:** Note the issue, move on, report at end.
+
+The point: a bad type in file A cascades through files B-E.
+Catching it after A prevents rewriting B-E.
+
+### Step 3: Final Verification
+
+After all units pass the compile loop:
+
+1. **Full type check:**
+   ```bash
+   npx tsc --noEmit
+   ```
+2. **Dead Code Cleanup** - Remove any dead code introduced (see below)
 
 ## WORK_ITEMS Tracking (MANDATORY)
 
@@ -165,6 +215,8 @@ COMPLETED:
 
 REMAINING:
 - WI-5: [not started — reason]
+
+COMPILE_LOOP: {N} units, {M} required fixes, {K} canon refreshes
 
 EXPERTS_LOADED: [list of skill names actually read]
 EXPERT_DECISIONS:

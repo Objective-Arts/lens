@@ -553,10 +553,10 @@ export function checkAbbreviatedNames(files: string[], base: string): Violation[
     const content = fs.readFileSync(file, 'utf-8');
     let match;
     while ((match = exportRegex.exec(content)) !== null) {
-      const name = match[1]!.toLowerCase();
       const lineNum = content.substring(0, match.index).split('\n').length;
+      const words = match[1]!.replace(/([a-z])([A-Z])/g, '$1_$2').toLowerCase().split(/[_\d]+/);
       for (const abbr of BANNED_ABBREVIATIONS) {
-        if (name.includes(abbr)) {
+        if (words.includes(abbr)) {
           violations.push({ file: relativeTo(base, file), line: lineNum, check: 'abbreviated-name', message: `Export '${match[1]}' contains abbreviation '${abbr}'` });
         }
       }

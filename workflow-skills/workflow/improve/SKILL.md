@@ -127,7 +127,7 @@ Parse `ISSUES_FOUND` and `ISSUES_FIXED` from the subagent output when available 
 
 #### Subagent Prompt Template
 
-For phases 1-3, 8 (no MCP tools needed):
+For phases 1-2, 8 (no MCP tools needed):
 
 ```
 Read the skill file at .claude/phases/{SKILL_NAME}/SKILL.md
@@ -135,6 +135,23 @@ and execute ALL of its instructions against: {TARGET}
 
 This is an IMPROVEMENT workflow on existing code. The code already exists.
 Focus on analysis, refactoring, and enhancement rather than greenfield creation.
+
+Follow every step in the skill. Do not skip any steps.
+When complete, end your final message with the marker: {GATE_MARKER}
+```
+
+For phase 3 (implement-plan):
+
+```
+Read the skill file at .claude/phases/{SKILL_NAME}/SKILL.md
+and execute ALL of its instructions against: {TARGET}
+
+This is an IMPROVEMENT workflow on existing code. The code already exists.
+Focus on analysis, refactoring, and enhancement rather than greenfield creation.
+
+IMPORTANT: Follow the compile loop. For each unit: refresh the relevant
+canon principle, write the code, then compile-check before starting the
+next unit. Do not write all code first and check later.
 
 Follow every step in the skill. Do not skip any steps.
 When complete, end your final message with the marker: {GATE_MARKER}
