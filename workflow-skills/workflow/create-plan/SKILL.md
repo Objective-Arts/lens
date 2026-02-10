@@ -160,6 +160,30 @@ These contain patterns that later quality phases (gemini-fix, qodana-fix, advers
 
 If a file doesn't exist, skip it and continue.
 
+### Step 0c: Surface Eval Proposals
+
+Read `.claude/eval-proposals.md` if it exists. This file contains proposals from Phase 10 (eval-feedback) — findings that suggest changes to skills, pipeline, profiles, or config. Each proposal has a status (PENDING, APPLIED, REJECTED).
+
+For each **PENDING** proposal:
+1. Check if it's relevant to the current target (mentions files, patterns, or categories that overlap)
+2. If relevant, incorporate it into your plan:
+   - **SKILL_CHANGE** → note the suggested skill improvement in your plan rationale
+   - **PIPELINE_CHANGE** → flag for the user (pipeline changes are outside plan scope)
+   - **CONFIG_CHANGE** → include the config change as a WORK_ITEM if it affects the target
+   - **DEPENDENCY_CHANGE** → include in DEPENDENCIES section if applicable
+   - **RUBRIC_CHANGE** → note for the user (rubric changes are outside plan scope)
+
+List surfaced proposals in the plan under:
+```markdown
+## EVAL_PROPOSALS_SURFACED:
+- [proposal title]: [how it was incorporated or "flagged for user — outside plan scope"]
+```
+
+If no proposals file exists or no PENDING proposals are relevant, write:
+```markdown
+## EVAL_PROPOSALS_SURFACED: none
+```
+
 ### Step 1: Explore
 
 1. **Explore** - Use Glob, Grep, Read to understand existing code

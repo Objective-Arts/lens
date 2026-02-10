@@ -1,17 +1,17 @@
 ---
 name: build
-description: Build a new feature from scratch. 9-phase quality pipeline with rollback support.
+description: Build a new feature from scratch. 10-phase quality pipeline with rollback support.
 ---
 
 # /build [path|description] [--rollback] [--dry-run]
 
-Build a new feature, component, or module from scratch using the full 9-phase quality pipeline.
+Build a new feature, component, or module from scratch using the full 10-phase quality pipeline.
 
 > **No arguments?** Describe this skill and stop. Do not execute.
 
 ## What Is This?
 
-`/build` is the **heavy workflow** for creating new code. It runs 9 phases in sequence:
+`/build` is the **heavy workflow** for creating new code. It runs 10 phases in sequence:
 
 1. **create-plan** — Design the feature with scope, files, and risks
 2. **structure-first** — Define data structures and interfaces
@@ -20,8 +20,9 @@ Build a new feature, component, or module from scratch using the full 9-phase qu
 5. **dedupe-fix** — Consolidate duplicated code
 6. **gemini-fix** — External code review via Gemini + product quality review
 7. **adversarial-security-review** — Security audit
-8. **write-tests-run** — Write and run tests
-9. **ai-smell-fix** — Remove AI-generated antipatterns
+8. **ai-smell-fix** — Remove AI-generated antipatterns
+9. **write-tests-run** — Write and run tests (final inspection)
+10. **eval-feedback** — External evaluation + feedback routing (scores project, routes findings)
 
 Script gates at 3.5, 6.5, and 9.5 run lint, quality checks, and Qodana without burning AI context. Each phase must pass its gate before the next begins. A rollback point is created before any changes.
 
@@ -52,7 +53,7 @@ Script gates at 3.5, 6.5, and 9.5 run lint, quality checks, and Qodana without b
 
 | Flag | Purpose |
 |------|---------|
-| `--dry-run` | Show the 9 phases without executing |
+| `--dry-run` | Show the 10 phases without executing |
 | `--rollback` | Restore from last build stash |
 
 ## Orchestrator Rules
@@ -93,9 +94,10 @@ If `--dry-run` flag is set, print the phase table below and stop. Do not run any
 | 6 | gemini-fix | sonnet | FIX_COMPLETE | Gemini code + product quality review |
 | 6.5 | **machine-gate** | **none/haiku** | exit code 0 | Qodana scan; Haiku fixer only if issues found |
 | 7 | adversarial-security-review | sonnet | VERIFIED_CLEAN | Gemini reviews, agent applies |
-| 8 | write-tests-run | sonnet | TEST_COMPLETE | |
-| 9 | ai-smell-fix | haiku | AI_SMELL_COMPLETE | Pattern-match and apply |
+| 8 | ai-smell-fix | haiku | AI_SMELL_COMPLETE | Pattern-match and apply |
+| 9 | write-tests-run | sonnet | TEST_COMPLETE | Final inspection |
 | 9.5 | **machine-gate** | **none** | exit code 0 | npm test + quality-gate (final) |
+| 10 | eval-feedback | sonnet | EVAL_COMPLETE | Read-only: scores + routes findings |
 
 ## Execution
 
@@ -127,7 +129,7 @@ Parse `ISSUES_FOUND` and `ISSUES_FIXED` from the subagent output when available 
 
 #### Subagent Prompt Template
 
-For phases 1-2, 8 (no MCP tools needed):
+For phases 1-2, 9 (no MCP tools needed):
 
 ```
 Read the skill file at .claude/phases/{SKILL_NAME}/SKILL.md
@@ -151,7 +153,7 @@ Follow every step in the skill. Do not skip any steps.
 When complete, end your final message with the marker: {GATE_MARKER}
 ```
 
-For phases 4-5, 9 (review phases, no MCP tools) — add complexity budget:
+For phases 4-5, 8 (review phases, no MCP tools) — add complexity budget:
 
 ```
 Read the skill file at .claude/phases/{SKILL_NAME}/SKILL.md
@@ -188,6 +190,32 @@ COMPLEXITY BUDGET: Review phases must not increase overall complexity.
 After your changes, the codebase must have the same or fewer: files,
 exported functions, types/interfaces, and total lines. If your fix
 adds lines, find lines elsewhere to remove. Net-zero or net-negative.
+```
+
+For phase 10 (eval-feedback) — read-only evaluation:
+
+```
+Read the skill file at workflow-skills/workflow/eval-feedback/SKILL.md
+and execute ALL of its instructions against: {TARGET}
+
+You have access to the mcp__gemini-reviewer__gemini_review tool for evaluation.
+Use it as instructed by the skill.
+
+CRITICAL: This phase is READ-ONLY. Do NOT modify any source code files.
+You may only write to: .claude/eval-report.md, .claude/eval-proposals.md,
+.claude/lessons.md, and workflow-skills/lessons.md.
+
+CLEAN-SLATE RULE: Do NOT read any prior phase artifacts before scoring.
+No .claude/evidence/, no .claude/create-plans/, no build/improve logs.
+Evaluate the source code with fresh eyes. Only read lessons.md files
+during the deduplication step AFTER scoring is complete.
+
+WRITE VERIFICATION: After writing outputs, you MUST re-read the files
+to confirm lessons and proposals were actually persisted. Do not emit
+EVAL_COMPLETE until verification passes.
+
+Follow every step in the skill. Do not skip any steps.
+When complete, end your final message with the marker: EVAL_COMPLETE
 ```
 
 #### Machine Gate 3.5 (Post-Implementation)
@@ -351,7 +379,7 @@ Do not proceed to Phase 2 until the user explicitly approves.
 
 ### Step 3: Cleanup
 
-After all 9 phases complete, remove evidence artifacts:
+After all 10 phases complete, remove evidence artifacts:
 
 ```bash
 rm -rf {TARGET}/.claude/evidence/
@@ -380,8 +408,9 @@ Build: {TARGET}
   5. dedupe-fix → {one-line summary}
   6. gemini-fix → {one-line summary}
   7. adversarial-security-review → {one-line summary}
-  8. write-tests-run → {one-line summary}
-  9. ai-smell-fix → {one-line summary}
+  8. ai-smell-fix → {one-line summary}
+  9. write-tests-run → {one-line summary}
+ 10. eval-feedback → {score}/10 production readiness, {N} lessons, {N} proposals
   Done
 
 Rollback available: /build --rollback
@@ -391,8 +420,8 @@ Rollback available: /build --rollback
 
 | Workflow | When to Use | Phases |
 |----------|-------------|--------|
-| `/build` | New feature from scratch | 9 |
-| `/improve` | Refine existing code | 9 |
+| `/build` | New feature from scratch | 10 |
+| `/improve` | Refine existing code | 10 |
 | `/quick-edit` | Add field, rename, small fix | 0 |
 | `/quick-clean` | Fast AI smell cleanup | 0 |
 | `/ralph-loop` | Full PRD implementation | 10 per item |
