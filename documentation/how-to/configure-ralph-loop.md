@@ -114,10 +114,10 @@ With options:
 
 ## Understanding the Pipeline
 
-Ralph runs this 12-phase pipeline for each PRD item:
+Ralph runs this 9-phase pipeline for each PRD item:
 
 ```
-create-plan → structure-first → implement-plan → [machine gate] → refactor-check-fix → dedupe-fix → gemini-fix → qodana-fix → [machine gate] → adversarial-security-review → write-tests-run → ai-smell-fix → codex-fix → [machine gate] → write-tests-run
+create-plan → structure-first → implement-plan → [machine gate] → refactor-check-fix → dedupe-fix → gemini-fix → [machine gate] → adversarial-security-review → write-tests-run → ai-smell-fix → [machine gate]
 ```
 
 Machine gates run `npm run build && npm test` between phase groups.

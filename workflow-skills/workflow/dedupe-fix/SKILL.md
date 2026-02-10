@@ -46,9 +46,20 @@ Duplication is a form of technical debt. The consolidated code must look like it
 Before starting, read these canon skills and apply their principles throughout:
 
 **Always load:**
-1. `.claude/skills/composition/SKILL.md`
-2. `.claude/skills/clarity/SKILL.md`
-3. `.claude/skills/simplicity/SKILL.md`
+1. `canon/composition/SKILL.md`
+2. `canon/clarity/SKILL.md`
+3. `canon/simplicity/SKILL.md`
+
+**Auto-detect language canon (check files, load matches):**
+
+| Check | If found, also read |
+|-------|---------------------|
+| `*.ts` or `*.js` files in target | `canon/javascript/typescript/SUMMARY.md`, `canon/javascript/js-safety/SUMMARY.md`, `canon/javascript/js-perf/SUMMARY.md`, `canon/javascript/js-internals/SUMMARY.md`, `canon/javascript/functional/SUMMARY.md` |
+| `angular.json` in project root | `canon/angular/angular-arch/SUMMARY.md`, `canon/angular/angular-core/SUMMARY.md`, `canon/angular/angular-perf/SUMMARY.md`, `canon/angular/rxjs/SUMMARY.md` |
+| `package.json` contains `"react"` | `canon/javascript/react-state/SUMMARY.md`, `canon/javascript/react-test/SUMMARY.md`, `canon/javascript/reactivity/SUMMARY.md` |
+| `pom.xml` or `build.gradle` in project | `canon/java/SUMMARY.md` |
+| `*.py` files in target | `canon/python/python-advanced/SUMMARY.md`, `canon/python/python-idioms/SUMMARY.md`, `canon/python/python-patterns/SUMMARY.md`, `canon/python/python-protocols/SUMMARY.md` |
+| `*.cs` files or `*.csproj` in project | `canon/csharp/csharp-depth/SUMMARY.md`, `canon/csharp/type-systems/SUMMARY.md`, `canon/csharp/async/SUMMARY.md` |
 
 If a skill file doesn't exist (not installed in this project), skip it and continue.
 List loaded experts in EXPERTS_LOADED output.

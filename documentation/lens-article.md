@@ -31,17 +31,17 @@ Domain profiles add targeted expertise. The `frontend` profile adds 12 UI/UX ski
 
 When a profile is applied, skills install as real files in the project's `.claude/skills/` directory. They're versioned, diffable, and upgradeable. If a skill is updated in the Lens canon, you can see the diff and choose whether to upgrade. Local modifications are preserved. This is deliberate: expertise should be inspectable and ownable, not a black box.
 
-## The 12-phase pipeline: systematic quality at scale
+## The 9-phase pipeline: systematic quality at scale
 
-Skills alone shape how Claude writes code in a single interaction. But real development involves sequences of decisions — architecture, implementation, testing, review, cleanup — where the output of each phase feeds the next. Lens addresses this with a 12-phase build/improve pipeline, invoked with `/build` or `/improve`.
+Skills alone shape how Claude writes code in a single interaction. But real development involves sequences of decisions — architecture, implementation, testing, review, cleanup — where the output of each phase feeds the next. Lens addresses this with a 9-phase build/improve pipeline, invoked with `/build` or `/improve`.
 
-The pipeline takes a feature description and processes it through twelve phases with three machine gates:
+The pipeline takes a feature description and processes it through nine phases with three machine gates:
 
-**Phases 1-3: Design and implement.** `create-plan` designs the approach, identifying scope, files, risks, and decision points. `structure-first` defines data structures and interfaces before any implementation — following the principle that getting the data right makes the algorithms obvious. `implement-plan` writes the code, guided by the active canon skills. A machine gate then runs `npm run build && npm test` to verify the implementation compiles and existing tests pass.
+**Phases 1-3: Design and implement.** `create-plan` designs the approach, identifying scope, files, risks, and decision points. `structure-first` defines data structures and interfaces before any implementation — following the principle that getting the data right makes the algorithms obvious. `implement-plan` writes the code, guided by the active canon skills. A machine gate then runs `npm run build && npm test` plus a construction check to verify the implementation compiles and existing tests pass.
 
-**Phases 4-7: Clean and review.** `refactor-check-fix` enforces structural constraints: functions under 30 lines, files under 300 lines, clear naming, single responsibility. `dedupe-fix` consolidates duplicated code. Then two external reviewers weigh in: `gemini-fix` sends the code to Google's Gemini model for an independent review, and `qodana-fix` runs JetBrains' static analysis engine. Another machine gate verifies the build after these changes.
+**Phases 4-6: Clean and review.** `refactor-check-fix` enforces structural constraints: functions under 30 lines, files under 300 lines, clear naming, single responsibility. `dedupe-fix` consolidates duplicated code. Then `gemini-fix` sends the code to Google's Gemini model for an independent code and product quality review. Another machine gate runs Qodana static analysis, with a Haiku fixer addressing any issues found.
 
-**Phases 8-12: Harden and verify.** `adversarial-security-review` examines the code from an attacker's perspective — looking for injection points, trust boundary violations, and data exposure. `write-tests-run` writes and executes tests covering happy paths, error cases, edge cases, and non-happy-path categories like corrupted data recovery, lock contention, and path traversal. `ai-smell-fix` removes patterns that are characteristic of AI-generated code: single-use helper functions, defensive paranoia, speculative features, comment spam. `codex-fix` runs a fast pattern scan for remaining issues. A final machine gate and test re-run confirm everything still passes.
+**Phases 7-9: Harden and verify.** `adversarial-security-review` examines the code from an attacker's perspective — looking for injection points, trust boundary violations, and data exposure. `write-tests-run` writes and executes tests covering happy paths, error cases, edge cases, and non-happy-path categories like corrupted data recovery, lock contention, and path traversal. `ai-smell-fix` removes patterns that are characteristic of AI-generated code: single-use helper functions, defensive paranoia, speculative features, comment spam. A final machine gate and test re-run confirm everything still passes.
 
 Each phase must produce structured output with specific markers before the next phase begins. There is no hand-waving. If a phase says "ISSUES_FOUND: 3," it must list all three with severity, description, file, and line number. If it says "VERIFIED_CLEAN: yes," the canary system may have planted known violations to verify that claim.
 
@@ -85,7 +85,7 @@ A single command — `/ralph-loop requirements.md` — can implement an entire P
 
 ## Current state and what it means
 
-Lens ships as `@objective-arts/lens`, a Node.js CLI tool installable via npm. It has 75 canon skills, 14 profiles, 29 workflow skills, a 12-phase pipeline, five enforcement layers, a self-learning feedback loop, and an autonomous implementation system. The documentation follows the Diataxis framework across tutorials, how-to guides, reference material, and explanatory articles.
+Lens ships as `@objective-arts/lens`, a Node.js CLI tool installable via npm. It has 75 canon skills, 14 profiles, 29 workflow skills, a 9-phase pipeline, five enforcement layers, a self-learning feedback loop, and an autonomous implementation system. The documentation follows the Diataxis framework across tutorials, how-to guides, reference material, and explanatory articles.
 
 The fundamental bet Lens makes is this: the bottleneck in AI-assisted development is not code generation. It's code quality. AI can write code faster than any human. But without the judgment that experienced engineers bring — judgment about architecture, security, maintainability, and the thousand small decisions that separate production code from prototype code — speed just means you produce technical debt faster.
 

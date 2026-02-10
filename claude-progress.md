@@ -59,7 +59,7 @@ Two major tasks completed this session: documentation rewrite (32 files) and tes
 - `OVERVIEW.txt`
 
 ### Major edits (documentation)
-- `CLI-README.md` — Full rewrite: 10→12 phases, MIT→Proprietary, added command reference
+- `CLI-README.md` — Full rewrite: 10→9 phases, MIT→Proprietary, added command reference
 - `documentation/canon-enforcement-map.md` — 64→75 skills, added 11 missing skills section
 - `documentation/reference/installation.md` — Removed cli/ subdir references, fixed paths
 - `documentation/how-to/use-quality-flags.md` — Full rewrite: deprecated flags → /build /improve pipeline
@@ -72,7 +72,7 @@ Two major tasks completed this session: documentation rewrite (32 files) and tes
 - `scripts/quality-gate.test.ts` — `app.ts`→`index.ts` to avoid missing-test proxy check
 
 ## Context to Restore
-- Ground truth metrics: 75 canon skills, 14 profiles, 12 phases + 3 machine gates, 29 workflow skills, @objective-arts/lens v0.2.0, UNLICENSED/Proprietary
+- Ground truth metrics: 75 canon skills, 14 profiles, 9 phases + 3 machine gates, 29 workflow skills, @objective-arts/lens v0.2.0, UNLICENSED/Proprietary
 - Verification greps all pass: 0 matches for "64 skills", "10-phase", "MIT", "Claude Optimal"
 - All `cli/` references in docs are valid `src/cli/` source paths
 - The investor doc is at `/Users/steve/Dropbox/projects/prefix/OA Lens/OA Lens Summary - edited.docx` — Nectar is the portfolio company (not a fund), investor is unnamed

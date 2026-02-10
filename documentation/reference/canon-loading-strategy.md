@@ -39,7 +39,7 @@ Every workflow loads these 10 skills:
 
 **Location**: `config/workflow-phases.yaml`
 
-Defines the 12-phase Ralph workflow and skills for each phase.
+Defines the 9-phase Ralph workflow and skills for each phase.
 
 ```yaml
 phases:
@@ -70,12 +70,9 @@ ralph-sequence:
   - refactor-check-fix
   - dedupe-fix
   - gemini-fix
-  - qodana-fix
   - adversarial-security-review
   - write-tests-run
   - ai-smell-fix
-  - codex-fix
-  - write-tests-run
 ```
 
 ### keyword-detection.yaml
@@ -123,25 +120,22 @@ From profile.yaml       From phase config      From task text
 
 ---
 
-## The 12-Phase Workflow
+## The 9-Phase Workflow
 
 | # | Phase | Description | Key Skills |
 |---|-------|-------------|------------|
 | 1 | create-plan | Understand requirements | clarity, simplicity, correctness, resilience, safety |
 | 2 | structure-first | Design types and data structures | data-first, typescript, java, design-patterns |
 | 3 | implement-plan | Write the code | pragmatism, clarity, simplicity, composition |
-| | **Machine Gate** | `npm run build && npm test` | |
+| 3.5 | **Machine Gate** | quality-gate + construction check | |
 | 4 | refactor-check-fix | Simplify and clean | clarity, pragmatism, design-patterns |
 | 5 | dedupe-fix | Remove duplication | composition, clarity, simplicity |
-| 6 | gemini-fix | External code review | (Gemini MCP) |
-| 7 | qodana-fix | Static analysis | (Qodana MCP) |
-| | **Machine Gate** | `npm run build && npm test` | |
-| 8 | adversarial-security-review | Attack your code | security-mindset, owasp, failure, safety |
-| 9 | write-tests-run | Write and run tests | test-doubles, test-strategy |
-| 10 | ai-smell-fix | Remove AI patterns | (antipattern detection) |
-| 11 | codex-fix | Fast pattern scan | (pattern matching) |
-| | **Machine Gate** | `npm run build && npm test` | |
-| 12 | write-tests-run | Re-verify tests | test-doubles, test-strategy |
+| 6 | gemini-fix | External code + product quality review | (Gemini MCP) |
+| 6.5 | **Machine Gate** | Qodana scan; Haiku fixer if issues found | |
+| 7 | adversarial-security-review | Attack your code | security-mindset, owasp, failure, safety |
+| 8 | write-tests-run | Write and run tests | test-doubles, test-strategy |
+| 9 | ai-smell-fix | Remove AI patterns | (antipattern detection) |
+| 9.5 | **Machine Gate** | `npm test` + quality-gate (final) | |
 
 ---
 

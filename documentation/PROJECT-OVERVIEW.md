@@ -78,27 +78,24 @@ autoInvoke:
 
 Or invoke directly: `/clarity`, `/security-mindset`, `/charts`
 
-### 4. Build/Improve Pipeline (12 Phases)
+### 4. Build/Improve Pipeline (9 Phases)
 
-The `/build` and `/improve` commands run a 12-phase quality pipeline with machine gates between phases:
+The `/build` and `/improve` commands run a 9-phase quality pipeline with 3 machine gates between phase groups:
 
 | # | Phase | Purpose |
 |---|-------|---------|
 | 1 | `create-plan` | Design approach, scope, files, risks |
 | 2 | `structure-first` | Define data structures and interfaces |
 | 3 | `implement-plan` | Write the code |
-| 3.5 | *machine-gate* | `npm run build && npm test` |
+| 3.5 | *machine-gate* | `npm run build && npm test` + construction check |
 | 4 | `refactor-check-fix` | Enforce constraints (30 lines/fn, 300 lines/file) |
 | 5 | `dedupe-fix` | Consolidate duplicated code |
-| 6 | `gemini-fix` | External code review via Gemini MCP |
-| 7 | `qodana-fix` | Static analysis via Qodana MCP |
-| 7.5 | *machine-gate* | `npm run build && npm test` |
-| 8 | `adversarial-security-review` | Security audit (attacker mindset) |
-| 9 | `write-tests-run` | Write and run tests |
-| 10 | `ai-smell-fix` | Deep AI smell removal |
-| 11 | `codex-fix` | Fast pattern scan + targeted fixes |
-| 11.5 | *machine-gate* | `npm run build && npm test` |
-| 12 | `write-tests-run` | Re-verify tests after cleanup |
+| 6 | `gemini-fix` | External code review + product quality via Gemini MCP |
+| 6.5 | *machine-gate* | Qodana scan; Haiku fixer only if issues found |
+| 7 | `adversarial-security-review` | Security audit (attacker mindset) |
+| 8 | `write-tests-run` | Write and run tests |
+| 9 | `ai-smell-fix` | Deep AI smell removal |
+| 9.5 | *machine-gate* | `npm test` + quality-gate (final) |
 
 Each phase must pass its gate marker before the next begins.
 
@@ -154,12 +151,12 @@ Interactive skills for quality control:
 | `/ai-smell-scan` | Detect AI code smells | No |
 | `/write-tests-run` | Write and run tests | Yes |
 | `/generate-docs` | Generate Diataxis documentation | Yes |
-| `/build` | Build new feature (12 phases) | Yes |
-| `/improve` | Improve existing code (12 phases) | Yes |
+| `/build` | Build new feature (9 phases) | Yes |
+| `/improve` | Improve existing code (9 phases) | Yes |
 | `/quick-edit` | Simple changes (add field, rename) | Yes |
 | `/quick-clean` | Fast AI smell cleanup | Yes |
 | `/final-polish` | Final refinement for senior review | Yes |
-| `/codex-fix` | Fast pattern scan + targeted fixes | Yes |
+| `/codex-scan` | Codex pattern scan (report only) | No |
 
 Use individually or let Ralph Loop orchestrate them automatically.
 

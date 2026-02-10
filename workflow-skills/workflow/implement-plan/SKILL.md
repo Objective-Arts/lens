@@ -85,20 +85,31 @@ You MUST follow these constraints EXACTLY:
 Before starting, read these canon skills and apply their principles throughout:
 
 **Always load (base brain — all 10):**
-1. `.claude/skills/clarity/SUMMARY.md`
-2. `.claude/skills/pragmatism/SUMMARY.md`
-3. `.claude/skills/simplicity/SUMMARY.md`
-4. `.claude/skills/composition/SUMMARY.md`
-5. `.claude/skills/distributed/SUMMARY.md`
-6. `.claude/skills/data-first/SUMMARY.md`
-7. `.claude/skills/correctness/SUMMARY.md`
-8. `.claude/skills/algorithms/SUMMARY.md`
-9. `.claude/skills/abstraction/SUMMARY.md`
-10. `.claude/skills/optimization/SUMMARY.md`
+1. `canon/clarity/SUMMARY.md`
+2. `canon/pragmatism/SUMMARY.md`
+3. `canon/simplicity/SUMMARY.md`
+4. `canon/composition/SUMMARY.md`
+5. `canon/distributed/SUMMARY.md`
+6. `canon/data-first/SUMMARY.md`
+7. `canon/correctness/SUMMARY.md`
+8. `canon/algorithms/SUMMARY.md`
+9. `canon/abstraction/SUMMARY.md`
+10. `canon/optimization/SUMMARY.md`
 
-**Load if applicable to target code:**
-- TypeScript files (.ts) → also read `.claude/skills/typescript/SKILL.md`
-- Auth, tokens, passwords, encryption → also read `.claude/skills/security-mindset/SKILL.md` and `.claude/skills/owasp/SKILL.md`
+**Auto-detect domain canon (check files, load matches):**
+
+| Check | If found, also read |
+|-------|---------------------|
+| `*.ts` or `*.js` files in target | `canon/javascript/typescript/SUMMARY.md`, `canon/javascript/js-safety/SUMMARY.md`, `canon/javascript/js-perf/SUMMARY.md`, `canon/javascript/js-internals/SUMMARY.md`, `canon/javascript/functional/SUMMARY.md` |
+| `angular.json` in project root | `canon/angular/angular-arch/SUMMARY.md`, `canon/angular/angular-core/SUMMARY.md`, `canon/angular/angular-perf/SUMMARY.md`, `canon/angular/rxjs/SUMMARY.md` |
+| `package.json` contains `"react"` | `canon/javascript/react-state/SUMMARY.md`, `canon/javascript/react-test/SUMMARY.md`, `canon/javascript/reactivity/SUMMARY.md` |
+| `pom.xml` or `build.gradle` in project | `canon/java/SUMMARY.md` |
+| `*.py` files in target | `canon/python/python-advanced/SUMMARY.md`, `canon/python/python-idioms/SUMMARY.md`, `canon/python/python-patterns/SUMMARY.md`, `canon/python/python-protocols/SUMMARY.md` |
+| `*.cs` files or `*.csproj` in project | `canon/csharp/csharp-depth/SUMMARY.md`, `canon/csharp/type-systems/SUMMARY.md`, `canon/csharp/async/SUMMARY.md` |
+| `.tsx`, `.jsx`, or HTML template files | `canon/ui-ux/components/SUMMARY.md`, `canon/ui-ux/usability/SUMMARY.md`, `canon/ui-ux/tokens/SUMMARY.md` |
+| `d3` in package.json or imports | `canon/visualization/d3/SUMMARY.md`, `canon/visualization/charts/SUMMARY.md`, `canon/visualization/dashboards/SUMMARY.md` |
+| SQL files or ORM imports | `canon/database/sql/SUMMARY.md`, `canon/database/sql-perf/SUMMARY.md` |
+| Auth, tokens, secrets, encryption | `canon/security/security-mindset/SUMMARY.md`, `canon/security/owasp/SUMMARY.md`, `canon/security/web-security/SUMMARY.md` |
 
 If a skill file doesn't exist (not installed in this project), skip it and continue.
 List loaded experts in EXPERTS_LOADED. In EXPERT_DECISIONS, show each specific decision an expert drove with file:line.
@@ -136,14 +147,17 @@ For each unit from the plan:
 #### 2a. Canon refresh
 Before writing this unit, reread the ONE canon SUMMARY.md most relevant
 to what this unit does:
-- File I/O, errors, external calls → `.claude/skills/correctness/SUMMARY.md`
-- API surface, public types → `.claude/skills/simplicity/SUMMARY.md`
-- Data structures, schemas → `.claude/skills/data-first/SUMMARY.md`
-- Multi-module interaction → `.claude/skills/composition/SUMMARY.md`
-- Auth, secrets, user input → `.claude/skills/security-mindset/SKILL.md`
-- Performance-critical → `.claude/skills/optimization/SUMMARY.md`
-- Complex algorithms → `.claude/skills/algorithms/SUMMARY.md`
-- General / unclear → `.claude/skills/clarity/SUMMARY.md`
+- File I/O, errors, external calls → `canon/correctness/SUMMARY.md`
+- API surface, public types → `canon/simplicity/SUMMARY.md`
+- Data structures, schemas → `canon/data-first/SUMMARY.md`
+- Multi-module interaction → `canon/composition/SUMMARY.md`
+- Auth, secrets, user input → `canon/security/security-mindset/SUMMARY.md`
+- Performance-critical → `canon/optimization/SUMMARY.md`
+- Complex algorithms → `canon/algorithms/SUMMARY.md`
+- UI components, templates → best match from loaded UI/UX canon
+- Database queries, ORM → best match from loaded database canon
+- Reactive/observable patterns → `canon/angular/rxjs/SUMMARY.md` or `canon/javascript/reactivity/SUMMARY.md`
+- General / unclear → `canon/clarity/SUMMARY.md`
 
 This is not optional. Read the file. 50 lines, <1 second.
 It refreshes the design principle before you write, not after.

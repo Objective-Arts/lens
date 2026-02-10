@@ -108,7 +108,7 @@ See [Installation Reference](reference/installation.md) for complete setup guide
 
 | File | Location | Purpose |
 |------|----------|---------|
-| workflow-phases.yaml | `config/workflow-phases.yaml` | 12-phase workflow with experts |
+| workflow-phases.yaml | `config/workflow-phases.yaml` | 9-phase workflow with experts |
 | keyword-detection.yaml | `config/keyword-detection.yaml` | Dynamic keyword-based expert detection |
 | Profiles | `profiles/*.yaml` | Project type configurations |
 | Canon Skills | `canon/*/SKILL.md` | Expert guidance content |

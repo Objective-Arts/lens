@@ -17,15 +17,15 @@ This document contains proprietary and confidential information. Unauthorized re
 
 | Situation | Command | Phases |
 |-----------|---------|--------|
-| New feature from scratch | `/build` | 12 phases |
-| Improve existing code | `/improve` | 12 phases |
+| New feature from scratch | `/build` | 9 phases |
+| Improve existing code | `/improve` | 9 phases |
 | Simple change (add field, rename) | `/quick-edit` | Checklist only |
 | Post-edit cleanup | `/quick-clean` | Smell check only |
 | Pre-PR polish | `/final-polish` | Review checklist |
 
 ## Using /build
 
-Build a new feature through the full 12-phase quality pipeline:
+Build a new feature through the full 9-phase quality pipeline:
 
 ```
 /build user authentication system
@@ -42,21 +42,18 @@ Build a new feature through the full 12-phase quality pipeline:
 | 3.5 | *machine gate* | `npm run build && npm test` |
 | 4 | refactor-check-fix | Enforce constraints (30 lines/fn, 300 lines/file) |
 | 5 | dedupe-fix | Consolidate duplicated code |
-| 6 | gemini-fix | External code review via Gemini |
-| 7 | qodana-fix | Static analysis via Qodana |
-| 7.5 | *machine gate* | `npm run build && npm test` |
-| 8 | adversarial-security-review | Security audit (attacker mindset) |
-| 9 | write-tests-run | Write and run tests |
-| 10 | ai-smell-fix | Remove AI-generated antipatterns |
-| 11 | codex-fix | Fast pattern scan + targeted fixes |
-| 11.5 | *machine gate* | `npm run build && npm test` |
-| 12 | write-tests-run | Re-verify tests after cleanup |
+| 6 | gemini-fix | External code review + product quality via Gemini |
+| 6.5 | *machine gate* | Qodana scan; Haiku fixer only if issues found |
+| 7 | adversarial-security-review | Security audit (attacker mindset) |
+| 8 | write-tests-run | Write and run tests |
+| 9 | ai-smell-fix | Remove AI-generated antipatterns |
+| 9.5 | *machine gate* | `npm test` + quality-gate (final) |
 
 ### Flags
 
 | Flag | Purpose |
 |------|---------|
-| `--dry-run` | Show the 12 phases without executing |
+| `--dry-run` | Show the 9 phases without executing |
 | `--rollback` | Restore from last build stash |
 
 ### Dry Run
@@ -79,7 +76,7 @@ This restores from the git stash created at the start.
 
 ## Using /improve
 
-Same 12-phase pipeline, but focused on existing code:
+Same 9-phase pipeline, but focused on existing code:
 
 ```
 /improve src/services/auth/
@@ -88,7 +85,7 @@ Same 12-phase pipeline, but focused on existing code:
 
 | Flag | Purpose |
 |------|---------|
-| `--dry-run` | Show the 12 phases without executing |
+| `--dry-run` | Show the 9 phases without executing |
 | `--rollback` | Restore from last improve stash |
 
 ## Using Individual Phase Skills

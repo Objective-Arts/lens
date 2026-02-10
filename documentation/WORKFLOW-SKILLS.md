@@ -38,17 +38,17 @@ workflow-skills/
 ## The Development Loop
 
 ```
-┌─────────────────────────────────────────────────────────────────────────────┐
-│                                                                             │
-│ /create-plan → /structure-first → /implement-plan → [machine-gate]          │
-│                                                                             │
-│ → /refactor-check-fix → /dedupe-fix → /gemini-fix → /qodana-fix            │
-│                                                                             │
-│ → [machine-gate] → /adversarial-security-review → /write-tests-run         │
-│                                                                             │
-│ → /ai-smell-fix → /codex-fix → [machine-gate] → /write-tests-run (final) │
-│                                                                             │
-└─────────────────────────────────────────────────────────────────────────────┘
+┌──────────────────────────────────────────────────────────────────────────┐
+│                                                                          │
+│ /create-plan → /structure-first → /implement-plan → [machine-gate]       │
+│                                                                          │
+│ → /refactor-check-fix → /dedupe-fix → /gemini-fix → [machine-gate]      │
+│                                                                          │
+│ → /adversarial-security-review → /write-tests-run → /ai-smell-fix       │
+│                                                                          │
+│ → [machine-gate]                                                         │
+│                                                                          │
+└──────────────────────────────────────────────────────────────────────────┘
 ```
 
 ---
@@ -389,11 +389,11 @@ See [AI Smell Index Reference](reference/ai-smell-index.md) for full scoring det
 
 ---
 
-## Heavy Workflows (12 Phases)
+## Heavy Workflows (9 Phases)
 
 ### `/build [path|description] [--rollback] [--dry-run]`
 
-**Purpose:** Build a new feature from scratch with full 12-phase quality pipeline.
+**Purpose:** Build a new feature from scratch with full 9-phase quality pipeline.
 
 **When to use:**
 - New feature from PRD
@@ -403,10 +403,10 @@ See [AI Smell Index Reference](reference/ai-smell-index.md) for full scoring det
 **Flags:**
 | Flag | Purpose |
 |------|---------|
-| `--dry-run` | Show the 12 phases without executing |
+| `--dry-run` | Show the 9 phases without executing |
 | `--rollback` | Restore from last build stash |
 
-**The 12 Phases:**
+**The 9 Phases:**
 | # | Skill | Purpose |
 |---|-------|---------|
 | 1 | create-plan | Design feature scope and files |
@@ -414,13 +414,12 @@ See [AI Smell Index Reference](reference/ai-smell-index.md) for full scoring det
 | 3 | implement-plan | Write the code |
 | 4 | refactor-check-fix | Clean up, apply patterns |
 | 5 | dedupe-fix | Consolidate duplicated code |
-| 6 | gemini-fix | Gemini review, fix ALL issues |
-| 7 | qodana-fix | Static analysis, fix ALL issues |
-| 8 | adversarial-security-review | Security audit, fix vulnerabilities |
-| 9 | write-tests-run | Write/update tests |
-| 10 | ai-smell-fix | Remove AI-generated antipatterns |
-| 11 | codex-fix | Fast pattern scan + targeted fixes |
-| 12 | write-tests-run | Re-verify after cleanup |
+| 6 | gemini-fix | Gemini review + product quality, fix ALL issues |
+| 7 | adversarial-security-review | Security audit, fix vulnerabilities |
+| 8 | write-tests-run | Write/update tests |
+| 9 | ai-smell-fix | Remove AI-generated antipatterns |
+
+Machine gates at 3.5 (build+test+construction), 6.5 (Qodana scan), 9.5 (final tests).
 
 **Rollback:** Creates git stash before changes. Use `--rollback` to restore.
 
@@ -437,7 +436,7 @@ See [AI Smell Index Reference](reference/ai-smell-index.md) for full scoring det
 
 ### `/improve [path] [--rollback] [--dry-run]`
 
-**Purpose:** Improve existing code with full 12-phase quality pipeline.
+**Purpose:** Improve existing code with full 9-phase quality pipeline.
 
 **When to use:**
 - Refactoring a module
@@ -448,10 +447,10 @@ See [AI Smell Index Reference](reference/ai-smell-index.md) for full scoring det
 **Flags:**
 | Flag | Purpose |
 |------|---------|
-| `--dry-run` | Show the 12 phases without executing |
+| `--dry-run` | Show the 9 phases without executing |
 | `--rollback` | Restore from last improve stash |
 
-**The 12 Phases:** Same as `/build`, but focused on existing code analysis and improvement.
+**The 9 Phases:** Same as `/build`, but focused on existing code analysis and improvement.
 
 **Rollback:** Creates git stash before changes. Use `--rollback` to restore.
 
@@ -614,8 +613,8 @@ See [AI Smell Index Reference](reference/ai-smell-index.md) for full scoring det
 | Skill | When to Use | Modifies Code |
 |-------|-------------|---------------|
 | `/lens` | Start here — status and choices | No |
-| `/build` | New feature from scratch (12 phases) | Yes |
-| `/improve` | Refine existing code (12 phases) | Yes |
+| `/build` | New feature from scratch (9 phases) | Yes |
+| `/improve` | Refine existing code (9 phases) | Yes |
 | `/quick-edit` | Add field, rename, small fix | Yes |
 | `/quick-clean` | Fast AI smell cleanup | Yes |
 | `/codex-fix` | Fast pattern scan + targeted fixes | Yes |

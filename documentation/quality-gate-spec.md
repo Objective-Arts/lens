@@ -168,7 +168,7 @@ Canon: `security-mindset/SUMMARY.md` hard gate #3
 - Gemini lists: every input boundary, what validation runs before business logic
 - Validation: row count must equal input boundary count
 
-#### Phase 7: codex-fix
+#### Phase 7: adversarial-security-review
 
 Produces 1 checklist:
 
@@ -229,10 +229,10 @@ Phase 6: gemini-fix
 Gate 6.5: npm run quality-gate validate-evidence gemini
   → same validation
 
-Phase 7: codex-fix
-  → writes .claude/evidence/codex-7a.md
+Phase 7: adversarial-security-review
+  → writes .claude/evidence/security-7a.md
 
-Gate 7.5: npm run quality-gate validate-evidence codex
+Gate 7.5: npm run quality-gate validate-evidence security
   → same validation
 ```
 
@@ -373,12 +373,10 @@ Phase 6: gemini-fix
   → if missed: rerun Phase 6 once
   → if missed again: halt
 
-Phase 7: codex-fix
-  Pre:  quality-gate insert-canaries codex (plants 3-5 violations, writes manifest)
-  Run:  Codex reviews and writes evidence checklist
-  Post: quality-gate validate-canaries codex (checks detection, restores files)
-  → if missed: rerun Phase 7 once
-  → if missed again: halt
+Phase 7: adversarial-security-review
+  Run:  Security review with evidence checklist
+  Post: quality-gate validate-evidence security
+  → if incomplete: rerun Phase 7 once
 ```
 
 ### Why Not Canary Claude's Self-Review?

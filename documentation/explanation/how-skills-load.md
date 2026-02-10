@@ -90,7 +90,7 @@ Set once when you configure the project:
 
 ## Layer 3: Phase (What You're Doing)
 
-The `/build` and `/improve` pipelines run 12 phases, each with different skills:
+The `/build` and `/improve` pipelines run 9 phases, each with different skills:
 
 | # | Phase | Base Brain | Domain Skills | Focus |
 |---|-------|------------|---------------|-------|
@@ -99,15 +99,14 @@ The `/build` and `/improve` pipelines run 12 phases, each with different skills:
 | 3 | **implement-plan** | All 10 | [if TS] typescript, [if auth] security | Write the code |
 | 4 | **refactor-check-fix** | All 10 | design-patterns, refactoring | Clean up |
 | 5 | **dedupe-fix** | — | composition, clarity, simplicity | Remove duplication |
-| 6 | **gemini-fix** | — | — | External review (Gemini MCP) |
-| 7 | **qodana-fix** | — | — | Static analysis (Qodana MCP) |
-| 8 | **adversarial-security-review** | — | security-mindset, owasp, web-security | Security review |
-| 9 | **write-tests-run** | — | test-doubles, test-strategy | Write tests |
-| 10 | **ai-smell-fix** | — | — | Remove AI patterns |
-| 11 | **codex-fix** | — | — | Fast pattern scan |
-| 12 | **write-tests-run** | — | test-doubles, test-strategy | Re-verify tests |
+| 6 | **gemini-fix** | — | — | External code + product quality review (Gemini MCP) |
+| 6.5 | *machine gate* | — | — | Qodana scan; Haiku fixer if issues found |
+| 7 | **adversarial-security-review** | — | security-mindset, owasp, web-security | Security review |
+| 8 | **write-tests-run** | — | test-doubles, test-strategy | Write tests |
+| 9 | **ai-smell-fix** | — | — | Remove AI patterns |
+| 9.5 | *machine gate* | — | — | `npm test` + quality-gate (final) |
 
-Machine gates run `npm run build && npm test` between phases 3-4, 7-8, and 11-12.
+Machine gates run between phases 3-4, 6-7, and after 9.
 
 > **Commands** = run one phase
 > **Ralph** = iterates plan → build → refactor → test → review → doc per PRD item
@@ -159,4 +158,4 @@ Key functions:
 - `loadPhaseConfig()` - Load workflow-phases.yaml
 - `loadKeywordRules()` - Load keyword-detection.yaml
 - `detectSkills()` - Combine all 4 layers
-- `createPhases()` - Create the 12 phase instances
+- `createPhases()` - Create the 9 phase instances
