@@ -67,6 +67,11 @@ Script gates at 3.5, 7.5, 9.5, and 11.5 run lint, quality checks, and Qodana wit
 6. **ALWAYS record metrics** after each phase completes
 7. **NEVER accept >10% test failures** — if more than 10% of tests fail for any reason (provider limitations, missing infrastructure), the gate fails and must be fixed
 8. **NEVER wave through "infrastructure limitation" test failures** — if tests fail because the test setup is wrong (e.g., InMemory provider doesn't support transactions), fix the test setup (e.g., use SQLite in-memory), don't skip the failures
+9. **NEVER allow "out of scope" as a security finding disposition** — if a security review phase identifies a vulnerability (missing auth, injection, data exposure), it must be fixed or escalated to the user with a concrete fix proposal. "Out of scope" and "architectural gap by design" are not valid dispositions. If the fix is too large for the current phase, create a blocking work item — do not silently accept the risk.
+10. **ALWAYS action Codex/Gemini findings** — when Codex or Gemini returns findings (in any phase or post-pipeline review), every finding must be either fixed or explicitly escalated to the user with justification. Summarizing findings without fixing them is not acceptable. The orchestrator must spawn a fix agent for unresolved findings before the pipeline can complete.
+11. **ALWAYS write runtime constraints after Phase 3** — after Phase 3 completes, write a `.claude/runtime-constraints.md` file documenting any runtime-specific constraints discovered during implementation (e.g., "SQLite can't translate DateTimeOffset comparisons — use client-side filtering", "Only ReadCommitted isolation supported"). Every subsequent phase (4-11) must read this file before making changes. If a phase's changes would violate a runtime constraint, the change must not be made.
+12. **EXEMPT security fixes from complexity budget** — if a fix addresses a security finding (missing auth, injection, data exposure, missing HTTPS), it is allowed to add lines, files, and functions without requiring removals elsewhere. Security is not negotiable against a line count.
+13. **NEVER make error handling silent** — if a review phase changes a `throw` to a log-and-continue, that is a regression, not a fix. Fail-fast on misconfiguration (CORS, auth, connection strings) is always correct. Silent failures in production config are worse than crashes.
 
 ## Rollback
 
@@ -166,16 +171,29 @@ For phases 4-5, 9 (review phases, no MCP tools) — add complexity budget and co
 Read the skill file at .claude/phases/{SKILL_NAME}/SKILL.md
 and execute ALL of its instructions against: {TARGET}
 
+RUNTIME CONSTRAINTS: Read .claude/runtime-constraints.md FIRST. Do not
+make changes that violate any listed constraint. If the file says "do not
+use GroupBy with SQLite", do not rewrite queries to use GroupBy.
+
+SCOPE CONSTRAINT: Only modify code directly related to findings you identify.
+Do not refactor, rename, or restructure code that was not flagged as an issue.
+Do not "improve" surrounding code while fixing a specific finding.
+
 COMPLEXITY BUDGET: Review phases must not increase overall complexity.
 After your changes, the codebase must have the same or fewer: files,
 exported functions, types/interfaces, and total lines. If your fix
 adds lines, find lines elsewhere to remove. Net-zero or net-negative.
+EXCEPTION: Security fixes (auth, injection, HTTPS) are exempt from this budget.
 
 COMPLETENESS RULE: If you change infrastructure (DB initialization, startup
 config, static file serving, package references), you must complete the
 full change. Do not change EnsureCreated() to Migrate() without generating
 migrations. Do not change file paths without updating middleware config.
 Half-finished infrastructure changes will break the smoke test gate.
+
+NO SILENT FAILURES: Do not change a throw/crash to a log-and-continue.
+Fail-fast on misconfiguration is always correct. If CORS is not configured
+in production, the app must throw, not silently disable CORS.
 
 Follow every step in the skill. Do not skip any steps.
 When complete, end your final message with the marker: {GATE_MARKER}
@@ -187,14 +205,21 @@ For phase 6 (gemini-fix) — add to prompt:
 You have access to the mcp__gemini-reviewer__gemini_review tool for code review.
 Use it as instructed by the skill. This includes the product quality review step.
 
-COMPLEXITY BUDGET: Review phases must not increase overall complexity.
-After your changes, the codebase must have the same or fewer: files,
-exported functions, types/interfaces, and total lines. If your fix
-adds lines, find lines elsewhere to remove. Net-zero or net-negative.
+RUNTIME CONSTRAINTS: Read .claude/runtime-constraints.md FIRST. Do not
+make changes that violate any listed constraint.
 
-COMPLETENESS RULE: If you change infrastructure (DB initialization, startup
-config, static file serving, package references), you must complete the
-full change. Half-finished infrastructure changes will break the smoke test.
+SCOPE CONSTRAINT: Only modify code directly related to findings you identify.
+Do not refactor, rename, or restructure code that was not flagged as an issue.
+
+COMPLEXITY BUDGET: Review phases must not increase overall complexity.
+Net-zero or net-negative lines/functions/types.
+EXCEPTION: Security fixes (auth, injection, HTTPS) are exempt from this budget.
+
+COMPLETENESS RULE: If you change infrastructure, complete the full change.
+Half-finished infrastructure changes will break the smoke test.
+
+NO SILENT FAILURES: Do not change a throw/crash to a log-and-continue.
+Fail-fast on misconfiguration is always correct.
 ```
 
 For phase 7 (codex-fix) — independent Codex review:
@@ -203,14 +228,24 @@ For phase 7 (codex-fix) — independent Codex review:
 Read the skill file at .claude/phases/codex-fix/SKILL.md
 and execute ALL of its instructions against: {TARGET}
 
+RUNTIME CONSTRAINTS: Read .claude/runtime-constraints.md FIRST. Do not
+make changes that violate any listed constraint.
+
+SCOPE CONSTRAINT: Only modify code directly related to findings you identify.
+Do not refactor, rename, or restructure code that was not flagged as an issue.
+
 COMPLEXITY BUDGET: Review phases must not increase overall complexity.
 Net-zero or net-negative lines/functions/types.
+EXCEPTION: Security fixes (auth, injection, HTTPS) are exempt from this budget.
 
 COMPLETENESS RULE: If you change infrastructure (DB initialization, startup
 config, static file serving, package references), you must complete the
 full change. Do not change EnsureCreated() to Migrate() without generating
 migrations. Do not change file paths without updating middleware config.
 Half-finished infrastructure changes will break the smoke test gate.
+
+NO SILENT FAILURES: Do not change a throw/crash to a log-and-continue.
+Fail-fast on misconfiguration is always correct.
 
 Follow every step in the skill. Do not skip any steps.
 When complete, end your final message with the marker: CODEX_FIX_COMPLETE
@@ -222,14 +257,25 @@ For phase 8 (adversarial-security-review) — add to prompt:
 You have access to the mcp__gemini-reviewer__gemini_review tool for security review.
 Use it as instructed by the skill.
 
-COMPLEXITY BUDGET: Review phases must not increase overall complexity.
-After your changes, the codebase must have the same or fewer: files,
-exported functions, types/interfaces, and total lines. If your fix
-adds lines, find lines elsewhere to remove. Net-zero or net-negative.
+NO OUT-OF-SCOPE DISPOSITIONS: You may NOT mark security findings as "out of
+scope", "architectural gap", or "deferred." Every finding must be fixed or
+escalated with a concrete fix proposal. Missing authentication on state-changing
+endpoints is a CRITICAL finding that must be fixed — add at minimum API key
+auth on POST/PUT/DELETE endpoints. Missing auth is never acceptable for any
+system that modifies data, regardless of whether the requirements mention it.
 
-COMPLETENESS RULE: If you change infrastructure (DB initialization, startup
-config, static file serving, package references), you must complete the
-full change. Half-finished infrastructure changes will break the smoke test.
+RUNTIME CONSTRAINTS: Read .claude/runtime-constraints.md FIRST. Do not
+make changes that violate any listed constraint.
+
+COMPLEXITY BUDGET: Review phases must not increase overall complexity.
+Net-zero or net-negative lines/functions/types.
+EXCEPTION: Security fixes (auth, injection, HTTPS) are exempt from this budget.
+
+COMPLETENESS RULE: If you change infrastructure, complete the full change.
+Half-finished infrastructure changes will break the smoke test.
+
+NO SILENT FAILURES: Do not change a throw/crash to a log-and-continue.
+Fail-fast on misconfiguration is always correct.
 ```
 
 For phase 11 (final-eval-check) — Codex + Gemini review, fix all findings:
@@ -246,7 +292,12 @@ No .claude/evidence/, no .claude/create-plans/, no build/improve logs.
 Evaluate the source code with fresh eyes. Only read lessons.md files
 during the deduplication step AFTER findings are collected.
 
-Fix everything Codex and Gemini find. Write lessons and proposals to
+FIX EVERYTHING: Every Codex and Gemini finding must be fixed — not
+summarized, not documented, not deferred. If a finding requires adding
+auth, add auth. If it requires adding config, add config. The only
+valid reason to skip a finding is if fixing it would break a runtime
+constraint you've been given. Report skipped findings with justification.
+"Out of scope" is not a justification. Write lessons and proposals to
 the appropriate files.
 
 Follow every step in the skill. Do not skip any steps.
@@ -404,6 +455,21 @@ Phase 3 (implement-plan) must complete ALL WORK_ITEMS from the plan. After Phase
    - Ask user: "Continue with remaining phases?" or "Halt pipeline?"
    - Do NOT silently drop items
 
+#### Runtime Constraints File (After Phase 3)
+
+After Phase 3 completes (and passes Gate 3.5/3.7), the orchestrator must write `.claude/runtime-constraints.md` documenting any runtime-specific constraints discovered during implementation. This file is read by every subsequent phase.
+
+Example content:
+```markdown
+# Runtime Constraints
+- SQLite EF Core provider cannot translate DateTimeOffset comparisons or GroupBy aggregations — use client-side filtering (load then filter in C#)
+- SQLite only supports ReadCommitted isolation level, not Serializable
+- Frontend served via UseDefaultFiles + UseStaticFiles with PhysicalFileProvider — do not change the path pattern
+- Database uses EnsureCreatedAsync() for SQLite — do not change to MigrateAsync()
+```
+
+Extract constraints from: Phase 3 subagent output, smoke test failures and fixes, any workarounds applied during implementation. If no constraints exist, write "No runtime constraints identified."
+
 #### Phase 4 Completion Loop
 
 Phase 4 (refactor-check-fix) must address ALL files that exceed constraints. After Phase 4 runs:
@@ -489,13 +555,74 @@ After Phase 1 passes its gate:
 
 Do not proceed to Phase 2 until the user explicitly approves.
 
-### Step 3: Cleanup
+### Step 3: Deployment Readiness Gate
 
-After all 11 phases complete, remove evidence artifacts:
+After Gate 11.5 passes, run this checklist via Bash (no subagent). Every item must pass or the orchestrator must fix it directly before proceeding.
+
+1. **`.gitignore` exists and covers artifacts:**
+   ```bash
+   test -f {TARGET}/.gitignore || echo "FAIL: no .gitignore"
+   ```
+   If missing, create one covering: `bin/`, `obj/`, `*.db`, `*.db-shm`, `*.db-wal`, `.vs/`, `*.user`, `.env`, `.DS_Store`
+
+2. **No database/secret files in source tree:**
+   ```bash
+   find {TARGET} -name "*.db" -o -name "*.db-shm" -o -name "*.db-wal" -o -name ".env" -o -name "credentials.json" | grep -v node_modules | grep -v bin | grep -v obj
+   ```
+   If found, delete them and ensure `.gitignore` covers them.
+
+3. **HTTPS redirection in non-dev:**
+   ```bash
+   grep -l "UseHttpsRedirection" {TARGET}/src/**/*.cs || echo "FAIL: no UseHttpsRedirection"
+   ```
+   If missing, add `app.UseHttpsRedirection()` inside the `!IsDevelopment()` block.
+
+4. **Production config fails fast (not silent):**
+   Verify that missing CORS origins, missing connection strings, and missing auth config all throw `InvalidOperationException` in production — not log-and-continue. Read Program.cs and check.
+
+5. **HSTS conditional on proxy config:**
+   If `BehindProxy` is a config option, HSTS should only be set when the app handles TLS directly (not behind a TLS-terminating proxy).
+
+If any item fails, fix it directly (these are mechanical fixes, not phase work). Then re-run Gate 11.5 smoke test to verify nothing broke.
+
+### Step 3b: Codex Fix Loop
+
+After the deployment readiness gate, run the Codex production readiness eval and fix every finding.
+
+1. **Run Codex eval** (via Bash tool):
+   ```bash
+   codex --approval never -q "PRODUCTION READINESS review. Review ALL source code and cite file:line for every finding. [full rubric from eval]" 2>&1
+   ```
+   If `codex` CLI is not available, skip with a note.
+
+2. **Parse findings** from Codex output (lines starting with `FINDING:`)
+
+3. **For each finding**, spawn a fix agent (model: sonnet, subagent_type: "general-purpose"):
+   ```
+   Fix this Codex finding in {TARGET}:
+   {FINDING_LINE}
+
+   Read .claude/runtime-constraints.md first. Do not violate any constraint.
+   Fix the issue. If the fix requires adding auth, add auth. If it requires
+   adding config validation, add it. Run tests after fixing.
+   When complete, end with: CODEX_FINDING_FIXED
+   ```
+
+4. **Re-run tests** after all findings are fixed:
+   ```bash
+   dotnet test {TEST_PROJECT} --verbosity quiet
+   ```
+
+5. **If findings remain** that could not be fixed, present them to the user with justification. Do not summarize — explain why each one could not be fixed.
+
+### Step 3c: Cleanup
+
+After the Codex fix loop, remove evidence artifacts:
 
 ```bash
 rm -rf {TARGET}/.claude/evidence/
 rm -f {TARGET}/.claude/canary-manifest.json
+rm -f {TARGET}/.claude/runtime-constraints.md
 ```
 
 ### Step 4: Report Metrics + Log Completion
@@ -522,8 +649,8 @@ Build: {TARGET}
   7. codex-fix → {one-line summary}
   8. adversarial-security-review → {one-line summary}
   9. ai-smell-fix → {one-line summary}
- 10. final-eval-check → {N} findings fixed, {N} lessons
- 11. write-tests-run → {one-line summary}
+ 10. write-tests-run → {one-line summary}
+ 11. final-eval-check → {N} findings fixed, {N} lessons
   Done
 
 Rollback available: /build --rollback

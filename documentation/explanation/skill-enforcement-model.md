@@ -223,7 +223,7 @@ This document describes the skill enforcement model — Layer 1 (canon at write-
 4. **Security + AI smell** — Adversarial review + antipattern removal
 5. **Machine gates** — `npm run build && npm test` between phase groups
 
-See [Canon Enforcement Map](../canon-enforcement-map.md) for how all 418 canon checks map to enforcement layers, and [Quality Gate Spec](../quality-gate-spec.md) for the machine gate specification.
+See [Quality Gate Spec](../quality-gate-spec.md) for the machine gate specification.
 
 ---
 
@@ -232,4 +232,3 @@ See [Canon Enforcement Map](../canon-enforcement-map.md) for how all 418 canon c
 - [How Skills Get Loaded](how-skills-load.md) — The 4-layer loading system
 - [Why Expert Skills?](why-expert-skills.md) — Philosophy behind skill lenses
 - [Why Five Layers Wins](../why-five-layers-wins.md) — Competitive analysis
-- [Canon Catalog](../reference/canon-catalog.md) — Complete skill listing (75 skills)

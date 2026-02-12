@@ -67,7 +67,6 @@ See [Installation Reference](reference/installation.md) for complete setup guide
 | Tutorial | Description |
 |----------|-------------|
 | [Getting Started](tutorials/getting-started.md) | Your first Lens project |
-| [Adding a Canon Skill](tutorials/adding-canon-skill.md) | Create your first expert lens |
 | [Running Ralph Loop](tutorials/ralph-loop-basics.md) | Autonomous development with PRDs |
 
 ---
@@ -97,9 +96,6 @@ See [Installation Reference](reference/installation.md) for complete setup guide
 | Reference | Description |
 |-----------|-------------|
 | [Installation](reference/installation.md) | System requirements, API keys, troubleshooting |
-| [Profiles](reference/profiles.md) | All available profiles and composition |
-| [Canon Catalog](reference/canon-catalog.md) | Complete list of skills by domain |
-| [Canon Loading Strategy](reference/canon-loading-strategy.md) | How skills are detected and loaded |
 | [Use Cases](reference/use-cases.md) | All use cases with implementation code |
 | [Hooks](reference/hooks.md) | Pre-commit and quality gate hooks |
 | [AI Smell Index](reference/ai-smell-index.md) | Measuring AI-generated code patterns |
@@ -126,7 +122,6 @@ See [Installation Reference](reference/installation.md) for complete setup guide
 | [Skill Enforcement Model](explanation/skill-enforcement-model.md) | How skills become hard gates, not suggestions |
 | [Two-Tier Review Architecture](explanation/two-tier-review.md) | Self-review vs external validation |
 | [Why Five Layers Wins](why-five-layers-wins.md) | Competitive analysis of five-layer enforcement |
-| [Canon Enforcement Map](canon-enforcement-map.md) | All 418 canon checks mapped to enforcement layers |
 | [Quality Building Flow](explanation/quality-building-flow.md) | How the 11-phase pipeline, contracts, and lessons work together |
 | [Quality Gate Spec](quality-gate-spec.md) | Machine gate specification |
 
@@ -136,6 +131,5 @@ See [Installation Reference](reference/installation.md) for complete setup guide
 
 - **New to Lens?** Start with [Getting Started](tutorials/getting-started.md)
 - **Setting up a project?** See [Apply a Profile](how-to/apply-profile.md)
-- **Looking up a specific skill?** Check [Canon Catalog](reference/canon-catalog.md)
 - **Building UI/UX?** Apply `frontend` profile for 12 UI/UX experts
 - **Want to understand the philosophy?** Read [Why Expert Skills?](explanation/why-expert-skills.md)

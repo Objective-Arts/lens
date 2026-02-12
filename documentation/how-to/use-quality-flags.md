@@ -183,6 +183,4 @@ Or use the pipeline to do it all in one command:
 
 ## See Also
 
-- [Workflow Skills Reference](../../WORKFLOW-SKILLS.md)
 - [Configure Ralph Loop](configure-ralph-loop.md) — for autonomous PRD implementation
-- [Canon Loading Strategy](../reference/canon-loading-strategy.md)

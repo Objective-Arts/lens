@@ -171,6 +171,21 @@ Project-specific lessons go in `.claude/lessons.md` (local to each project).
 - Tools that store user data need backup/restore, export/import, and lifecycle features (rotation, expiry)
 - create-plan should explicitly plan or consciously omit these — don't leave them unmentioned
 
+### Database Migrations Over EnsureCreated
+- Never use `EnsureCreated()` (or equivalent) in production — always generate and apply migrations
+- `EnsureCreated` skips migration history, making schema evolution impossible without dropping the database
+- Review phases that switch from EnsureCreated to Migrate must also generate the initial migration file
+
+### Health Check Endpoints
+- Every web API needs a `/health` endpoint that returns 200 when the service is ready
+- At minimum: confirms the process is listening and can reach its data store
+- create-plan should include this in the work items for any API project
+
+### Structured Logging
+- Use structured logging with correlation IDs, not default console/debug logging
+- Every request should carry a correlation ID through all log entries for traceability
+- create-plan should specify the logging strategy (library, format, correlation ID propagation)
+
 ## CODE_QUALITY Patterns
 
 ### Dead Exports

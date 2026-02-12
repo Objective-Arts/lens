@@ -149,6 +149,4 @@ Check:
 
 ## See Also
 
-- [Canon Loading Strategy](../reference/canon-loading-strategy.md)
-- [Profile Reference](../reference/profiles.md)
 - [External Validation](external-validation.md)

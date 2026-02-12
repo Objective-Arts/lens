@@ -386,7 +386,6 @@ Opus is used sparingly (Phase 3 only) because it's the most expensive model. The
 ## Cross-References
 
 - [Quality Gate Spec](../quality-gate-spec.md) — machine gate technical specification (proxy checks, evidence checklists, canary tests)
-- [Workflow Skills](../WORKFLOW-SKILLS.md) — complete skill catalog with all phase commands
 - [Use Quality Flags](../how-to/use-quality-flags.md) — user-facing flags and options for `/build` and `/improve`
 - [Two-Tier Review Architecture](two-tier-review.md) — self-review vs external validation design
 - [Skill Enforcement Model](skill-enforcement-model.md) — how skills become hard gates, not suggestions

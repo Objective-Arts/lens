@@ -169,4 +169,4 @@ That's the value of expert skills: transforming Claude's vast knowledge into app
 
 ## Further Reading
 
-- [Skills Reference](../reference/canon-catalog.md) - Complete catalog
+- [How Skills Get Loaded](how-skills-load.md) — The 4-layer loading system
