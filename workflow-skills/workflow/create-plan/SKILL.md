@@ -39,47 +39,18 @@ The plan should produce code that looks like it was written by a skilled human e
 
 **If your plan includes something a senior engineer would delete, remove it from the plan.**
 
-### Plan FOR Product Quality (MANDATORY)
+### Plan FOR Product Quality and Production Readiness (MANDATORY)
 
-Code review catches bad code. This catches bad products built with good code.
-Before finalizing the plan, walk through these as a user would:
+Load the rubric files (see Step 0d below) and apply them:
+- **Product quality criteria** → walk through each as a user would before finalizing the plan
+- **Base criteria** → ensure every applicable item is addressed in the plan
+- **Domain criteria** → include domain-specific concerns that match the target
 
-**Defaults:** Every configurable value (paths, ports, URLs) must have a stable,
-sensible default that works without setup. No randomized paths, no timestamped
-filenames, no defaults that require the user to pass a flag every time. If the
-default needs a directory, plan to create it.
+Every plan must explicitly address the loaded rubric concerns. For each item, the plan must either include a WORK_ITEM that implements it or state why it's not applicable (with justification). "Not applicable" is only valid for items that genuinely don't apply to the target (e.g., CSRF doesn't apply to a CLI tool).
 
-**Interactive fallbacks:** Every required input (passwords, tokens, keys) must
-have a three-tier resolution: flag → env var → interactive prompt (when TTY).
-Non-TTY must fail with a clear message naming the flag and env var.
+If the plan omits any applicable item without justification, it fails validation.
 
-**No orphaned features:** Every data model field and internal capability must
-be reachable from the user interface. If a type has an `expiresAt` field, there
-must be a flag or command that sets it. If it's intentionally internal, remove
-it from the type — don't ship unreachable features.
-
-**Error UX:** Every error the user can trigger (wrong password, missing file,
-invalid input) must produce a message that says what went wrong and what to do.
-Non-zero exit codes. No stack traces for end users.
-
-**Competitor parity:** If the tool has a clear category (CLI keystore, web server,
-etc.), match the basic UX expectations. Password managers prompt for passwords.
-Config tools have `init` commands. Web servers have `--port`.
-
-**Secrets in arguments:** Secrets (API keys, passwords, tokens) must NEVER be
-accepted as positional CLI arguments — they leak to shell history and process
-lists (`ps aux`). Accept secrets via `--value-file <path>`, stdin pipe, env var,
-or interactive prompt. If a `--password` flag exists, document the risk.
-
-**Data versioning:** Any persisted data format (config files, keystores,
-databases) must include a schema version field and a migration path. Plan what
-happens when v2 reads a v1 file. At minimum: version field in the format,
-validation on read, clear error if version is unsupported.
-
-**Operational UX:** For tools that store user data, plan backup/restore and
-lifecycle management features users expect: export, import, key rotation,
-data expiry. Not all are mandatory — but explicitly decide which to include
-and which to omit. Document omissions in the plan as conscious decisions.
+Document decisions in the plan under `## PRODUCTION_CHECKLIST:` using the Planning Checklist templates from each loaded rubric file. Combine all loaded templates into one section.
 
 ### Library Audit (MANDATORY)
 
@@ -162,7 +133,7 @@ If a file doesn't exist, skip it and continue.
 
 ### Step 0c: Surface Eval Proposals
 
-Read `.claude/eval-proposals.md` if it exists. This file contains proposals from Phase 10 (eval-feedback) — findings that suggest changes to skills, pipeline, profiles, or config. Each proposal has a status (PENDING, APPLIED, REJECTED).
+Read `.claude/eval-proposals.md` if it exists. This file contains proposals from Phase 10 (final-eval-check) — findings that suggest changes to skills, pipeline, profiles, or config. Each proposal has a status (PENDING, APPLIED, REJECTED).
 
 For each **PENDING** proposal:
 1. Check if it's relevant to the current target (mentions files, patterns, or categories that overlap)
@@ -183,6 +154,23 @@ If no proposals file exists or no PENDING proposals are relevant, write:
 ```markdown
 ## EVAL_PROPOSALS_SURFACED: none
 ```
+
+### Step 0d: Load Rubric
+
+Read `workflow-skills/rubric/AUTO-DETECT.md` for the detection table. Then:
+
+1. **Always load:** `workflow-skills/rubric/base.md` and `workflow-skills/rubric/product-quality.md`
+2. **Auto-detect domains:** Check target files against the detection table in AUTO-DETECT.md. Load matching domain rubrics (`workflow-skills/rubric/web-api.md`, `workflow-skills/rubric/data-persistence.md`, `workflow-skills/rubric/cli.md`, `workflow-skills/rubric/microservice.md`).
+3. **Extract Planning Checklists:** From each loaded rubric, collect the `## Planning Checklist` table and template. Combine into a single PRODUCTION_CHECKLIST for the plan output.
+
+If a rubric file doesn't exist, skip it and continue. List loaded rubrics in:
+```markdown
+## RUBRICS_LOADED: [base, product-quality, cli, data-persistence, ...]
+```
+
+### Step 0e: Load Quality Contracts
+
+Read `workflow-skills/rubric/contracts.md`. Use the 7 abstract types when writing WORK_ITEM constraints and CONSTRUCTION_CHECKS. If Phase 2 (structure-first) produced a QUALITY_CONTRACTS table, incorporate its Construction Check entries into CONSTRUCTION_CHECKS.
 
 ### Step 1: Explore
 
@@ -225,6 +213,11 @@ If no proposals file exists or no PENDING proposals are relevant, write:
 - Specific security measure to implement
 - Another specific security consideration
 
+## QUALITY_CONTRACTS:
+{from Phase 2, or identify boundaries here if Phase 2 was skipped}
+| Boundary | Abstract Type | Contract | Construction Check |
+|----------|--------------|----------|--------------------|
+
 ## UX:
 - Default config path: [exact path, e.g., ~/.toolname/config.json]
 - Required inputs: [input] → [flag] / [ENV_VAR] / [interactive prompt]
@@ -234,6 +227,9 @@ If no proposals file exists or no PENDING proposals are relevant, write:
 - Specific test case: [what it verifies]
 - Another test case: [what it verifies]
 
+## PRODUCTION_CHECKLIST:
+{Combine Planning Checklist templates from all loaded rubric files — base.md + product-quality.md + any domain matches}
+
 ## CONSTRUCTION_CHECKS:
 - FILE: path/to/new-file.ts
 - EXPORT_FUNCTION: functionName IN path/to/file.ts
@@ -241,8 +237,11 @@ If no proposals file exists or no PENDING proposals are relevant, write:
 
 ## WORK_ITEMS:
 - [ ] WI-1: [verb] [specific thing] in [file(s)] [S/M/L]
+  Constraint: [one canon principle + BAD/GOOD]
 - [ ] WI-2: [verb] [specific thing] in [file(s)] [S/M/L]
+  Constraint: [one canon principle + BAD/GOOD]
 - [ ] WI-3: [verb] [specific thing] in [file(s)] [S/M/L]
+  Constraint: [one canon principle + BAD/GOOD]
 
 ## EXPERTS_LOADED: [list of skill names actually read]
 ## EXPERT_DECISIONS:
@@ -252,6 +251,18 @@ PLAN_COMPLETE
 ```
 
 ## WORK_ITEMS Rules
+
+Each work item includes a `Constraint:` — the ONE canon principle most likely to be violated in this unit. Name the source (Bloch, OWASP, GoF, Fowler, etc.) when applicable. Include a BAD/GOOD one-liner showing wrong vs right for this specific unit.
+
+Example:
+```
+- [ ] WI-3: Create profile write function in src/profiles/create.ts [M]
+  Constraint: [ValidatedInput + CausedError] Validate inputs at boundary (Bloch Item 49). File I/O in try-catch with cause.
+  BAD:  function create(name: string) { writeFileSync(path.join(dir, name), ...) }
+  GOOD: function create(validated: ValidatedName) { try { ... } catch(e) { throw new Error(..., {cause: e}) } }
+```
+
+The `[AbstractType + ...]` tag tells Phase 3 which contract idiom to implement. Tag every constraint with the matching abstract types from `workflow-skills/rubric/contracts.md`.
 
 WORK_ITEMS is the **implementation checklist**. Phases 3 and 4 iterate through it. Every item must be:
 
@@ -275,7 +286,8 @@ WORK_ITEMS is the **implementation checklist**. Phases 3 and 4 iterate through i
 
 ## Validation (Phase will FAIL if violated)
 
-- Missing any of: FILES, FUNCTIONS, TYPES, DEPENDENCIES, INVARIANTS, SECURITY, UX, TESTS, CONSTRUCTION_CHECKS, WORK_ITEMS
+- Missing any of: FILES, FUNCTIONS, TYPES, DEPENDENCIES, INVARIANTS, SECURITY, QUALITY_CONTRACTS, UX, TESTS, CONSTRUCTION_CHECKS, WORK_ITEMS, PRODUCTION_CHECKLIST
+- QUALITY_CONTRACTS is empty and the feature has external boundaries (user input, file I/O, network, env vars)
 - WORK_ITEMS is empty or has zero items
 - WORK_ITEMS contains items without size tags (S/M/L)
 - Contains "as needed", "if applicable", "TBD", "to be determined"

@@ -76,6 +76,10 @@ Apply relevant lessons to your structural design:
 
 If a file doesn't exist, skip it and continue.
 
+### Step 0c: Load Quality Contracts
+
+Read `workflow-skills/rubric/contracts.md`. This defines 7 abstract types for boundary enforcement. Use them during boundary analysis in both modes.
+
 ---
 
 ## MODE: Map (Existing Code)
@@ -130,6 +134,7 @@ Review against principles from the masters:
 | **Dependency inversion** | Depend on abstractions, not concretions? |
 | **Pure core / impure shell** | Is business logic free of I/O? Core functions should take data and return data — no direct calls to filesystem, network, or database. I/O belongs in a thin outer layer that calls the pure core. If a function both computes and persists, split it. |
 | **Impossible states** | Can invalid states be represented? |
+| **Quality contracts** | Are boundaries enforced with validated types, or do raw strings pass through? |
 
 ### Step 3: Design Target State
 
@@ -175,6 +180,11 @@ TARGET_STATE:
 CHANGES_NEEDED:
 - [change 1]
 - [change 2]
+
+QUALITY_CONTRACTS:
+| Boundary | Abstract Type | Contract | Construction Check |
+|----------|--------------|----------|--------------------|
+| {boundary} | {type} | {what must be true} | {missing contract = issue} |
 
 EXPERTS_LOADED: [list of skill names actually read]
 EXPERT_DECISIONS:
@@ -224,6 +234,19 @@ Types must look like they were designed by a skilled human engineer:
 | **Pure core / impure shell** | Business logic takes data, returns data. I/O is a separate layer. |
 | **Fail-fast** | Validate at boundaries |
 
+### Boundary Analysis (Create Mode)
+
+For each function/module being created, identify boundaries using the detection signals from `workflow-skills/rubric/contracts.md`:
+- Where does user input enter? → ValidatedInput
+- Where are file paths constructed? → SafePath
+- Where are errors caught and re-thrown? → CausedError
+- Where are secrets handled? → Secret
+- Where is external data read? → ExternalData
+- Where could operations hang or grow unbounded? → BoundedOperation
+- Where are state mutations that could be retried? → IdempotentAction
+
+Output a QUALITY_CONTRACTS table in the structure output.
+
 ### Create Mode Output
 
 ```markdown
@@ -238,6 +261,11 @@ TYPES_CREATED:
 INVARIANTS_DOCUMENTED:
 - User: email must be unique, password_hash never exposed
 - AuthToken: expires_at must be in future
+
+QUALITY_CONTRACTS:
+| Boundary | Abstract Type | Contract | Construction Check |
+|----------|--------------|----------|--------------------|
+| {where data enters/leaves} | {abstract type} | {what must be true} | {EXPORT_FUNCTION or EXPORT_TYPE to verify} |
 
 EXPERTS_LOADED: [list of skill names actually read]
 EXPERT_DECISIONS:

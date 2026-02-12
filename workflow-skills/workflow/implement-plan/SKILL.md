@@ -162,6 +162,25 @@ to what this unit does:
 This is not optional. Read the file. 50 lines, <1 second.
 It refreshes the design principle before you write, not after.
 
+#### 2a½. Read plan constraint
+Read the `Constraint:` from the plan for the current work item. If it includes an abstract type tag (e.g., `[ValidatedInput + CausedError]`), implement the contract using the target language's idiom from `workflow-skills/rubric/contracts.md`. The BAD/GOOD example shows the specific boundary; the abstract type tells you the pattern. Apply it alongside the canon summary from Step 2a.
+
+#### 2a¾. Implement contract (if tagged)
+
+If the work item constraint includes an abstract type tag, implement it:
+
+| Abstract Type | What to implement |
+|--------------|-------------------|
+| ValidatedInput | Validation function at boundary. Function signature accepts validated type, not raw. |
+| SafePath | Path factory that normalizes + checks prefix. Never pass raw user string to path.join. |
+| CausedError | Error construction with { cause: e }. Never throw new Error(msg) in a catch block. |
+| Secret | Opaque type. toString/toJSON must redact. Never interpolate into error messages or logs. |
+| ExternalData | Parse in try-catch. Validate structure before use. Never assume shape. |
+| BoundedOperation | Timeout parameter or max iterations. Never recurse/loop without a bound. |
+| IdempotentAction | Write-then-rename for files. Transactions for DB. Never partial-write. |
+
+Use the Language Idioms table from `workflow-skills/rubric/contracts.md` for the target language.
+
 #### 2b. Write the unit
 Implement the code for this unit following all constraints above.
 
