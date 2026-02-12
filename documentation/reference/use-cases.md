@@ -494,7 +494,7 @@ function traceKeywordConfig(projectPath: string, taskText?: string): YamlSource 
 
 ## 6. Autonomous PRD Implementation (Ralph Loop)
 
-Fully autonomous loop that takes a PRD file and implements every item through a 11-phase quality pipeline. No human intervention between items.
+Fully autonomous loop that takes a PRD file and implements every item through the full quality pipeline (Design → Build → Refine → Review → Verify). No human intervention between items.
 
 ```
 /ralph-loop requirements.md --max 30
@@ -540,7 +540,7 @@ export function isAllComplete(prd: Prd): boolean {
 
 ### Main Runner
 
-The runner iterates over incomplete PRD items, running 11 phases per item, then post-loop validation:
+The runner iterates over incomplete PRD items, running the full pipeline per item, then post-loop validation:
 
 ```typescript
 // src/ralph/runner.ts
@@ -596,7 +596,7 @@ async function processAllItems(ctx: RunContext): Promise<void> {
 
 ### Single Item: Phase Execution
 
-Each item runs through all 11 phases. On success, the PRD file is atomically updated:
+Each item runs through all stages. On success, the PRD file is atomically updated:
 
 ```typescript
 // src/ralph/runner.ts
@@ -778,7 +778,7 @@ export async function runClaude(options: ClaudeOptions): Promise<ClaudeOutput> {
 
 ## 7. Build/Improve Pipeline
 
-Build a new feature or improve existing code through a 11-phase quality pipeline. Each phase is a workflow skill invoked as a Claude subagent.
+Build a new feature or improve existing code through the full quality pipeline (Design → Build → Refine → Review → Verify). Each phase is a workflow skill invoked as a Claude subagent.
 
 ```
 /build src/notifications

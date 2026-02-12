@@ -2,22 +2,17 @@
 
 Top-level autonomous orchestrator. Implements PRD items through a quality pipeline.
 
-## The Phases
+## The Stages
 
-**Per PRD Item:**
+**Per PRD Item (Design → Build → Refine → Review → Verify):**
 
-| Phase | Skill | Purpose |
-|-------|-------|---------|
-| 1 | `/create-plan` | Create implementation plan |
-| 2 | `/structure-first` | Map architecture or design types |
-| 3 | `/implement-plan` | Write code from plan |
-| 4 | `/refactor-check-fix` | Clean up code |
-| 5 | `/dedupe-fix` | Consolidate duplicates |
-| 6 | `/gemini-fix` | Gemini review, fix ALL issues |
-| 7 | `/qodana-fix` | Qodana analysis, fix ALL issues |
-| 8 | `/adversarial-security-review` | Security audit via Gemini |
-| 9 | `/write-tests-run` | Write tests, all must pass |
-| 10 | `/generate-docs` | Document public APIs |
+| Stage | Skills | Purpose |
+|-------|--------|---------|
+| Design | `/create-plan`, `/structure-first` | Plan and map architecture |
+| Build | `/implement-plan` | Write code from plan |
+| Refine | `/refactor-check-fix`, `/dedupe-fix` | Clean up, consolidate |
+| Review | `/gemini-fix`, `/qodana-fix`, `/adversarial-security-review` | External review + security |
+| Verify | `/write-tests-run`, `/generate-docs` | Test and document |
 
 ## Usage
 

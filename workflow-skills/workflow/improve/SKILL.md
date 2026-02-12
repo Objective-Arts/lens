@@ -1,31 +1,25 @@
 ---
 name: improve
-description: Improve existing code. 11-phase quality pipeline with rollback support.
+description: Improve existing code. 5-stage quality pipeline (Design → Build → Refine → Review → Verify) with learning loop and rollback support.
 ---
 
 # /improve [path] [--rollback] [--dry-run]
 
-Improve existing code using the full 11-phase quality pipeline. Same rigor as `/build`, but for code that already exists.
+Improve existing code using the full 5-stage quality pipeline. Same rigor as `/build`, but for code that already exists.
 
 > **No arguments?** Describe this skill and stop. Do not execute.
 
 ## What Is This?
 
-`/improve` is the **heavy workflow** for refining existing code. It runs 11 phases in sequence:
+`/improve` is the **heavy workflow** for refining existing code. It runs 5 stages:
 
-1. **create-plan** — Analyze what needs improvement, identify issues
-2. **structure-first** — Map current architecture, design improvements
-3. **implement-plan** — Apply the improvements
-4. **refactor-check-fix** — Clean up, enforce constraints
-5. **dedupe-fix** — Consolidate duplicated code
-6. **gemini-fix** — External code review via Gemini + product quality review
-7. **codex-fix** — Independent Codex review + targeted fixes (same rubric as eval)
-8. **adversarial-security-review** — Security audit
-9. **ai-smell-fix** — Remove AI-generated antipatterns
-10. **write-tests-run** — Write and run tests
-11. **final-eval-check** — Final Codex + Gemini review, fix all findings, write lessons (ALWAYS LAST)
+1. **Design** — Analyze what needs improvement, map architecture, assign quality contracts
+2. **Build** — Apply the improvements, verify compilation and runtime
+3. **Refine** — Refactor, dedupe, enforce complexity budget
+4. **Review** — Multi-model external review, security audit, AI smell removal
+5. **Verify** — Write tests, final evaluation, write lessons
 
-Script gates at 3.5, 7.5, 9.5, and 11.5 run lint, quality checks, and Qodana without burning AI context. Smoke test gates at 3.7 and 7.7 start the app and verify it serves endpoints. Each phase must pass its gate before the next begins. A rollback point is created before any changes.
+A **Learn** loop feeds findings from late stages back to early stages on future runs. Gates between stages run lint, quality checks, and Qodana without burning AI context. Each stage must pass its gate before the next begins. A rollback point is created before any changes.
 
 **Context cost:** ~4,200 tokens (Base Brain) + phase-specific skills
 
@@ -54,7 +48,7 @@ Script gates at 3.5, 7.5, 9.5, and 11.5 run lint, quality checks, and Qodana wit
 
 | Flag | Purpose |
 |------|---------|
-| `--dry-run` | Show the 11 phases without executing |
+| `--dry-run` | Show the stages and phases without executing |
 | `--rollback` | Restore from last improve stash |
 
 ## Orchestrator Rules
@@ -644,33 +638,27 @@ Print a summary:
 
 ```
 Improve: {TARGET}
-  Rollback point: stash@{N}
+  Rollback: stash@{N}
 
-  1. create-plan → {one-line summary from subagent}
-  2. structure-first → {one-line summary}
-  3. implement-plan → {one-line summary}
-  4. refactor-check-fix → {one-line summary}
-  5. dedupe-fix → {one-line summary}
-  6. gemini-fix → {one-line summary}
-  7. codex-fix → {one-line summary}
-  8. adversarial-security-review → {one-line summary}
-  9. ai-smell-fix → {one-line summary}
- 10. write-tests-run → {one-line summary}
- 11. final-eval-check → {N} findings fixed, {N} lessons
-  Done
+  ✓ Design    plan approved, {N} contracts identified
+  ✓ Build     implemented, gate passed
+  ✓ Refine    {+/-N} lines net, gate passed
+  ✓ Review    3 models, {N} findings fixed, gate passed
+  ✓ Verify    {N} tests, 0 failures, gate passed
+  ↻ Learn     {N} lessons written
 
-Rollback available: /improve --rollback
+Rollback: /improve --rollback
 ```
 
 ## vs Other Workflows
 
-| Workflow | When to Use | Phases |
-|----------|-------------|--------|
-| `/build` | New feature from scratch | 11 |
-| `/improve` | Refine existing code | 11 |
-| `/quick-edit` | Add field, rename, small fix | 0 |
-| `/quick-clean` | Fast AI smell cleanup | 0 |
-| `/ralph-loop` | Full PRD implementation | 10 per item |
+| Workflow | When to Use | Pipeline |
+|----------|-------------|----------|
+| `/build` | New feature from scratch | Full (5 stages + learn) |
+| `/improve` | Refine existing code | Full (5 stages + learn) |
+| `/quick-edit` | Add field, rename, small fix | None (checklist only) |
+| `/quick-clean` | Fast AI smell cleanup | None (review + fix) |
+| `/ralph-loop` | Full PRD implementation | Full per item |
 
 ## Directory Behavior
 

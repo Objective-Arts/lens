@@ -22,19 +22,19 @@ Stack with your base profile:
 lens profile apply javascript+ralph-integration -p .
 ```
 
-### 2. Configure phase skills (optional)
+### 2. Configure stage skills (optional)
 
-Edit `config/workflow-phases.yaml` to customize which skills are invoked per phase:
+Edit `config/workflow-phases.yaml` to customize which skills are invoked per stage:
 
 ```yaml
-phases:
-  plan:
+stages:
+  design:
     description: Understand requirements, design approach
     skills: [clarity, simplicity, data-first, correctness, resilience, failure, safety]
-  implement:
+  build:
     description: Write the code
     skills: [pragmatism, clarity, simplicity, composition, distributed]
-  adversarial-review:
+  review:
     description: Attack your own code
     skills: [security-mindset, owasp, failure, safety]
 
@@ -114,13 +114,13 @@ With options:
 
 ## Understanding the Pipeline
 
-Ralph runs this 11-phase pipeline for each PRD item:
+Ralph runs this pipeline for each PRD item:
 
 ```
-create-plan → structure-first → implement-plan → [machine gate] → refactor-check-fix → dedupe-fix → gemini-fix → codex-fix → [machine gate] → adversarial-security-review → ai-smell-fix → final-eval-check → [machine gate] → write-tests-run → [machine gate]
+Design → Build → [gate] → Refine → Review → [gate] → Verify → [gate]
 ```
 
-Machine gates run `npm run build && npm test` between phase groups.
+Gates run `npm run build && npm test` between stages. Each stage maps to specific skills internally.
 
 ## Troubleshooting
 

@@ -10,7 +10,7 @@ Lens distills expertise from renowned engineers into composable "skills" that Cl
 
 - **75 canon skills** across 30 categories — from clarity (Kernighan) to security-mindset to React state management (Abramov) to data visualization (Tufte)
 - **14 composable profiles** — bundle skills for project types (`javascript+react+security`)
-- **9-phase build/improve pipeline** with 3 machine gates — plan, structure, implement, refactor, dedupe, Gemini review, security audit, tests, AI smell removal
+- **5-stage pipeline** (Design → Build → Refine → Review → Verify) with learning loop and machine gates
 - **Ralph loop** — autonomous PRD-driven implementation with expert guidance at each phase
 - **Self-learning feedback** — late phases write lessons that early phases read on future runs
 

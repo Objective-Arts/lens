@@ -113,7 +113,7 @@ Show workflow skills grouped by purpose:
  TESTING
    /write-tests-run [level]     Generate tests
 
- HEAVY WORKFLOWS (9 phases)
+ FULL PIPELINE (Design → Build → Refine → Review → Verify)
    /build [target]          New feature from scratch
    /improve [path]          Refine existing code
    /final-polish [path]     Senior review prep
@@ -137,8 +137,8 @@ Guide user to start coding:
 ```
 Quick Start Options:
 
-1. **New feature** — /build [target] (runs all 9 phases)
-2. **Improve existing code** — /improve [path] (runs all 9 phases)
+1. **New feature** — /build [target] (full pipeline)
+2. **Improve existing code** — /improve [path] (full pipeline)
 3. **Simple change** — /quick-edit [description]
 4. **Fast cleanup** — /quick-clean [path]
 5. **Review code** — /gemini-scan [path]

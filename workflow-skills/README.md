@@ -29,14 +29,14 @@ workflow-skills/
 /ralph-loop --resume          # Continue from last session
 ```
 
-### Heavy Workflow (9 phases)
+### Full Pipeline (5 stages + learn)
 
 ```bash
 /build user-auth             # New feature from scratch
 /improve src/component.ts    # Quality pipeline on existing code
 ```
 
-### Light Workflow (no phases)
+### Light Workflow
 
 ```bash
 /quick-edit add email field  # Simple change with checklist

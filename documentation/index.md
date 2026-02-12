@@ -104,7 +104,7 @@ See [Installation Reference](reference/installation.md) for complete setup guide
 
 | File | Location | Purpose |
 |------|----------|---------|
-| workflow-phases.yaml | `config/workflow-phases.yaml` | 11-phase workflow with experts |
+| workflow-phases.yaml | `config/workflow-phases.yaml` | Pipeline stage/phase workflow with experts |
 | keyword-detection.yaml | `config/keyword-detection.yaml` | Dynamic keyword-based expert detection |
 | Profiles | `profiles/*.yaml` | Project type configurations |
 | Canon Skills | `canon/*/SKILL.md` | Expert guidance content |
@@ -122,7 +122,7 @@ See [Installation Reference](reference/installation.md) for complete setup guide
 | [Skill Enforcement Model](explanation/skill-enforcement-model.md) | How skills become hard gates, not suggestions |
 | [Two-Tier Review Architecture](explanation/two-tier-review.md) | Self-review vs external validation |
 | [Why Five Layers Wins](why-five-layers-wins.md) | Competitive analysis of five-layer enforcement |
-| [Quality Building Flow](explanation/quality-building-flow.md) | How the 11-phase pipeline, contracts, and lessons work together |
+| [Quality Building Flow](explanation/quality-building-flow.md) | How the 5-stage pipeline, patterns, contracts, and lessons work together |
 | [Quality Gate Spec](quality-gate-spec.md) | Machine gate specification |
 
 ---

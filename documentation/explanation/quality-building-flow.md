@@ -7,17 +7,43 @@ This document contains proprietary and confidential information. Unauthorized re
 
 # Quality Building Flow
 
-How the 11-phase pipeline, abstract quality contracts, and self-learning lessons work together to turn a feature request into production-quality code.
+How the 5-stage pipeline (Design → Build → Refine → Review → Verify), its 9 named patterns, and the learning loop work together to turn a feature request into production-quality code.
 
 ---
 
 ## 1. What the Pipeline Does
 
-The pipeline turns a feature request into production-quality code through 11 phases. Three construction phases build the feature; two self-review phases clean it; three external review phases inspect it from different model perspectives; one cleanup phase removes AI artifacts; two verification phases confirm correctness. Machine gates run between groups — no AI cost, just scripts. A self-learning loop feeds findings from review phases back to construction phases so the same defect class never recurs.
+The pipeline turns a feature request into production-quality code through 5 stages: **Design**, **Build**, **Refine**, **Review**, and **Verify**. A **Learn** loop feeds findings from late stages back to early stages so the same defect class never recurs. Internally, these stages map to 11 phases with machine gates between groups — no AI cost, just scripts.
+
+```
+Design → Build → Refine → Review → Verify
+  ↑                                    │
+  └──────────── Learn ←────────────────┘
+```
 
 ---
 
-## 2. Quality Mechanisms at a Glance
+## 2. Pattern Language
+
+Nine named patterns recur throughout the pipeline. Understanding them makes the system predictable.
+
+| Pattern | Meaning |
+|---------|---------|
+| **Gate** | Machine check between stages. Binary pass/fail, zero AI cost. |
+| **Contract** | Abstract quality type assigned at Design, enforced at Build. |
+| **Budget** | Complexity constraint — Refine/Review can't add more than they remove. |
+| **Canary** | Planted violation to test reviewer attention. 100% detection required. |
+| **Evidence** | Structured checklist proving every item was examined. |
+| **Vote** | Multi-model disagreement resolution. |
+| **Loop** | Retry with specifics until complete or max attempts. |
+| **Lesson** | Finding captured so the same defect class is prevented next run. |
+| **Rubric** | Domain checklist auto-detected from project signals. |
+
+These patterns compose. A Review stage uses **Evidence** to ensure completeness, **Canary** to verify integrity, **Vote** to resolve disagreements, and a **Gate** to enforce the result. The **Lesson** pattern connects every stage to every future run.
+
+---
+
+## 3. Quality Mechanisms at a Glance
 
 The pipeline uses 12 quality mechanisms. Six are **enforced** — machine-verified, they block shipping. Six are **instructional** — loaded into AI context, they improve odds but can't guarantee outcomes. Understanding which is which matters.
 
@@ -54,11 +80,11 @@ The pipeline uses 12 quality mechanisms. Six are **enforced** — machine-verifi
     └──────────────────────────────────────┘    └──────────────────────────────────────┘
 ```
 
-The enforced side is what the [five-layer model](../why-five-layers-wins.md) covers. The instructional side is better prompting — it makes the AI more likely to write correct code, but nothing stops it from ignoring the instructions. See sections 5-7 for how the instructional mechanisms work, and section 9 for the enforced ones.
+The enforced side is what the [five-layer model](../why-five-layers-wins.md) covers. The instructional side is better prompting — it makes the AI more likely to write correct code, but nothing stops it from ignoring the instructions. See sections 6-8 for how the instructional mechanisms work, and section 10 for the enforced ones.
 
 ---
 
-## 3. The 11-Phase Pipeline
+## 4. The 11-Phase Pipeline
 
 ```
 Phase 1 (plan) → Phase 2 (structure) → Phase 3 (implement)
@@ -86,23 +112,23 @@ Phase 1 (plan) → Phase 2 (structure) → Phase 3 (implement)
 | 11 | final-eval-check | Sonnet | Codex + Gemini review, fix all, write lessons | EVAL_COMPLETE |
 | **11.5** | **machine-gate** | **None** | **npm test + quality-gate (final)** | **exit code 0** |
 
-### Phase Groups
+### Stage Mapping
 
-**Construction (1-3)**: Plan, structure, implement. Quality designed in from the start. Phase 1 reads lessons and rubrics to avoid known defects. Phase 2 identifies boundaries and assigns abstract types. Phase 3 implements using the deepest-reasoning model (Opus) with contract idioms baked into the code.
+**Design (phases 1-2)**: Plan, structure. Quality designed in from the start. Phase 1 reads lessons and rubrics to avoid known defects. Phase 2 identifies boundaries and assigns abstract types.
 
-**Self-review (4-5)**: Refactor and dedupe. Operates under a complexity budget — net-zero or net-negative lines, functions, and types. Forces cleanup instead of feature creep.
+**Build (phase 3)**: Implement. Uses the deepest-reasoning model (Opus) with contract idioms baked into the code.
 
-**External review (6-8)**: Gemini, Codex, and adversarial security. Three independent model perspectives. Each reviews the code without seeing prior review results. Disagreements resolved by vote reconciliation after Phase 8.
+**Refine (phases 4-5)**: Refactor and dedupe. Operates under a complexity budget — net-zero or net-negative lines, functions, and types. Forces cleanup instead of feature creep.
 
-**Cleanup (9)**: AI smell removal. Haiku model — pattern-match and apply, no deep reasoning needed. Removes single-use helpers, comment spam, defensive paranoia, and speculative features.
+**Review (phases 6-9)**: Gemini, Codex, adversarial security, and AI smell removal. Three independent model perspectives for code review, each without seeing prior results. Disagreements resolved by vote reconciliation. AI smell removal pattern-matches and applies fixes without deep reasoning.
 
-**Verification (10-11)**: Tests and final eval. Phase 11 uses a clean-slate rule — it does not read prior phase artifacts before reviewing, ensuring an unbiased final assessment.
+**Verify (phases 10-11)**: Tests and final eval. Phase 11 uses a clean-slate rule — it does not read prior phase artifacts before reviewing, ensuring an unbiased final assessment.
 
-**Machine gates (3.5, 7.5, 9.5, 11.5)**: No AI cost. Run scripts: quality-gate proxy checks, Qodana static analysis, npm test. Binary pass/fail.
+**Gates**: Machine checks between stages (3.5, 7.5, 9.5, 11.5). No AI cost. Run scripts: quality-gate proxy checks, Qodana static analysis, npm test. Binary pass/fail.
 
 ---
 
-## 4. Knowledge Flow Across Phases
+## 5. Knowledge Flow Across Phases
 
 ```
                     ┌─────────────────────────────────────┐
@@ -154,7 +180,7 @@ Each phase reads specific inputs and produces specific outputs. The critical fee
 
 ---
 
-## 5. Abstract Quality Contracts
+## 6. Abstract Quality Contracts
 
 ### The Problem
 
@@ -206,7 +232,7 @@ Seven fixed types cover 80%+ of boundary defects found in review phases. No dyna
 
 ---
 
-## 6. The Self-Learning Lesson System
+## 7. The Self-Learning Lesson System
 
 ### Two-Tier Architecture
 
@@ -267,7 +293,7 @@ Review phases write lessons after finding issues:
 
 ---
 
-## 7. Lesson Promotion
+## 8. Lesson Promotion
 
 How a finding becomes a permanent rule:
 
@@ -292,7 +318,7 @@ Future runs skip these patterns, reducing noise and wasted fix cycles.
 
 ---
 
-## 8. Rubric System
+## 9. Rubric System
 
 ### What Rubrics Are
 
@@ -324,7 +350,7 @@ The base rubric covers 12 universal concerns: input validation, injection preven
 
 ---
 
-## 9. Integrity Mechanisms
+## 10. Integrity Mechanisms
 
 Four mechanisms ensure review quality:
 
@@ -358,7 +384,7 @@ Phase 3 retries up to 5 times for remaining WORK_ITEMS. Phase 4 retries up to 3 
 
 ---
 
-## 10. Complexity Budget
+## 11. Complexity Budget
 
 Review phases (4, 5, 6, 8, 9) operate under a net-zero or net-negative constraint: they cannot add more files, functions, types, or lines than they remove. This forces:
 
@@ -370,7 +396,7 @@ Scope creep is structurally impossible in review phases. Only Phase 3 (implement
 
 ---
 
-## 11. Model Selection
+## 12. Model Selection
 
 | Model | Phases | Rationale |
 |-------|--------|-----------|

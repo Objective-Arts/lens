@@ -90,7 +90,7 @@ Set once when you configure the project:
 
 ## Layer 3: Phase (What You're Doing)
 
-The `/build` and `/improve` pipelines run 11 phases, each with different skills:
+The `/build` and `/improve` pipelines run multiple phases across 5 stages, each with different skills:
 
 | # | Phase | Base Brain | Domain Skills | Focus |
 |---|-------|------------|---------------|-------|

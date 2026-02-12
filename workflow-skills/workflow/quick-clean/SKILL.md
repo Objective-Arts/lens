@@ -137,7 +137,7 @@ Leave these for dedicated skills:
 
 | Workflow | When to Use | Overhead |
 |----------|-------------|----------|
-| `/build` | New feature from scratch | Heavy (9 phases) |
-| `/improve` | Refine existing code | Heavy (9 phases) |
+| `/build` | New feature from scratch | Full pipeline |
+| `/improve` | Refine existing code | Full pipeline |
 | `/quick-edit` | Add field, rename, small fix | Light (checklist only) |
 | `/quick-clean` | Fast AI smell cleanup | Light (review + fix) |

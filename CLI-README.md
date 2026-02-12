@@ -1,6 +1,6 @@
 # lens CLI
 
-**lens** sets up Claude Code projects with expert skills and configuration profiles, while **ralph** autonomously implements features by running code through a 9-phase quality pipeline with 3 machine gates (plan → structure → implement → refactor → dedupe → Gemini review → security audit → tests → AI smell removal). Expert guidance shapes the code from the first line, and quality gates between phase groups catch issues when they're cheap to fix.
+**lens** sets up Claude Code projects with expert skills and configuration profiles, while **ralph** autonomously implements features by running code through a 5-stage quality pipeline (Design → Build → Refine → Review → Verify) with a learning loop and machine gates. Expert guidance shapes the code from the first line, and gates between stages catch issues when they're cheap to fix.
 
 ## Quick Start
 
