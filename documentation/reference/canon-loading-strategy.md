@@ -39,7 +39,7 @@ Every workflow loads these 10 skills:
 
 **Location**: `config/workflow-phases.yaml`
 
-Defines the 9-phase Ralph workflow and skills for each phase.
+Defines the 11-phase Ralph workflow and skills for each phase.
 
 ```yaml
 phases:
@@ -71,8 +71,8 @@ ralph-sequence:
   - dedupe-fix
   - gemini-fix
   - adversarial-security-review
-  - write-tests-run
   - ai-smell-fix
+  - write-tests-run
 ```
 
 ### keyword-detection.yaml
@@ -120,7 +120,7 @@ From profile.yaml       From phase config      From task text
 
 ---
 
-## The 9-Phase Workflow
+## The 11-Phase Workflow
 
 | # | Phase | Description | Key Skills |
 |---|-------|-------------|------------|
@@ -131,11 +131,14 @@ From profile.yaml       From phase config      From task text
 | 4 | refactor-check-fix | Simplify and clean | clarity, pragmatism, design-patterns |
 | 5 | dedupe-fix | Remove duplication | composition, clarity, simplicity |
 | 6 | gemini-fix | External code + product quality review | (Gemini MCP) |
-| 6.5 | **Machine Gate** | Qodana scan; Haiku fixer if issues found | |
-| 7 | adversarial-security-review | Attack your code | security-mindset, owasp, failure, safety |
-| 8 | write-tests-run | Write and run tests | test-doubles, test-strategy |
+| 7 | codex-fix | Independent Codex review + targeted fixes | (Codex CLI) |
+| 7.5 | **Machine Gate** | Qodana scan; Haiku fixer if issues found | |
+| 8 | adversarial-security-review | Attack your code | security-mindset, owasp, failure, safety |
 | 9 | ai-smell-fix | Remove AI patterns | (antipattern detection) |
-| 9.5 | **Machine Gate** | `npm test` + quality-gate (final) | |
+| 10 | final-eval-check | Score→fix→rescore loop | (Codex + Gemini MCP) |
+| 10.5 | **Machine Gate** | `npm test` + quality-gate | |
+| 11 | write-tests-run | Write and run tests (final inspection — ALWAYS LAST) | test-doubles, test-strategy |
+| 11.5 | **Machine Gate** | `npm test` + quality-gate (final) | |
 
 ---
 

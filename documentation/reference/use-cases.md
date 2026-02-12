@@ -494,7 +494,7 @@ function traceKeywordConfig(projectPath: string, taskText?: string): YamlSource 
 
 ## 6. Autonomous PRD Implementation (Ralph Loop)
 
-Fully autonomous loop that takes a PRD file and implements every item through a 9-phase quality pipeline. No human intervention between items.
+Fully autonomous loop that takes a PRD file and implements every item through a 11-phase quality pipeline. No human intervention between items.
 
 ```
 /ralph-loop requirements.md --max 30
@@ -540,7 +540,7 @@ export function isAllComplete(prd: Prd): boolean {
 
 ### Main Runner
 
-The runner iterates over incomplete PRD items, running 9 phases per item, then post-loop validation:
+The runner iterates over incomplete PRD items, running 11 phases per item, then post-loop validation:
 
 ```typescript
 // src/ralph/runner.ts
@@ -596,7 +596,7 @@ async function processAllItems(ctx: RunContext): Promise<void> {
 
 ### Single Item: Phase Execution
 
-Each item runs through all 9 phases. On success, the PRD file is atomically updated:
+Each item runs through all 11 phases. On success, the PRD file is atomically updated:
 
 ```typescript
 // src/ralph/runner.ts
@@ -778,14 +778,14 @@ export async function runClaude(options: ClaudeOptions): Promise<ClaudeOutput> {
 
 ## 7. Build/Improve Pipeline
 
-Build a new feature or improve existing code through a 9-phase quality pipeline. Each phase is a workflow skill invoked as a Claude subagent.
+Build a new feature or improve existing code through a 11-phase quality pipeline. Each phase is a workflow skill invoked as a Claude subagent.
 
 ```
 /build src/notifications
 /improve src/scanner
 ```
 
-**Phases:** create-plan, structure-first, implement-plan, refactor-check-fix, dedupe-fix, gemini-fix, adversarial-security-review, write-tests-run, ai-smell-fix
+**Phases:** create-plan, structure-first, implement-plan, refactor-check-fix, dedupe-fix, gemini-fix, codex-fix, adversarial-security-review, ai-smell-fix, final-eval-check, write-tests-run
 
 Each phase is defined in `workflow-skills/workflow/<phase>/SKILL.md` and orchestrated by `workflow-skills/workflow/build/SKILL.md` or `workflow-skills/workflow/improve/SKILL.md`. The orchestrator creates a git stash rollback point, then spawns each phase sequentially. Each must emit a gate marker (PLAN_COMPLETE, STRUCTURE_COMPLETE, etc.) before the next begins.
 
@@ -853,14 +853,14 @@ All fix skills write findings to two lesson files. Earlier planning/implementati
 
 ```
 Later phases (writers):          Earlier phases (readers):
-  ai-smell-fix      ──┐           create-plan
-  gemini-fix         ──┤ write →   structure-first
-  adversarial-review ──┘           implement-plan
-                                   refactor-check-fix
-                                   dedupe-fix
+  ai-smell-fix      ──┐           create-plan (Step 0b + 0c)
+  gemini-fix         ──┤ write →   structure-first (Step 0b)
+  adversarial-review ──┤           implement-plan (Step 0b)
+  final-eval-check   ──┘           refactor-check-fix (Step 0b)
+                                   dedupe-fix (Step 0b)
 
 Two-tier storage:
-  workflow-skills/lessons.md  →  universal patterns (travels with skills repo)
+  .claude/universal-lessons.md  →  universal patterns (travels with skills repo)
   .claude/lessons.md          →  project-specific instances with file paths
 ```
 

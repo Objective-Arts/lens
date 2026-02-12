@@ -117,7 +117,7 @@ List loaded experts in EXPERTS_LOADED. In EXPERT_DECISIONS, show each specific d
 ### Step 0b: Learn From Past Mistakes
 
 Read both lessons files if they exist:
-1. `workflow-skills/lessons.md` — universal patterns (ships with skills, applies to all projects)
+1. `.claude/universal-lessons.md` — universal patterns (ships with skills, applies to all projects)
 2. `.claude/lessons.md` — project-specific patterns (accumulated from this project's runs)
 
 Apply these lessons as you write code:
@@ -163,7 +163,7 @@ This is not optional. Read the file. 50 lines, <1 second.
 It refreshes the design principle before you write, not after.
 
 #### 2a½. Read plan constraint
-Read the `Constraint:` from the plan for the current work item. If it includes an abstract type tag (e.g., `[ValidatedInput + CausedError]`), implement the contract using the target language's idiom from `workflow-skills/rubric/contracts.md`. The BAD/GOOD example shows the specific boundary; the abstract type tells you the pattern. Apply it alongside the canon summary from Step 2a.
+Read the `Constraint:` from the plan for the current work item. If it includes an abstract type tag (e.g., `[ValidatedInput + CausedError]`), implement the contract using the target language's idiom from `.claude/rubric/contracts.md`. The BAD/GOOD example shows the specific boundary; the abstract type tells you the pattern. Apply it alongside the canon summary from Step 2a.
 
 #### 2a¾. Implement contract (if tagged)
 
@@ -179,7 +179,7 @@ If the work item constraint includes an abstract type tag, implement it:
 | BoundedOperation | Timeout parameter or max iterations. Never recurse/loop without a bound. |
 | IdempotentAction | Write-then-rename for files. Transactions for DB. Never partial-write. |
 
-Use the Language Idioms table from `workflow-skills/rubric/contracts.md` for the target language.
+Use the Language Idioms table from `.claude/rubric/contracts.md` for the target language.
 
 #### 2b. Write the unit
 Implement the code for this unit following all constraints above.

@@ -118,7 +118,7 @@ List loaded experts in EXPERTS_LOADED. In EXPERT_DECISIONS, show each specific p
 ### Step 0b: Learn From Past Mistakes
 
 Read both lessons files if they exist:
-1. `workflow-skills/lessons.md` — universal patterns (ships with skills, applies to all projects)
+1. `.claude/universal-lessons.md` — universal patterns (ships with skills, applies to all projects)
 2. `.claude/lessons.md` — project-specific patterns (accumulated from this project's runs)
 
 These contain patterns that later quality phases (gemini-fix, qodana-fix, adversarial-security) have repeatedly caught. Your plan should proactively address these known patterns so they don't recur:
@@ -157,10 +157,10 @@ If no proposals file exists or no PENDING proposals are relevant, write:
 
 ### Step 0d: Load Rubric
 
-Read `workflow-skills/rubric/AUTO-DETECT.md` for the detection table. Then:
+Read `.claude/rubric/AUTO-DETECT.md` for the detection table. Then:
 
-1. **Always load:** `workflow-skills/rubric/base.md` and `workflow-skills/rubric/product-quality.md`
-2. **Auto-detect domains:** Check target files against the detection table in AUTO-DETECT.md. Load matching domain rubrics (`workflow-skills/rubric/web-api.md`, `workflow-skills/rubric/data-persistence.md`, `workflow-skills/rubric/cli.md`, `workflow-skills/rubric/microservice.md`).
+1. **Always load:** `.claude/rubric/base.md` and `.claude/rubric/product-quality.md`
+2. **Auto-detect domains:** Check target files against the detection table in AUTO-DETECT.md. Load matching domain rubrics (`.claude/rubric/web-api.md`, `.claude/rubric/data-persistence.md`, `.claude/rubric/cli.md`, `.claude/rubric/microservice.md`).
 3. **Extract Planning Checklists:** From each loaded rubric, collect the `## Planning Checklist` table and template. Combine into a single PRODUCTION_CHECKLIST for the plan output.
 
 If a rubric file doesn't exist, skip it and continue. List loaded rubrics in:
@@ -170,7 +170,7 @@ If a rubric file doesn't exist, skip it and continue. List loaded rubrics in:
 
 ### Step 0e: Load Quality Contracts
 
-Read `workflow-skills/rubric/contracts.md`. Use the 7 abstract types when writing WORK_ITEM constraints and CONSTRUCTION_CHECKS. If Phase 2 (structure-first) produced a QUALITY_CONTRACTS table, incorporate its Construction Check entries into CONSTRUCTION_CHECKS.
+Read `.claude/rubric/contracts.md`. Use the 7 abstract types when writing WORK_ITEM constraints and CONSTRUCTION_CHECKS. If Phase 2 (structure-first) produced a QUALITY_CONTRACTS table, incorporate its Construction Check entries into CONSTRUCTION_CHECKS.
 
 ### Step 1: Explore
 
@@ -262,7 +262,7 @@ Example:
   GOOD: function create(validated: ValidatedName) { try { ... } catch(e) { throw new Error(..., {cause: e}) } }
 ```
 
-The `[AbstractType + ...]` tag tells Phase 3 which contract idiom to implement. Tag every constraint with the matching abstract types from `workflow-skills/rubric/contracts.md`.
+The `[AbstractType + ...]` tag tells Phase 3 which contract idiom to implement. Tag every constraint with the matching abstract types from `.claude/rubric/contracts.md`.
 
 WORK_ITEMS is the **implementation checklist**. Phases 3 and 4 iterate through it. Every item must be:
 

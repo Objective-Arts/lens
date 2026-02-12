@@ -67,7 +67,7 @@ List loaded experts in EXPERTS_LOADED output.
 ### Step 0b: Learn From Past Mistakes
 
 Read both lessons files if they exist:
-1. `workflow-skills/lessons.md` — universal patterns (ships with skills, applies to all projects)
+1. `.claude/universal-lessons.md` — universal patterns (ships with skills, applies to all projects)
 2. `.claude/lessons.md` — project-specific patterns (accumulated from this project's runs)
 
 Use relevant lessons to guide your deduplication:

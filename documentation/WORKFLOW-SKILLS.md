@@ -42,11 +42,11 @@ workflow-skills/
 │                                                                          │
 │ /create-plan → /structure-first → /implement-plan → [machine-gate]       │
 │                                                                          │
-│ → /refactor-check-fix → /dedupe-fix → /gemini-fix → [machine-gate]      │
+│ → /refactor-check-fix → /dedupe-fix → /gemini-fix → /codex-fix         │
 │                                                                          │
-│ → /adversarial-security-review → /write-tests-run → /ai-smell-fix       │
+│ → [machine-gate] → /adversarial-security-review → /ai-smell-fix         │
 │                                                                          │
-│ → [machine-gate]                                                         │
+│ → /final-eval-check → [machine-gate] → /write-tests-run → [machine-gate] │
 │                                                                          │
 └──────────────────────────────────────────────────────────────────────────┘
 ```
@@ -389,11 +389,11 @@ See [AI Smell Index Reference](reference/ai-smell-index.md) for full scoring det
 
 ---
 
-## Heavy Workflows (9 Phases)
+## Heavy Workflows (10 Phases)
 
 ### `/build [path|description] [--rollback] [--dry-run]`
 
-**Purpose:** Build a new feature from scratch with full 9-phase quality pipeline.
+**Purpose:** Build a new feature from scratch with full 11-phase quality pipeline.
 
 **When to use:**
 - New feature from PRD
@@ -403,10 +403,10 @@ See [AI Smell Index Reference](reference/ai-smell-index.md) for full scoring det
 **Flags:**
 | Flag | Purpose |
 |------|---------|
-| `--dry-run` | Show the 9 phases without executing |
+| `--dry-run` | Show the 11 phases without executing |
 | `--rollback` | Restore from last build stash |
 
-**The 9 Phases:**
+**The 10 Phases:**
 | # | Skill | Purpose |
 |---|-------|---------|
 | 1 | create-plan | Design feature scope and files |
@@ -415,11 +415,13 @@ See [AI Smell Index Reference](reference/ai-smell-index.md) for full scoring det
 | 4 | refactor-check-fix | Clean up, apply patterns |
 | 5 | dedupe-fix | Consolidate duplicated code |
 | 6 | gemini-fix | Gemini review + product quality, fix ALL issues |
-| 7 | adversarial-security-review | Security audit, fix vulnerabilities |
-| 8 | write-tests-run | Write/update tests |
+| 7 | codex-fix | Independent Codex review + targeted fixes |
+| 8 | adversarial-security-review | Security audit, fix vulnerabilities |
 | 9 | ai-smell-fix | Remove AI-generated antipatterns |
+| 10 | final-eval-check | Score→fix→rescore loop (external evaluation) |
+| 11 | write-tests-run | Write and run tests (final inspection — ALWAYS LAST) |
 
-Machine gates at 3.5 (build+test+construction), 6.5 (Qodana scan), 9.5 (final tests).
+Machine gates at 3.5 (build+test+construction), 7.5 (Qodana scan), 10.5 (post-eval), 11.5 (final tests).
 
 **Rollback:** Creates git stash before changes. Use `--rollback` to restore.
 
@@ -436,7 +438,7 @@ Machine gates at 3.5 (build+test+construction), 6.5 (Qodana scan), 9.5 (final te
 
 ### `/improve [path] [--rollback] [--dry-run]`
 
-**Purpose:** Improve existing code with full 9-phase quality pipeline.
+**Purpose:** Improve existing code with full 11-phase quality pipeline.
 
 **When to use:**
 - Refactoring a module
@@ -447,10 +449,10 @@ Machine gates at 3.5 (build+test+construction), 6.5 (Qodana scan), 9.5 (final te
 **Flags:**
 | Flag | Purpose |
 |------|---------|
-| `--dry-run` | Show the 9 phases without executing |
+| `--dry-run` | Show the 11 phases without executing |
 | `--rollback` | Restore from last improve stash |
 
-**The 9 Phases:** Same as `/build`, but focused on existing code analysis and improvement.
+**The 11 Phases:** Same as `/build`, but focused on existing code analysis and improvement. Phase 7 (codex-fix) provides independent Codex review, Phase 10 (final-eval-check) runs a score→fix→rescore loop, then Phase 11 (write-tests-run) runs as the final inspection.
 
 **Rollback:** Creates git stash before changes. Use `--rollback` to restore.
 
@@ -613,8 +615,8 @@ Machine gates at 3.5 (build+test+construction), 6.5 (Qodana scan), 9.5 (final te
 | Skill | When to Use | Modifies Code |
 |-------|-------------|---------------|
 | `/lens` | Start here — status and choices | No |
-| `/build` | New feature from scratch (9 phases) | Yes |
-| `/improve` | Refine existing code (9 phases) | Yes |
+| `/build` | New feature from scratch (11 phases) | Yes |
+| `/improve` | Refine existing code (11 phases) | Yes |
 | `/quick-edit` | Add field, rename, small fix | Yes |
 | `/quick-clean` | Fast AI smell cleanup | Yes |
 | `/codex-fix` | Fast pattern scan + targeted fixes | Yes |
@@ -627,6 +629,7 @@ Machine gates at 3.5 (build+test+construction), 6.5 (Qodana scan), 9.5 (final te
 | `/gemini-fix` | Before PR | Yes |
 | `/qodana-fix` | Before PR | Yes |
 | `/adversarial-security-review` | Auth/data features | Yes |
+| `/final-eval-check` | After code works | Yes |
 | `/write-tests-run` | After code works | Yes |
 | `/generate-docs` | After feature complete | Yes |
 | `/final-polish` | After build/improve, before PR | Yes |
@@ -658,21 +661,29 @@ Machine gates at 3.5 (build+test+construction), 6.5 (Qodana scan), 9.5 (final te
 
 # 4. Clean up
 /refactor-check-fix src/features/password-reset
+
+# 5. Consolidate duplication
+/dedupe-fix src/features/password-reset
+
+# 6. External validation
+/gemini-fix src/features/password-reset
+
+# 7. Independent Codex review
+/codex-fix src/features/password-reset
+
+# 8. Security check + AI smell removal
+/adversarial-security-review src/features/password-reset
 /ai-smell-fix src/features/password-reset
 
-# 5. External validation
-/gemini-fix src/features/password-reset
-/qodana-fix src/features/password-reset
+# 9. External evaluation
+/final-eval-check src/features/password-reset
 
-# 6. Security check
-/adversarial-security-review src/features/password-reset
-
-# 7. Test at all levels
+# 10. Test at all levels (final inspection — ALWAYS LAST)
 /write-tests-run unit
 /write-tests-run integration
 /write-tests-run e2e
 
-# 8. Document
+# 11. Document
 /generate-docs src/features/password-reset
 ```
 

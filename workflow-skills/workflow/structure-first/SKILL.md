@@ -65,7 +65,7 @@ List loaded experts in EXPERTS_LOADED. In EXPERT_DECISIONS, show each specific s
 ### Step 0b: Learn From Past Mistakes
 
 Read both lessons files if they exist:
-1. `workflow-skills/lessons.md` — universal patterns (ships with skills, applies to all projects)
+1. `.claude/universal-lessons.md` — universal patterns (ships with skills, applies to all projects)
 2. `.claude/lessons.md` — project-specific patterns (accumulated from this project's runs)
 
 Apply relevant lessons to your structural design:
@@ -78,7 +78,7 @@ If a file doesn't exist, skip it and continue.
 
 ### Step 0c: Load Quality Contracts
 
-Read `workflow-skills/rubric/contracts.md`. This defines 7 abstract types for boundary enforcement. Use them during boundary analysis in both modes.
+Read `.claude/rubric/contracts.md`. This defines 7 abstract types for boundary enforcement. Use them during boundary analysis in both modes.
 
 ---
 
@@ -236,7 +236,7 @@ Types must look like they were designed by a skilled human engineer:
 
 ### Boundary Analysis (Create Mode)
 
-For each function/module being created, identify boundaries using the detection signals from `workflow-skills/rubric/contracts.md`:
+For each function/module being created, identify boundaries using the detection signals from `.claude/rubric/contracts.md`:
 - Where does user input enter? → ValidatedInput
 - Where are file paths constructed? → SafePath
 - Where are errors caught and re-thrown? → CausedError

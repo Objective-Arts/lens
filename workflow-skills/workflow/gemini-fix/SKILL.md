@@ -46,24 +46,26 @@ After fixing, code should:
 
 ## Scope Constraint (MANDATORY)
 
-Fix bugs and vulnerabilities IN PLACE. Do not restructure.
+Fix ALL findings for production readiness. Every issue gets fixed. No deferring, no "backlog for next cycle," no "appropriate for MVP."
 
 ALLOWED:
 - Change logic within an existing function
 - Add validation/checks to existing code paths
 - Fix crypto/security bugs in existing implementations
+- Add private helper methods within existing files
+- Add config entries, constants, enums to existing files
+- Add interfaces to existing files if needed for proper typing
+- Restructure function internals (keep same signature)
 
 FORBIDDEN:
-- Adding new files
-- Adding new types/interfaces
-- Adding new exported functions
-- Splitting existing functions into multiple
+- Adding new source files (config files are OK)
 - Moving code between files
-- Adding new dependencies
+- Adding new external dependencies
 
-If a finding genuinely requires restructuring to fix, DO NOT fix it.
-Report it as DEFERRED_TO_HUMAN with a one-line explanation. These are
-the ONLY items allowed in UNFIXED.
+If a finding seems to require restructuring: fix it anyway by
+restructuring within the existing file. The only acceptable
+unfixed items are findings that require adding new external
+dependencies — report those with a one-line explanation.
 
 ---
 
@@ -73,6 +75,16 @@ If a path argument is provided, review that file/directory.
 If no argument, review recently modified files (git diff/log).
 
 ## Process (Two Steps)
+
+### Step 0: Load Rubric
+
+Read `.claude/rubric/AUTO-DETECT.md` for the detection table. Then:
+
+1. **Always load:** `.claude/rubric/base.md` and `.claude/rubric/product-quality.md`
+2. **Auto-detect domains:** Check target files against the detection table. Load matching domain rubrics (`.claude/rubric/web-api.md`, `.claude/rubric/data-persistence.md`, `.claude/rubric/cli.md`, `.claude/rubric/microservice.md`).
+3. **Extract Review Criteria:** From each loaded rubric, collect the numbered items under `## Review Criteria`. Combine into a single criteria list for the Gemini context.
+
+If a rubric file doesn't exist, skip it and continue.
 
 ### Step 1: IDENTIFY Issues (Do Not Fix Yet)
 
@@ -91,14 +103,16 @@ Read ALL files in scope completely. Do not skim.
 
 #### 1c. Call Gemini (MANDATORY)
 
-For each file or logical group:
+For each source file (one file per call, not concatenated):
 
 ```
 mcp__gemini-reviewer__gemini_review
-  code: <paste the source code>
+  code: <contents of this single file>
   focus: "general"
-  context: "You are a senior Google engineer doing a hard-ass code review. No handholding, no false praise. Find: bugs, edge cases that crash, logic errors, performance problems, poor naming, unclear code, missing error handling. Flag AI-generated antipatterns: over-abstraction (factories/wrappers used once), features not requested, defensive checks for impossible cases, reimplementing stdlib, copy-paste that should be extracted, over-commenting obvious code, unnecessary config options, over-engineered types. If it wouldn't pass Google code review, flag it. Be direct and critical."
+  context: "PRODUCTION READINESS review for {filename}. Check against these criteria: {RUBRIC_CRITERIA}. Also note if public APIs lack tests (Test Coverage — handled by write-tests-run phase). SEVERITY: CRITICAL = exploitable vulnerability, data loss, crash in production. HIGH = would cause incidents, missing critical validation. MEDIUM = poor practice, minor gaps. LOW = style, naming. OUTPUT FORMAT: FINDING: {category} | {severity} | {description} | {file:line}"
 ```
+
+Replace `{RUBRIC_CRITERIA}` with the combined Review Criteria from all loaded rubric files, numbered sequentially.
 
 If tool unavailable, output: `GEMINI_ERROR: tool not available`
 
@@ -126,8 +140,10 @@ Call Gemini again with focus "adversarial":
 mcp__gemini-reviewer__gemini_review
   code: <paste the main entry point / CLI / config code>
   focus: "adversarial"
-  context: "Review as a USER, not a developer. Check: (1) Do all configurable values have sensible defaults that work without setup? No randomized paths or timestamped filenames. (2) Does every required input have flag → env var → interactive prompt fallback? (3) Are there data model fields or internal capabilities not reachable from the user interface? (4) Does every user-triggerable error say what went wrong and what to do? No stack traces for end users. (5) Are secrets accepted only via file/stdin/env/prompt — never as positional CLI args? Flag any UX papercuts a real user would hit."
+  context: "PRODUCTION READINESS — user experience gate. Review as a user deploying this to production. Check against the product quality criteria: {PRODUCT_QUALITY_CRITERIA}. Flag any issue that would cause a production incident or require rollback."
 ```
+
+Replace `{PRODUCT_QUALITY_CRITERIA}` with the Review Criteria from `.claude/rubric/product-quality.md` (loaded in Step 0), numbered sequentially.
 
 Add any product quality issues to the ISSUES_FOUND list with severity [HIGH] or [MODERATE].
 
@@ -202,7 +218,7 @@ Append the specific finding with file paths and context:
 - {CATEGORY}: {specific description with file:line} → {which earlier phase should catch this and how}
 ```
 
-### 2. Universal: `workflow-skills/lessons.md`
+### 2. Universal: `.claude/universal-lessons.md`
 
 Read this file first. If the **general pattern** is already listed, skip. If it's a NEW general pattern not already covered, append it to the appropriate section (LOGIC Patterns, DESIGN Patterns, CODE_QUALITY Patterns, DUPLICATION Patterns, or Gemini False Positive Patterns). Write the general rule, not the project-specific instance:
 

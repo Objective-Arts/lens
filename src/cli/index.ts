@@ -33,8 +33,8 @@ ${chalk.bold.yellow('CONFIGURE A PROJECT')}
 
 ${chalk.bold.yellow('INSIDE CLAUDE CODE')} ${chalk.dim('(slash commands after setup)')}
 
-  ${chalk.cyan('/build')} ${chalk.dim('target')}              Build new feature (9 phases)
-  ${chalk.cyan('/improve')} ${chalk.dim('path')}             Improve existing code (9 phases)
+  ${chalk.cyan('/build')} ${chalk.dim('target')}              Build new feature (10 phases)
+  ${chalk.cyan('/improve')} ${chalk.dim('path')}             Improve existing code (10 phases)
   ${chalk.cyan('/quick-edit')} ${chalk.dim('desc')}          Simple change (add field, rename)
   ${chalk.cyan('/quick-clean')} ${chalk.dim('path')}         Fast AI smell cleanup
   ${chalk.cyan('/ai-smell-scan')} ${chalk.dim('path')}       Check for AI-generated patterns

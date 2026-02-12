@@ -7,8 +7,8 @@
 | Command | Description |
 |---------|-------------|
 | `/ralph-loop [prd-file] [--max N] [--resume]` | Autonomous PRD implementation loop |
-| `/build [path] [--rollback] [--dry-run]` | Build new feature with 9-phase quality pipeline |
-| `/improve [path] [--rollback] [--dry-run]` | Improve existing code with 9-phase quality pipeline |
+| `/build [path] [--rollback] [--dry-run]` | Build new feature with 11-phase quality pipeline |
+| `/improve [path] [--rollback] [--dry-run]` | Improve existing code with 11-phase quality pipeline |
 | `/quick-edit [description]` | Simple changes (add field, rename, small fix) |
 | `/quick-clean [path]` | Surface tidy post quick-edit. Invokes clarity + refactoring + style skills |
 | `/create-plan [task]` | Create implementation plan before coding |

@@ -11,34 +11,63 @@ Internal pipeline phase. Invokes OpenAI Codex CLI for an independent code review
 
 ## Scope Constraint (MANDATORY)
 
-Fix bugs and vulnerabilities IN PLACE. Do not restructure.
+Fix ALL findings for production readiness. Every issue gets fixed. No deferring, no "backlog for next cycle," no "appropriate for MVP."
 
 ALLOWED:
 - Change logic within an existing function
 - Add validation/checks to existing code paths
 - Fix crypto/security bugs in existing implementations
+- Add private helper methods within existing files
+- Add config entries, constants, enums to existing files
+- Add interfaces to existing files if needed for proper typing
+- Restructure function internals (keep same signature)
 
 FORBIDDEN:
-- Adding new files
-- Adding new types/interfaces
-- Adding new exported functions
-- Splitting existing functions into multiple
+- Adding new source files (config files are OK)
 - Moving code between files
-- Adding new dependencies
+- Adding new external dependencies
 
-If a finding genuinely requires restructuring to fix, DO NOT fix it.
-Report it as DEFERRED_TO_HUMAN with a one-line explanation. These are
-the ONLY items allowed in UNFIXED.
+If a finding seems to require restructuring: fix it anyway by
+restructuring within the existing file. The only acceptable
+unfixed items are findings that require adding new external
+dependencies — report those with a one-line explanation.
 
 ---
+
+## Step 0: Load Rubric
+
+Read `.claude/rubric/AUTO-DETECT.md` for the detection table. Then:
+
+1. **Always load:** `.claude/rubric/base.md` and `.claude/rubric/product-quality.md`
+2. **Auto-detect domains:** Check target files against the detection table. Load matching domain rubrics (`.claude/rubric/web-api.md`, `.claude/rubric/data-persistence.md`, `.claude/rubric/cli.md`, `.claude/rubric/microservice.md`).
+3. **Extract Review Criteria:** From each loaded rubric, collect the numbered items under `## Review Criteria`. Combine into a single criteria list for the Codex prompt.
+4. **Extract Product Quality Criteria:** From `.claude/rubric/product-quality.md`, collect the Review Criteria for the product quality review in Step 4.
+
+If a rubric file doesn't exist, skip it and continue.
 
 ## Step 1: Run Codex Review
 
 Invoke Codex CLI non-interactively against the target:
 
 ```bash
-codex exec -s read-only -o /tmp/lens-codex-review.md "Review all source code in {TARGET} for production readiness. Focus on: 1) AI-generated code smells — verbose defensive patterns nobody asked for, single-use wrapper functions, excessive comments restating obvious code, console.error/console.log that leak implementation details, unnecessary try/catch that swallow context, over-abstraction for one-time operations 2) Security vulnerabilities — secret leakage in errors/logs, crypto implementation flaws, input validation gaps, path traversal 3) Reliability — cross-filesystem operations, atomic writes, error handling that swallows context 4) Operational gaps — missing env var support for CI/CD, unclear add-vs-update semantics 5) Architecture — god files, tight coupling, missing abstractions. Be specific: cite file:line for every finding. Rate overall as production-ready, production-leaning, or not-production-ready." 2>&1
+cd {TARGET} && codex exec -s read-only -o /tmp/lens-codex-review.md "PRODUCTION READINESS review. Review ALL source code and cite file:line for every finding.
+
+Check against these criteria:
+{RUBRIC_CRITERIA}
+
+SEVERITY:
+- CRITICAL: exploitable vulnerability, data loss, crash in production
+- HIGH: would cause incidents, missing critical validation
+- MEDIUM: poor practice, inconsistent handling, minor gaps
+- LOW: style, naming, documentation
+
+OUTPUT FORMAT:
+FINDING: {category} | {severity} | {description} | {file:line or N/A}" 2>&1
 ```
+
+Replace `{RUBRIC_CRITERIA}` with the combined Review Criteria from all loaded rubric files, numbered sequentially.
+
+**Note:** Test Coverage is handled by the write-tests-run phase — include a single line: "N. Test Coverage: tests exist, edge cases covered, meaningful assertions (handled by write-tests-run phase)".
 
 If `codex` is not installed, fall back to Step 1b. If it fails for any other reason, log the error and fall back to Step 1b.
 
@@ -56,9 +85,12 @@ bash "$SKILL_DIR/review-bot.sh" {TARGET} --run --out /tmp/lens-codex-report.json
 Read `/tmp/lens-codex-review.md` (or `/tmp/lens-codex-report.json` if fallback was used).
 
 For Codex review output, parse all findings with file:line references. Categorize by:
-- **Security** — vulnerabilities, secret leakage, crypto issues
-- **Reliability** — cross-filesystem, atomicity, error handling
-- **Operational** — UX gaps, CI/CD support, unclear semantics
+- **Security** — vulnerabilities, secret leakage, crypto issues, injection, path traversal
+- **Reliability** — error handling, resource cleanup, cross-filesystem, atomicity, bounded operations
+- **Deployability** — build, lockfile, externalized config, health checks, graceful shutdown
+- **Operational Hygiene** — logging quality, error UX, documentation, CI/CD support
+- **AI Code Smells** — verbose defensive patterns, single-use wrappers, comment spam, over-abstraction
+- **Test Coverage** — missing tests, edge cases, assertions
 - **Architecture** — structural issues, coupling, missing abstractions
 
 If Codex found no issues and rated the code production-ready, skip to Step 4.
@@ -94,52 +126,13 @@ For each fix: read the file, understand context, apply the minimal safe change. 
 Review the code **as a user, not an engineer.** Code review catches bad code.
 This step catches bad products built with good code.
 
-### 4a. Defaults and First-Run Experience
-
-Check every configurable value (file paths, ports, URLs, timeouts). For each:
-- Is the default stable across runs? (Randomized or timestamped defaults = CRITICAL)
-- Does the default work without setup? (e.g., creates parent directories)
-- Can a user run the tool with zero flags and get a useful result?
-
-Flag: values that change per-invocation, require non-existent directories, or
-force the user to pass a flag that should have a sensible default.
-
-### 4b. Interactive Fallbacks
-
-Check every required input (passwords, tokens, API keys). For each:
-- If not provided via flag or env var, does the tool prompt interactively?
-- If stdin is not a TTY, does it fail with a clear message naming the flag/env var?
-
-Flag: required inputs that crash or produce cryptic errors when omitted.
-
-### 4c. Feature Completeness
-
-Check every data model field and internal capability. For each:
-- Is there a CLI command or flag that lets users control it?
-- If intentionally internal-only, is this documented in `--help`?
-
-Flag: capabilities the code supports but no user can reach (orphaned features).
-
-### 4d. Error UX
-
-Run through failure scenarios: wrong password, missing file, invalid input.
-- Does the error message tell the user what to do?
-- Does the process exit with a non-zero code?
-- Are stack traces hidden from end users?
-
-Flag: raw stack traces, exit code 0 on failure, errors that don't say what went wrong.
-
-### 4e. Competitor Parity
-
-If the tool has a clear category (CLI keystore, config manager, etc.):
-- Does it match basic UX expectations? (e.g., password managers prompt for passwords)
-- Are there obvious missing commands that every similar tool has?
+Walk through each criterion from `.claude/rubric/product-quality.md` (loaded in Step 0). For each criterion, check the target code and flag violations.
 
 ### Apply Product Fixes
 
 Product quality issues follow the same priority as code issues. Fix them in place
-using the Scope Constraint rules. If a fix requires a new file or restructuring,
-report as DEFERRED_TO_HUMAN.
+using the Scope Constraint rules. If a fix seems to require a new file, restructure
+within the existing file instead. Every product quality issue gets fixed.
 
 ## Evidence Checklist (MANDATORY)
 
@@ -181,9 +174,9 @@ rm -f /tmp/lens-codex-review.md /tmp/lens-codex-report.json
 
 Report:
 - Codex's overall rating (production-ready / production-leaning / not-production-ready)
-- Number of findings by category (security, reliability, operational, architecture, product-quality)
+- Number of findings by category (security, reliability, deployability, operational-hygiene, ai-smells, test-coverage, architecture, product-quality)
 - Number of fixes applied vs deferred
 - Any findings left unresolved (with reason)
 - Product quality findings (defaults, prompts, orphaned features, error UX)
 
-End with: CODEX_CHECK_COMPLETE
+End with: CODEX_FIX_COMPLETE

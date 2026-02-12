@@ -20,7 +20,7 @@ import { getCanonSourcePath, findSkillSourcePath } from './source.js';
 export function checkSkillStatus(projectPath: string): SkillStatusInfo[] {
   const manifest = readManifest(projectPath);
   const installedSkills = getInstalledSkills(projectPath);
-  const skillsDir = path.join(projectPath, '.claude', 'skills');
+  const skillsDir = path.join(projectPath, '.claude', 'canon');
   const canonPath = getCanonSourcePath();
   const sourceCommit = getGitCommit(canonPath);
 
@@ -57,7 +57,7 @@ export function copySkill(
     return { success: false, message: `Invalid skill name (path traversal): ${skillName}` };
   }
 
-  const targetPath = path.join(projectPath, '.claude', 'skills', skillName);
+  const targetPath = path.join(projectPath, '.claude', 'canon', skillName);
   const force = options.force ?? false;
 
   // Validate skill can be copied
@@ -149,7 +149,7 @@ export function diffSkill(skillName: string, projectPath: string): string | null
     return `Invalid skill name (path traversal): ${skillName}`;
   }
 
-  const installedPath = path.join(projectPath, '.claude', 'skills', skillName);
+  const installedPath = path.join(projectPath, '.claude', 'canon', skillName);
 
   // Validate paths
   if (!fs.existsSync(installedPath)) {

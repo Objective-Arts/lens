@@ -44,24 +44,26 @@ After fixing, code should:
 
 ## Scope Constraint (MANDATORY)
 
-Fix bugs and vulnerabilities IN PLACE. Do not restructure.
+Fix ALL findings for production readiness. Every issue gets fixed. No deferring, no "backlog for next cycle," no "appropriate for MVP."
 
 ALLOWED:
 - Change logic within an existing function
 - Add validation/checks to existing code paths
 - Fix crypto/security bugs in existing implementations
+- Add private helper methods within existing files
+- Add config entries, constants, enums to existing files
+- Add interfaces to existing files if needed for proper typing
+- Restructure function internals (keep same signature)
 
 FORBIDDEN:
-- Adding new files
-- Adding new types/interfaces
-- Adding new exported functions
-- Splitting existing functions into multiple
+- Adding new source files (config files are OK)
 - Moving code between files
-- Adding new dependencies
+- Adding new external dependencies
 
-If a finding genuinely requires restructuring to fix, DO NOT fix it.
-Report it as DEFERRED_TO_HUMAN with a one-line explanation. These are
-the ONLY items allowed in UNFIXED.
+If a finding seems to require restructuring: fix it anyway by
+restructuring within the existing file. The only acceptable
+unfixed items are findings that require adding new external
+dependencies — report those with a one-line explanation.
 
 ---
 
@@ -146,7 +148,7 @@ Append the specific finding with file paths and context:
 - {CATEGORY}: {specific description with file:line} → {which earlier phase should catch this and how}
 ```
 
-### 2. Universal: `workflow-skills/lessons.md`
+### 2. Universal: `.claude/universal-lessons.md`
 
 Read this file first. If the **general pattern** is already listed, skip. If it's a NEW general pattern not already covered, append it to the appropriate section (LOGIC Patterns, DESIGN Patterns, CODE_QUALITY Patterns, or DUPLICATION Patterns). Write the general rule, not the project-specific instance:
 

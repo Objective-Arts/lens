@@ -17,6 +17,7 @@ import {
   checkDangerousEval,
   checkFalsyNumericGuard,
   checkCommentSpam,
+  checkFunctionLength,
   startPipelineMetrics,
   recordPhaseMetrics,
   reportMetrics,
@@ -566,6 +567,66 @@ describe('checkCommentSpam', () => {
       'export function parse(input: string) {}',
     ].join('\n'));
     expect(checkCommentSpam([f], tempDir)).toHaveLength(0);
+  });
+});
+
+// ─── Function Length ─────────────────────────────────────────────────────────
+
+function makeBody(count: number, indent = '  '): string {
+  return Array.from({ length: count }, (_, i) => `${indent}const v${i} = ${i};`).join('\n');
+}
+
+describe('checkFunctionLength', () => {
+  it('passes short function declaration', () => {
+    const f = writeFile('src/util.ts', `function short() {\n  return 1;\n}`);
+    expect(checkFunctionLength([f], tempDir)).toHaveLength(0);
+  });
+
+  it('catches long function declaration', () => {
+    const f = writeFile('src/util.ts', `function long() {\n${makeBody(31)}\n}`);
+    const v = checkFunctionLength([f], tempDir);
+    expect(v).toHaveLength(1);
+    expect(v[0].check).toBe('function-length');
+    expect(v[0].message).toContain('long');
+  });
+
+  it('passes short arrow const', () => {
+    const f = writeFile('src/util.ts', `export const short = (x: string) => {\n  return x;\n}`);
+    expect(checkFunctionLength([f], tempDir)).toHaveLength(0);
+  });
+
+  it('catches long arrow const', () => {
+    const f = writeFile('src/util.ts', `export const long = (x: string) => {\n${makeBody(31)}\n}`);
+    const v = checkFunctionLength([f], tempDir);
+    expect(v).toHaveLength(1);
+    expect(v[0].message).toContain('long');
+  });
+
+  it('passes short class method', () => {
+    const f = writeFile('src/util.ts', `class Foo {\n  bar(): void {\n    return;\n  }\n}`);
+    expect(checkFunctionLength([f], tempDir)).toHaveLength(0);
+  });
+
+  it('catches long class method', () => {
+    const f = writeFile('src/util.ts', `class Foo {\n  bar(): void {\n${makeBody(31, '    ')}\n  }\n}`);
+    const v = checkFunctionLength([f], tempDir);
+    expect(v).toHaveLength(1);
+    expect(v[0].message).toContain('bar');
+  });
+
+  it('catches long async method with access modifier', () => {
+    const f = writeFile('src/util.ts', `class Svc {\n  private async process(data: string): Promise<void> {\n${makeBody(31, '    ')}\n  }\n}`);
+    const v = checkFunctionLength([f], tempDir);
+    expect(v).toHaveLength(1);
+    expect(v[0].message).toContain('process');
+  });
+
+  it('does not double-count nested functions', () => {
+    const outer = makeBody(10);
+    const inner = makeBody(10, '    ');
+    const f = writeFile('src/util.ts', `function outer() {\n${outer}\n  function inner() {\n${inner}\n  }\n}`);
+    // Total ~23 significant lines (outer body + inner decl + inner body + inner close) — under 30
+    expect(checkFunctionLength([f], tempDir)).toHaveLength(0);
   });
 });
 

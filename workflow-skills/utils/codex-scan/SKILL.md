@@ -18,6 +18,16 @@ Multiple paths can be provided to scan a set of components.
 
 ## Process
 
+### Step 0: Load Rubric
+
+Read `.claude/rubric/AUTO-DETECT.md` for the detection table. Then:
+
+1. **Always load:** `.claude/rubric/base.md` and `.claude/rubric/product-quality.md`
+2. **Auto-detect domains:** Check target files against the detection table. Load matching domain rubrics (`.claude/rubric/web-api.md`, `.claude/rubric/data-persistence.md`, `.claude/rubric/cli.md`, `.claude/rubric/microservice.md`).
+3. **Extract Review Criteria:** From each loaded rubric, collect the numbered items under `## Review Criteria`. Combine into a single criteria list for the Codex prompt.
+
+If a rubric file doesn't exist, skip it and continue.
+
 ### Step 1: Find Code to Review
 
 Find target files:
@@ -36,8 +46,16 @@ Read ALL files in scope completely. Do not skim.
 Invoke Codex CLI non-interactively against the target:
 
 ```bash
-codex exec -s read-only -o /tmp/lens-codex-scan.md "Review all source code in {TARGET} for production readiness. Focus on: 1) AI-generated code smells — verbose defensive patterns nobody asked for, single-use wrapper functions, excessive comments restating obvious code, console.error/console.log that leak implementation details, unnecessary try/catch that swallow context, over-abstraction for one-time operations 2) Security vulnerabilities — secret leakage in errors/logs, crypto implementation flaws, input validation gaps, path traversal 3) Reliability — cross-filesystem operations, atomic writes, error handling that swallows context 4) Operational gaps — missing env var support for CI/CD, unclear add-vs-update semantics 5) Architecture — god files, tight coupling, missing abstractions. Be specific: cite file:line for every finding. Rate overall as production-ready, production-leaning, or not-production-ready." 2>&1
+cd {TARGET} && codex exec -s read-only -o /tmp/lens-codex-scan.md "PRODUCTION READINESS GATE REVIEW. Score like a senior engineer deciding whether to deploy this to production TODAY. If you wouldn't deploy it, score below 8. Review ALL source code. Score each category 1-10 and cite file:line for every finding.
+
+{RUBRIC_CRITERIA}
+
+SCORING ANCHOR: 8+ = deploy today. 5-6 = needs work. 3-4 = major gaps. CRITICAL = blocks production. HIGH = would cause incidents. Rate overall as min of all category scores." 2>&1
 ```
+
+Replace `{RUBRIC_CRITERIA}` with the combined Review Criteria from all loaded rubric files, numbered sequentially. Example: if base.md has 12 criteria and cli.md has 5, number them (1)-(17).
+
+**Note:** Test Coverage is handled by the write-tests-run phase — do not include it in the rubric criteria.
 
 If `codex` is not installed, fall back to Step 3b. If it fails for any other reason, log the error and fall back to Step 3b.
 

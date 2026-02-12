@@ -95,6 +95,22 @@ Project-specific lessons go in `.claude/lessons.md` (local to each project).
 - Always validate dataset values against an allowlist before using them as object keys, CSS selectors, or state values
 - Without validation: prototype property access (`__proto__`, `constructor`) or CSS selector injection
 
+### Mass Assignment on Entity Objects
+- Never accept entire entity objects (Product, User, Order) from user input and bind them directly to database models
+- User can manipulate internal fields like Id, CreatedAt, IsDeleted, Roles by crafting malicious JSON payloads
+- Pattern: Create new entity instances with only explicitly assigned safe properties from input
+- Alternative: Use separate DTO/request models with only user-editable fields, map to entity manually
+
+### Information Disclosure in Validation Errors
+- Validation error messages that echo back product IDs, stock quantities, or user-provided input reveal system state to attackers
+- Use generic messages: "Product not found" instead of "Product 123 not found", "Insufficient stock" instead of "requested 50, available 10"
+- Only reveal specific details in server logs, never in API responses
+
+### Decimal Overflow in Financial Calculations
+- Multiplying decimal Price * int Quantity can exceed decimal max value if Quantity approaches int.MaxValue
+- Always check result magnitude before assignment: `if (subtotal > MAX_REASONABLE_VALUE) throw`
+- Pattern applies to any currency calculation with user-controlled multipliers
+
 ### Context-Appropriate Encoding (HTML vs Attribute)
 - `escapeHtml()` produces HTML entities (`&amp;`, `&lt;`) which are correct for text content but wrong for HTML attribute values like `id` and `class`
 - Entity-encoded strings in `id` attributes don't match subsequent `document.querySelector('#id')` calls
@@ -199,11 +215,18 @@ Project-specific lessons go in `.claude/lessons.md` (local to each project).
 ### Single-Use Helper Functions
 - Do not extract a helper function that is called exactly once — inline the logic at the call site. Only extract when there are 2+ callers.
 - create-plan and structure-first should not decompose below the natural abstraction level.
+- Example: `SalesServiceHelper.ExtractProductIds()` was a one-liner called from two places in `SalesService` — inline the LINQ directly at call sites.
+
+### Dependency Injection Violation (Service Instantiation Anti-Pattern)
+- Do not create new instances of repository/service classes inside controller methods: `var productsRepository = new ProductRepository(database)`.
+- Always inject dependencies via constructor. If multiple methods need the same service, inject it once and reuse the field.
+- Controller should declare all dependencies in its constructor; methods use injected fields.
 
 ### Comment Spam (JSDoc Restating Code)
 - Do not add JSDoc that restates the function name: `/** Get the user */ function getUser()` — delete it.
 - Only comment non-obvious behavior: unusual algorithms, why (not what), invariants, edge cases.
 - File header comments restating the filename ("Shared filesystem utilities" in `utils/fs.ts`) are noise — omit them.
+- In C#, remove XML documentation summaries that only describe obvious behavior (e.g., "Returns all active products ordered by name" when the method name is `GetAllActiveAsync`).
 
 ### Defensive Paranoia (Impossible Null Checks)
 - Do not add null/undefined checks on typed parameters — trust TypeScript's type system.
@@ -222,6 +245,16 @@ Project-specific lessons go in `.claude/lessons.md` (local to each project).
 - Do not extract universally known values into named constants: `MONTHS_IN_YEAR = 12`, `SECONDS_PER_MINUTE = 60`, `HTTP_OK = 200`.
 - Do not extract single-use default parameter values: `DEFAULT_COUNT = 50` used only as `count = DEFAULT_COUNT` -- inline `count = 50`.
 - Only extract a number when its meaning is non-obvious in context or when it appears in multiple places.
+
+### Speculative Retry Loops
+- Do not add retry loops with hardcoded attempt counts (e.g., `for (int attempt = 0; attempt < 3; attempt++)`) for exceptions that are rare or handled by the framework
+- EF Core concurrency conflicts are already rare in single-request operations; retrying adds 30 lines of code to handle an edge case that throws and lets the client retry naturally
+- Trust the framework's exception handling — catch and fail fast, let the caller decide to retry
+
+### Unused Named Constants for Zero Values
+- Do not create named constants for literal zero values in simple contexts: `const int transactionCountNotAvailable = 0`
+- When a DTO field must be initialized to zero, just use `0` directly in the property initializer
+- Named constants add indirection without improving readability when the meaning is self-evident
 
 ## Gemini False Positive Patterns
 

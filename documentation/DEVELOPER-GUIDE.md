@@ -6,7 +6,7 @@ Guide to understanding and writing code in this codebase.
 
 ## Overview
 
-**lens** sets up Claude Code projects with expert skills and configuration profiles. **ralph** autonomously implements features through a 9-phase workflow. Quality gates at each phase catch issues when they're cheap to fix, not after the feature is "done."
+**lens** sets up Claude Code projects with expert skills and configuration profiles. **ralph** autonomously implements features through an 11-phase workflow. Quality gates at phases 3.5, 7.5, 10.5, and 11.5 catch issues when they're cheap to fix, not after the feature is "done."
 
 ---
 
@@ -15,7 +15,7 @@ Guide to understanding and writing code in this codebase.
 This codebase has two tools:
 
 1. **lens** — Sets up projects with the right skills and configuration
-2. **ralph** — Runs code through 9 phases to implement features autonomously
+2. **ralph** — Runs code through 11 phases to implement features autonomously
 
 Both are command-line tools written in TypeScript.
 
@@ -280,7 +280,7 @@ if (projectPath) {
 
 ## Part 6: How Ralph Phases Work
 
-Ralph runs code through 9 phases. Each phase is a class that extends BasePhase.
+Ralph runs code through 11 phases. Each phase is a class that extends BasePhase.
 
 ### The Base Brain
 

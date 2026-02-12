@@ -168,11 +168,11 @@ Canon: `security-mindset/SUMMARY.md` hard gate #3
 - Gemini lists: every input boundary, what validation runs before business logic
 - Validation: row count must equal input boundary count
 
-#### Phase 7: adversarial-security-review
+#### Phase 8: adversarial-security-review
 
 Produces 1 checklist:
 
-**Checklist 7a: Auth and failure path review**
+**Checklist 8a: Auth and failure path review**
 
 Canon: `security-mindset/SUMMARY.md` checks #3, #4, #5
 
@@ -180,11 +180,11 @@ Canon: `security-mindset/SUMMARY.md` checks #3, #4, #5
 - Codex lists: every catch block — does it fail open or closed? Every auth check — is there a bypass path?
 - Validation: row count must equal catch block count
 
-#### Phase 9: adversarial-security-review
+#### Phase 10: final-eval-check
 
 Produces 1 checklist:
 
-**Checklist 9a: Attack surface inventory**
+**Checklist 10a: Attack surface inventory**
 
 Canon: `owasp/SUMMARY.md` checks #1-#5
 
@@ -229,10 +229,17 @@ Phase 6: gemini-fix
 Gate 6.5: npm run quality-gate validate-evidence gemini
   → same validation
 
-Phase 7: adversarial-security-review
-  → writes .claude/evidence/security-7a.md
+Phase 7: codex-fix
+  → writes .claude/evidence/codex-7a.md
 
-Gate 7.5: npm run quality-gate validate-evidence security
+Gate 7.5: npm run quality-gate validate-evidence codex
+  → same validation
+  → also runs Qodana scan; Haiku fixer if issues found
+
+Phase 8: adversarial-security-review
+  → writes .claude/evidence/security-8a.md
+
+Gate 8.5: npm run quality-gate validate-evidence security
   → same validation
 ```
 
@@ -373,10 +380,10 @@ Phase 6: gemini-fix
   → if missed: rerun Phase 6 once
   → if missed again: halt
 
-Phase 7: adversarial-security-review
+Phase 8: adversarial-security-review
   Run:  Security review with evidence checklist
   Post: quality-gate validate-evidence security
-  → if incomplete: rerun Phase 7 once
+  → if incomplete: rerun Phase 8 once
 ```
 
 ### Why Not Canary Claude's Self-Review?

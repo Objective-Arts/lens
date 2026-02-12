@@ -78,9 +78,9 @@ autoInvoke:
 
 Or invoke directly: `/clarity`, `/security-mindset`, `/charts`
 
-### 4. Build/Improve Pipeline (9 Phases)
+### 4. Build/Improve Pipeline (10 Phases)
 
-The `/build` and `/improve` commands run a 9-phase quality pipeline with 3 machine gates between phase groups:
+The `/build` and `/improve` commands run an 11-phase quality pipeline with 4 machine gates between phase groups:
 
 | # | Phase | Purpose |
 |---|-------|---------|
@@ -91,13 +91,16 @@ The `/build` and `/improve` commands run a 9-phase quality pipeline with 3 machi
 | 4 | `refactor-check-fix` | Enforce constraints (30 lines/fn, 300 lines/file) |
 | 5 | `dedupe-fix` | Consolidate duplicated code |
 | 6 | `gemini-fix` | External code review + product quality via Gemini MCP |
-| 6.5 | *machine-gate* | Qodana scan; Haiku fixer only if issues found |
-| 7 | `adversarial-security-review` | Security audit (attacker mindset) |
-| 8 | `write-tests-run` | Write and run tests |
+| 7 | `codex-fix` | Independent Codex review + targeted fixes |
+| 7.5 | *machine-gate* | Qodana scan; Haiku fixer only if issues found |
+| 8 | `adversarial-security-review` | Security audit (attacker mindset) |
 | 9 | `ai-smell-fix` | Deep AI smell removal |
-| 9.5 | *machine-gate* | `npm test` + quality-gate (final) |
+| 10 | `final-eval-check` | Score→fix→rescore loop (external evaluation) |
+| 10.5 | *machine-gate* | `npm test` + quality-gate |
+| 11 | `write-tests-run` | Write and run tests (final inspection — ALWAYS LAST) |
+| 11.5 | *machine-gate* | `npm test` + quality-gate (final) |
 
-Each phase must pass its gate marker before the next begins.
+Each phase must pass its gate marker before the next begins. Gates are at 3.5, 7.5, 10.5, and 11.5.
 
 ### 5. Five-Layer Enforcement
 
@@ -113,13 +116,13 @@ See `why-five-layers-wins.md` for competitive analysis and `canon-enforcement-ma
 
 ### 6. Self-Learning Feedback Loop
 
-Late phases (6-10) write lessons that early phases (1-5) read on future runs:
+Late phases (6-10) write lessons that early phases (1-5) read on future runs. Phase 10 (final-eval-check) closes an additional loop: external evaluators (Codex, Gemini) score production readiness, classify findings as lessons or proposals, and route them back — lessons feed phases 1-5 via Step 0b, proposals surface in Phase 1 via Step 0c. Phase 10 also runs a score→fix→rescore loop (max 3 iterations) to maximize the score within the current pipeline run before tests run last.
 
 - `gemini-fix` discovers a shell injection → writes to lessons file
 - Next run, `implement-plan` reads that lesson and avoids the same pattern
 
 Two-tier knowledge:
-- `workflow-skills/lessons.md` — universal patterns (travels with skills repo)
+- `.claude/universal-lessons.md` — universal patterns (travels with skills repo)
 - `.claude/lessons.md` — project-specific instances (stays local)
 
 ### 7. Ralph Loop
@@ -151,8 +154,8 @@ Interactive skills for quality control:
 | `/ai-smell-scan` | Detect AI code smells | No |
 | `/write-tests-run` | Write and run tests | Yes |
 | `/generate-docs` | Generate Diataxis documentation | Yes |
-| `/build` | Build new feature (9 phases) | Yes |
-| `/improve` | Improve existing code (9 phases) | Yes |
+| `/build` | Build new feature (11 phases) | Yes |
+| `/improve` | Improve existing code (11 phases) | Yes |
 | `/quick-edit` | Simple changes (add field, rename) | Yes |
 | `/quick-clean` | Fast AI smell cleanup | Yes |
 | `/final-polish` | Final refinement for senior review | Yes |

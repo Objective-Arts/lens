@@ -9,7 +9,7 @@ Complete map of Lens skill architecture: orchestrators, phases, canon skills, an
 ```
 TIER 1: Workflow Orchestrators (user-invoked commands)
   |
-  +---> TIER 2: Phase Skills (12 sequential phases per pipeline + 3 machine gates)
+  +---> TIER 2: Phase Skills (11 sequential phases per pipeline + 4 machine gates)
           |
           +---> TIER 3: Canon Skills (75 master-sourced expertise loaded by phases)
                   |
@@ -22,7 +22,7 @@ TIER 1: Workflow Orchestrators (user-invoked commands)
 
 Top-level commands. These are what users invoke directly.
 
-### Heavy Workflows (9-phase pipelines)
+### Heavy Workflows (11-phase pipelines)
 
 | Command | Purpose |
 |---------|---------|
@@ -70,7 +70,7 @@ Top-level commands. These are what users invoke directly.
 
 ## Tier 2: Phase Skills
 
-The 9 phases that `/build` and `/improve` run in sequence. Each phase must pass its gate before the next begins. Machine gates run between phase groups.
+The 11 phases that `/build` and `/improve` run in sequence. Each phase must pass its gate before the next begins. Machine gates run between phase groups.
 
 | # | Phase Skill | Gate Marker | Purpose |
 |---|-------------|-------------|---------|
@@ -81,11 +81,14 @@ The 9 phases that `/build` and `/improve` run in sequence. Each phase must pass 
 | 4 | `refactor-check-fix` | REFACTOR_COMPLETE | Enforce constraints (30 lines/fn, 300 lines/file) |
 | 5 | `dedupe-fix` | DEDUPE_COMPLETE | Consolidate duplicated code |
 | 6 | `gemini-fix` | FIX_COMPLETE | External code review + product quality via Gemini MCP |
-| 6.5 | *machine-gate* | exit code 0 | Qodana scan; Haiku fixer only if issues found |
-| 7 | `adversarial-security-review` | VERIFIED_CLEAN | Security audit (attacker mindset) |
-| 8 | `write-tests-run` | TEST_COMPLETE | Write and run tests |
+| 7 | `codex-fix` | CODEX_FIX_COMPLETE | Independent Codex review + targeted fixes |
+| 7.5 | *machine-gate* | exit code 0 | Qodana scan; Haiku fixer only if issues found |
+| 8 | `adversarial-security-review` | VERIFIED_CLEAN | Security audit (attacker mindset) |
 | 9 | `ai-smell-fix` | AI_SMELL_COMPLETE | Deep AI smell removal → writes lessons that train phases 1-5 |
-| 9.5 | *machine-gate* | exit code 0 | `npm test` + quality-gate (final) |
+| 10 | `write-tests-run` | TEST_COMPLETE | Write and run tests |
+| 11 | `final-eval-check` | EVAL_COMPLETE | Final Codex + Gemini review, fix all, write lessons |
+| 11.5 | *machine-gate* | exit code 0 | `npm test` + quality-gate (final) |
+| 11.5 | *machine-gate* | exit code 0 | `npm test` + quality-gate (final) |
 
 ---
 
@@ -143,22 +146,28 @@ Phase 5: dedupe-fix
 Phase 6: gemini-fix
   NO CANON (uses Gemini MCP tool for external code + product quality review)
 
-Phase 6.5: machine-gate
+Phase 7: codex-fix (independent Codex review)
+  NO CANON (uses Codex CLI for external review)
+
+Phase 7.5: machine-gate
   Qodana scan; Haiku fixer only if issues found
 
-Phase 7: adversarial-security-review
+Phase 8: adversarial-security-review
   ALWAYS: security-mindset (SKILL.md)
   ALWAYS: owasp (SKILL.md)
   ALWAYS: web-security (SKILL.md)
 
-Phase 8: write-tests-run
+Phase 9: ai-smell-fix
+  NO CANON (algorithmic antipattern detection)
+
+Phase 10: final-eval-check (score→fix→rescore loop)
+  NO CANON (uses Codex + Gemini MCP for external evaluation)
+
+Phase 11: write-tests-run (final inspection — ALWAYS LAST)
   ALWAYS: test-doubles (SKILL.md)
   ALWAYS: test-strategy (SKILL.md)
   IF auth/tokens/passwords/encryption:
     + security-mindset (SKILL.md)
-
-Phase 9: ai-smell-fix
-  NO CANON (algorithmic antipattern detection)
 ```
 
 ### Light Workflow Canon Loading
@@ -428,23 +437,32 @@ All 75 canon skills organized by category, with their master authority and sourc
 ├── Phase 6: gemini-fix
 │   └── (Gemini MCP — code + product quality review)
 │
-├── Phase 6.5: machine-gate
+├── Phase 7: codex-fix (independent Codex review)
+│   └── (Codex CLI — multi-model triangulation)
+│
+├── Phase 7.5: machine-gate
 │   └── Qodana scan; Haiku fixer only if issues found
 │
-├── Phase 7: adversarial-security-review
+├── Phase 8: adversarial-security-review
 │   ├── security-mindset
 │   ├── owasp (OWASP Foundation)
 │   └── web-security (Troy Hunt)
 │
-├── Phase 8: write-tests-run
+├── Phase 9: ai-smell-fix
+│   └── (no canon — algorithmic detection)
+│
+├── Phase 10: final-eval-check (score→fix→rescore loop)
+│   └── (Codex + Gemini MCP — external evaluation)
+│
+├── Phase 10.5: machine-gate
+│   └── npm test + quality-gate
+│
+├── Phase 11: write-tests-run (final inspection — ALWAYS LAST)
 │   ├── test-doubles (Meszaros)
 │   ├── test-strategy (Cohn)
 │   └── [if auth] security-mindset
 │
-├── Phase 9: ai-smell-fix
-│   └── (no canon — algorithmic detection)
-│
-├── Phase 9.5: machine-gate
+├── Phase 11.5: machine-gate
 │   └── npm test + quality-gate (final)
 ```
 
@@ -584,7 +602,7 @@ Includes: Base Brain (10) + design-patterns + security-mindset + owasp + failure
 | Category | Count |
 |----------|-------|
 | Workflow orchestrators (Tier 1) | 6 (`build`, `improve`, `ralph-loop`, `quick-edit`, `quick-clean`, `final-polish`) |
-| Phase skills (Tier 2) | 12 (+ 3 machine gates) |
+| Phase skills (Tier 2) | 11 (+ 4 machine gates) |
 | Read-only scan skills | 6 |
 | Utility skills | 7 (`generate-docs`, `run-tests`, `write-tests-run`, `explain-skill`, `session-status`, `skill-usage-report`, `lens`) |
 | Canon skills total | 75 |
@@ -644,10 +662,11 @@ Phases 6-9 **write lessons** that phases 1-5 **read** on future runs. This creat
 
 | Phase | Writes To | Categories |
 |---|---|---|
-| 6: `gemini-fix` | `.claude/lessons.md` + `workflow-skills/lessons.md` | LOGIC, DESIGN, CODE_QUALITY, DUPLICATION, AI_SMELL + false positives |
-| 6.5: Qodana gate | `.claude/lessons.md` + `workflow-skills/lessons.md` | LOGIC, DESIGN, CODE_QUALITY, DUPLICATION |
-| 7: `adversarial-security-review` | `.claude/lessons.md` + `workflow-skills/lessons.md` | LOGIC, DESIGN |
-| 9: `ai-smell-fix` | `.claude/lessons.md` + `workflow-skills/lessons.md` | DESIGN, CODE_QUALITY, AI_SMELL |
+| 6: `gemini-fix` | `.claude/lessons.md` + `.claude/universal-lessons.md` | LOGIC, DESIGN, CODE_QUALITY, DUPLICATION, AI_SMELL + false positives |
+| 7: `codex-fix` | `.claude/lessons.md` + `.claude/universal-lessons.md` | LOGIC, DESIGN, CODE_QUALITY, DUPLICATION |
+| 7.5: Qodana gate | `.claude/lessons.md` + `.claude/universal-lessons.md` | LOGIC, DESIGN, CODE_QUALITY, DUPLICATION |
+| 8: `adversarial-security-review` | `.claude/lessons.md` + `.claude/universal-lessons.md` | LOGIC, DESIGN |
+| 9: `ai-smell-fix` | `.claude/lessons.md` + `.claude/universal-lessons.md` | DESIGN, CODE_QUALITY, AI_SMELL |
 
 ### Readers (early phases <- lesson files)
 
@@ -663,7 +682,7 @@ Phases 6-9 **write lessons** that phases 1-5 **read** on future runs. This creat
 
 | File | Scope | Travels With |
 |---|---|---|
-| `workflow-skills/lessons.md` | Universal patterns (e.g., "never use execSync with template literals") | Skills repo — applies to all projects |
+| `.claude/universal-lessons.md` | Universal patterns (e.g., "never use execSync with template literals") | Skills repo — applies to all projects |
 | `.claude/lessons.md` | Project-specific instances (e.g., "src/scanner/dedupe.ts:45 had shell injection") | Project — stays local |
 
 Late phases check the universal file first and only append NEW general patterns not already covered.

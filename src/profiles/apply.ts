@@ -160,8 +160,10 @@ async function applySkillsToProject(
 ): Promise<void> {
   if (!profile.skills) return;
 
-  const skillsDir = path.join(projectPath, CLAUDE_DIR_NAME, 'skills');
-  await fsPromises.mkdir(skillsDir, { recursive: true });
+  // Canon skills go to .claude/canon/ (reference/auto-invoke only, not slash commands).
+  // Workflow skills go to .claude/skills/ separately via installAllWorkflowSkills.
+  const canonDir = path.join(projectPath, CLAUDE_DIR_NAME, 'canon');
+  await fsPromises.mkdir(canonDir, { recursive: true });
 
   const canonPath = getCanonSourcePath();
   const manifest = getOrCreateManifest(projectPath, canonPath);
@@ -170,12 +172,12 @@ async function applySkillsToProject(
   for (const category of SKILL_CATEGORIES) {
     const skills = profile.skills[category as SkillCategory] ?? [];
     for (const skillName of skills) {
-      copyPromises.push(copySkillToProject(skillName, category as SkillCategory, skillsDir));
+      copyPromises.push(copySkillToProject(skillName, category as SkillCategory, canonDir));
     }
   }
 
   const copyResults = await Promise.all(copyPromises);
-  recordCopyResults(copyResults, manifest, skillsDir, canonPath, getGitCommit(canonPath), result);
+  recordCopyResults(copyResults, manifest, canonDir, canonPath, getGitCommit(canonPath), result);
   writeManifest(projectPath, manifest);
   result.created.push(`${CLAUDE_DIR_NAME}/canon-manifest.json`);
 }

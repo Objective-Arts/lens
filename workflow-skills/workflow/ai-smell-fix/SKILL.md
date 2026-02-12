@@ -113,7 +113,7 @@ Append the specific finding with file paths and context:
 - {CATEGORY}: {specific description with file:line} → {which earlier phase should catch this and how}
 ```
 
-### 2. Universal: `workflow-skills/lessons.md`
+### 2. Universal: `.claude/universal-lessons.md`
 
 Read this file first. If the **general pattern** is already listed, skip. If it's a NEW general pattern not already covered, append it to the appropriate section (AI_SMELL Patterns, CODE_QUALITY Patterns, or DESIGN Patterns). Write the general rule, not the project-specific instance:
 

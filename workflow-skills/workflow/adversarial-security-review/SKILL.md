@@ -43,24 +43,26 @@ Security fixes must be clean, not band-aids. The result should look like it was 
 
 ## Scope Constraint (MANDATORY)
 
-Fix bugs and vulnerabilities IN PLACE. Do not restructure.
+Fix ALL findings. Every issue identified gets fixed for production readiness. No deferring, no "backlog for next cycle," no "appropriate for MVP."
 
 ALLOWED:
 - Change logic within an existing function
 - Add validation/checks to existing code paths
 - Fix crypto/security bugs in existing implementations
+- Add private helper methods within existing files
+- Add config entries, constants, enums to existing files
+- Add interfaces to existing files if needed for proper typing
+- Restructure function internals (keep same signature)
 
 FORBIDDEN:
-- Adding new files
-- Adding new types/interfaces
-- Adding new exported functions
-- Splitting existing functions into multiple
+- Adding new source files (config files are OK)
 - Moving code between files
-- Adding new dependencies
+- Adding new external dependencies
 
-If a finding genuinely requires restructuring to fix, DO NOT fix it.
-Report it as DEFERRED_TO_HUMAN with a one-line explanation. These are
-the ONLY items allowed in UNFIXED.
+If a finding seems to require restructuring: fix it anyway by
+restructuring within the existing file. The only acceptable
+unfixed items are findings that require adding new external
+dependencies — report those with a one-line explanation.
 
 ---
 
@@ -136,7 +138,7 @@ frequently missed by AI reviewers and must be checked explicitly:
 mcp__gemini-reviewer__gemini_review
   code: <paste the source code>
   focus: "adversarial"
-  context: "Adversarial code review. Think like an attacker. Find: security vulnerabilities, race conditions, edge cases that crash, input validation bypasses, resource exhaustion, privilege escalation. Be hostile and thorough. Specifically check: (1) symlink bypass in path validation, (2) secrets exposed in process lists via CLI args, (3) data format versioning/migration safety."
+  context: "PRODUCTION SECURITY GATE. This code is about to be deployed to production. Think like an attacker targeting a production system. Find: security vulnerabilities, race conditions, edge cases that crash in production, input validation bypasses, resource exhaustion (DoS), privilege escalation. Be hostile and thorough — every finding you miss is a production incident. Specifically check: (1) symlink bypass in path validation — startsWith is not enough (2) secrets exposed in process lists via CLI args — leaked to ps aux in production (3) data format versioning/migration safety — corrupted data in production is catastrophic (4) error messages that leak internals to attackers in production (5) missing rate limiting or resource bounds that enable DoS in production. For each finding: cite file:line, severity (CRITICAL/HIGH/MEDIUM/LOW). CRITICAL = exploitable in production today. HIGH = would cause security incidents in production."
 ```
 
 If tool unavailable, output: GEMINI_ERROR: tool not available
@@ -184,7 +186,7 @@ Append the specific finding with file paths and context:
 - {CATEGORY}: {specific description with file:line} → {which earlier phase should catch this and how}
 ```
 
-### 2. Universal: `workflow-skills/lessons.md`
+### 2. Universal: `.claude/universal-lessons.md`
 
 Read this file first. If the **general pattern** is already listed, skip. If it's a NEW general pattern not already covered, append it to the appropriate section (LOGIC Patterns or DESIGN Patterns). Write the general rule, not the project-specific instance:
 

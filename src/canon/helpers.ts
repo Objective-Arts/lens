@@ -101,7 +101,7 @@ export function generateLineDiff(installedContent: string, sourceContent: string
 }
 
 export function getInstalledSkills(projectPath: string): string[] {
-  const skillsDir = path.join(projectPath, '.claude', 'skills');
+  const skillsDir = path.join(projectPath, '.claude', 'canon');
 
   if (!fs.existsSync(skillsDir)) {
     return [];

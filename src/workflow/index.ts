@@ -251,6 +251,23 @@ export function installAllWorkflowSkills(
     }
   }
 
+  // Copy rubric files to target project
+  const rubricSource = path.join(sourcePath, 'rubric');
+  const rubricTarget = path.join(projectPath, '.claude', 'rubric');
+  if (fs.existsSync(rubricSource)) {
+    if (fs.existsSync(rubricTarget)) {
+      fs.rmSync(rubricTarget, { recursive: true });
+    }
+    copyDirectorySync(rubricSource, rubricTarget);
+  }
+
+  // Copy universal lessons file to target project (seed only — don't overwrite accumulated lessons)
+  const lessonsSource = path.join(sourcePath, 'lessons.md');
+  const lessonsTarget = path.join(projectPath, '.claude', 'universal-lessons.md');
+  if (fs.existsSync(lessonsSource) && !fs.existsSync(lessonsTarget)) {
+    fs.copyFileSync(lessonsSource, lessonsTarget);
+  }
+
   return results;
 }
 
@@ -358,6 +375,25 @@ export function upgradeWorkflowSkills(
       saveWorkflowManifest(projectPath, manifest);
       results.upgraded.push('quality-gate.ts (script)');
     }
+  }
+
+  // Re-copy rubric files (always overwrite — rubrics are read-only source)
+  const rubricSource = path.join(sourcePath, 'rubric');
+  const rubricTarget = path.join(projectPath, '.claude', 'rubric');
+  if (fs.existsSync(rubricSource)) {
+    if (fs.existsSync(rubricTarget)) {
+      fs.rmSync(rubricTarget, { recursive: true });
+    }
+    copyDirectorySync(rubricSource, rubricTarget);
+    results.upgraded.push('rubric/ (criteria files)');
+  }
+
+  // Seed universal lessons if missing (don't overwrite — project accumulates its own)
+  const lessonsSource = path.join(sourcePath, 'lessons.md');
+  const lessonsTarget = path.join(projectPath, '.claude', 'universal-lessons.md');
+  if (fs.existsSync(lessonsSource) && !fs.existsSync(lessonsTarget)) {
+    fs.copyFileSync(lessonsSource, lessonsTarget);
+    results.upgraded.push('universal-lessons.md (seeded)');
   }
 
   return results;

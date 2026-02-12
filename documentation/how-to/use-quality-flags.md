@@ -17,15 +17,15 @@ This document contains proprietary and confidential information. Unauthorized re
 
 | Situation | Command | Phases |
 |-----------|---------|--------|
-| New feature from scratch | `/build` | 9 phases |
-| Improve existing code | `/improve` | 9 phases |
+| New feature from scratch | `/build` | 11 phases |
+| Improve existing code | `/improve` | 11 phases |
 | Simple change (add field, rename) | `/quick-edit` | Checklist only |
 | Post-edit cleanup | `/quick-clean` | Smell check only |
 | Pre-PR polish | `/final-polish` | Review checklist |
 
 ## Using /build
 
-Build a new feature through the full 9-phase quality pipeline:
+Build a new feature through the full 11-phase quality pipeline:
 
 ```
 /build user authentication system
@@ -43,17 +43,20 @@ Build a new feature through the full 9-phase quality pipeline:
 | 4 | refactor-check-fix | Enforce constraints (30 lines/fn, 300 lines/file) |
 | 5 | dedupe-fix | Consolidate duplicated code |
 | 6 | gemini-fix | External code review + product quality via Gemini |
-| 6.5 | *machine gate* | Qodana scan; Haiku fixer only if issues found |
-| 7 | adversarial-security-review | Security audit (attacker mindset) |
-| 8 | write-tests-run | Write and run tests |
+| 7 | codex-fix | Independent Codex review + targeted fixes |
+| 7.5 | *machine gate* | Qodana scan; Haiku fixer only if issues found |
+| 8 | adversarial-security-review | Security audit (attacker mindset) |
 | 9 | ai-smell-fix | Remove AI-generated antipatterns |
-| 9.5 | *machine gate* | `npm test` + quality-gate (final) |
+| 10 | final-eval-check | Score→fix→rescore loop (external evaluation) |
+| 10.5 | *machine gate* | `npm test` + quality-gate |
+| 11 | write-tests-run | Write and run tests (final inspection — ALWAYS LAST) |
+| 11.5 | *machine gate* | `npm test` + quality-gate (final) |
 
 ### Flags
 
 | Flag | Purpose |
 |------|---------|
-| `--dry-run` | Show the 9 phases without executing |
+| `--dry-run` | Show the 11 phases without executing |
 | `--rollback` | Restore from last build stash |
 
 ### Dry Run
@@ -76,7 +79,7 @@ This restores from the git stash created at the start.
 
 ## Using /improve
 
-Same 9-phase pipeline, but focused on existing code:
+Same 11-phase pipeline, but focused on existing code:
 
 ```
 /improve src/services/auth/
@@ -85,7 +88,7 @@ Same 9-phase pipeline, but focused on existing code:
 
 | Flag | Purpose |
 |------|---------|
-| `--dry-run` | Show the 9 phases without executing |
+| `--dry-run` | Show the 11 phases without executing |
 | `--rollback` | Restore from last improve stash |
 
 ## Using Individual Phase Skills
@@ -153,19 +156,22 @@ Fast AI smell cleanup after code changes:
 
 # 4. Clean up
 /refactor-check-fix src/features/password-reset
-/ai-smell-fix src/features/password-reset
 
 # 5. External validation
 /gemini-fix src/features/password-reset
 /qodana-fix src/features/password-reset
 
-# 6. Security check
+# 6. Security check + AI smell removal
 /adversarial-security-review src/features/password-reset
+/ai-smell-fix src/features/password-reset
 
-# 7. Test
+# 7. External evaluation
+/final-eval-check src/features/password-reset
+
+# 8. Test (final inspection — ALWAYS LAST)
 /write-tests-run unit
 
-# 8. Document
+# 9. Document
 /generate-docs src/features/password-reset
 ```
 

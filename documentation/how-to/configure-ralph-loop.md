@@ -45,11 +45,11 @@ ralph-sequence:
   - refactor-check-fix
   - dedupe-fix
   - gemini-fix
+  - codex-fix
   - qodana-fix
   - adversarial-security-review
-  - write-tests-run
   - ai-smell-fix
-  - codex-fix
+  - final-eval-check
   - write-tests-run
 ```
 
@@ -114,10 +114,10 @@ With options:
 
 ## Understanding the Pipeline
 
-Ralph runs this 9-phase pipeline for each PRD item:
+Ralph runs this 11-phase pipeline for each PRD item:
 
 ```
-create-plan → structure-first → implement-plan → [machine gate] → refactor-check-fix → dedupe-fix → gemini-fix → [machine gate] → adversarial-security-review → write-tests-run → ai-smell-fix → [machine gate]
+create-plan → structure-first → implement-plan → [machine gate] → refactor-check-fix → dedupe-fix → gemini-fix → codex-fix → [machine gate] → adversarial-security-review → ai-smell-fix → final-eval-check → [machine gate] → write-tests-run → [machine gate]
 ```
 
 Machine gates run `npm run build && npm test` between phase groups.

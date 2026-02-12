@@ -39,6 +39,16 @@ Multiple paths can be provided to scan a set of components.
 
 ## Process
 
+### Step 0: Load Rubric
+
+Read `.claude/rubric/AUTO-DETECT.md` for the detection table. Then:
+
+1. **Always load:** `.claude/rubric/base.md` and `.claude/rubric/product-quality.md`
+2. **Auto-detect domains:** Check target files against the detection table. Load matching domain rubrics (`.claude/rubric/web-api.md`, `.claude/rubric/data-persistence.md`, `.claude/rubric/cli.md`, `.claude/rubric/microservice.md`).
+3. **Extract Review Criteria:** From each loaded rubric, collect the numbered items under `## Review Criteria`. Combine into a single criteria list for the Gemini context.
+
+If a rubric file doesn't exist, skip it and continue.
+
 ### Step 1: Find Code to Review
 
 Find target files:
@@ -60,8 +70,12 @@ For each file or logical group:
 mcp__gemini-reviewer__gemini_review
   code: <paste the source code>
   focus: "general"
-  context: "You are a senior Google engineer doing a hard-ass code review. No handholding, no false praise. Find: bugs, edge cases that crash, logic errors, performance problems, poor naming, unclear code, missing error handling. Flag AI-generated antipatterns: over-abstraction (factories/wrappers used once), features not requested, defensive checks for impossible cases, reimplementing stdlib, copy-paste that should be extracted, over-commenting obvious code, unnecessary config options, over-engineered types. If it wouldn't pass Google code review, flag it. Be direct and critical."
+  context: "PRODUCTION READINESS review. If you wouldn't deploy this to production today, flag it. Review against: {RUBRIC_CRITERIA}. For each finding cite file:line and severity (CRITICAL/HIGH/MEDIUM/LOW). CRITICAL = blocks production. HIGH = would cause incidents."
 ```
+
+Replace `{RUBRIC_CRITERIA}` with the combined Review Criteria from all loaded rubric files, numbered sequentially.
+
+**Note:** Test Coverage is handled by the write-tests-run phase — do not include it in the rubric criteria.
 
 If tool unavailable, output: `GEMINI_ERROR: tool not available`
 

@@ -10,7 +10,7 @@ export function deployAllSkills(
 ): { deployed: number; skipped: number; errors: string[]; deployedNames: string[] } {
   const result = { deployed: 0, skipped: 0, errors: [] as string[], deployedNames: [] as string[] };
   const skills = deduplicateSkills(listCanonSkills(), getCanonSourcePath());
-  const skillsDir = path.join(projectPath, '.claude', 'skills');
+  const skillsDir = path.join(projectPath, '.claude', 'canon');
   const force = options.force ?? false;
 
   if (!fs.existsSync(skillsDir)) {
@@ -50,7 +50,7 @@ export function verifySkillsMatch(projectPath: string): {
   extraInProject: string[];
   allMatch: boolean;
 } {
-  const skillsDir = path.join(projectPath, '.claude', 'skills');
+  const skillsDir = path.join(projectPath, '.claude', 'canon');
   const result = {
     matches: [] as string[],
     differs: [] as { name: string; reason: string }[],

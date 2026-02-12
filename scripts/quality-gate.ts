@@ -628,21 +628,34 @@ export function checkFileLength(files: string[], base: string): Violation[] {
   return violations;
 }
 
+const FN_DECL_RE = /(?:export\s+)?(?:async\s+)?function\s+(\w+)/;
+const ARROW_RE = /(?:export\s+)?const\s+(\w+)\s*=\s*(?:async\s+)?\(.*\).*=>\s*\{/;
+const METHOD_RE = /^\s+(?:(?:public|private|protected|static|override|get|set)\s+)*(?:async\s+)?(\w+)\s*\(/;
+const CONTROL_KEYWORDS = new Set(['if', 'for', 'while', 'switch', 'catch', 'return', 'throw', 'new', 'do', 'try', 'typeof', 'delete', 'void', 'super', 'yield', 'await', 'case', 'else', 'with']);
+
 export function checkFunctionLength(files: string[], base: string): Violation[] {
   const violations: Violation[] = [];
   for (const file of files) {
     const lines = fs.readFileSync(file, 'utf-8').split('\n');
-    let fnStart = -1, fnName = '', braceDepth = 0, significantLines = 0;
+    let fnStart = -1, fnName = '', startDepth = 0, braceDepth = 0, significantLines = 0;
     for (let i = 0; i < lines.length; i++) {
       const line = lines[i]!;
-      const fnMatch = line.match(/(?:export\s+)?(?:async\s+)?function\s+(\w+)/);
-      if (fnMatch && braceDepth === 0) { fnStart = i; fnName = fnMatch[1]!; braceDepth = 0; significantLines = 0; }
+      if (fnStart === -1) {
+        let name: string | undefined;
+        const fnMatch = line.match(FN_DECL_RE);
+        const arrowMatch = line.match(ARROW_RE);
+        const methodMatch = line.match(METHOD_RE);
+        if (fnMatch) { name = fnMatch[1]; }
+        else if (arrowMatch) { name = arrowMatch[1]; }
+        else if (methodMatch && line.includes('{') && !CONTROL_KEYWORDS.has(methodMatch[1]!)) { name = methodMatch[1]; }
+        if (name) { fnStart = i; fnName = name; startDepth = braceDepth; significantLines = 0; }
+      }
       for (const ch of line) { if (ch === '{') braceDepth++; if (ch === '}') braceDepth--; }
-      if (fnStart >= 0 && braceDepth > 0) {
+      if (fnStart >= 0 && braceDepth > startDepth) {
         const trimmed = line.trim();
         if (trimmed && !trimmed.startsWith('//') && !trimmed.startsWith('*')) significantLines++;
       }
-      if (fnStart >= 0 && braceDepth === 0 && i > fnStart) {
+      if (fnStart >= 0 && braceDepth === startDepth && i > fnStart) {
         if (significantLines > 30) {
           violations.push({ file: relativeTo(base, file), line: fnStart + 1, check: 'function-length', message: `Function '${fnName}' is ${significantLines} significant lines (max 30)` });
         }
