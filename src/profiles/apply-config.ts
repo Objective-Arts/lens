@@ -94,40 +94,90 @@ export async function generateRalphConfig(profile: ComposableProfile, projectPat
   } catch (e) { result.errors.push(`Failed to generate ralph-config.yaml: ${e instanceof Error ? e.message : e}`); }
 }
 
-function getWorkflowCommandsDocs(projectPath: string): string {
-  const skillsDir = path.join(projectPath, CLAUDE_DIR_NAME, 'skills');
-  if (!fs.existsSync(skillsDir)) return '';
+/** Metadata for workflow skills, keyed by actual directory name */
+const WORKFLOW_SKILL_META: Record<string, { cmd: string; desc: string; category: 'pipeline' | 'phase' | 'scan' | 'utility' }> = {
+  // Pipeline orchestrators
+  'ralph-loop': { cmd: '/ralph-loop [prd-file] [--max N] [--resume]', desc: 'Autonomous PRD implementation loop', category: 'pipeline' },
+  'build': { cmd: '/build [path] [--rollback] [--dry-run]', desc: 'Build new feature with 5-stage quality pipeline', category: 'pipeline' },
+  'improve': { cmd: '/improve [path] [--rollback] [--dry-run]', desc: 'Improve existing code with 5-stage quality pipeline', category: 'pipeline' },
+  'quick-edit': { cmd: '/quick-edit [description]', desc: 'Simple changes (add field, rename, small fix)', category: 'pipeline' },
+  'quick-clean': { cmd: '/quick-clean [path]', desc: 'Surface tidy post quick-edit', category: 'pipeline' },
 
-  const workflowSkills = [
-    { name: 'ralph-loop', cmd: '/ralph-loop [prd-file] [--max N] [--resume]', desc: 'Autonomous PRD implementation loop' },
-    { name: 'plan', cmd: '/plan [task]', desc: 'Create implementation plan before coding' },
-    { name: 'structure-first', cmd: '/structure-first [feature]', desc: 'Design data structures before implementation' },
-    { name: 'implement', cmd: '/implement [target]', desc: 'Implement code from plan' },
-    { name: 'refactor-check', cmd: '/refactor-check [target]', desc: 'Systematic code cleanup' },
-    { name: 'independent-review', cmd: '/independent-review [path]', desc: 'Code review via Gemini (bugs, edge cases, quality)' },
-    { name: 'static-analysis', cmd: '/static-analysis [path]', desc: 'Run Qodana and fix issues' },
-    { name: 'test', cmd: '/test [level]', desc: 'Write and run tests' },
-    { name: 'doc-code', cmd: '/doc-code [path]', desc: 'Generate documentation' },
-    { name: 'security-review', cmd: '/security-review [path]', desc: 'Adversarial security review - think like an attacker' },
-    { name: 'production-readiness', cmd: '/production-readiness [path]', desc: 'Final production readiness check and fixes' }
-  ] as const;
+  // Individual phase skills
+  'create-plan': { cmd: '/create-plan [task]', desc: 'Create implementation plan before coding', category: 'phase' },
+  'structure-first': { cmd: '/structure-first [path]', desc: 'Map architecture or design data structures', category: 'phase' },
+  'implement-plan': { cmd: '/implement-plan [target]', desc: 'Implement code from plan', category: 'phase' },
+  'refactor-check-fix': { cmd: '/refactor-check-fix [target]', desc: 'Systematic code cleanup', category: 'phase' },
+  'ai-smell-fix': { cmd: '/ai-smell-fix [path]', desc: 'Deep AI smell removal', category: 'phase' },
+  'dedupe-fix': { cmd: '/dedupe-fix [path]', desc: 'Consolidate duplicated code', category: 'phase' },
+  'gemini-fix': { cmd: '/gemini-fix [path]', desc: 'Gemini review + fix all issues', category: 'phase' },
+  'codex-fix': { cmd: '/codex-fix [path]', desc: 'Codex review + fix all issues', category: 'phase' },
+  'qodana-fix': { cmd: '/qodana-fix [path]', desc: 'Static analysis + fix all issues', category: 'phase' },
+  'adversarial-security-review': { cmd: '/adversarial-security-review [path]', desc: 'Security audit - think like an attacker', category: 'phase' },
+  'write-tests-run': { cmd: '/write-tests-run [level]', desc: 'Write and run tests', category: 'phase' },
+  'generate-docs': { cmd: '/generate-docs [path]', desc: 'Generate documentation', category: 'phase' },
+  'final-polish': { cmd: '/final-polish [path]', desc: 'Final refinement for senior review', category: 'phase' },
 
-  const installed = workflowSkills.filter(s => fs.existsSync(path.join(skillsDir, s.name)));
-  if (installed.length === 0) return '';
+  // Read-only scans
+  'gemini-scan': { cmd: '/gemini-scan [path]', desc: 'Gemini review (report only)', category: 'scan' },
+  'qodana-scan': { cmd: '/qodana-scan [path]', desc: 'Static analysis (report only)', category: 'scan' },
+  'refactor-scan': { cmd: '/refactor-scan [path]', desc: 'Refactoring opportunities (report only)', category: 'scan' },
+  'ai-smell-scan': { cmd: '/ai-smell-scan [path]', desc: 'AI code patterns (report only)', category: 'scan' },
+  'dedupe-scan': { cmd: '/dedupe-scan [path]', desc: 'Duplicate code (report only)', category: 'scan' },
+  'codex-scan': { cmd: '/codex-scan [path]', desc: 'Codex pattern scan (report only)', category: 'scan' },
+  'naming-review': { cmd: '/naming-review [path]', desc: 'Name clarity check', category: 'scan' },
 
-  return `
-## Available Commands
+  // Utilities
+  'lens': { cmd: '/lens', desc: 'Home base - status and help', category: 'utility' },
+  'session-status': { cmd: '/session-status', desc: 'Show active primitives', category: 'utility' },
+  'explain-skill': { cmd: '/explain-skill [name]', desc: 'Explain what a skill does', category: 'utility' },
+};
 
-| Command | Description |
-|---------|-------------|
-${installed.map(s => `| \`${s.cmd}\` | ${s.desc} |`).join('\n')}
+type SkillMeta = { cmd: string; desc: string; category: string };
 
+const TABLE_HEADER = '| Command | Description |\n|---------|-------------|';
+const FLAGS_SECTION = `
 **Flags for /ralph-loop:**
 - \`--max N\` — Override max iterations (default: 50)
 - \`--resume\` — Continue from last incomplete PRD item
 - \`--external\` — Enable Gemini + Qodana post-loop validation
 - \`--dry-run\` — Show what would be done without executing
+
+**Flags for /build and /improve:**
+- \`--rollback\` — Restore from last stash
+- \`--dry-run\` — Show what would change without modifying
 `;
+
+function toRows(skills: SkillMeta[]): string {
+  return skills.map(s => `| \`${s.cmd}\` | ${s.desc} |`).join('\n');
+}
+
+function formatCategory(label: string, skills: SkillMeta[]): string {
+  if (skills.length === 0) return '';
+  return `\n**${label}:**\n\n${TABLE_HEADER}\n${toRows(skills)}\n`;
+}
+
+function getWorkflowCommandsDocs(projectPath: string): string {
+  const skillsDir = path.join(projectPath, CLAUDE_DIR_NAME, 'skills');
+  if (!fs.existsSync(skillsDir)) return '';
+
+  const installed = Object.entries(WORKFLOW_SKILL_META)
+    .filter(([name]) => fs.existsSync(path.join(skillsDir, name)))
+    .map(([, meta]) => meta);
+  if (installed.length === 0) return '';
+
+  const byCategory = (cat: string): SkillMeta[] => installed.filter(s => s.category === cat);
+  const pipeline = byCategory('pipeline');
+  const phase = byCategory('phase');
+
+  let doc = `\n## Available Commands\n\n${TABLE_HEADER}\n`;
+  doc += toRows(pipeline);
+  if (phase.length > 0) doc += '\n' + toRows(phase);
+  doc += '\n';
+  doc += formatCategory('Read-only scans', byCategory('scan'));
+  doc += formatCategory('Utilities', byCategory('utility'));
+  doc += FLAGS_SECTION;
+  return doc;
 }
 
 export function buildProfileSections(profile: ComposableProfile, projectPath?: string): string {

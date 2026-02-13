@@ -2,9 +2,7 @@ name: typescript-cli
 description: TypeScript CLI/backend projects. Node.js, no frontend.
 projectType: software
 composable: true
-
-# Combine with software-base for complete coverage:
-#   lens profile apply software-base+typescript-cli .
+extends: software-base
 
 skills:
   canon:
@@ -43,6 +41,14 @@ claudeMd:
     - "Understand the event loop - never block it"
     - "Handle promise rejections explicitly"
 
+    # General JS/TS
+    - "Use const by default, let when reassignment needed"
+    - "Prefer arrow functions for callbacks"
+    - "Destructure objects and arrays"
+    - "Use template literals for string interpolation"
+    - "Prefer named exports over default exports"
+    - "Use TypeScript strict mode"
+
     # CLI/Node
     - "Do one thing well, compose with pipes"
     - "Exit codes matter - 0 for success, non-zero for failure"
@@ -57,7 +63,9 @@ claudeMd:
     - "Memory leaks from unclosed handles or listeners"
     - "var declarations (use const/let)"
     - "Implicit type coercion (use === and !==)"
+    - "Global variables"
     - "Callback hell (use async/await)"
+    - "Mutating function parameters"
     - "Ignoring promise rejections"
     - "Mixing stdout and stderr incorrectly"
 

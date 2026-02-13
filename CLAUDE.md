@@ -6,43 +6,26 @@
 
 | Command | Description |
 |---------|-------------|
-| `/ralph-loop [prd-file] [--max N] [--resume]` | Autonomous PRD implementation loop |
 | `/build [path] [--rollback] [--dry-run]` | Build new feature with 5-stage quality pipeline |
 | `/improve [path] [--rollback] [--dry-run]` | Improve existing code with 5-stage quality pipeline |
 | `/quick-edit [description]` | Simple changes (add field, rename, small fix) |
-| `/quick-clean [path]` | Surface tidy post quick-edit. Invokes clarity + refactoring + style skills |
-| `/create-plan [task]` | Create implementation plan before coding |
-| `/structure-first [path]` | Map architecture or design data structures |
-| `/implement-plan [target]` | Implement code from plan |
-| `/refactor-check-fix [target]` | Systematic code cleanup |
-| `/ai-smell-fix [path]` | Deep AI smell removal → writes lessons that train future runs |
-| `/dedupe-fix [path]` | Consolidate duplicated code |
-| `/gemini-fix [path]` | Gemini review + fix all issues |
-| `/qodana-fix [path]` | Static analysis + fix all issues |
-| `/adversarial-security-review [path]` | Security audit - think like an attacker |
-| `/write-tests-run [level]` | Write and run tests |
+| `/quick-clean [path]` | Surface tidy post quick-edit |
+| `/ai-smell-fix [path]` | Deep AI smell removal |
 | `/generate-docs [path]` | Generate documentation |
-| `/final-polish [path]` | Final refinement for senior review |
 
 **Read-only scans:**
 
 | Command | Description |
 |---------|-------------|
 | `/gemini-scan [path]` | Gemini review (report only) |
-| `/qodana-scan [path]` | Static analysis (report only) |
-| `/refactor-scan [path]` | Refactoring opportunities (report only) |
 | `/ai-smell-scan [path]` | AI code patterns (report only) |
-| `/dedupe-scan [path]` | Duplicate code (report only) |
 | `/codex-scan [path]` | Codex pattern scan (report only) |
-| `/naming-review [path]` | Name clarity check |
 
 **Utilities:**
 
 | Command | Description |
 |---------|-------------|
 | `/lens` | Home base - status and help |
-| `/session-status` | Show active primitives |
-| `/explain-skill [name]` | Explain what a skill does |
 
 **Flags for /ralph-loop:**
 - `--max N` — Override max iterations (default: 50)
@@ -69,14 +52,27 @@
 - Validate all input, encode all output
 - Learn from failures
 - Safety is a system property
+- Let TypeScript infer types - annotate sparingly
+- Use discriminated unions for state machines
+- Prefer unknown over any, narrow with type guards
+- Use const assertions for literal types
+- Understand the type system, don't fight it
+- Avoid the bad parts - with, eval, implied globals
+- Understand closures, this binding, scope chain
+- Use strict mode always
+- Prefer composition over inheritance
+- Use async/await over raw promises
+- Understand the event loop - never block it
+- Handle promise rejections explicitly
 - Use const by default, let when reassignment needed
 - Prefer arrow functions for callbacks
-- Use async/await over raw promises
 - Destructure objects and arrays
 - Use template literals for string interpolation
 - Prefer named exports over default exports
 - Use TypeScript strict mode
-- Avoid any type - prefer unknown when type is uncertain
+- Do one thing well, compose with pipes
+- Exit codes matter - 0 for success, non-zero for failure
+- Stderr for errors and diagnostics, stdout for output
 
 ## Anti-Patterns (Avoid)
 
@@ -89,13 +85,19 @@
 - Security through obscurity
 - Violating substitution principle
 - God objects that do everything
+- Over-annotating types TypeScript can infer
+- Using any instead of unknown
+- Ignoring strict mode warnings
+- Type assertions (as) instead of type guards
+- Blocking the event loop with sync operations
+- Memory leaks from unclosed handles or listeners
 - var declarations (use const/let)
 - Implicit type coercion (use === and !==)
 - Global variables
 - Callback hell (use async/await)
 - Mutating function parameters
-- Using any type without justification
 - Ignoring promise rejections
+- Mixing stdout and stderr incorrectly
 
 ## Auto-Invoke Skills
 
@@ -111,8 +113,12 @@
 | Writing documentation | INVOKE `/docs` for Diataxis, `/prose` for clarity |
 | Writing READMEs, comments, commit messages | INVOKE `/brevity` (omit needless words) and `/editing` (kill darlings) |
 | Analyzing failures or risks | INVOKE `/failure` and `/safety` |
-| Complex JavaScript runtime, closures, this, scope | INVOKE `/js-internals` |
-| TypeScript types, generics, inference, utility types | INVOKE `/typescript` |
-| JavaScript subset, safe patterns, avoiding pitfalls | INVOKE `/js-safety` |
-| Functional JavaScript, lodash patterns | INVOKE `/functional` |
-| Static analysis, linting, code style | INVOKE `/style` for universal formatting/cla |
+| TypeScript types, generics, inference, utility types | INVOKE /typescript |
+| Type guards, discriminated unions, exhaustive checks | INVOKE /typescript |
+| TypeScript compiler behavior, type system edge cases | INVOKE /type-systems |
+| JavaScript closures, this, scope, prototypes | INVOKE /js-internals |
+| JavaScript pitfalls, safe patterns | INVOKE /js-safety |
+| Async/await, promises, event loop | INVOKE /async |
+| Functional patterns, lodash-style operations | INVOKE /functional |
+| Module patterns, design patterns in JS | INVOKE /js-perf |
+| CLI argument parsing, stdin/stdout handling | INVOKE /composition and /simplicity |
