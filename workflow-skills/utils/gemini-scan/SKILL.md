@@ -75,7 +75,7 @@ mcp__gemini-reviewer__gemini_review
 
 Replace `{RUBRIC_CRITERIA}` with the combined Review Criteria from all loaded rubric files, numbered sequentially.
 
-**Note:** Test Coverage is handled by the write-tests-run phase — do not include it in the rubric criteria.
+**Note:** Test Coverage is handled by the testing phase — do not include it in the rubric criteria.
 
 If tool unavailable, output: `GEMINI_ERROR: tool not available`
 
@@ -178,4 +178,4 @@ SCAN_ONLY: no fixes applied
 - Skipping the Gemini call
 - Summarizing without specific line numbers
 - Hiding or downplaying issues
-- Applying fixes (use /gemini-fix for that)
+- Applying fixes (use /gemini-review for that)

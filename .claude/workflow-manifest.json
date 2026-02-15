@@ -1,0 +1,46 @@
+{
+  "source": {
+    "type": "local",
+    "path": "/Users/steve/local-tech-projects/lens/workflow-skills"
+  },
+  "installedAt": "2026-02-12T17:41:22.645Z",
+  "skills": {
+    "ai-smell-scan": {
+      "installedAt": "2026-02-12T17:41:22.645Z",
+      "sourceFile": "ai-smell-scan/SKILL.md",
+      "hash": "4e458c5e292aa201",
+      "modified": false
+    },
+    "code-scan": {
+      "installedAt": "2026-02-12T17:41:22.647Z",
+      "sourceFile": "code-scan/SKILL.md",
+      "hash": "e0aba365a62464c6",
+      "modified": false
+    },
+    "codex-scan": {
+      "installedAt": "2026-02-12T17:41:22.650Z",
+      "sourceFile": "codex-scan/SKILL.md",
+      "hash": "668dc39e09b94c61",
+      "modified": false
+    },
+    "session-status": {
+      "installedAt": "2026-02-12T17:41:22.669Z",
+      "sourceFile": "session-status/SKILL.md",
+      "hash": "85b753231795403e",
+      "modified": false
+    },
+    "skill-usage-report": {
+      "installedAt": "2026-02-12T17:41:22.671Z",
+      "sourceFile": "skill-usage-report/SKILL.md",
+      "hash": "aa70c466d930703e",
+      "modified": false
+    },
+    "ai-smell-review": {
+      "installedAt": "2026-02-12T17:41:22.674Z",
+      "sourceFile": "ai-smell-review/SKILL.md",
+      "hash": "d68680e212c14f2a",
+      "modified": false
+    }
+  },
+  "scriptHash": "0a941b61dd8a7360"
+}

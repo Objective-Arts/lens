@@ -23,11 +23,11 @@ describe('SummaryCollector', () => {
     expect(summary.items).toHaveLength(0);
   });
 
-  it('tracks a successful item with stages', () => {
+  it('tracks a successful item with phases', () => {
     const collector = createCollector();
     collector.startItem(1, 'Add auth');
-    collector.addStage({ name: 'plan', status: 'done', durationMs: 100 });
-    collector.addStage({ name: 'implement', status: 'done', durationMs: 200 });
+    collector.addPhase({ name: 'plan', status: 'done', durationMs: 100 });
+    collector.addPhase({ name: 'implement', status: 'done', durationMs: 200 });
     collector.completeItem('success');
 
     const summary = collector.build();
@@ -37,7 +37,7 @@ describe('SummaryCollector', () => {
     expect(summary.items[0].number).toBe(1);
     expect(summary.items[0].text).toBe('Add auth');
     expect(summary.items[0].status).toBe('success');
-    expect(summary.items[0].stages).toHaveLength(2);
+    expect(summary.items[0].phases).toHaveLength(2);
   });
 
   it('tracks a failed item', () => {
@@ -64,18 +64,18 @@ describe('SummaryCollector', () => {
     expect(summary.items).toHaveLength(3);
   });
 
-  it('does not share stages between items', () => {
+  it('does not share phases between items', () => {
     const collector = createCollector();
     collector.startItem(1, 'First');
-    collector.addStage({ name: 'plan', status: 'done', durationMs: 100 });
+    collector.addPhase({ name: 'plan', status: 'done', durationMs: 100 });
     collector.completeItem('success');
 
     collector.startItem(2, 'Second');
     collector.completeItem('success');
 
     const summary = collector.build();
-    expect(summary.items[0].stages).toHaveLength(1);
-    expect(summary.items[1].stages).toHaveLength(0);
+    expect(summary.items[0].phases).toHaveLength(1);
+    expect(summary.items[1].phases).toHaveLength(0);
   });
 
   it('handles completeItem with no active item', () => {
@@ -124,7 +124,7 @@ describe('parseGeminiIssues', () => {
 GEMINI_ISSUES: 1
 GEMINI_CRITICAL_HIGH: 1
 GEMINI_FIXED: 0
-GEMINI_VERIFIED_CLEAN: no`;
+GEMINI_SECURITY_REVIEW_COMPLETE: no`;
 
     const result = parseGeminiIssues(output);
     expect(result.issues).toHaveLength(1);
@@ -153,7 +153,7 @@ GEMINI_FIXED: 1`;
   });
 
   it('parses verified clean status', () => {
-    const output = 'GEMINI_VERIFIED_CLEAN: yes';
+    const output = 'GEMINI_SECURITY_REVIEW_COMPLETE: yes';
     const result = parseGeminiIssues(output);
     expect(result.verifiedClean).toBe(true);
   });

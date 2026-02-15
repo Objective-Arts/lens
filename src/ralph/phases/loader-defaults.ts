@@ -12,7 +12,7 @@ export function getDefaultPhaseConfig(): WorkflowPhasesConfig {
         description: 'Understand requirements, design approach',
         experts: ['clarity', 'simplicity', 'data-first', 'correctness', 'abstraction'],
       },
-      'structure-first': {
+      'structure': {
         description: 'Design data structures and types before code',
         experts: ['data-first', 'typescript', 'correctness', 'abstraction', 'java', 'design-patterns'],
       },
@@ -24,7 +24,7 @@ export function getDefaultPhaseConfig(): WorkflowPhasesConfig {
         description: 'Write tests for implemented code',
         experts: ['test-doubles', 'test-strategy', 'react-test', 'angular-core', 'legacy'],
       },
-      'refactor-check': {
+      'refactoring': {
         description: 'Simplify and clean up, verify still works',
         experts: ['clarity', 'pragmatism', 'legacy', 'design-patterns', 'simplicity'],
       },
@@ -51,10 +51,10 @@ export function getDefaultPhaseConfig(): WorkflowPhasesConfig {
     },
     'ralph-sequence': [
       'plan',
-      'structure-first',
+      'structure',
       'implement',
       'test',
-      'refactor-check',
+      'refactoring',
       'independent-review',
       'static-analysis',
       'doc-code',

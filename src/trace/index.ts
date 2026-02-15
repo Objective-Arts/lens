@@ -36,10 +36,10 @@ const MAX_PROFILES = 20;
 /** Phase name → ralph config skill key */
 const PHASE_CONFIG_KEYS: Readonly<Record<string, string>> = {
   'plan': 'plan',
-  'structure-first': 'plan',
+  'structure': 'plan',
   'implement': 'build',
   'test': 'test',
-  'refactor-check': 'refactor',
+  'refactoring': 'refactor',
   'independent-review': 'review',
   'static-analysis': 'review',
   'doc-code': 'doc',
@@ -68,10 +68,10 @@ function getAppliedProfiles(projectPath: string): string[] {
 function skillToPhase(skill: string): PhaseName | null {
   const phaseMap: Record<string, PhaseName> = {
     'plan': 'plan',
-    'structure-first': 'structure-first',
+    'structure': 'structure',
     'implement': 'implement',
     'test': 'test',
-    'refactor-check': 'refactor-check',
+    'refactoring': 'refactoring',
     'independent-review': 'independent-review',
     'static-analysis': 'static-analysis',
     'doc-code': 'doc-code',

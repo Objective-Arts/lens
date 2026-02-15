@@ -264,8 +264,8 @@ describe('workflow commands', () => {
     expect(result.exitCode).toBe(0);
     expect(result.stdout).toContain('Available Workflow Skills');
     // Check for known workflow skills
-    expect(result.stdout).toContain('structure-first');
-    expect(result.stdout).toContain('create-plan');
+    expect(result.stdout).toContain('structure');
+    expect(result.stdout).toContain('plan');
   });
 
   it('workflow source - shows workflow source path', () => {

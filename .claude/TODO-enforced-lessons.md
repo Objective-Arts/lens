@@ -32,7 +32,7 @@ Add an `enforced-lessons.json` data file that the quality-gate script reads at e
 1. Create `enforced-lessons.json` with initial patterns extracted from existing lessons.md
 2. Add a `checkEnforcedLessons()` function to `scripts/quality-gate.ts` that reads the JSON file and greps code for each pattern
 3. Wire it into the existing gate runner so it runs at gates 3.5, 7.5, 9.5, 11.5
-4. Update review phases (gemini-fix, codex-fix, adversarial-security-review, final-eval-check) to append entries to this file when they write a lesson that has a grep-able antipattern
+4. Update review phases (gemini-review, codex-review, security-review, evaluation) to append entries to this file when they write a lesson that has a grep-able antipattern
 
 ### What stays the same
 

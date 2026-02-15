@@ -8,6 +8,9 @@ import {
   collectFiles,
   collectSourceFiles,
   checkHardcodedSecrets,
+  checkEmptyErrorHandling,
+  checkTodoAccumulation,
+  checkHardcodedUrls,
   checkShellInjection,
   checkPathTraversal,
   checkCircularImports,
@@ -227,6 +230,161 @@ describe('checkHardcodedSecrets', () => {
   it('passes clean code', () => {
     const f = writeFile('src/app.ts', 'const password = process.env.DB_PASSWORD;');
     expect(checkHardcodedSecrets([f], tempDir)).toHaveLength(0);
+  });
+});
+
+// ─── Empty Error Handling (Universal) ────────────────────────────────────────
+
+describe('checkEmptyErrorHandling', () => {
+  it('catches empty catch in TypeScript', () => {
+    const f = writeFile('src/app.ts', 'try { doStuff(); } catch (e) {}');
+    const v = checkEmptyErrorHandling([f], tempDir);
+    expect(v).toHaveLength(1);
+    expect(v[0].check).toBe('empty-error-handler');
+  });
+
+  it('catches multi-line empty catch in Java', () => {
+    const f = writeFile('src/App.java', [
+      'try { doStuff(); }',
+      'catch (Exception e) {',
+      '}',
+    ].join('\n'));
+    const v = checkEmptyErrorHandling([f], tempDir);
+    expect(v).toHaveLength(1);
+  });
+
+  it('catches except pass in Python', () => {
+    const f = writeFile('src/app.py', [
+      'try:',
+      '    do_stuff()',
+      'except Exception:',
+      '    pass',
+    ].join('\n'));
+    const v = checkEmptyErrorHandling([f], tempDir);
+    expect(v).toHaveLength(1);
+  });
+
+  it('catches empty rescue in Ruby', () => {
+    const f = writeFile('src/app.rb', [
+      'begin',
+      '  do_stuff',
+      'rescue',
+      'end',
+    ].join('\n'));
+    const v = checkEmptyErrorHandling([f], tempDir);
+    expect(v).toHaveLength(1);
+  });
+
+  it('catches empty if err != nil in Go', () => {
+    const f = writeFile('src/main.go', 'if err != nil {}');
+    const v = checkEmptyErrorHandling([f], tempDir);
+    expect(v).toHaveLength(1);
+  });
+
+  it('catches empty catch in PHP', () => {
+    const f = writeFile('src/app.php', 'catch (Exception $e) {}');
+    const v = checkEmptyErrorHandling([f], tempDir);
+    expect(v).toHaveLength(1);
+  });
+
+  it('passes catch with handler', () => {
+    const f = writeFile('src/app.ts', [
+      'try { doStuff(); }',
+      'catch (e) {',
+      '  console.error(e.message);',
+      '}',
+    ].join('\n'));
+    expect(checkEmptyErrorHandling([f], tempDir)).toHaveLength(0);
+  });
+
+  it('passes Python except with handler', () => {
+    const f = writeFile('src/app.py', [
+      'except Exception as e:',
+      '    logger.error(e)',
+    ].join('\n'));
+    expect(checkEmptyErrorHandling([f], tempDir)).toHaveLength(0);
+  });
+});
+
+// ─── TODO Accumulation (Universal) ──────────────────────────────────────────
+
+describe('checkTodoAccumulation', () => {
+  it('flags file with >3 TODO markers', () => {
+    const f = writeFile('src/app.ts', [
+      '// TODO: fix this',
+      '// TODO: clean up',
+      '// FIXME: broken',
+      '// HACK: workaround',
+    ].join('\n'));
+    const v = checkTodoAccumulation([f], tempDir);
+    expect(v).toHaveLength(1);
+    expect(v[0].check).toBe('todo-accumulation');
+    expect(v[0].message).toContain('4');
+  });
+
+  it('passes file with 3 or fewer markers', () => {
+    const f = writeFile('src/app.ts', [
+      '// TODO: fix this',
+      '// FIXME: broken',
+      'const x = 1;',
+    ].join('\n'));
+    expect(checkTodoAccumulation([f], tempDir)).toHaveLength(0);
+  });
+
+  it('counts across all marker types', () => {
+    const f = writeFile('src/app.py', [
+      '# TODO: one',
+      '# FIXME: two',
+      '# HACK: three',
+      '# XXX: four',
+    ].join('\n'));
+    const v = checkTodoAccumulation([f], tempDir);
+    expect(v).toHaveLength(1);
+    expect(v[0].message).toContain('4');
+  });
+});
+
+// ─── Hardcoded URLs (Universal) ─────────────────────────────────────────────
+
+describe('checkHardcodedUrls', () => {
+  it('catches insecure http:// URL', () => {
+    const f = writeFile('src/config.ts', 'const api = "http://api.production.com/v1";');
+    const v = checkHardcodedUrls([f], tempDir);
+    expect(v.some(x => x.check === 'insecure-http')).toBe(true);
+  });
+
+  it('catches hardcoded IP:port', () => {
+    const f = writeFile('src/config.java', 'String host = "192.168.1.100:8080";');
+    const v = checkHardcodedUrls([f], tempDir);
+    expect(v.some(x => x.check === 'hardcoded-ip-port')).toBe(true);
+  });
+
+  it('skips localhost http://', () => {
+    const f = writeFile('src/dev.ts', 'const url = "http://localhost:3000";');
+    const v = checkHardcodedUrls([f], tempDir);
+    expect(v.some(x => x.check === 'insecure-http')).toBe(false);
+  });
+
+  it('skips 127.0.0.1 http://', () => {
+    const f = writeFile('src/dev.ts', 'const url = "http://127.0.0.1:3000";');
+    const v = checkHardcodedUrls([f], tempDir);
+    expect(v.some(x => x.check === 'insecure-http')).toBe(false);
+  });
+
+  it('skips 127.0.0.1 IP:port', () => {
+    const f = writeFile('src/dev.ts', 'const url = "127.0.0.1:3000";');
+    const v = checkHardcodedUrls([f], tempDir);
+    expect(v.some(x => x.check === 'hardcoded-ip-port')).toBe(false);
+  });
+
+  it('skips comments', () => {
+    const f = writeFile('src/app.ts', '// See http://api.example.com/docs');
+    expect(checkHardcodedUrls([f], tempDir)).toHaveLength(0);
+  });
+
+  it('passes https:// URLs', () => {
+    const f = writeFile('src/config.ts', 'const api = "https://api.production.com/v1";');
+    expect(checkHardcodedUrls([f], tempDir)).toHaveLength(0);
   });
 });
 
@@ -640,8 +798,8 @@ describe('pipeline metrics', () => {
     const activePath = path.join(metricsDir, 'active-metrics.json');
     expect(fs.existsSync(activePath)).toBe(true);
 
-    recordPhaseMetrics(metricsDir, 'create-plan', 0, 0, 1500);
-    recordPhaseMetrics(metricsDir, 'implement-plan', 3, 3, 5000);
+    recordPhaseMetrics(metricsDir, 'plan', 0, 0, 1500);
+    recordPhaseMetrics(metricsDir, 'implementation', 3, 3, 5000);
 
     const metrics = JSON.parse(fs.readFileSync(activePath, 'utf-8'));
     expect(metrics.phases).toHaveLength(2);

@@ -46,7 +46,7 @@ describe('Phase Loader', () => {
 
       expect(config.phases).toBeDefined();
       expect(config.phases.plan).toBeDefined();
-      expect(config.phases['structure-first']).toBeDefined();
+      expect(config.phases['structure']).toBeDefined();
       expect(config['ralph-sequence']).toHaveLength(8);
     });
 
@@ -58,13 +58,13 @@ phases:
     experts:
       - clarity
       - simplicity
-  structure-first:
+  structure:
     description: Test structure
     experts:
       - data-first
 ralph-sequence:
   - plan
-  - structure-first
+  - structure
 `;
       fs.writeFileSync(PHASES_FILE, yamlContent);
 
@@ -72,7 +72,7 @@ ralph-sequence:
 
       expect(config.phases.plan.experts).toContain('clarity');
       expect(config.phases.plan.experts).toContain('simplicity');
-      expect(config.phases['structure-first'].experts).toContain('data-first');
+      expect(config.phases['structure'].experts).toContain('data-first');
     });
 
     it('uses defaults for invalid YAML', () => {
@@ -124,7 +124,7 @@ ralph-sequence: [plan]
 
       expect(sequence).toHaveLength(8);
       expect(sequence[0]).toBe('plan');
-      expect(sequence[1]).toBe('structure-first');
+      expect(sequence[1]).toBe('structure');
       expect(sequence[7]).toBe('doc-code');
     });
   });

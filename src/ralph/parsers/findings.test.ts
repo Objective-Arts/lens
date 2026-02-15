@@ -86,7 +86,7 @@ FIXES_APPLIED:
   File: src/auth.ts
   Change: Added token validation
 
-FIX_COMPLETE
+GEMINI_REVIEW_COMPLETE
 `;
     const fixes = parseFixes(output);
 
@@ -130,7 +130,7 @@ DOCS_UPDATED:
 - README.md: Added setup section
 - API.md: Updated endpoints
 
-FIX_COMPLETE
+GEMINI_REVIEW_COMPLETE
 `;
     const docs = parseDocsUpdated(output);
 

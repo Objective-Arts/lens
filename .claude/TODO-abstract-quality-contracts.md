@@ -26,7 +26,7 @@ These are language-agnostic. They describe what data IS, not how it's encoded.
 
 ## How It Would Work
 
-### Phase 2 (structure-first) defines contracts
+### Phase 2 (structure) defines contracts
 
 For each feature, Phase 2 identifies every boundary where data enters or leaves the system. It assigns an abstract type and specifies the contract:
 
@@ -42,7 +42,7 @@ QUALITY_CONTRACTS
 | Directory traversal | BoundedOperation| Must have maxDepth parameter, default 10                     |
 ```
 
-### Phase 1 (create-plan) distills per-unit constraints
+### Phase 1 (plan) distills per-unit constraints
 
 Each work item gets ONE targeted rule with a BAD/GOOD example:
 
@@ -55,7 +55,7 @@ WI-3: createProfile
 
 3 lines instead of a 50-line canon summary.
 
-### Phase 3 (implement-plan) implements contracts
+### Phase 3 (implementation) implements contracts
 
 Phase 3 reads the constraint from the plan (not a full canon file). It implements the abstract type in the target language's idiom:
 
@@ -113,8 +113,8 @@ Maybe 50-55% of typical findings are structurally preventable by contracts. The 
 
 ## What Needs to Change (3 files)
 
-1. **structure-first/SKILL.md** — Add QUALITY_CONTRACTS table to design output
-2. **create-plan/SKILL.md** — Add canon constraint per work item with BAD/GOOD
-3. **implement-plan/SKILL.md** — Step 2a reads plan constraint instead of full canon summary
+1. **structure/SKILL.md** — Add QUALITY_CONTRACTS table to design output
+2. **plan/SKILL.md** — Add canon constraint per work item with BAD/GOOD
+3. **implementation/SKILL.md** — Step 2a reads plan constraint instead of full canon summary
 
 No new scripts. No new files beyond this document. No new systems. Just better instructions in existing skills that leverage the enforcement mechanisms (compiler, construction check) that already exist.

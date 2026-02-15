@@ -8,7 +8,7 @@
 import {
   RunSummary,
   ItemSummary,
-  StageSummary,
+  PhaseSummary,
   GeminiSummary,
   QodanaSummary,
   RefactorSummary,
@@ -35,7 +35,7 @@ export class SummaryCollector {
   private readonly totalItems: number;
   private items: ItemSummary[] = [];
   private currentItem: Partial<ItemSummary> | null = null;
-  private currentStages: StageSummary[] = [];
+  private currentPhases: PhaseSummary[] = [];
   private productionCheck: ProductionCheckResult | null = null;
 
   constructor(sessionId: string, prdPath: string, projectType: string, totalItems: number) {
@@ -49,12 +49,12 @@ export class SummaryCollector {
   /** Start tracking a new PRD item */
   startItem(number: number, text: string): void {
     this.currentItem = { number, text };
-    this.currentStages = [];
+    this.currentPhases = [];
   }
 
-  /** Record a completed stage */
-  addStage(stage: StageSummary): void {
-    this.currentStages.push(stage);
+  /** Record a completed phase */
+  addPhase(phase: PhaseSummary): void {
+    this.currentPhases.push(phase);
   }
 
   /** Complete the current item */
@@ -64,10 +64,10 @@ export class SummaryCollector {
         number: this.currentItem.number!,
         text: this.currentItem.text!,
         status,
-        stages: [...this.currentStages],
+        phases: [...this.currentPhases],
       });
       this.currentItem = null;
-      this.currentStages = [];
+      this.currentPhases = [];
     }
   }
 
@@ -134,7 +134,7 @@ function buildIssueSummary(output: string, issues: Issue[], prefix: string): Gem
   const totalMatch = output.match(new RegExp(`${prefix}_?ISSUES:\\s*(\\d+)`, 'i'));
   const criticalMatch = output.match(new RegExp(`${prefix}_?CRITICAL_HIGH:\\s*(\\d+)`, 'i'));
   const fixedMatch = output.match(new RegExp(`${prefix}_?FIXED:\\s*(\\d+)`, 'i'));
-  const verifiedMatch = output.match(new RegExp(`${prefix}_?VERIFIED_CLEAN:\\s*(yes|no)`, 'i'));
+  const verifiedMatch = output.match(new RegExp(`${prefix}_?SECURITY_REVIEW_COMPLETE:\\s*(yes|no)`, 'i'));
 
   const criticalHigh = issues.filter(i => i.severity === 'CRITICAL' || i.severity === 'HIGH').length;
   return {

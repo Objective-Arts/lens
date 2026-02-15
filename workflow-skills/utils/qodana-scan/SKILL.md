@@ -169,11 +169,11 @@ SCAN_ONLY: no fixes applied
 - Skipping the Qodana scan
 - Hiding or downplaying issues
 - Summarizing without specific locations
-- Applying fixes (use /qodana-fix for that)
+- Applying fixes (use /qodana-review for that)
 
 ## Comparison
 
 | Skill | Analyzes | Fixes |
 |-------|----------|-------|
 | `/qodana-scan` | ✓ | ✗ (read-only) |
-| `/qodana-fix` | ✓ | ✓ (mandatory) |
+| `/qodana-review` | ✓ | ✓ (mandatory) |

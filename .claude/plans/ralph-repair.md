@@ -15,7 +15,7 @@ This is the largest module. Phase class `execute()` methods are intentionally lo
 ### TOCTOU (5 actionable instances)
 1. `config/loader.ts:31-38` — existsSync + readFileSync
 2. `skills/loader.ts:28-32` — existsSync + readFileSync
-3. `phases/structure-first.ts:73-77` — existsSync + readFileSync
+3. `phases/structure.ts:73-77` — existsSync + readFileSync
 4. `phases/implement.ts:83-87` — existsSync + readFileSync
 5. `summary/generator.ts:27-32` — existsSync + readFileSync
 
@@ -42,7 +42,7 @@ Replace existsSync+readFileSync with try-catch. Keep the clear error message.
 ### 2. Fix TOCTOU in skills/loader.ts
 Replace existsSync+readFileSync in loadSkill with try-catch.
 
-### 3. Fix TOCTOU in phases/structure-first.ts and implement.ts
+### 3. Fix TOCTOU in phases/structure.ts and implement.ts
 Replace existsSync+readFileSync with try-catch for plan file loading.
 
 ### 4. Fix TOCTOU in summary/generator.ts

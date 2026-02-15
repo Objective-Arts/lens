@@ -1,0 +1,626 @@
+# Keyword Detection Rules
+#
+# When keywords appear in user prompts, add relevant experts.
+# This is Layer 4 - additive on top of base + profile + phase.
+
+rules:
+  # === SECURITY ===
+  security:
+    patterns:
+      - auth
+      - password
+      - login
+      - logout
+      - session
+      - token
+      - jwt
+      - oauth
+      - credential
+      - secret
+      - encrypt
+      - decrypt
+      - hash
+      - salt
+      - permission
+      - role
+      - access control
+      - acl
+      - rbac
+      - csrf
+      - xss
+      - injection
+      - sanitiz
+      - escap
+      - trust
+      - untrust
+    experts:
+      - security-mindset
+      - owasp
+      - appsec
+      - web-security
+
+  # === DATABASE ===
+  database:
+    patterns:
+      - database
+      - sql
+      - query
+      - orm
+      - prisma
+      - drizzle
+      - sequelize
+      - typeorm
+      - mongoose
+      - postgres
+      - mysql
+      - sqlite
+      - mongo
+      - redis
+      - migration
+      - schema
+      - index
+      - transaction
+      - join
+      - foreign key
+    experts:
+      - sql
+      - sql-perf
+      - security-mindset  # SQL injection awareness
+
+  # === API ===
+  api:
+    patterns:
+      - api
+      - endpoint
+      - rest
+      - graphql
+      - route
+      - controller
+      - middleware
+      - request
+      - response
+      - http
+      - webhook
+      - versioning
+      - pagination
+      - rate limit
+    experts:
+      - java
+      - simplicity
+
+  # === TESTING ===
+  testing:
+    patterns:
+      - test
+      - spec
+      - mock
+      - stub
+      - fake
+      - spy
+      - fixture
+      - assert
+      - expect
+      - coverage
+      - unit test
+      - integration test
+      - e2e
+      - end to end
+      - playwright
+      - cypress
+      - jest
+      - vitest
+      - pytest
+    experts:
+      - test-doubles
+      - test-strategy
+      - react-test
+      - angular-core
+      - legacy
+
+  # === PERFORMANCE ===
+  performance:
+    patterns:
+      - performance
+      - optimize
+      - slow
+      - fast
+      - cache
+      - memoiz
+      - memory
+      - cpu
+      - latency
+      - throughput
+      - benchmark
+      - profil
+      - bottleneck
+      - n+1
+    experts:
+      - optimization
+      - algorithms
+
+  # === UI/UX ===
+  ui:
+    patterns:
+      - ui
+      - ux
+      - modal
+      - dialog
+      - form
+      - button
+      - input
+      - component
+      - layout
+      - responsive
+      - mobile
+      - desktop
+      - css
+      - style
+      - theme
+      - dark mode
+      - accessibility
+      - a11y
+      - aria
+      - screen reader
+    experts:
+      - components
+      - usability
+      - personas
+      - design
+      - visual
+
+  forms:
+    patterns:
+      - form
+      - input field
+      - validation
+      - submit
+      - inline validation
+      - error message
+      - required field
+    experts:
+      - mobile
+      - usability
+
+  animation:
+    patterns:
+      - animation
+      - transition
+      - motion
+      - keyframe
+      - easing
+      - micro-interaction
+      - gesture
+      - swipe
+    experts:
+      - motion
+      - interaction
+
+  design-system:
+    patterns:
+      - design system
+      - token
+      - css variable
+      - theme
+      - component library
+      - atomic design
+    experts:
+      - tokens
+      - components
+      - design
+
+  typography:
+    patterns:
+      - typography
+      - font
+      - typeface
+      - line height
+      - letter spacing
+      - text hierarchy
+    experts:
+      - typography
+
+  # === ALGORITHMS ===
+  algorithms:
+    patterns:
+      - algorithm
+      - sort
+      - search
+      - tree
+      - graph
+      - recursive
+      - recursion
+      - complexity
+      - O(
+      - big o
+      - binary search
+      - hash table
+      - queue
+      - stack
+      - heap
+      - linked list
+      - traversal
+      - dynamic programming
+      - greedy
+    experts:
+      - algorithms
+      - correctness
+
+  # === ARCHITECTURE ===
+  architecture:
+    patterns:
+      - architecture
+      - design pattern
+      - factory
+      - singleton
+      - observer
+      - strategy
+      - decorator pattern
+      - adapter
+      - facade
+      - dependency injection
+      - inversion of control
+      - solid
+      - dry
+      - kiss
+    experts:
+      - design-patterns
+      - abstraction
+      - simplicity
+
+  distributed:
+    patterns:
+      - distributed
+      - microservice
+      - service mesh
+      - network
+      - partition
+      - timeout
+      - retry
+      - circuit breaker
+      - eventual consistency
+      - saga
+      - cqrs
+      - event sourcing
+    experts:
+      - distributed
+      - resilience
+
+  # === CLI/UNIX ===
+  cli:
+    patterns:
+      - cli
+      - command line
+      - terminal
+      - shell
+      - bash
+      - zsh
+      - argv
+      - flag
+      - option
+      - pipe
+      - stream
+      - stdin
+      - stdout
+      - stderr
+    experts:
+      - composition
+      - simplicity
+      - clarity
+      - pragmatism
+
+  # === DOCUMENTATION ===
+  documentation:
+    patterns:
+      - document
+      - readme
+      - changelog
+      - jsdoc
+      - tsdoc
+      - docstring
+      - comment
+      - explain
+      - usage
+      - example
+      - tutorial
+      - guide
+    experts:
+      - docs
+      - brevity
+      - prose
+      - editing
+
+  # === VISUALIZATION ===
+  visualization:
+    patterns:
+      - chart
+      - graph
+      - plot
+      - visualization
+      - d3
+      - dashboard
+      - metric
+      - analytics
+      - svg
+      - canvas
+    experts:
+      - charts
+      - dashboards
+      - data-story
+      - d3
+
+  # === ERROR HANDLING ===
+  error-handling:
+    patterns:
+      - error
+      - exception
+      - throw
+      - catch
+      - try
+      - finally
+      - panic
+      - recover
+      - fail fast
+      - graceful
+      - fallback
+    experts:
+      - distributed
+      - pragmatism
+
+  # === DEBUGGING ===
+  debugging:
+    patterns:
+      - debug
+      - troubleshoot
+      - investigate
+      - root cause
+      - stack trace
+      - breakpoint
+      - log
+      - trace
+    experts:
+      - legacy  # Working with unfamiliar code
+
+  # === DEPLOYMENT ===
+  deployment:
+    patterns:
+      - deploy
+      - release
+      - production
+      - staging
+      - migration
+      - rollback
+      - blue green
+      - canary
+      - ci cd
+      - pipeline
+    experts:
+      - safety  # Safety for critical operations
+
+  # === RISK/SAFETY ===
+  risk:
+    patterns:
+      - risk
+      - safety
+      - hazard
+      - critical
+      - failure mode
+      - disaster
+      - recovery
+      - backup
+      - resilient
+      - fault tolerant
+    experts:
+      - resilience
+      - failure
+      - safety
+
+  # === REFACTORING ===
+  refactoring:
+    patterns:
+      - refactor
+      - rewrite
+      - legacy
+      - technical debt
+      - cleanup
+      - simplify
+      - extract
+      - inline
+      - rename
+    experts:
+      - legacy
+      - clarity
+      - pragmatism
+      - refactoring
+
+  # === JAVASCRIPT ===
+  javascript:
+    patterns:
+      - javascript
+      - ecmascript
+      - js
+      - node
+      - npm
+      - yarn
+      - pnpm
+    experts:
+      - js-safety
+      - js-internals
+      - js-perf
+
+  javascript-advanced:
+    patterns:
+      - closure
+      - this keyword
+      - prototype
+      - hoisting
+      - event loop
+      - callback
+      - promise
+    experts:
+      - js-internals
+      - async
+
+  functional-js:
+    patterns:
+      - lodash
+      - underscore
+      - ramda
+      - fp-ts
+      - functional
+      - compose
+      - curry
+      - pure function
+      - immutable
+    experts:
+      - functional
+
+  # === TYPESCRIPT ===
+  typescript:
+    patterns:
+      - typescript
+      - ts
+      - type
+      - interface
+      - generic
+      - inference
+      - utility type
+      - discriminated union
+      - type guard
+      - as const
+      - satisfies
+    experts:
+      - typescript
+      - type-systems
+
+  # === REACT ===
+  react:
+    patterns:
+      - react
+      - jsx
+      - tsx
+      - hook
+      - usestate
+      - useeffect
+      - usememo
+      - props
+      - component
+      - context
+      - redux
+      - zustand
+    experts:
+      - react-state
+      - react-test
+
+  # === ANGULAR ===
+  angular:
+    patterns:
+      - angular
+      - ng
+      - injectable
+      - ngmodule
+      - service
+      - directive
+      - pipe
+      - zone
+      - change detection
+    experts:
+      - angular-core
+      - angular-arch
+      - angular-perf
+
+  # === RXJS ===
+  rxjs:
+    patterns:
+      - rxjs
+      - observable
+      - subscription
+      - operator
+      - subject
+      - behaviorsubject
+      - switchmap
+      - mergemap
+      - combinelatest
+    experts:
+      - rxjs
+      - async
+
+  # === SVELTE ===
+  svelte:
+    patterns:
+      - svelte
+      - sveltekit
+      - rune
+      - reactive
+      - store
+    experts:
+      - reactivity
+
+  # === PYTHON ===
+  python:
+    patterns:
+      - python
+      - py
+      - pip
+      - pythonic
+      - pep
+      - dunder
+      - decorator
+      - generator
+      - comprehension
+      - dataclass
+    experts:
+      - python-idioms
+      - python-protocols
+      - python-patterns
+
+  python-async:
+    patterns:
+      - asyncio
+      - async def
+      - await
+      - coroutine
+      - aiohttp
+      - fastapi
+    experts:
+      - python-advanced
+
+  # === JAVA ===
+  java:
+    patterns:
+      - java
+      - jvm
+      - spring
+      - maven
+      - gradle
+      - builder pattern
+      - immutable
+      - optional
+      - stream api
+    experts:
+      - java
+
+  # === C# ===
+  csharp:
+    patterns:
+      - csharp
+      - c#
+      - dotnet
+      - .net
+      - linq
+      - entity framework
+      - asp.net
+      - blazor
+    experts:
+      - csharp-depth
+
+  # === GO ===
+  golang:
+    patterns:
+      - golang
+      - go
+      - goroutine
+      - channel
+      - defer
+      - interface go
+    experts:
+      - simplicity

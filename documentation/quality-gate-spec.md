@@ -1,19 +1,19 @@
-# Quality Gate Spec: Proxy Checks & Evidence Checklists
+# Quality Gate Spec: Code Pattern Checks & Evidence Checklists
 
 ## Context
 
 Canon skills contain judgment-based checks that machines can't evaluate directly. Two strategies close the gap:
 
-1. **Proxy checks** — measurable patterns that correlate with canon violations. Machines run them. No LLM involved.
-2. **Evidence checklists** — structured output that LLMs must produce during review phases. Machines validate completeness, not correctness.
+1. **Code pattern checks** — measurable patterns that correlate with canon violations. Machines run them. No LLM involved.
+2. **Evidence checklists** — structured output that phases produce during review. Machines validate completeness, not correctness.
 
 Both go into `scripts/quality-gate.ts`. Both exit non-zero on failure.
 
 ---
 
-## Part 1: Proxy Checks
+## Part 1: Code Pattern Checks
 
-Each proxy check traces to a canon SUMMARY.md. The check catches the worst violations of that canon principle. It won't catch subtle violations — that stays with evidence checklists and model review.
+Each check traces to a canon SUMMARY.md. The check catches the worst violations of that canon principle. It won't catch subtle violations — that stays with evidence checklists and model review.
 
 All checks skip `*.test.ts`, `node_modules/`, `dist/`, `.claude/`.
 
@@ -90,8 +90,10 @@ Canon source: `canon/clarity/SUMMARY.md` check #3 (magic value audit)
 
 ### How It Works
 
-1. Each review phase writes a structured checklist to `.claude/evidence/{phase-name}.md`
-2. The machine counts items in the codebase (exported functions, error messages, input boundaries, etc.)
+Phases that perform structured review produce evidence checklists as part of their own SKILL.md instructions. The machine validates completeness:
+
+1. The phase writes a structured checklist to `.claude/evidence/{phase-name}.md`
+2. The machine counts items in the codebase (exported functions, error messages, etc.)
 3. The machine counts rows in the checklist
 4. If rows < expected count, the checklist is incomplete — phase fails
 5. The machine does NOT evaluate whether each verdict is correct — that's the LLM's job
@@ -120,7 +122,7 @@ Rules:
 
 ### Checklists by Phase
 
-#### Phase 4: refactor-check-fix
+#### Phase 4: refactoring
 
 Produces 3 checklists:
 
@@ -146,45 +148,13 @@ Canon: `clarity/SUMMARY.md` check #3
 
 - Machine counts: all numeric and string literals (non-trivial)
 - Claude lists: every literal, why it's acceptable or what constant to extract
-- Validation: row count must equal literal count from proxy check
+- Validation: row count must equal literal count from code pattern check
 
-#### Phase 6: gemini-fix
-
-Produces 2 checklists:
-
-**Checklist 6a: Error message audit**
-
-Canon: `security-mindset/SUMMARY.md` hard gate #1
-
-- Machine counts: all `console.error`, `console.log`, `throw new Error`, `reject(` calls
-- Gemini lists: every error/log statement, what it exposes, whether it leaks internals
-- Validation: row count must equal error/log statement count
-
-**Checklist 6b: Input boundary check**
-
-Canon: `security-mindset/SUMMARY.md` hard gate #3
-
-- Machine counts: CLI arg reads (`process.argv`, commander `.argument()`, `.option()`), `fs.readFile`, `env` access
-- Gemini lists: every input boundary, what validation runs before business logic
-- Validation: row count must equal input boundary count
-
-#### Phase 8: adversarial-security-review
+#### Phase 8: evaluation
 
 Produces 1 checklist:
 
-**Checklist 8a: Auth and failure path review**
-
-Canon: `security-mindset/SUMMARY.md` checks #3, #4, #5
-
-- Machine counts: all `catch` blocks + all `if` blocks that check permissions/auth
-- Codex lists: every catch block — does it fail open or closed? Every auth check — is there a bypass path?
-- Validation: row count must equal catch block count
-
-#### Phase 10: final-eval-check
-
-Produces 1 checklist:
-
-**Checklist 10a: Attack surface inventory**
+**Checklist 8a: Attack surface inventory**
 
 Canon: `owasp/SUMMARY.md` checks #1-#5
 
@@ -210,38 +180,9 @@ For each checklist in `.claude/evidence/`:
 
 Exit non-zero if any checklist is incomplete.
 
-### Pipeline Integration
+### Phase-Driven Evidence
 
-In `build/SKILL.md` and `improve/SKILL.md`:
-
-```
-Phase 4: refactor-check-fix
-  → writes .claude/evidence/refactor-4a.md, refactor-4b.md, refactor-4c.md
-
-Gate 4.5: npm run quality-gate validate-evidence refactor
-  → checks all 3 checklists for completeness
-  → if incomplete: bounce back to Phase 4 with "you missed N items"
-  → max 2 retries, then halt
-
-Phase 6: gemini-fix
-  → writes .claude/evidence/gemini-6a.md, gemini-6b.md
-
-Gate 6.5: npm run quality-gate validate-evidence gemini
-  → same validation
-
-Phase 7: codex-fix
-  → writes .claude/evidence/codex-7a.md
-
-Gate 7.5: npm run quality-gate validate-evidence codex
-  → same validation
-  → also runs Qodana scan; Haiku fixer if issues found
-
-Phase 8: adversarial-security-review
-  → writes .claude/evidence/security-8a.md
-
-Gate 8.5: npm run quality-gate validate-evidence security
-  → same validation
-```
+Evidence checklists are produced by phases as part of their own SKILL.md instructions, not orchestrated by the build/improve pipeline. The quality gates check that evidence exists and is complete. This is simpler than the previous model where evidence gates were separate pipeline steps between each review phase.
 
 ### Cleanup
 
@@ -255,161 +196,13 @@ They're proof of work, not documentation. Once the build passes, they're not nee
 
 ---
 
-## Part 3: Canary Tests
-
-### Purpose
-
-Evidence checklists prove the reviewer looked at every item. Canary tests prove the reviewer was actually paying attention. A reviewer can list every function and mark them all PASS without genuinely evaluating. Canaries catch that.
-
-### How It Works
-
-1. Before a review phase runs, the machine inserts 3-5 known violations into random source files
-2. The machine records what was inserted and where (in a manifest file the reviewer cannot see)
-3. The reviewer runs its normal review
-4. After the review, the machine checks: did the reviewer's evidence checklist flag the canary locations?
-5. Canaries are removed from source regardless of outcome
-6. If any canary was missed, the review is invalidated and rerun (max 1 retry)
-
-### Canary Categories
-
-Each canary run plants one violation from each category to test breadth of review:
-
-| Category | Canon source | What gets planted | Example |
-|----------|-------------|-------------------|---------|
-| Naming | clarity check #2 | Vague exported function name | `export function process(d: any) { return d; }` |
-| Security | owasp check #1 | Shell injection | `` exec(`echo ${input}`) `` |
-| Secrets | security-mindset gate #5 | Hardcoded credential | `const apiKey = "sk-canary-test-00000";` |
-| Types | typescript gate #1 | Explicit any | `export function load(config: any): void {}` |
-| Complexity | clarity check #4 | Deeply nested logic | `if (a) { if (b) { if (c) { if (d) { ... } } } }` |
-
-The machine picks 3-5 of these per run. Never all 5 — the reviewer shouldn't be able to guess the pattern.
-
-### Canary Manifest
-
-The machine writes a manifest before the review phase starts. The manifest is NOT visible to the reviewer.
-
-File: `.claude/canary-manifest.json` (gitignored, deleted after validation)
-
-```json
-{
-  "phase": "gemini-fix",
-  "timestamp": "2026-02-08T18:00:00Z",
-  "canaries": [
-    {
-      "id": "c1",
-      "category": "secrets",
-      "file": "src/crypto.ts",
-      "line": 12,
-      "inserted": "const apiKey = \"sk-canary-test-00000\";",
-      "original": ""
-    },
-    {
-      "id": "c2",
-      "category": "naming",
-      "file": "src/storage.ts",
-      "line": 5,
-      "inserted": "export function proc(d: any) { return d; }",
-      "original": ""
-    },
-    {
-      "id": "c3",
-      "category": "security",
-      "file": "src/commands/add.ts",
-      "line": 8,
-      "inserted": "exec(`rm ${userInput}`);",
-      "original": ""
-    }
-  ]
-}
-```
-
-The `original` field stores whatever was at that line before insertion, so the machine can restore the file exactly.
-
-### Insertion Rules
-
-- Insert at a random line inside a real function body, not at the top of the file (too obvious)
-- Never insert into test files
-- Never insert into `index.ts` barrel exports (would break compilation)
-- The inserted code must compile — add necessary imports if needed (e.g., `import { exec } from 'child_process';`)
-- Choose files that the review phase will scan (don't plant in files outside the target path)
-- Rotate categories across runs — don't always plant the same 3
-
-### Validation
-
-After the review phase completes, run:
-
-```
-quality-gate validate-canaries {phase-name}
-```
-
-The validator:
-
-1. Reads `.claude/canary-manifest.json`
-2. Reads the reviewer's evidence checklist from `.claude/evidence/{phase-name}-*.md`
-3. For each canary, checks: does any checklist row reference that file:line with a FAIL verdict?
-4. Reports results:
-
-```
-Canary validation for gemini-fix:
-  c1 (secrets)  src/crypto.ts:12    → DETECTED ✓
-  c2 (naming)   src/storage.ts:5    → DETECTED ✓
-  c3 (security) src/commands/add.ts:8 → MISSED ✗
-
-Result: 2/3 detected. Review INVALID — rerun required.
-```
-
-5. Restores all canary lines to their original content
-6. Deletes the manifest
-7. If any canary was missed: exit non-zero
-
-### Detection Threshold
-
-- All canaries must be detected for the review to pass
-- These are deliberately obvious violations — a hardcoded `sk-` key, an `exec` with a template literal. If the reviewer can't find these, it's not finding real issues either
-- One retry allowed. If the reviewer misses canaries twice, the phase halts and reports failure
-
-### Pipeline Integration
-
-Canaries wrap the review phases. They do NOT apply to Claude's self-review (Phase 4) — only to external reviewers:
-
-```
-Phase 6: gemini-fix
-  Pre:  quality-gate insert-canaries gemini (plants 3-5 violations, writes manifest)
-  Run:  Gemini reviews and writes evidence checklist
-  Post: quality-gate validate-canaries gemini (checks detection, restores files)
-  → if missed: rerun Phase 6 once
-  → if missed again: halt
-
-Phase 8: adversarial-security-review
-  Run:  Security review with evidence checklist
-  Post: quality-gate validate-evidence security
-  → if incomplete: rerun Phase 8 once
-```
-
-### Why Not Canary Claude's Self-Review?
-
-Claude wrote the code. It knows what it wrote. Planting canaries in its own output and asking it to find them tests memory, not judgment. The canaries are useful against reviewers who are seeing the code for the first time — they test whether the reviewer is actually reading.
-
-### Cleanup
-
-After validation (pass or fail):
-
-```bash
-rm -f .claude/canary-manifest.json
-```
-
-Source files are restored to their pre-canary state by the validator. If the process crashes mid-canary, a stale manifest on disk means `git checkout -- .` will restore clean state.
-
----
-
 ## Summary
 
 | Layer | What gets checked | Who checks | Reliability |
 |-------|-------------------|------------|-------------|
 | Machine gates (mechanical) | any, function length, secrets, shell injection | Machine | 100% |
-| Proxy checks (correlates) | bad names, too many params, empty catches, magic values | Machine | 100% for what it catches, misses subtle cases |
-| Evidence checklists (completeness) | every exported function reviewed, every error message audited, every input boundary checked | LLM judges, machine validates completeness | LLM judgment varies, but nothing gets skipped |
-| Three-model vote (disagreement) | same judgment checks, different perspectives | 3 LLMs | reduces blind spots |
-| Canary tests (honesty) | known violations seeded before review | Machine validates detection | catches lazy reviews |
+| Code pattern checks (correlates) | bad names, too many params, empty catches, magic values | Machine | 100% for what it catches, misses subtle cases |
+| Evidence checklists (completeness) | every exported function reviewed, every entry point audited | LLM judges, machine validates completeness | LLM judgment varies, but nothing gets skipped |
+| Parallel review (coverage) | same code, three independent perspectives | 3 scan agents | reduces blind spots via deduplication |
 
-Combined effect: ~10% fully machine-enforced → ~30% with proxies → remaining 70% has verified-complete LLM review with three-model cross-check.
+Combined effect: ~10% fully machine-enforced → ~30% with pattern checks → remaining 70% has verified-complete LLM review with multi-model scan coverage.

@@ -66,7 +66,7 @@ LONGEST_FUNCTION: [name] at [N] lines (must be ≤30)
 APPLIED:
 - [expert]: [decision]
 
-IMPLEMENT_COMPLETE`;
+IMPLEMENTATION_COMPLETE`;
 
 export class ImplementPhase extends BasePhase {
   readonly name = 'implement' as const;
@@ -108,7 +108,7 @@ export class ImplementPhase extends BasePhase {
     });
 
     if (!output.success) {
-      const error = extractError(output.result) || 'No IMPLEMENT_COMPLETE marker found';
+      const error = extractError(output.result) || 'No IMPLEMENTATION_COMPLETE marker found';
       return this.failed(`Implementation failed: ${error} (see ${output.rawPath})`);
     }
 

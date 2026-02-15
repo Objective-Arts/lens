@@ -4,7 +4,7 @@
  * Following testability: Testing at module boundaries with mocked dependencies.
  * Following react-test: Integration tests (highest value), test behavior not implementation.
  *
- * Tests the runner orchestration with mocked stage execution.
+ * Tests the runner orchestration with mocked phase execution.
  */
 
 import { describe, it, expect, beforeEach, afterEach } from 'vitest';
@@ -95,7 +95,7 @@ describe('Runner Integration Tests', () => {
       expect(fs.existsSync(logsDir)).toBe(true);
     });
 
-    it('creates plans directory for stage artifacts', () => {
+    it('creates plans directory for phase artifacts', () => {
       const plansDir = path.join(tempDir, '.claude', 'plans');
 
       // createTestProject already creates this
@@ -128,7 +128,7 @@ describe('Runner Integration Tests', () => {
     });
   });
 
-  describe('Stage Context Building', () => {
+  describe('Phase Context Building', () => {
     it('builds context with all required fields', () => {
       fs.writeFileSync(prdPath, SAMPLE_PRD_CONTENT);
       const prd = parsePrd(prdPath, fs.readFileSync(prdPath, 'utf-8'));

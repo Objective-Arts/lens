@@ -50,7 +50,7 @@ export function parseFixes(output: string): Array<{
   change?: string;
 }> {
   const fixes: Array<{ severity: string; description: string; change?: string }> = [];
-  const section = output.match(/FIXES_APPLIED:([\s\S]*?)(?:DOCS_UPDATED:|FIX_COMPLETE|$)/i);
+  const section = output.match(/FIXES_APPLIED:([\s\S]*?)(?:DOCS_UPDATED:|GEMINI_REVIEW_COMPLETE|$)/i);
   if (!section) return fixes;
 
   const lines = section[1].split('\n');
@@ -81,7 +81,7 @@ export function parseFixes(output: string): Array<{
 
 export function parseDocsUpdated(output: string): string[] {
   const docs: string[] = [];
-  const section = output.match(/DOCS_UPDATED:([\s\S]*?)(?:FIX_COMPLETE|$)/i);
+  const section = output.match(/DOCS_UPDATED:([\s\S]*?)(?:GEMINI_REVIEW_COMPLETE|$)/i);
   if (section) {
     const lines = section[1].split('\n');
     for (const line of lines) {

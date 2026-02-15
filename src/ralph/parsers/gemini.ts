@@ -15,7 +15,7 @@ const PATTERNS = {
   totalIssues: /\*?\*?GEMINI_ISSUES:?\*?\*?\s*(\d+)/i,
   criticalHigh: /\*?\*?CRITICAL_HIGH:?\*?\*?\s*(\d+)/i,
   issuesFixed: /\*?\*?ISSUES_FIXED:?\*?\*?\s*(\d+)/i,
-  verifiedClean: /\*?\*?VERIFIED_CLEAN:?\*?\*?\s*(yes|no|true|false)/i,
+  verifiedClean: /\*?\*?SECURITY_REVIEW_COMPLETE:?\*?\*?\s*(yes|no|true|false)/i,
   reviewComplete: /REVIEW_COMPLETE/i,
 };
 

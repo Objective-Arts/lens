@@ -187,7 +187,7 @@ FIXES_APPLIED:
   File: path/to/file.ts
   Change: What you changed (e.g., "Added parameterized query", "Added CSRF token check")
 
-SECURITY_FIXES_COMPLETE`;
+SECURITY_REVIEW_COMPLETE`;
 
       const fixOutput = await runClaude({
         prompt: fixPrompt,
@@ -289,7 +289,7 @@ SECURITY_FIXES_COMPLETE`;
     const fixes: Array<{ severity: string; description: string; file?: string; change?: string }> = [];
 
     // Look for FIXES_APPLIED section
-    const fixSection = output.match(/FIXES_APPLIED:([\s\S]*?)(?:SECURITY_FIXES_COMPLETE|$)/i);
+    const fixSection = output.match(/FIXES_APPLIED:([\s\S]*?)(?:SECURITY_REVIEW_COMPLETE|$)/i);
     if (!fixSection) return fixes;
 
     const lines = fixSection[1].split('\n');

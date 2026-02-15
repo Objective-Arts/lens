@@ -19,21 +19,21 @@ export interface Prd {
   raw: string;
 }
 
-/** Phase names for the 8-phase workflow. */
+/** Phase names for the workflow. */
 export type PhaseName =
   | 'plan'
-  | 'structure-first'
+  | 'structure'
   | 'implement'
   | 'test'
-  | 'refactor-check'
+  | 'refactoring'
   | 'independent-review'
   | 'static-analysis'
   | 'doc-code'
   | 'production-readiness'  // Post-loop phase
   | 'security-review';      // Post-loop phase
 
-/** Stage execution result */
-export type StageResult =
+/** Phase execution result */
+export type PhaseResult =
   | { status: 'success'; message: string; metrics?: Record<string, number> }
   | { status: 'failed'; error: string }
   | { status: 'skipped'; reason: string };
@@ -120,8 +120,8 @@ export interface SkillDetection {
   keywords: string[];
 }
 
-/** Stage status for pipeline progress display */
-export type StageStatus = 'pending' | 'running' | 'done' | 'skipped' | 'failed';
+/** Phase status for pipeline progress display */
+export type PhaseStatus = 'pending' | 'running' | 'done' | 'skipped' | 'failed';
 
 // =============================================================================
 // PHASE CONFIGURATION TYPES (from workflow-phases.yaml)

@@ -82,7 +82,7 @@ function normalizeSeverity(raw: string): Finding['severity'] {
 
 export function parseFixes(output: string): Fix[] {
   const fixes: Fix[] = [];
-  const section = output.match(/FIXES_APPLIED:([\s\S]*?)(?:DOCS_UPDATED:|FIX_COMPLETE|SECURITY_FIXES_COMPLETE|$)/i);
+  const section = output.match(/FIXES_APPLIED:([\s\S]*?)(?:DOCS_UPDATED:|GEMINI_REVIEW_COMPLETE|SECURITY_REVIEW_COMPLETE|$)/i);
   if (!section) return fixes;
 
   const lines = section[1].split('\n');
@@ -128,7 +128,7 @@ export function parseDocIssues(output: string): string[] {
 
 export function parseDocsUpdated(output: string): string[] {
   const docs: string[] = [];
-  const section = output.match(/DOCS_UPDATED:([\s\S]*?)(?:FIX_COMPLETE|$)/i);
+  const section = output.match(/DOCS_UPDATED:([\s\S]*?)(?:GEMINI_REVIEW_COMPLETE|$)/i);
   if (!section) return docs;
 
   for (const line of section[1].split('\n')) {

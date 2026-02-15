@@ -222,5 +222,5 @@ You've successfully:
 ## Next Steps
 
 - [Running Ralph Loop](ralph-loop-basics.md) - Autonomous development with PRDs
-- [How to Use the Build/Improve Pipeline](../how-to/use-quality-flags.md) - Run the 5-stage quality pipeline
+- [How the Pipeline Works](../explanation/how-the-pipeline-works.md) - The 8-phase quality pipeline
 - [Why Expert Skills?](../explanation/why-expert-skills.md) - Understand the philosophy

@@ -6,11 +6,11 @@
 
 import { Phase, PhaseContext, PhaseStatus, PhaseResult } from '../phases/index.js';
 import { RalphConfig, PrdItem, Session, PhaseName } from '../types.js';
-import { SummaryCollector, StageSummary } from '../summary/index.js';
+import { SummaryCollector, PhaseSummary } from '../summary/index.js';
 import { parsePhaseOutput, printPhaseResults } from '../display/phase-output.js';
 import { parseRefactorResults } from '../summary/index.js';
 import {
-  printStageHeader, printStageComplete, printStageFailed, printStageSkipped,
+  printPhaseHeader, printPhaseComplete, printPhaseFailed, printPhaseSkipped,
   printAppliedSkills, printInfo, Spinner,
 } from '../display/terminal.js';
 import { getGitCommitHash, hasNewCommitsSince } from '../process/claude.js';
@@ -47,7 +47,7 @@ function handlePhaseSuccess(
   phase: Phase, durationMs: number, phaseStatus: Map<string, PhaseStatus>
 ): void {
   phaseStatus.set(phase.name, 'done');
-  printStageComplete(phase.name, durationMs / 1000, result.message);
+  printPhaseComplete(phase.name, durationMs / 1000, result.message);
 
   if (phase.name === 'independent-review' && result.rawOutput) {
     const phaseOutput = parsePhaseOutput(result.rawOutput);
@@ -61,7 +61,7 @@ function handlePhaseSuccess(
       printPhaseResults(phase.name, phaseOutput, 'Qodana');
     }
   }
-  if (phase.name === 'refactor-check' && result.rawOutput) {
+  if (phase.name === 'refactoring' && result.rawOutput) {
     printRefactorings(result.rawOutput);
   }
 
@@ -75,13 +75,13 @@ async function handlePhaseError(
   if (await canRecoverFromTimeout(error, projectPath, commitHash)) {
     printInfo(`Timeout but commits detected - treating as success`);
     phaseStatus.set(phase.name, 'done');
-    printStageComplete(phase.name, durationMs / 1000, 'Completed (timeout with commits)');
-    collector.addStage({ name: phase.name, status: 'done', durationMs });
+    printPhaseComplete(phase.name, durationMs / 1000, 'Completed (timeout with commits)');
+    collector.addPhase({ name: phase.name, status: 'done', durationMs });
     return false;
   }
   phaseStatus.set(phase.name, 'failed');
-  printStageFailed(phase.name, error);
-  collector.addStage({ name: phase.name, status: 'failed', durationMs });
+  printPhaseFailed(phase.name, error);
+  collector.addPhase({ name: phase.name, status: 'failed', durationMs });
   return true;
 }
 
@@ -90,11 +90,11 @@ function processPhaseResult(
   phase: Phase, durationMs: number, context: PhaseContext, phaseStatus: Map<string, PhaseStatus>,
   collector: SummaryCollector, itemNum: number
 ): boolean {
-  let summary: StageSummary = { name: phase.name, status: mapResultStatus(result.status), durationMs };
+  let summary: PhaseSummary = { name: phase.name, status: mapResultStatus(result.status), durationMs };
   if (result.status === 'success' && result.metrics) {
     summary = parsePhaseMetrics(summary, phase.name as PhaseName, context.logsDir, itemNum, result.metrics);
   }
-  collector.addStage(summary);
+  collector.addPhase(summary);
 
   if (result.status === 'success') {
     handlePhaseSuccess({ message: result.message || '', rawOutput: result.rawOutput }, phase, durationMs, phaseStatus);
@@ -102,11 +102,11 @@ function processPhaseResult(
   }
   if (result.status === 'skipped') {
     phaseStatus.set(phase.name, 'skipped');
-    printStageSkipped(phase.name, result.reason || 'skipped');
+    printPhaseSkipped(phase.name, result.reason || 'skipped');
     return false;
   }
   phaseStatus.set(phase.name, 'failed');
-  printStageFailed(phase.name, result.error || 'unknown error');
+  printPhaseFailed(phase.name, result.error || 'unknown error');
   return true;
 }
 
@@ -170,7 +170,7 @@ async function runSinglePhase(
   phaseStatus: Map<string, PhaseStatus>, collector: SummaryCollector, itemNum: number, trace?: boolean
 ): Promise<boolean> {
   const detection = getDetectionInfo(config, phase, item, projectPath);
-  printStageHeader(phase.name, detection, phaseIndex, phases.length);
+  printPhaseHeader(phase.name, detection, phaseIndex, phases.length);
 
   if (trace && detection.skills.length > 0) {
     console.log(formatTrace(traceSkillConfig(projectPath, detection.skills[0], item.text)));
@@ -187,8 +187,8 @@ async function runSinglePhase(
     spinner.stop();
     const error = err instanceof Error ? err.message : String(err);
     phaseStatus.set(phase.name, 'failed');
-    printStageFailed(phase.name, error);
-    collector.addStage({ name: phase.name, status: 'failed', durationMs: 0 });
+    printPhaseFailed(phase.name, error);
+    collector.addPhase({ name: phase.name, status: 'failed', durationMs: 0 });
     return true;
   }
 }
@@ -207,7 +207,7 @@ export async function runItemPhases(
 
     if (skipReason) {
       phaseStatus.set(phase.name, 'skipped');
-      if (verbose) printStageSkipped(phase.name, skipReason);
+      if (verbose) printPhaseSkipped(phase.name, skipReason);
       continue;
     }
 

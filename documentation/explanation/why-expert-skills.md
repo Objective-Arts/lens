@@ -169,4 +169,4 @@ That's the value of expert skills: transforming Claude's vast knowledge into app
 
 ## Further Reading
 
-- [How Skills Get Loaded](how-skills-load.md) — The 4-layer loading system
+- [How the Pipeline Works](how-the-pipeline-works.md) — The 8-phase pipeline, including skill loading

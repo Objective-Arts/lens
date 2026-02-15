@@ -136,7 +136,7 @@ function formatDuration(ms) {
 function countIssues(items, type) {
   let count = 0;
   for (const item of items || []) {
-    for (const stage of item.stages || []) {
+    for (const stage of item.phases || []) {
       if (stage.gemini) {
         count += type === 'found' ? (stage.gemini.totalFound || 0) : (stage.gemini.fixed || 0);
       }
@@ -227,8 +227,8 @@ function renderItems(items) {
 
     let stagesHtml = '<div class="stages">';
     let detailsHtml = '';
-    if (item.stages) {
-      for (const stage of item.stages) {
+    if (item.phases) {
+      for (const stage of item.phases) {
         stagesHtml += `<span class="stage ${stage.status}">${stage.name}${stage.durationMs ? ' (' + formatDuration(stage.durationMs) + ')' : ''}</span>`;
         detailsHtml += renderStageDetails(stage);
       }

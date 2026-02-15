@@ -1,6 +1,6 @@
 ---
 name: run-tests
-description: Running existing tests and reporting results when users say "run tests", "check tests", or "do tests pass". Does NOT write or fix tests — use /write-tests-run for that.
+description: Running existing tests and reporting results when users say "run tests", "check tests", or "do tests pass". Does NOT write or fix tests — use /testing for that.
 ---
 
 # /run-tests [path]
@@ -11,8 +11,8 @@ Run existing tests. Report results. That's it.
 
 ## When NOT to Use
 
-- Need to **write** tests: use `/write-tests-run`
-- Need to **fix** failing tests: fix them yourself or use `/write-tests-run`
+- Need to **write** tests: use `/testing`
+- Need to **fix** failing tests: fix them yourself or use `/testing`
 
 ## Process
 

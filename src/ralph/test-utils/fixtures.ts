@@ -8,7 +8,7 @@
 import * as fs from 'fs';
 import * as path from 'path';
 import { fileURLToPath } from 'url';
-import { Prd, PrdItem, Session, Skill, StageResult } from '../types.js';
+import { Prd, PrdItem, Session, Skill, PhaseResult } from '../types.js';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -65,21 +65,21 @@ export function createSkill(options: Partial<Skill> = {}): Skill {
   };
 }
 
-export function createSuccessResult(message: string = 'Success'): StageResult {
+export function createSuccessResult(message: string = 'Success'): PhaseResult {
   return {
     status: 'success',
     message,
   };
 }
 
-export function createFailedResult(error: string = 'Error'): StageResult {
+export function createFailedResult(error: string = 'Error'): PhaseResult {
   return {
     status: 'failed',
     error,
   };
 }
 
-export function createSkippedResult(reason: string = 'Skipped'): StageResult {
+export function createSkippedResult(reason: string = 'Skipped'): PhaseResult {
   return {
     status: 'skipped',
     reason,

@@ -35,20 +35,20 @@ export interface QodanaSummary {
   readonly verifiedClean: boolean;
 }
 
-/** Test stage results */
+/** Test phase results */
 export interface TestSummary {
   readonly passed: number;
   readonly failed: number;
   readonly written: number;
 }
 
-/** Refactor stage results */
+/** Refactor phase results */
 export interface RefactorSummary {
   readonly improvements: string[];
 }
 
-/** Individual stage summary */
-export interface StageSummary {
+/** Individual phase summary */
+export interface PhaseSummary {
   readonly name: string;
   readonly status: 'done' | 'failed' | 'skipped';
   readonly durationMs: number;
@@ -63,7 +63,7 @@ export interface ItemSummary {
   readonly number: number;
   readonly text: string;
   readonly status: 'success' | 'failed';
-  readonly stages: StageSummary[];
+  readonly phases: PhaseSummary[];
 }
 
 /** Production readiness check result */

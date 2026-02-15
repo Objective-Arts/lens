@@ -55,7 +55,7 @@ function writeSettings(
 }
 
 /** Workflow marker hook command - validates .claude/active-workflow.json exists and is fresh */
-const WORKFLOW_MARKER_COMMAND = `marker=".claude/active-workflow.json"; if [ -f "$marker" ] && [ "$(find "$marker" -mmin -60 2>/dev/null)" ]; then exit 0; fi; echo "ERROR: No active workflow detected."; echo "Invoke a workflow skill first: /implement, /plan, /structure-first, /adversarial-review, /refactor-check, or /test"; exit 1`;
+const WORKFLOW_MARKER_COMMAND = `marker=".claude/active-workflow.json"; if [ -f "$marker" ] && [ "$(find "$marker" -mmin -60 2>/dev/null)" ]; then exit 0; fi; echo "ERROR: No active workflow detected."; echo "Invoke a workflow skill first: /implementation, /plan, /structure, /security-review, /refactoring, or /test"; exit 1`;
 
 /** Workflow marker hook definition */
 const WORKFLOW_MARKER_HOOK: HookEntry = {

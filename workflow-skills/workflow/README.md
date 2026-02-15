@@ -8,10 +8,10 @@ Multi-step processes that modify code. Each follows a scan → fix → verify pa
 
 | Skill | Purpose |
 |-------|---------|
-| `/create-plan` | Create implementation plan before coding |
-| `/structure-first` | Design types/interfaces first |
-| `/implement-plan` | Write code from approved plan |
-| `/write-tests-run` | Write and run tests |
+| `/plan` | Create implementation plan before coding |
+| `/structure` | Design types/interfaces first |
+| `/implementation` | Write code from approved plan |
+| `/testing` | Write and run tests |
 
 ### Full Pipeline (Design → Build → Refine → Review → Verify)
 
@@ -24,41 +24,40 @@ Multi-step processes that modify code. Each follows a scan → fix → verify pa
 
 | Skill | Purpose |
 |-------|---------|
-| `/quick-edit` | Simple changes (add field, rename, fix) |
-| `/quick-clean` | Fast AI smell cleanup |
+| `/quick-change` | Simple changes + cleanup |
 
 ### Quality Skills
 
 | Skill | Purpose |
 |-------|---------|
-| `/refactor-check-fix` | Clean up and simplify code |
-| `/ai-smell-fix` | Remove AI-generated code smells |
-| `/gemini-fix` | Gemini review + fix all issues |
-| `/qodana-fix` | Qodana analysis + fix all issues |
-| `/dedupe-fix` | Consolidate duplicated code |
+| `/refactoring` | Clean up and simplify code |
+| `/ai-smell-review` | Remove AI-generated code smells |
+| `/gemini-review` | Gemini review + fix all issues |
+| `/qodana-review` | Qodana analysis + fix all issues |
+| `/deduplication` | Consolidate duplicated code |
 
 ### Finalization
 
 | Skill | Purpose |
 |-------|---------|
-| `/adversarial-security-review` | Security audit + fix issues |
-| `/final-polish` | Final refinement for senior review |
+| `/codex-review` | Codex review + fix all issues |
+| `/security-review` | Security audit + fix issues |
+| `/evaluation` | Final external review via Codex + Gemini |
 
 ## Usage
 
 ```bash
-/create-plan auth-system      # Plan a feature
-/structure-first              # Design types from plan
-/implement-plan               # Implement from plan
-/write-tests-run unit             # Write unit tests
+/plan auth-system      # Plan a feature
+/structure              # Design types from plan
+/implementation               # Implement from plan
+/testing unit             # Write unit tests
 
 /build user-auth              # New feature (full pipeline)
 /improve src/component.ts     # Improve existing (full pipeline)
-/quick-edit add email field   # Simple change
-/quick-clean src/             # Fast cleanup
-/refactor-check-fix src/      # Refactor with verification
-/ai-smell-fix src/            # Remove AI patterns
-/gemini-fix src/              # Gemini review + fix
+/quick-change add email field  # Simple change + cleanup
+/refactoring src/      # Refactor with verification
+/ai-smell-review src/            # Remove AI patterns
+/gemini-review src/              # Gemini review + fix
 ```
 
 ## All Workflows Modify Code

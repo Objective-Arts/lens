@@ -97,30 +97,29 @@ Show workflow skills grouped by purpose:
 ═══════════════════════════════════════════
 
  PLANNING
-   /create-plan [task]      Design before coding
-   /structure-first [feat]  Define types first
+   /plan [task]      Design before coding
+   /structure [feat]  Define types first
 
  IMPLEMENTATION
-   /implement-plan          Build from plan
-   /refactor-check-fix [path]     Clean up code
+   /implementation          Build from plan
+   /refactoring [path]     Refine structurally
 
  QUALITY GATES
    /gemini-scan [path]      Review (read-only)
-   /gemini-fix [path]       Review + fix
+   /gemini-review [path]       Review + fix
    /qodana-scan [path]      Static analysis (read-only)
-   /qodana-fix [path]       Static analysis + fix
+   /qodana-review [path]       Static analysis + fix
 
  TESTING
-   /write-tests-run [level]     Generate tests
+   /testing [level]     Generate tests
 
  FULL PIPELINE (Design → Build → Refine → Review → Verify)
    /build [target]          New feature from scratch
    /improve [path]          Refine existing code
-   /final-polish [path]     Senior review prep
+   / [path]     Senior review prep
 
  LIGHT WORKFLOWS
-   /quick-edit [desc]       Simple change (add field, rename)
-   /quick-clean [path]      Fast AI smell cleanup
+   /quick-change [desc]     Simple change + cleanup
 
  AUTONOMOUS
    /ralph-loop [prd]        Full PRD implementation
@@ -139,10 +138,9 @@ Quick Start Options:
 
 1. **New feature** — /build [target] (full pipeline)
 2. **Improve existing code** — /improve [path] (full pipeline)
-3. **Simple change** — /quick-edit [description]
-4. **Fast cleanup** — /quick-clean [path]
-5. **Review code** — /gemini-scan [path]
-6. **Run full PRD** — /ralph-loop [prd.md]
+3. **Simple change** — /quick-change [description]
+4. **Review code** — /gemini-scan [path]
+5. **Run full PRD** — /ralph-loop [prd.md]
 
 Which workflow?
 ```

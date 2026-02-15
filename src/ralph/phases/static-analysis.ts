@@ -116,7 +116,7 @@ CANNOT_FIX: (issues in third-party code or requiring architectural changes - mus
 UNFIXED: 0 (only issues that COULD be fixed but weren't - must be zero)
 
 ANALYSIS_ISSUES: N
-VERIFIED_CLEAN: yes/no`;
+SECURITY_REVIEW_COMPLETE: yes/no`;
 
 export class StaticAnalysisPhase extends BasePhase {
   readonly name = 'static-analysis' as const;

@@ -102,8 +102,8 @@ SKIPPED:
     expect(result.issues[0].file).toBe('src/a.ts');
   });
 
-  it('parses VERIFIED_CLEAN status', () => {
-    const raw = `VERIFIED_CLEAN: yes`;
+  it('parses SECURITY_REVIEW_COMPLETE status', () => {
+    const raw = `SECURITY_REVIEW_COMPLETE: yes`;
     const result = parsePhaseOutput(raw);
     expect(result.verifiedClean).toBe(true);
   });
@@ -143,7 +143,7 @@ ISSUES_FIXED:
 
 SUMMARY:
 UNFIXED: 2
-VERIFIED_CLEAN: no`;
+SECURITY_REVIEW_COMPLETE: no`;
 
     const result = parsePhaseOutput(raw);
     expect(result.issues).toHaveLength(2);

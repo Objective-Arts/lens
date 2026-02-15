@@ -35,12 +35,12 @@ describe('Claude Stream Parser', () => {
       expect(extractResultFromContent(content)).toBe('Line 1\nLine 2\nLine 3');
     });
 
-    it('finds IMPLEMENT_COMPLETE marker in text blocks', () => {
+    it('finds IMPLEMENTATION_COMPLETE marker in text blocks', () => {
       const content = `{"type":"assistant","text":"Working on the task..."}
-{"type":"assistant","text":"IMPLEMENT_COMPLETE: All files created"}`;
+{"type":"assistant","text":"IMPLEMENTATION_COMPLETE: All files created"}`;
 
       const result = extractResultFromContent(content);
-      expect(result).toContain('IMPLEMENT_COMPLETE');
+      expect(result).toContain('IMPLEMENTATION_COMPLETE');
     });
 
     it('finds PLAN_COMPLETE marker', () => {
@@ -82,12 +82,12 @@ describe('Claude Stream Parser', () => {
     it('preserves APPLIED section across multiple text blocks', () => {
       const content = `{"text":"APPLIED:\\n- clarity: Simplified the code\\n- simplicity: Reduced API surface"}
 {"text":"\\nSome more work done..."}
-{"text":"IMPLEMENT_COMPLETE"}`;
+{"text":"IMPLEMENTATION_COMPLETE"}`;
 
       const result = extractResultFromContent(content);
       expect(result).toContain('APPLIED:');
       expect(result).toContain('clarity: Simplified the code');
-      expect(result).toContain('IMPLEMENT_COMPLETE');
+      expect(result).toContain('IMPLEMENTATION_COMPLETE');
     });
 
     it('returns empty string for empty content', () => {
@@ -130,16 +130,16 @@ describe('Claude Stream Parser', () => {
       expect(isSuccessfulRun('STRUCTURE_COMPLETE: Types defined')).toBe(true);
     });
 
-    it('detects IMPLEMENT_COMPLETE', () => {
-      expect(isSuccessfulRun('IMPLEMENT_COMPLETE: Implementation done')).toBe(true);
+    it('detects IMPLEMENTATION_COMPLETE', () => {
+      expect(isSuccessfulRun('IMPLEMENTATION_COMPLETE: Implementation done')).toBe(true);
     });
 
     it('detects TEST_COUNT', () => {
       expect(isSuccessfulRun('TEST_COUNT: 5')).toBe(true);
     });
 
-    it('detects REFACTOR_COMPLETE', () => {
-      expect(isSuccessfulRun('Refactoring done. REFACTOR_COMPLETE')).toBe(true);
+    it('detects REFACTORING_COMPLETE', () => {
+      expect(isSuccessfulRun('Refactoring done. REFACTORING_COMPLETE')).toBe(true);
     });
 
     it('detects REVIEW_ISSUES', () => {
@@ -206,7 +206,7 @@ describe('Claude Stream Parser', () => {
     });
 
     it('returns false for success markers', () => {
-      expect(isFailedRun('IMPLEMENT_COMPLETE')).toBe(false);
+      expect(isFailedRun('IMPLEMENTATION_COMPLETE')).toBe(false);
     });
 
     it('returns false for empty content', () => {

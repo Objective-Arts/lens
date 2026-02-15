@@ -168,7 +168,7 @@ This runs Gemini + Qodana as post-loop validation after all PRD items complete.
 │                 RALPH LOOP                       │
 │                                                  │
 │  Per PRD item:                                   │
-│      implement → test → /gemini-fix → commit     │
+│      implement → test → /gemini-review → commit     │
 │                                                  │
 └─────────────────────────────────────────────────┘
                       │

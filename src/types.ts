@@ -145,7 +145,7 @@ export interface ComposableProfile {
 }
 
 /**
- * Ralph stage-specific skills configuration
+ * Ralph phase-specific skills configuration
  */
 export interface RalphSkillsConfig {
   plan?: string[];

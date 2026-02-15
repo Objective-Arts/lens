@@ -16,10 +16,10 @@ Choose your path based on whether code exists:
 | New Code Flow | Legacy Code Flow |
 |---------------|------------------|
 | PRD / Feature Request | Existing Codebase |
-| `/create-plan` → `/structure-first` → `/implement-plan` | `/create-plan` → `/structure-first` → `/refactor-check-fix` |
+| `/plan` → `/structure` → `/implementation` | `/plan` → `/structure` → `/refactoring` |
 | Skills: java, simplicity, security-mindset | Skills: legacy, test-strategy, resilience, abstraction |
 
-Both flows converge at shared review gates: `/write-tests-run` → `/gemini-fix`
+Both flows converge at shared review gates: `/testing` → `/gemini-review`
 
 ---
 
@@ -84,7 +84,6 @@ See [Installation Reference](reference/installation.md) for complete setup guide
 ### Development Workflows
 | Guide | Description |
 |-------|-------------|
-| [Use the Build/Improve Pipeline](how-to/use-quality-flags.md) | /build, /improve, and individual phase skills |
 | [Set Up External Validation](how-to/external-validation.md) | Gemini and Qodana integration |
 
 ---
@@ -96,7 +95,6 @@ See [Installation Reference](reference/installation.md) for complete setup guide
 | Reference | Description |
 |-----------|-------------|
 | [Installation](reference/installation.md) | System requirements, API keys, troubleshooting |
-| [Use Cases](reference/use-cases.md) | All use cases with implementation code |
 | [Hooks](reference/hooks.md) | Pre-commit and quality gate hooks |
 | [AI Smell Index](reference/ai-smell-index.md) | Measuring AI-generated code patterns |
 
@@ -104,7 +102,7 @@ See [Installation Reference](reference/installation.md) for complete setup guide
 
 | File | Location | Purpose |
 |------|----------|---------|
-| workflow-phases.yaml | `config/workflow-phases.yaml` | Pipeline stage/phase workflow with experts |
+| workflow-phases.yaml | `config/workflow-phases.yaml` | Pipeline phase workflow with experts |
 | keyword-detection.yaml | `config/keyword-detection.yaml` | Dynamic keyword-based expert detection |
 | Profiles | `profiles/*.yaml` | Project type configurations |
 | Canon Skills | `canon/*/SKILL.md` | Expert guidance content |
@@ -118,11 +116,10 @@ See [Installation Reference](reference/installation.md) for complete setup guide
 | Topic | Description |
 |-------|-------------|
 | [Why Expert Skills?](explanation/why-expert-skills.md) | The philosophy behind expert lenses |
-| [How Skills Get Loaded](explanation/how-skills-load.md) | The 4-layer loading system and Base Brain |
+| [How the Pipeline Works](explanation/how-the-pipeline-works.md) | The 8-phase pipeline, skills, contracts, lessons, and review model |
 | [Skill Enforcement Model](explanation/skill-enforcement-model.md) | How skills become hard gates, not suggestions |
 | [Two-Tier Review Architecture](explanation/two-tier-review.md) | Self-review vs external validation |
 | [Why Five Layers Wins](why-five-layers-wins.md) | Competitive analysis of five-layer enforcement |
-| [Quality Building Flow](explanation/quality-building-flow.md) | How the 5-stage pipeline, patterns, contracts, and lessons work together |
 | [Quality Gate Spec](quality-gate-spec.md) | Machine gate specification |
 
 ---

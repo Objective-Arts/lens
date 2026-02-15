@@ -29,7 +29,7 @@ workflow-skills/
 /ralph-loop --resume          # Continue from last session
 ```
 
-### Full Pipeline (5 stages + learn)
+### Full Pipeline
 
 ```bash
 /build user-auth             # New feature from scratch
@@ -39,15 +39,14 @@ workflow-skills/
 ### Light Workflow
 
 ```bash
-/quick-edit add email field  # Simple change with checklist
-/quick-clean src/            # Fast AI smell cleanup
+/quick-change add email field  # Simple change + cleanup
 ```
 
 ### Individual Skills
 
 ```bash
-/gemini-fix src/              # Scan and fix issues
-/refactor-check-fix src/module.ts   # Refactor with verification
+/gemini-review src/              # Scan and fix issues
+/refactoring src/module.ts   # Refactor with verification
 ```
 
 ### Read-Only Analysis

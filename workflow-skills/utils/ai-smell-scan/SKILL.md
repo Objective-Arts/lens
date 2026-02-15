@@ -29,7 +29,7 @@ Each smell type has a severity weight. The **AI Smell Index** is the weighted su
 - 6-15: Minor — a few AI fingerprints
 - 16-30: Moderate — noticeable AI patterns
 - 31-50: Heavy — needs cleanup
-- 51+: Severe — AI slop, run /ai-smell-fix
+- 51+: Severe — AI slop, run /ai-smell-review
 
 ## The AI Smell Checklist
 
@@ -102,7 +102,7 @@ SUMMARY:
 TOTAL_SMELLS: N
 AI_SMELL_INDEX: N (interpretation)
 
-RECOMMENDATION: Run /ai-smell-fix to clean up
+RECOMMENDATION: Run /ai-smell-review to clean up
 ```
 
 ## Tracking Over Time
@@ -123,4 +123,4 @@ Track index after each `/build` or `/improve` run to detect skill configuration 
 
 ## No Changes Made
 
-This is a **read-only** scan. Use `/ai-smell-fix` to fix issues.
+This is a **read-only** scan. Use `/ai-smell-review` to fix issues.

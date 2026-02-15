@@ -127,7 +127,7 @@ DOCS_UPDATED:
 - README.md: Added X section
 - Updated Y documentation
 
-FIX_COMPLETE`;
+GEMINI_REVIEW_COMPLETE`;
 
 export class ProductionReadinessPhase extends BasePhase {
   readonly name = 'production-readiness' as const;

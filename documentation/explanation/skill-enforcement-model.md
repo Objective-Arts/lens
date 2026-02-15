@@ -143,9 +143,9 @@ Failures trigger the existing corrective retry mechanism — the phase re-runs w
 | Phase | Checklist Injected | APPLIED Validated |
 |-------|-------------------|-------------------|
 | plan | Yes | Yes |
-| structure-first | Yes | No |
+| structure | Yes | No |
 | implement | Yes | Yes |
-| refactor-check | Yes | Yes |
+| refactoring | Yes | Yes |
 | test | Yes | No |
 | doc-code | Yes | No |
 | independent-review | No (uses Gemini) | No |
@@ -209,7 +209,7 @@ The gap between "cited a decision" and "actually followed through" still relies 
 | `src/ralph/phases/types.ts` | Replaced truncation with full summary, added enforcement checklist builder and APPLIED validator |
 | `src/ralph/phases/implement.ts` | Wired principle validation after code generation |
 | `src/ralph/phases/plan.ts` | Wired principle validation after plan generation |
-| `src/ralph/phases/refactor-check.ts` | Wired principle validation after refactoring |
+| `src/ralph/phases/refactoring.ts` | Wired principle validation after refactoring |
 
 ---
 
@@ -229,6 +229,6 @@ See [Quality Gate Spec](../quality-gate-spec.md) for the machine gate specificat
 
 ## Further Reading
 
-- [How Skills Get Loaded](how-skills-load.md) — The 4-layer loading system
+- [How the Pipeline Works](how-the-pipeline-works.md) — The 8-phase pipeline, including skill loading
 - [Why Expert Skills?](why-expert-skills.md) — Philosophy behind skill lenses
 - [Why Five Layers Wins](../why-five-layers-wins.md) — Competitive analysis

@@ -19,7 +19,7 @@ describe('Gemini Parser', () => {
 GEMINI_ISSUES: 5
 CRITICAL_HIGH: 2
 ISSUES_FIXED: 3
-VERIFIED_CLEAN: yes`;
+SECURITY_REVIEW_COMPLETE: yes`;
 
       const result = parseGeminiOutput(raw);
 
@@ -34,7 +34,7 @@ VERIFIED_CLEAN: yes`;
       const raw = `**GEMINI_ISSUES:** 10
 **CRITICAL_HIGH:** 1
 **ISSUES_FIXED:** 8
-**VERIFIED_CLEAN:** true`;
+**SECURITY_REVIEW_COMPLETE:** true`;
 
       const result = parseGeminiOutput(raw);
 
@@ -64,16 +64,16 @@ VERIFIED_CLEAN: yes`;
       expect(result.verifiedClean).toBe(false);
     });
 
-    it('parses VERIFIED_CLEAN: no as false', () => {
-      const raw = 'VERIFIED_CLEAN: no';
+    it('parses SECURITY_REVIEW_COMPLETE: no as false', () => {
+      const raw = 'SECURITY_REVIEW_COMPLETE: no';
 
       const result = parseGeminiOutput(raw);
 
       expect(result.verifiedClean).toBe(false);
     });
 
-    it('parses VERIFIED_CLEAN: false as false', () => {
-      const raw = 'VERIFIED_CLEAN: false';
+    it('parses SECURITY_REVIEW_COMPLETE: false as false', () => {
+      const raw = 'SECURITY_REVIEW_COMPLETE: false';
 
       const result = parseGeminiOutput(raw);
 
@@ -83,7 +83,7 @@ VERIFIED_CLEAN: yes`;
     it('is case insensitive for keywords', () => {
       const raw = `gemini_issues: 7
 critical_high: 2
-verified_clean: YES`;
+security_review_complete: YES`;
 
       const result = parseGeminiOutput(raw);
 

@@ -1,0 +1,63 @@
+{
+  "source": {
+    "type": "local",
+    "path": "/Users/steve/local-tech-projects/lens/canon"
+  },
+  "installedAt": "2026-02-12T17:41:22.597Z",
+  "skills": {
+    "typescript": {
+      "installedAt": "2026-02-12T17:41:22.608Z",
+      "sourceFile": "javascript/typescript",
+      "hash": "76d3079c5c716e2a7999dd75be3940ac2b30815cc320eeb82d0957781eada3b9",
+      "modified": false
+    },
+    "type-systems": {
+      "installedAt": "2026-02-12T17:41:22.614Z",
+      "sourceFile": "csharp/type-systems",
+      "hash": "c176da85abf7d62ee89d5264b80c5a51c13ce699631b32abfd6b457d44673a12",
+      "modified": false
+    },
+    "js-safety": {
+      "installedAt": "2026-02-12T17:41:22.614Z",
+      "sourceFile": "javascript/js-safety",
+      "hash": "2d743fae529e383f36f982d74a1801998913da8ae319f5656e823bbadfa31c31",
+      "modified": false
+    },
+    "js-internals": {
+      "installedAt": "2026-02-12T17:41:22.614Z",
+      "sourceFile": "javascript/js-internals",
+      "hash": "19a0c1ae0cde0245b3c28017e9470130f6fc0673026013059a25c7c45f827a7d",
+      "modified": false
+    },
+    "js-perf": {
+      "installedAt": "2026-02-12T17:41:22.614Z",
+      "sourceFile": "javascript/js-perf",
+      "hash": "436bb03f0f61a1989877409f00f0715051641b068249addcc053246a8be97df7",
+      "modified": false
+    },
+    "functional": {
+      "installedAt": "2026-02-12T17:41:22.615Z",
+      "sourceFile": "javascript/functional",
+      "hash": "2e9469f5f4861d0579a2bb8d53748683c4da56eb1462389db244cba5a8041b32",
+      "modified": false
+    },
+    "async": {
+      "installedAt": "2026-02-12T17:41:22.615Z",
+      "sourceFile": "csharp/async",
+      "hash": "8e989011608ef33dcc5384b683adadba45c7c7323ce74fd805367b9321332c47",
+      "modified": false
+    },
+    "composition": {
+      "installedAt": "2026-02-12T17:41:22.615Z",
+      "sourceFile": "composition",
+      "hash": "668a0fcb036fc7f93b085e0502be6652bb422dc5b83c74f848be60e2795e0e12",
+      "modified": false
+    },
+    "simplicity": {
+      "installedAt": "2026-02-12T17:41:22.615Z",
+      "sourceFile": "simplicity",
+      "hash": "d212d16b5aca314873dbe5a8dd1583e2921a56d8163b22f6e6a459b66e2502e0",
+      "modified": false
+    }
+  }
+}

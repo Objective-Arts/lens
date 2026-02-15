@@ -1,0 +1,38 @@
+_generated: "Auto-generated from profile: typescript-cli"
+_regenerate: lens profile apply
+skills:
+  plan:
+    - clarity
+    - simplicity
+    - correctness
+    - composition
+    - data-first
+    - distributed
+  build:
+    - clarity
+    - simplicity
+    - java
+    - abstraction
+    - design-patterns
+    - pragmatism
+    - optimization
+  refactor:
+    - clarity
+    - legacy
+    - design-patterns
+    - distributed
+  test:
+    - test-doubles
+    - test-strategy
+    - legacy
+  review:
+    - security-mindset
+    - owasp
+    - failure
+    - safety
+    - resilience
+  doc:
+    - docs
+    - brevity
+    - prose
+    - editing

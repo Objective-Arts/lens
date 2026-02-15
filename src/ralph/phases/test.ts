@@ -69,7 +69,7 @@ COVERAGE:
 APPLIED:
 - [expert-name]: [specific decision]
 
-TEST_COMPLETE`;
+TESTING_COMPLETE`;
 
 export class TestPhase extends BasePhase {
   readonly name = 'test' as const;

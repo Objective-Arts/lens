@@ -32,7 +32,7 @@ This document contains proprietary and confidential information. Unauthorized re
 | 6-15 | Minor | A few AI fingerprints |
 | 16-30 | Moderate | Noticeable AI patterns |
 | 31-50 | Heavy | Needs cleanup |
-| 51+ | Severe | AI slop, run /ai-smell-fix |
+| 51+ | Severe | AI slop, run /ai-smell-review |
 
 ---
 
@@ -122,7 +122,7 @@ Output includes:
 ### Fix Detected Smells
 
 ```bash
-/ai-smell-fix src/
+/ai-smell-review src/
 ```
 
 ---
@@ -136,5 +136,5 @@ Run `/ai-smell-scan` before and after `/build` or `/improve` to track index chan
 ## See Also
 
 - [/ai-smell-scan skill](../../workflow-skills/utils/ai-smell-scan/SKILL.md)
-- [/ai-smell-fix skill](../../workflow-skills/workflow/ai-smell-fix/SKILL.md)
+- [/ai-smell-review skill](../../workflow-skills/workflow/ai-smell-review/SKILL.md)
 - [Skill Enforcement Model](../explanation/skill-enforcement-model.md)

@@ -58,7 +58,7 @@ export const HAS_FIXED = /FIXED/i;
 
 /** Summary field patterns */
 export const SUMMARY_PATTERNS = {
-  verifiedClean: /\*?\*?VERIFIED_CLEAN:?\*?\*?\s*(yes|no|true|false)/i,
+  verifiedClean: /\*?\*?SECURITY_REVIEW_COMPLETE:?\*?\*?\s*(yes|no|true|false)/i,
   unfixed: /\*?\*?UNFIXED:?\*?\*?\s*(\d+)/i,
   remaining: /\*?\*?REMAINING:?\*?\*?\s*(\d+)/i,
 } as const;

@@ -14,7 +14,7 @@ Analyze code for refactoring opportunities. **Read-only — no changes made.**
 1. **Read target** files (argument or recently discussed code)
 2. **Analyze** against refactoring criteria
 3. **Report** issues found with locations and severity
-4. **Show plan** of what `/refactor-check-fix` would do
+4. **Show plan** of what `/refactoring` would do
 
 ## Criteria to Check
 
@@ -78,7 +78,7 @@ Analyze code for refactoring opportunities. **Read-only — no changes made.**
  3. Rename [vague-names] to [clear-names]
  4. Flatten nested conditionals in [locations]
 
- Run `/refactor-check-fix [target]` to apply these changes.
+ Run `/refactoring [target]` to apply these changes.
 
 ═══════════════════════════════════════════
 ```
@@ -89,4 +89,4 @@ Analyze code for refactoring opportunities. **Read-only — no changes made.**
 - **DO NOT** use Edit, Write, or Bash tools that modify files
 - Only use Read, Glob, Grep for analysis
 - Report findings, suggest fixes, but make no changes
-- End with clear next step: `/refactor-check-fix`
+- End with clear next step: `/refactoring`

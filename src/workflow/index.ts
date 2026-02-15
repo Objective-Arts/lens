@@ -13,8 +13,8 @@ import { hashDirectoryContents, hashFileContents } from '../utils/hash.js';
 
 /** Skills visible as slash commands in Claude Code */
 const USER_FACING_SKILLS = new Set([
-  'build', 'improve', 'quick-edit', 'quick-clean',
-  'ai-smell-scan', 'ai-smell-fix', 'generate-docs', 'lens'
+  'build', 'improve', 'quick-change',
+  'ai-smell-scan', 'ai-smell-review', 'generate-docs', 'lens'
 ]);
 
 // Default workflow skills source (in-repo, relative to compiled output)

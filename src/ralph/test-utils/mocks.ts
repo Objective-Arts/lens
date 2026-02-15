@@ -107,32 +107,32 @@ export function createMockFileSystem(
 }
 
 /**
- * Create mock stage execution tracker.
- * Useful for verifying stage calls and order.
+ * Create mock phase execution tracker.
+ * Useful for verifying phase calls and order.
  */
-export function createStageTracker(): {
-  calls: Array<{ stage: string; context: unknown }>;
-  track: (stage: string, context: unknown) => void;
-  getCallsForStage: (stage: string) => Array<{ stage: string; context: unknown }>;
-  wasCalled: (stage: string) => boolean;
+export function createPhaseTracker(): {
+  calls: Array<{ phase: string; context: unknown }>;
+  track: (phase: string, context: unknown) => void;
+  getCallsForPhase: (phase: string) => Array<{ phase: string; context: unknown }>;
+  wasCalled: (phase: string) => boolean;
   getCallOrder: () => string[];
   reset: () => void;
 } {
-  const calls: Array<{ stage: string; context: unknown }> = [];
+  const calls: Array<{ phase: string; context: unknown }> = [];
 
   return {
     calls,
-    track(stage: string, context: unknown) {
-      calls.push({ stage, context });
+    track(phase: string, context: unknown) {
+      calls.push({ phase, context });
     },
-    getCallsForStage(stage: string) {
-      return calls.filter(c => c.stage === stage);
+    getCallsForPhase(phase: string) {
+      return calls.filter(c => c.phase === phase);
     },
-    wasCalled(stage: string): boolean {
-      return calls.some(c => c.stage === stage);
+    wasCalled(phase: string): boolean {
+      return calls.some(c => c.phase === phase);
     },
     getCallOrder(): string[] {
-      return calls.map(c => c.stage);
+      return calls.map(c => c.phase);
     },
     reset() {
       calls.length = 0;

@@ -44,17 +44,17 @@ function printPatternChecks(result: ScanResult, projectSkills: string[]): void {
 }
 
 function printQualityFlags(claudeMdContent: string): void {
-  const hasStructureFirst = claudeMdContent.includes('--structure-first');
-  const hasReviewHard = claudeMdContent.includes('--adversarial-review');
-  const hasRefactorClean = claudeMdContent.includes('--refactor-check');
+  const hasStructureFirst = claudeMdContent.includes('--structure');
+  const hasReviewHard = claudeMdContent.includes('--security-review');
+  const hasRefactorClean = claudeMdContent.includes('--refactoring');
 
   const flagCount = [hasStructureFirst, hasReviewHard, hasRefactorClean].filter(Boolean).length;
   if (flagCount === 3) {
-    console.log(chalk.green('  ✓ Quality flags documented (--structure-first, --adversarial-review, --refactor-check)'));
+    console.log(chalk.green('  ✓ Quality flags documented (--structure, --security-review, --refactoring)'));
   } else if (flagCount > 0) {
     console.log(chalk.yellow(`  ○ Quality flags partial (${flagCount}/3) - consider documenting all flags`));
   } else {
-    console.log(chalk.yellow('  ○ Quality flags not documented - add --structure-first, --adversarial-review, --refactor-check'));
+    console.log(chalk.yellow('  ○ Quality flags not documented - add --structure, --security-review, --refactoring'));
   }
 }
 

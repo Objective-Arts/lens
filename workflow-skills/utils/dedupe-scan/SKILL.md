@@ -110,7 +110,7 @@ CONSOLIDATION_PRIORITY:
 2. [next pattern]
 3. ...
 
-DEDUPE_COMPLETE
+DEDUPLICATION_COMPLETE
 ```
 
 ## Example Output
@@ -142,16 +142,16 @@ CONSOLIDATION_PRIORITY:
 1. copyDirectoryRecursive (3 files, identical logic)
 2. git operations (2 files, execSync vs file read)
 
-DEDUPE_COMPLETE
+DEDUPLICATION_COMPLETE
 ```
 
 ## After Analysis
 
-Report findings only. Use `/dedupe-fix` to consolidate duplicates.
+Report findings only. Use `/deduplication` to consolidate duplicates.
 
 ## Comparison
 
 | Skill | Finds | Fixes |
 |-------|-------|-------|
 | `/dedupe-scan` | ✓ | ✗ (read-only) |
-| `/dedupe-fix` | ✓ | ✓ (consolidates) |
+| `/deduplication` | ✓ | ✓ (consolidates) |

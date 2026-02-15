@@ -26,9 +26,9 @@ describe('Phases Factory', () => {
       const phases = createPhases();
 
       expect(phases[0].name).toBe('plan');
-      expect(phases[1].name).toBe('structure-first');
+      expect(phases[1].name).toBe('structure');
       expect(phases[2].name).toBe('implement');
-      expect(phases[3].name).toBe('refactor-check');
+      expect(phases[3].name).toBe('refactoring');
       expect(phases[4].name).toBe('independent-review');
       expect(phases[5].name).toBe('static-analysis');
       expect(phases[6].name).toBe('test');
@@ -74,10 +74,10 @@ describe('Phases Factory', () => {
     it('returns all 8 phases by name', () => {
       const names: PhaseName[] = [
         'plan',
-        'structure-first',
+        'structure',
         'implement',
         'test',
-        'refactor-check',
+        'refactoring',
         'independent-review',
         'static-analysis',
         'doc-code',
@@ -94,10 +94,10 @@ describe('Phases Factory', () => {
   describe('getPhaseIcon', () => {
     it('returns icon for each phase', () => {
       expect(getPhaseIcon('plan')).toBe('📝');
-      expect(getPhaseIcon('structure-first')).toBe('🏗️');
+      expect(getPhaseIcon('structure')).toBe('🏗️');
       expect(getPhaseIcon('implement')).toBe('🛠️');
       expect(getPhaseIcon('test')).toBe('🧪');
-      expect(getPhaseIcon('refactor-check')).toBe('🧹');
+      expect(getPhaseIcon('refactoring')).toBe('🧹');
       expect(getPhaseIcon('independent-review')).toBe('🔍');
       expect(getPhaseIcon('static-analysis')).toBe('📊');
       expect(getPhaseIcon('doc-code')).toBe('📚');

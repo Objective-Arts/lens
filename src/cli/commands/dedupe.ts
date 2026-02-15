@@ -148,7 +148,7 @@ function formatPriorityList(results: DuplicationResult[]): string[] {
     lines.push(`${i + 1}. ${results[i].pattern} (${fileCount} files)`);
   }
   lines.push('');
-  lines.push('DEDUPE_COMPLETE');
+  lines.push('DEDUPLICATION_COMPLETE');
   return lines;
 }
 
@@ -159,7 +159,7 @@ function formatReport(results: DuplicationResult[], searchPath: string): string 
   ];
 
   if (results.length === 0) {
-    lines.push('No significant duplications detected.', '', 'DEDUPE_COMPLETE');
+    lines.push('No significant duplications detected.', '', 'DEDUPLICATION_COMPLETE');
     return lines.join('\n');
   }
 

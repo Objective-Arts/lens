@@ -57,7 +57,7 @@ SUMMARY:
 REVIEW_ISSUES: 2
 ISSUES_FIXED: 2
 REMAINING: 0
-VERIFIED_CLEAN: yes
+SECURITY_REVIEW_COMPLETE: yes
 `;
     
     const result = parsePhaseOutput(raw);
@@ -96,7 +96,7 @@ SUMMARY:
 REVIEW_ISSUES: 3
 ISSUES_FIXED: 1
 REMAINING: 2
-VERIFIED_CLEAN: no
+SECURITY_REVIEW_COMPLETE: no
 `;
     
     const result = parsePhaseOutput(raw);

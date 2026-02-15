@@ -3,7 +3,7 @@
  * Ralph CLI entry point.
  *
  * Ralph: PRD-driven autonomous implementation tool.
- * Processes PRD items through plan → build → test → review → doc stages.
+ * Processes PRD items through plan → build → test → review → doc phases.
  */
 
 import * as path from 'path';

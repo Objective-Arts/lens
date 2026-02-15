@@ -8,16 +8,16 @@
  */
 
 import chalk from 'chalk';
-import { SkillDetection, StageStatus } from '../types.js';
+import { SkillDetection, PhaseStatus } from '../types.js';
 import { parseAppliedSection } from './applied-parser.js';
 
-/** Stage icons - matches PHASE_ORDER in phases/index.ts */
-const STAGE_ICONS: Record<string, string> = {
+/** Phase icons - matches PHASE_ORDER in phases/index.ts */
+const PHASE_ICONS: Record<string, string> = {
   'plan': '📝',
-  'structure-first': '🏗️',
+  'structure': '🏗️',
   'implement': '🛠️',
   'test': '🧪',
-  'refactor-check': '🧹',
+  'refactoring': '🧹',
   'independent-review': '🔍',
   'static-analysis': '📊',
   'doc-code': '📚',
@@ -29,39 +29,39 @@ export function printHeader(prdPath: string, remaining: number, projectType: str
   console.log(chalk.dim('Skills: from profile (.claude/ralph-config.yaml)'));
 }
 
-/** All pipeline stage names in execution order - matches PHASE_ORDER */
-const PIPELINE_STAGES = [
-  'plan', 'structure-first', 'implement', 'refactor-check',
+/** All pipeline phase names in execution order - matches PHASE_ORDER */
+const PIPELINE_PHASES = [
+  'plan', 'structure', 'implement', 'refactoring',
   'independent-review', 'static-analysis', 'test', 'doc-code'
 ] as const;
 
 /** Short display names for pipeline progress */
-const STAGE_SHORT_NAMES: Record<string, string> = {
+const PHASE_SHORT_NAMES: Record<string, string> = {
   'plan': 'plan',
-  'structure-first': 'structure',
+  'structure': 'structure',
   'implement': 'implement',
   'test': 'test',
-  'refactor-check': 'refactor',
+  'refactoring': 'refactor',
   'independent-review': 'review',
   'static-analysis': 'scan',
   'doc-code': 'doc',
 };
 
 /**
- * Print pipeline progress showing current position in stage sequence.
+ * Print pipeline progress showing current position in phase sequence.
  * Following motion: motion is meaning, progress shows movement.
  */
 function printPipelineProgress(
-  stageStatus: Map<string, StageStatus>,
-  currentStage?: string
+  phaseStatus: Map<string, PhaseStatus>,
+  currentPhase?: string
 ): void {
-  const parts = PIPELINE_STAGES.map(name => {
-    const status = stageStatus.get(name);
-    const shortName = STAGE_SHORT_NAMES[name] || name;
+  const parts = PIPELINE_PHASES.map(name => {
+    const status = phaseStatus.get(name);
+    const shortName = PHASE_SHORT_NAMES[name] || name;
     if (status === 'done') return chalk.green(`✓${shortName}`);
     if (status === 'failed') return chalk.red(`✗${shortName}`);
     if (status === 'skipped') return chalk.dim(`-${shortName}`);
-    if (name === currentStage || status === 'running') return chalk.cyan(`▸${shortName}`);
+    if (name === currentPhase || status === 'running') return chalk.cyan(`▸${shortName}`);
     return chalk.dim(shortName);
   });
 
@@ -76,42 +76,42 @@ export function printItemHeader(
   itemNum: number,
   total: number,
   itemText: string,
-  stageStatus?: Map<string, StageStatus>
+  phaseStatus?: Map<string, PhaseStatus>
 ): void {
   console.log('');
   console.log(chalk.cyan('━'.repeat(84)));
   console.log(chalk.cyan.bold(`  Item ${itemNum} of ${total}: ${itemText}`));
-  if (stageStatus) {
-    printPipelineProgress(stageStatus);
+  if (phaseStatus) {
+    printPipelineProgress(phaseStatus);
   }
   console.log(chalk.cyan('━'.repeat(84)));
 }
 
-/** External tool indicators for stages */
+/** External tool indicators for phases */
 const EXTERNAL_TOOLS: Record<string, string> = {
   'independent-review': ' (+ Gemini)',
   'static-analysis': ' (+ Qodana)',
 };
 
-function formatProgress(stageIndex?: number, totalStages?: number): string {
-  return (stageIndex !== undefined && totalStages !== undefined)
-    ? chalk.dim(` (${stageIndex + 1}/${totalStages})`)
+function formatProgress(phaseIndex?: number, totalPhases?: number): string {
+  return (phaseIndex !== undefined && totalPhases !== undefined)
+    ? chalk.dim(` (${phaseIndex + 1}/${totalPhases})`)
     : '';
 }
 
-export function printStageHeader(
-  stage: string,
+export function printPhaseHeader(
+  phase: string,
   detection: SkillDetection,
-  stageIndex?: number,
-  totalStages?: number
+  phaseIndex?: number,
+  totalPhases?: number
 ): void {
-  const icon = STAGE_ICONS[stage] || '\u25cf';
-  const progress = formatProgress(stageIndex, totalStages);
-  const externalTools = EXTERNAL_TOOLS[stage] ? chalk.dim(EXTERNAL_TOOLS[stage]) : '';
+  const icon = PHASE_ICONS[phase] || '\u25cf';
+  const progress = formatProgress(phaseIndex, totalPhases);
+  const externalTools = EXTERNAL_TOOLS[phase] ? chalk.dim(EXTERNAL_TOOLS[phase]) : '';
 
   console.log('');
   console.log(chalk.dim('─'.repeat(84)));
-  console.log(`  ${icon}  ${chalk.cyan(capitalize(stage))}${progress}${externalTools}`);
+  console.log(`  ${icon}  ${chalk.cyan(capitalize(phase))}${progress}${externalTools}`);
 
   if (detection.skills.length > 0) {
     console.log(`      ${chalk.dim('Skills:')} ${detection.skills.join(' ')}`);
@@ -133,18 +133,18 @@ export function printAppliedSkills(rawOutput: string | undefined): void {
   }
 }
 
-export function printStageComplete(stage: string, durationSec: number, message?: string): void {
+export function printPhaseComplete(phase: string, durationSec: number, message?: string): void {
   const time = formatDuration(durationSec);
   const suffix = message ? ` - ${message}` : '';
-  console.log(`  ${chalk.green('\u2713')} ${capitalize(stage)} done (${time})${suffix}`);
+  console.log(`  ${chalk.green('\u2713')} ${capitalize(phase)} done (${time})${suffix}`);
 }
 
-export function printStageFailed(stage: string, error: string): void {
-  console.log(`  ${chalk.red('\u2717')} ${capitalize(stage)} failed: ${error}`);
+export function printPhaseFailed(phase: string, error: string): void {
+  console.log(`  ${chalk.red('\u2717')} ${capitalize(phase)} failed: ${error}`);
 }
 
-export function printStageSkipped(stage: string, reason: string): void {
-  console.log(`  ${chalk.yellow('\u25cb')} ${capitalize(stage)} skipped: ${reason}`);
+export function printPhaseSkipped(phase: string, reason: string): void {
+  console.log(`  ${chalk.yellow('\u25cb')} ${capitalize(phase)} skipped: ${reason}`);
 }
 
 export function printItemComplete(itemNum: number, remaining: number): void {

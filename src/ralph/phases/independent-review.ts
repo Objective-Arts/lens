@@ -129,7 +129,7 @@ CANNOT_FIX:
 [SEVERITY] description - REASON: <specific reason>
 
 UNFIXED: N
-FIX_COMPLETE: yes`;
+GEMINI_REVIEW_COMPLETE: yes`;
 
 export class IndependentReviewPhase extends BasePhase {
   readonly name = 'independent-review' as const;

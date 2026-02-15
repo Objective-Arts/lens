@@ -75,13 +75,13 @@ Skills: \`test-doubles\`
   it('extracts slash command references', async () => {
     const content = `Run /build to build.
 Use /improve for existing code.
-Try /gemini-fix for review.
+Try /gemini-review for review.
 `;
     const filePath = writeMd(content);
     const result = await parseClaudeMd(filePath, 'project');
     expect(result!.commandReferences).toContain('build');
     expect(result!.commandReferences).toContain('improve');
-    expect(result!.commandReferences).toContain('gemini-fix');
+    expect(result!.commandReferences).toContain('gemini-review');
   });
 
   it('filters out common non-command words', async () => {

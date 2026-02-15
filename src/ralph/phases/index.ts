@@ -15,19 +15,19 @@ import type { PhaseName } from '../types.js';
  */
 export const PHASE_ORDER: readonly PhaseName[] = [
   'plan',
-  'structure-first',
+  'structure',
   'implement',
-  'refactor-check',
+  'refactoring',
   'independent-review',
   'static-analysis',
   'test',
   'doc-code',
 ] as const;
 import { PlanPhase } from './plan.js';
-import { StructureFirstPhase } from './structure-first.js';
+import { StructurePhase } from './structure.js';
 import { ImplementPhase } from './implement.js';
 import { TestPhase } from './test.js';
-import { RefactorCheckPhase } from './refactor-check.js';
+import { RefactoringPhase } from './refactoring.js';
 import { IndependentReviewPhase } from './independent-review.js';
 import { StaticAnalysisPhase } from './static-analysis.js';
 import { DocCodePhase } from './doc-code.js';
@@ -37,9 +37,9 @@ import { SecurityReviewPhase } from './security-review.js';
 export function createPhases(): Phase[] {
   return [
     new PlanPhase(),
-    new StructureFirstPhase(),
+    new StructurePhase(),
     new ImplementPhase(),
-    new RefactorCheckPhase(),
+    new RefactoringPhase(),
     new IndependentReviewPhase(),
     new StaticAnalysisPhase(),
     new TestPhase(),
@@ -50,10 +50,10 @@ export function createPhases(): Phase[] {
 export function getPhase(name: PhaseName): Phase | null {
   const phases: Record<PhaseName, Phase> = {
     'plan': new PlanPhase(),
-    'structure-first': new StructureFirstPhase(),
+    'structure': new StructurePhase(),
     'implement': new ImplementPhase(),
     'test': new TestPhase(),
-    'refactor-check': new RefactorCheckPhase(),
+    'refactoring': new RefactoringPhase(),
     'independent-review': new IndependentReviewPhase(),
     'static-analysis': new StaticAnalysisPhase(),
     'doc-code': new DocCodePhase(),
@@ -67,10 +67,10 @@ export function getPhase(name: PhaseName): Phase | null {
 export function getPhaseIcon(name: PhaseName): string {
   const icons: Partial<Record<PhaseName, string>> = {
     'plan': '📝',
-    'structure-first': '🏗️',
+    'structure': '🏗️',
     'implement': '🛠️',
     'test': '🧪',
-    'refactor-check': '🧹',
+    'refactoring': '🧹',
     'independent-review': '🔍',
     'static-analysis': '📊',
     'doc-code': '📚',

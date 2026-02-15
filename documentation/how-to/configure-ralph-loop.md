@@ -22,35 +22,31 @@ Stack with your base profile:
 lens profile apply javascript+ralph-integration -p .
 ```
 
-### 2. Configure stage skills (optional)
+### 2. Configure phase skills (optional)
 
-Edit `config/workflow-phases.yaml` to customize which skills are invoked per stage:
+Edit `config/workflow-phases.yaml` to customize which skills are invoked per phase:
 
 ```yaml
-stages:
-  design:
+phases:
+  plan:
     description: Understand requirements, design approach
-    skills: [clarity, simplicity, data-first, correctness, resilience, failure, safety]
-  build:
+    experts: [clarity, simplicity, data-first, correctness, resilience, failure, safety]
+  implement:
     description: Write the code
-    skills: [pragmatism, clarity, simplicity, composition, distributed]
-  review:
-    description: Attack your own code
-    skills: [security-mindset, owasp, failure, safety]
+    experts: [pragmatism, clarity, simplicity, composition, distributed]
+  refactoring:
+    description: Clean up under complexity budget
+    experts: [clarity, simplicity, composition, design-patterns]
 
 ralph-sequence:
-  - create-plan
-  - structure-first
-  - implement-plan
-  - refactor-check-fix
-  - dedupe-fix
-  - gemini-fix
-  - codex-fix
-  - qodana-fix
-  - adversarial-security-review
-  - ai-smell-fix
-  - final-eval-check
-  - write-tests-run
+  - plan
+  - structure
+  - implementation
+  - refactoring
+  - deduplication
+  - review
+  - testing
+  - evaluation
 ```
 
 ### 3. Configure keyword detection (optional)
@@ -117,10 +113,11 @@ With options:
 Ralph runs this pipeline for each PRD item:
 
 ```
-Design → Build → [gate] → Refine → Review → [gate] → Verify → [gate]
+plan → structure → implementation → refactoring → deduplication
+  → review → testing → evaluation
 ```
 
-Gates run `npm run build && npm test` between stages. Each stage maps to specific skills internally.
+Quality checks run automatically after implementation (lint + code patterns) and after evaluation (lint + tests). Each phase maps to specific skills internally.
 
 ## Troubleshooting
 

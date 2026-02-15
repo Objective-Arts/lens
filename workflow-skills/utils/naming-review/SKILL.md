@@ -112,7 +112,7 @@ Use consistent suffixes to signal behavior:
 | Suffix | Meaning | Examples |
 |--------|---------|----------|
 | `-scan` | Read-only, reports | `gemini-scan`, `qodana-scan` |
-| `-fix` | Modifies, repairs | `gemini-fix`, `dedupe-fix` |
+| `-fix` | Modifies, repairs | `gemini-review`, `deduplication` |
 | `-check` | Validates, returns bool | `type-check`, `lint-check` |
 | `-report` | Generates output | `skill-usage-report` |
 | `-config` | Configuration object | `appConfig`, `dbConfig` |

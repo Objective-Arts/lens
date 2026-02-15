@@ -90,6 +90,6 @@ Copy this table into CLAUDE.md or integrate into profile generation.
 | Feature implementation complete | INVOKE `/test` then `/independent-review` |
 | Before commit or PR | INVOKE `/independent-review` |
 | Review finds critical issues | Fix immediately before continuing |
-| Writing new code from scratch | INVOKE `/structure-first` then `/implement` |
+| Writing new code from scratch | INVOKE `/structure` then `/implement` |
 | Refactoring existing code | INVOKE `/test` first, then refactor, then `/test` again |
 | Adding documentation | INVOKE `/docs` for structure, `/doc-code` to generate |

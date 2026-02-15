@@ -10,7 +10,7 @@ import { Session, RalphConfig, PrdItem, PhaseName, SkillDetection } from '../typ
 import { Phase, PhaseContext, detectExperts } from '../phases/index.js';
 import { loadSkills } from '../skills/loader.js';
 import {
-  StageSummary, parseGeminiIssues, parseQodanaIssues, parseRefactorResults,
+  PhaseSummary, parseGeminiIssues, parseQodanaIssues, parseRefactorResults,
 } from '../summary/index.js';
 
 /** Phases that use MCP tools instead of Claude experts. */
@@ -33,13 +33,13 @@ function getProfileExpertsForPhase(config: RalphConfig, phaseName: PhaseName): s
   if (phaseName === 'production-readiness' || phaseName === 'security-review') return [];
 
   const mapping: Partial<Record<PhaseName, keyof RalphConfig['skills']>> = {
-    'plan': 'plan', 'structure-first': 'plan', 'implement': 'build', 'test': 'test',
-    'refactor-check': 'refactor', 'doc-code': 'doc',
+    'plan': 'plan', 'structure': 'plan', 'implement': 'build', 'test': 'test',
+    'refactoring': 'refactor', 'doc-code': 'doc',
   };
   return config.skills[mapping[phaseName] ?? 'review'] ?? [];
 }
 
-function parseAdversarialMetrics(summary: StageSummary, logsDir: string, itemNum: number): StageSummary {
+function parseAdversarialMetrics(summary: PhaseSummary, logsDir: string, itemNum: number): PhaseSummary {
   const rawPath = path.join(logsDir, `item${itemNum}-independent-review.raw`);
   const qodanaPath = path.join(logsDir, `item${itemNum}-static-analysis-qodana.raw`);
   let result = { ...summary };
@@ -50,8 +50,8 @@ function parseAdversarialMetrics(summary: StageSummary, logsDir: string, itemNum
 }
 
 export function parsePhaseMetrics(
-  summary: StageSummary, name: PhaseName, logsDir: string, itemNum: number, metrics: Record<string, unknown>
-): StageSummary {
+  summary: PhaseSummary, name: PhaseName, logsDir: string, itemNum: number, metrics: Record<string, unknown>
+): PhaseSummary {
   if (name === 'independent-review') {
     return parseAdversarialMetrics(summary, logsDir, itemNum);
   }
@@ -65,8 +65,8 @@ export function parsePhaseMetrics(
       },
     };
   }
-  if (name === 'refactor-check') {
-    const rawPath = path.join(logsDir, `item${itemNum}-refactor-check.raw`);
+  if (name === 'refactoring') {
+    const rawPath = path.join(logsDir, `item${itemNum}-refactoring.raw`);
     try { return { ...summary, refactor: parseRefactorResults(fs.readFileSync(rawPath, 'utf-8')) }; } catch { /* file not found */ }
   }
   return summary;
