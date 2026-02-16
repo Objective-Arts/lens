@@ -61,7 +61,7 @@ PRD → Phase 0:reference (Opus raw build)
 | 5 | deduplication | haiku | DEDUPLICATION_COMPLETE | |
 | 6 | review | sonnet | REVIEW_COMPLETE | Parallel scans → dedupe → fix |
 | 7 | testing | sonnet | TESTING_COMPLETE | |
-| 8 | evaluation | sonnet | EVALUATION_COMPLETE | Codex scores 7 dimensions. Fix until all 9+. Max 3 iterations. Quality gate runs after. |
+| 8 | evaluation | sonnet | EVALUATION_COMPLETE | Orchestrator-owned loop: score (Codex) → fix → rescore. Max 3 iterations. Quality gate runs after. |
 
 ## Orchestrator Rules
 
@@ -349,36 +349,97 @@ Follow every step in the skill. Do not skip any steps.
 When complete, end your final message with the marker: TESTING_COMPLETE
 ```
 
-**Phase 8 (evaluation) prompt:**
+**Phase 8 (evaluation) — orchestrator-owned loop:**
+
+The orchestrator owns the score-fix loop. Do NOT delegate the entire evaluation to one agent.
+
+**8a. Prepare:**
+
+Read `workflow-skills/workflow/evaluation/SKILL.md` for the scorecard prompt template, scoreboard format, classification tree, and report template. Load rubrics per its Rubric Loading section. Build `{SCORECARD_PROMPT}` by inserting `{RUBRIC_CRITERIA}` into the scorecard template.
+
+**8b. Score-fix loop** (max 3 iterations):
+
+**i. Spawn SCORE agent** (`subagent_type: "general-purpose"`, model: `sonnet`):
 
 ```
-Read the skill file at workflow-skills/workflow/evaluation/SKILL.md
-and execute ALL of its instructions against: {TARGET}
+You have ONE task: run the Codex scorecard and report scores. Do NOTHING else.
 
-CRITICAL CONSTRAINTS — follow these exactly:
+1. which codex 2>/dev/null && echo "CODEX_AVAILABLE" || echo "CODEX_UNAVAILABLE"
+   If unavailable: print CODEX_UNAVAILABLE and end with SCORE_COMPLETE.
 
-1. CODEX ONLY. Do NOT use Gemini for evaluation. The evaluator is Codex.
-   Run: codex exec -s read-only -o /tmp/lens-eval-scores.md "<scorecard prompt>"
-   If codex CLI is unavailable, note it and skip scoring.
+2. Run this exact command:
+   {SCORECARD_PROMPT}
 
-2. SCORE 7 DIMENSIONS (1-10 each, total out of 70):
-   Security, Structure, Error Handling, Naming, Complexity, Type Safety, Testability
+3. cat /tmp/lens-eval-scores.md
 
-3. ITERATE: If ANY dimension scores below 9:
-   a. Fix the weakest dimension first (read the justification + weakest files)
-   b. Re-score via Codex
-   c. Repeat until all dimensions hit 9+ OR max 3 iterations
+4. Print parsed scores in this EXACT format:
+   SCORE_SECURITY: N
+   SCORE_STRUCTURE: N
+   SCORE_ERROR_HANDLING: N
+   SCORE_NAMING: N
+   SCORE_COMPLEXITY: N
+   SCORE_TYPE_SAFETY: N
+   SCORE_TESTABILITY: N
+   SCORE_TOTAL: NN
 
-4. Do NOT read prior phase artifacts before scoring. Fresh eyes only.
-   Only read lessons.md files during the deduplication step AFTER scoring.
+5. rm -f /tmp/lens-eval-scores.md
 
-5. Do NOT commit changes. Do NOT run git add or git commit.
-
-6. Write outputs: eval-report.md, lessons.md, universal-lessons.md
-
-Follow every step in the skill file. Do not skip any steps.
-When complete, end your final message with the marker: EVALUATION_COMPLETE
+PROHIBITED: editing files, committing, using Gemini, fixing code
+End with: SCORE_COMPLETE
 ```
+
+**ii. Orchestrator parses scores** — extract `SCORE_*` lines from agent output. Log the scoreboard using the format from evaluation SKILL.md. Save iteration 1 scores as `{INITIAL_SCORES}`.
+
+If `CODEX_UNAVAILABLE` on iteration 1: skip the loop, note in report, continue to 8c.
+
+**iii. Check threshold** — all dimensions >= 9? Break the loop.
+
+**iv. Spawn FIX agent** (`subagent_type: "general-purpose"`, model: `sonnet`):
+
+```
+Fix ONLY these issues in {TARGET}:
+
+{For each dimension below 9, ordered lowest-first:}
+{DIMENSION} ({SCORE}/10) — {JUSTIFICATION} — Weakest: {file:line}, ...
+
+For each fix, print: FIX_APPLIED: {dimension} | {file:line} | {what changed}
+
+After all fixes: npm test
+
+PROHIBITED: committing, re-scoring, modifying unrelated code
+End with: FIX_COMPLETE
+```
+
+**v. Collect** `FIX_APPLIED` lines from fix agent output. Continue to next iteration.
+
+**8c. Lessons** — after the loop, spawn **LESSON agent** (`subagent_type: "general-purpose"`, model: `sonnet`):
+
+```
+Classify fixes and write evaluation outputs. Do NOT modify source code.
+
+Initial scores: {INITIAL_SCORES}
+Final scores: {FINAL_SCORES}
+Fixes applied:
+{ALL FIX_APPLIED LINES}
+
+Classify each fix using this tree:
+- Code pattern to avoid? YES + general → LESSON in both .claude/lessons.md and .claude/universal-lessons.md
+- Code pattern to avoid? YES + project-specific → LESSON in .claude/lessons.md only
+- Suggests pipeline/tool change? → PROPOSAL in .claude/eval-proposals.md
+- Neither → eval-report.md only
+
+Category: LOGIC | DESIGN | CODE_QUALITY | DUPLICATION | AI_SMELL
+
+Read .claude/lessons.md and .claude/universal-lessons.md — skip duplicates.
+Write .claude/eval-report.md (replace file using template from
+workflow-skills/workflow/evaluation/SKILL.md Report Template section).
+Append to lessons + proposals.
+Verify writes by reading each file.
+
+End with: LESSONS_COMPLETE
+```
+
+The orchestrator checks for `SCORE_COMPLETE`, `FIX_COMPLETE`, and `LESSONS_COMPLETE` markers. After the lesson agent completes, emit `EVALUATION_COMPLETE`.
 
 ### Step 7: Quality Gate (final)
 
