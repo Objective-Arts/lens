@@ -14,13 +14,13 @@ Improve existing code using the full quality pipeline.
 `/improve` runs 8 phases on **existing** code:
 
 1. **plan** — Analyze what needs improvement
-2. **structure** — Map existing architecture, design changes
+2. **structure** — Improve the existing structure
 3. **implementation** — Apply the improvements
 4. **refactoring** — Refine structurally
 5. **deduplication** — Remove duplicates
 6. **review** — Parallel scans, dedupe findings, fix
 7. **testing** — Write and run tests
-8. **evaluation** — Final review, write lessons
+8. **evaluation** — Codex review, write lessons
 
 ```
 [rollback] → Phase 1:plan → [approval] → Phase 2:structure
@@ -51,13 +51,13 @@ Improve existing code using the full quality pipeline.
 | # | Skill | Model | Gate Marker | Notes |
 |---|-------|-------|-------------|-------|
 | 1 | plan | sonnet | PLAN_COMPLETE | Pause for user approval. Loads rubrics. |
-| 2 | structure | sonnet | STRUCTURE_COMPLETE | Map existing, design changes |
+| 2 | structure | sonnet | STRUCTURE_COMPLETE | Improve existing structure |
 | 3 | implementation | opus | IMPLEMENTATION_COMPLETE | Loop if partial (max 5). Quality gate runs after. |
 | 4 | refactoring | sonnet | REFACTORING_COMPLETE | |
 | 5 | deduplication | haiku | DEDUPLICATION_COMPLETE | |
 | 6 | review | sonnet | REVIEW_COMPLETE | Parallel scans → dedupe → fix |
 | 7 | testing | sonnet | TESTING_COMPLETE | |
-| 8 | evaluation | sonnet | EVALUATION_COMPLETE | Loads rubrics. Writes lessons. Quality gate runs after. |
+| 8 | evaluation | sonnet | EVALUATION_COMPLETE | Codex review. Writes lessons. Quality gate runs after. |
 
 ## Orchestrator Rules
 
@@ -300,9 +300,7 @@ and execute ALL of its instructions against: {TARGET}
 
 This is an IMPROVEMENT workflow on existing code.
 
-You have access to the mcp__gemini-reviewer__gemini_review tool
-and the codex CLI. Use both as instructed by the skill.
-Codex is the primary reviewer. Gemini is the secondary reviewer.
+You have access to the codex CLI. Codex is the reviewer.
 
 Do NOT read any prior phase artifacts before reviews.
 Evaluate the source code with fresh eyes. Only read lessons.md files

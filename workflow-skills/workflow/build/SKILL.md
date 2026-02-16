@@ -11,24 +11,26 @@ Build a new feature using the full quality pipeline.
 
 ## What Is This?
 
-`/build` runs 8 phases in sequence:
+`/build` runs 9 phases in sequence:
 
-1. **plan** — Plan the feature
-2. **structure** — Map architecture, design types
-3. **implementation** — Write the code
-4. **refactoring** — Refine structurally
-5. **deduplication** — Remove duplicates
+0. **reference** — Opus builds from PRD. Feature-rich implementation.
+1. **plan** — Plan the hardening work against the reference
+2. **structure** — Improve the structure Opus produced
+3. **implementation** — Fix what the plan identified
+4. **refactoring** — Clean up
+5. **deduplication** — Consolidate
 6. **review** — Parallel scans, dedupe findings, fix
 7. **testing** — Write and run tests
-8. **evaluation** — Final review, write lessons
+8. **evaluation** — Codex review, write lessons
 
 ```
-[rollback] → Phase 1:plan → [approval] → Phase 2:structure
+PRD → Phase 0:reference (Opus raw build)
+  → [rollback] → Phase 1:plan → [approval] → Phase 2:structure
   → Phase 3:implementation [loop if partial]
   → [quality-gate]
   → Phase 4:refactoring → Phase 5:deduplication
   → Phase 6:review (parallel scans → dedupe → fix)
-  → Phase 7:testing → Phase 8:evaluation
+  → Phase 7:testing → Phase 8:evaluation (Codex only)
   → [quality-gate]
   → [lessons written]
 ```
@@ -50,14 +52,15 @@ Build a new feature using the full quality pipeline.
 
 | # | Skill | Model | Gate Marker | Notes |
 |---|-------|-------|-------------|-------|
-| 1 | plan | sonnet | PLAN_COMPLETE | Pause for user approval. Loads rubrics. |
-| 2 | structure | sonnet | STRUCTURE_COMPLETE | |
+| 0 | reference | opus | REFERENCE_COMPLETE | Opus builds from PRD. Feature-rich implementation. |
+| 1 | plan | sonnet | PLAN_COMPLETE | Plan hardening. Pause for user approval. Loads rubrics. |
+| 2 | structure | sonnet | STRUCTURE_COMPLETE | Improve the structure Opus produced. |
 | 3 | implementation | opus | IMPLEMENTATION_COMPLETE | Loop if partial (max 5). Quality gate runs after. |
 | 4 | refactoring | sonnet | REFACTORING_COMPLETE | |
 | 5 | deduplication | haiku | DEDUPLICATION_COMPLETE | |
 | 6 | review | sonnet | REVIEW_COMPLETE | Parallel scans → dedupe → fix |
 | 7 | testing | sonnet | TESTING_COMPLETE | |
-| 8 | evaluation | sonnet | EVALUATION_COMPLETE | Loads rubrics. Writes lessons. Quality gate runs after. |
+| 8 | evaluation | sonnet | EVALUATION_COMPLETE | Codex review. Writes lessons. Quality gate runs after. |
 
 ## Orchestrator Rules
 
@@ -86,29 +89,65 @@ If `--dry-run`, print the phase table and stop.
 
 ## Execution
 
-### Step 0: Rollback Point
+### Step 0: Phase 0 — Reference Build
+
+Spawn a **single Task subagent** (`subagent_type: "general-purpose"`, model: `opus`) to build the feature from the PRD:
+
+```
+You are building a reference implementation from a PRD.
+
+Build the feature described below. Focus on feature richness and
+completeness. Do not worry about hardening — that comes later.
+
+PRD / Feature description: {TARGET}
+
+Write the code. Make it work. Make it feature-complete.
+When complete, end your final message with the marker: REFERENCE_COMPLETE
+```
+
+When the reference build completes, report to the user what was built.
+
+### Step 1: Rollback Point
 
 ```bash
 git stash push -m "build:$(basename {TARGET}):$(date +%s)"
 ```
 
-Report the stash ref to the user.
+Report the stash ref to the user. This stash captures the reference build so it can be restored.
 
-### Step 1: Phases 1-3 (Plan + Structure + Implementation)
+### Step 2: Phases 1-3 (Plan + Structure + Implementation)
 
 For each phase, spawn a **single Task subagent** (`subagent_type: "general-purpose"`) with the model from the Phase Table.
 
-**Phase 1-2 prompt:**
+**Phase 1 prompt:**
 
 ```
-Read the skill file at .claude/phases/{SKILL_NAME}/SKILL.md
+Read the skill file at .claude/phases/plan/SKILL.md
 and execute ALL of its instructions against: {TARGET}
 
+You are planning HARDENING work against a reference implementation
+that Opus already built. The code exists. Plan what needs to be
+improved, hardened, and fixed — not what needs to be created.
+
 Follow every step in the skill. Do not skip any steps.
-When complete, end your final message with the marker: {GATE_MARKER}
+When complete, end your final message with the marker: PLAN_COMPLETE
 ```
 
 **After Phase 1:** Read the plan file. Present the summary to the user. Ask for approval (Approve / Reject / Revise). Do not proceed until approved.
+
+**Phase 2 prompt:**
+
+```
+Read the skill file at .claude/phases/structure/SKILL.md
+and execute ALL of its instructions against: {TARGET}
+
+You are IMPROVING the structure of a reference implementation that
+Opus already built. Analyze the architecture and improve it — assign
+quality contract types, fix boundaries, restructure where needed.
+
+Follow every step in the skill. Do not skip any steps.
+When complete, end your final message with the marker: STRUCTURE_COMPLETE
+```
 
 **Phase 3 prompt (implementation):**
 
@@ -167,7 +206,7 @@ When complete, end your final message with the marker: IMPLEMENTATION_COMPLETE
 
 **Phase 3 completion loop:** If output contains IMPLEMENTATION_PARTIAL, re-run targeting only remaining items. Max 5 iterations. If items remain after 5, report to user and ask whether to continue or halt.
 
-### Step 2: Quality Gate (after Phase 3)
+### Step 3: Quality Gate (after Phase 3)
 
 Run via Bash (no subagent):
 
@@ -177,7 +216,7 @@ tsx scripts/quality-gate.ts {TARGET}
 
 If non-zero, pass error output to Phase 3 for correction (max 2 retries).
 
-### Step 3: Phases 4-5 (Refine)
+### Step 4: Phases 4-5 (Refine)
 
 **Phase 4-5 prompt:**
 
@@ -189,7 +228,7 @@ Follow every step in the skill. Do not skip any steps.
 When complete, end your final message with the marker: {GATE_MARKER}
 ```
 
-### Step 4: Phase 6 (Review)
+### Step 5: Phase 6 (Review)
 
 All reviewers see the **same code state**. One fix pass at the end.
 
@@ -270,7 +309,7 @@ When complete, end with: REVIEW_COMPLETE
 
 If no findings from any scan, skip the fix agent and emit REVIEW_COMPLETE.
 
-### Step 5: Phases 7-8 (Verify)
+### Step 6: Phases 7-8 (Verify)
 
 **Do NOT start Phase 7 until Phase 6 (review) has returned REVIEW_COMPLETE.** The review fix agent modifies code — testing against stale code produces false results.
 
@@ -290,9 +329,7 @@ When complete, end your final message with the marker: TESTING_COMPLETE
 Read the skill file at .claude/phases/evaluation/SKILL.md
 and execute ALL of its instructions against: {TARGET}
 
-You have access to the mcp__gemini-reviewer__gemini_review tool
-and the codex CLI. Use both as instructed by the skill.
-Codex is the primary reviewer. Gemini is the secondary reviewer.
+You have access to the codex CLI. Codex is the reviewer.
 
 Do NOT read any prior phase artifacts before reviews.
 Evaluate the source code with fresh eyes. Only read lessons.md files
@@ -306,7 +343,7 @@ Follow every step in the skill. Do not skip any steps.
 When complete, end your final message with the marker: EVALUATION_COMPLETE
 ```
 
-### Step 6: Quality Gate (final)
+### Step 7: Quality Gate (final)
 
 ```bash
 npm test && tsx scripts/quality-gate.ts {TARGET}
@@ -314,18 +351,20 @@ npm test && tsx scripts/quality-gate.ts {TARGET}
 
 If non-zero, pass error to Phase 7 (testing) for correction (max 2 retries). After Phase 7 fixes and gate passes, do NOT re-run Phase 8.
 
-### Step 7: Report
+### Step 8: Report
 
 ```
 Build: {TARGET}
   Rollback: stash@{N}
 
+  ✓ Reference Opus built from PRD
   ✓ Design    plan approved
+  ✓ Structure improved
   ✓ Build     implemented, gate passed
   ✓ Refine    refactored + deduped
   ✓ Review    4 scans, {N} findings fixed
   ✓ Verify    {N} tests, 0 failures
-  ↻ Learn     lessons written
+  ✓ Evaluate  Codex review, lessons written
 
 Rollback: /build --rollback
 ```

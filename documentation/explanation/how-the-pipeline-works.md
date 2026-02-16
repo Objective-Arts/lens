@@ -1,46 +1,49 @@
 # How the Pipeline Works
 
-`/build` and `/improve` run the same 8-phase pipeline. `/build` creates new features. `/improve` refactors existing code. Everything else is the same.
+`/build` and `/improve` share the same hardening pipeline (phases 1-8). `/build` adds Phase 0 — a reference build where Opus builds the feature from the PRD before hardening begins. `/improve` skips Phase 0 because the code already exists.
 
-## The 8 Phases
+## The Pipeline
 
 ```
-plan → structure → implementation
+PRD → Phase 0:reference (Opus raw build, /build only)
+  → plan → structure → implementation
   → [lint + code checks]
   → refactoring → deduplication
-  → review (3 parallel scans → dedupe → fix)
-  → testing → evaluation
+  → review (4 parallel scans → dedupe → fix)
+  → testing → evaluation (Codex only)
   → [lint + tests]
 ```
 
 | # | Phase | Model | What happens |
 |---|-------|-------|-------------|
-| 1 | plan | Sonnet | Decompose the task into work items. Load rubrics, lessons, canon. User approves before continuing. |
-| 2 | structure | Sonnet | Map existing architecture, assign quality contract types to boundaries. |
-| 3 | implementation | Opus | Write code from the plan. One work item at a time: read canon, write code, compile-check. Loops if partial (max 5). |
+| 0 | reference | Opus | `/build` only. Opus builds from PRD — feature-rich, complete. This is the control. |
+| 1 | plan | Sonnet | Plan the hardening work against the reference. User approves before continuing. |
+| 2 | structure | Sonnet | Improve the structure. Assign quality contract types to boundaries. |
+| 3 | implementation | Opus | Fix what the plan identified. One work item at a time: read canon, write code, compile-check. Loops if partial (max 5). |
 | 4 | refactoring | Sonnet | Systematic cleanup. Net-zero or net-negative complexity. |
 | 5 | deduplication | Haiku | Consolidate duplicated code. Pattern-matching only. |
-| 6 | review | Sonnet | 3 scan agents run in parallel (Gemini, Codex, AI smell). Findings are deduped across all 3. One fix agent applies the unified list. |
+| 6 | review | Sonnet | 4 scan agents run in parallel (Gemini, Codex, Qodana, AI smell). Findings are deduped across all 4. One fix agent applies the unified list. |
 | 7 | testing | Sonnet | Write and run tests. |
-| 8 | evaluation | Sonnet | Codex + Gemini review the code independently. Fix everything they find. Write lessons for next run. |
+| 8 | evaluation | Sonnet | Codex review. Fix everything found. Write lessons for next run. |
 
 After phase 3, `scripts/quality-gate.ts` runs lint and code pattern checks. If it fails, phase 3 gets another shot (max 2 retries).
 
 After phase 8, `npm test` and the quality gate run again. If they fail, phase 7 fixes the tests (max 2 retries). Phase 8 does not re-run.
 
-## Why Opus for Phase 3 Only
+## Why Opus for Phases 0 and 3
 
-Implementation is where reasoning depth matters most — translating a structured plan into correct code with contract idioms, edge case handling, and language-specific patterns. Everything else runs on Sonnet (strong reasoning, lower cost) or Haiku (pattern-matching tasks like deduplication).
+Phase 0 needs Opus because it's building the entire feature from scratch — reasoning depth produces richer, more complete implementations. Phase 3 needs Opus because hardening requires the same depth — translating a structured plan into correct code with contract idioms, edge case handling, and language-specific patterns. Everything else runs on Sonnet (strong reasoning, lower cost) or Haiku (pattern-matching tasks like deduplication).
 
 ## How Review Works (Phase 6)
 
-Three scan agents run at the same time against identical code:
+Four scan agents run at the same time against identical code:
 
 - **Gemini** runs twice — once for general code quality, once with a security focus
 - **Codex** runs its own independent review
+- **Qodana** runs static analysis
 - **AI smell scan** checks for AI-generated antipatterns
 
-All three see the same code. The orchestrator dedupes their findings (same file + line within 5 lines + similar description = one finding, keep the most specific). Then a single fix agent applies the unified list.
+All four see the same code. The orchestrator dedupes their findings (same file + line within 5 lines + similar description = one finding, keep the most specific). Then a single fix agent applies the unified list.
 
 This prevents cascade damage — no reviewer is "fixing" another reviewer's fixes.
 
