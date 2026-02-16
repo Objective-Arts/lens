@@ -223,6 +223,7 @@ export function installAllWorkflowSkills(
 
   const skillsDir = path.join(projectPath, '.claude', 'skills');
   const phasesDir = path.join(projectPath, '.claude', 'phases');
+  if (!fs.existsSync(skillsDir)) fs.mkdirSync(skillsDir, { recursive: true });
   if (!fs.existsSync(phasesDir)) fs.mkdirSync(phasesDir, { recursive: true });
 
   for (const skill of skills) {

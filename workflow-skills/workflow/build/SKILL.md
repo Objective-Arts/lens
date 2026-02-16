@@ -57,7 +57,7 @@ Build a new feature using the full quality pipeline.
 | 5 | deduplication | haiku | DEDUPLICATION_COMPLETE | |
 | 6 | review | sonnet | REVIEW_COMPLETE | Parallel scans → dedupe → fix |
 | 7 | testing | sonnet | TESTING_COMPLETE | |
-| 8 | evaluation | Bash+sonnet | EVALUATION_COMPLETE | Orchestrator-owned: Bash scores via Codex, agent fixes. Max 3 iterations. |
+| 8 | evaluation | Bash+sonnet | EVALUATION_COMPLETE | Codex scores 1-100, fix→rescore loop (max 3), lessons. |
 
 ## Orchestrator Rules
 
@@ -284,74 +284,74 @@ Follow every step in the skill. Do not skip any steps.
 When complete, end your final message with the marker: TESTING_COMPLETE
 ```
 
-**Phase 8 (evaluation) — orchestrator-owned loop:**
+**Phase 8 (evaluation) — orchestrator-owned:**
 
-The orchestrator owns the score-fix loop. Do NOT delegate evaluation to a single agent — agents fabricate scores.
+The orchestrator owns scoring and fix coordination. Scoring runs via Bash — never delegated to an agent.
 
-**Prepare:** Read `.claude/phases/evaluation/SKILL.md` for the scorecard prompt template, rescore prompt, scoreboard format, classification tree, and report template. Load rubrics per its Rubric Loading section. Build `{SCORECARD_PROMPT}` by inserting `{RUBRIC_CRITERIA}` into the scorecard template.
-
-**Score-fix loop** (max 3 iterations):
+**Prepare:** Read `.claude/phases/evaluation/SKILL.md` for the scorecard prompt, rescore prompt, classification tree, and report template. Load rubrics per its Rubric Loading section. Build `{SCORECARD_PROMPT}` by inserting `{RUBRIC_CRITERIA}` into the scorecard template.
 
 **8a. Score via Bash (no agent):**
 
 ```bash
-# Check Codex availability
 which codex 2>/dev/null && echo "CODEX_AVAILABLE" || echo "CODEX_UNAVAILABLE"
 ```
 
-If `CODEX_UNAVAILABLE` on iteration 1: skip the loop, note in report, continue to 8d.
+If `CODEX_UNAVAILABLE`: skip evaluation, note in report, continue to Step 6. Otherwise:
 
 ```bash
-# Iteration 1: initial scorecard
 rm -f /tmp/lens-eval-scores.md
 {SCORECARD_PROMPT}
-
-# Iteration 2+: rescore with context
-rm -f /tmp/lens-eval-scores.md
-{RESCORE_PROMPT}
+cat /tmp/lens-eval-scores.md
 ```
 
-The orchestrator builds `{RESCORE_PROMPT}` using the Rescore Prompt template from
-`.claude/phases/evaluation/SKILL.md`, injecting `{PREVIOUS_SCORES_BLOCK}` (parsed scores
-from previous iteration) and `{FIX_APPLIED_LINES}` (collected from the FIX agent output).
+**8b. Orchestrator parses output** — extract `ISSUE:` lines and the `SCORE: NN/100` line. Save as `{INITIAL_SCORE}` and `{ISSUES_LIST}`.
+
+**8c–8d. Fix→Rescore loop (max 3 iterations):**
+
+Set `{CURRENT_SCORE}` = `{INITIAL_SCORE}`, `{CURRENT_ISSUES}` = `{ISSUES_LIST}`, `{ALL_FIX_APPLIED}` = empty.
+
+**For each iteration** (while `{CURRENT_ISSUES}` is non-empty AND iteration <= 3):
+
+**8c. Fix all issues** — spawn FIX agent (`subagent_type: "general-purpose"`, model: `sonnet`):
+
+```
+Fix ALL of these issues in {TARGET}:
+
+{CURRENT_ISSUES}
+
+For each fix, print: FIX_APPLIED: {file:line} | {what changed}
+
+After all fixes: npm test
+
+PROHIBITED: committing, re-scoring, modifying code not cited in the issues
+End with: FIX_COMPLETE
+```
+
+**8d. Rescore via Bash** — collect `FIX_APPLIED` lines from fix agent, append to `{ALL_FIX_APPLIED}`. Build `{RESCORE_PROMPT}` using the Rescore Prompt template, injecting `{CURRENT_SCORE}` and the new `FIX_APPLIED` lines:
 
 ```bash
-# Read scores
+rm -f /tmp/lens-eval-scores.md
+{RESCORE_PROMPT}
 cat /tmp/lens-eval-scores.md
 rm -f /tmp/lens-eval-scores.md
 ```
 
-**8b. Orchestrator parses scores** — extract numeric scores for each dimension. Log the scoreboard using the format from evaluation SKILL.md. Save iteration 1 scores as `{INITIAL_SCORES}`.
+Parse `SCORE: NN/100` → update `{CURRENT_SCORE}`. Parse remaining `ISSUE:` lines → update `{CURRENT_ISSUES}`.
 
-**8c. Check threshold** — all dimensions >= 9? Break the loop.
+**Exit loop** if: no remaining issues, OR score did not improve from previous iteration, OR iteration limit reached.
 
-**8d. Spawn FIX agent** (`subagent_type: "general-purpose"`, model: `sonnet`):
+**End of loop.** Set `{FINAL_SCORE}` = `{CURRENT_SCORE}`, `{REMAINING_ISSUES}` = `{CURRENT_ISSUES}`.
 
-```
-Fix ONLY these issues in {TARGET}:
-
-{For each dimension below 9, ordered lowest-first:}
-{DIMENSION} ({SCORE}/10) — {JUSTIFICATION} — Weakest: {file:line}, ...
-
-For each fix, print: FIX_APPLIED: {dimension} | {file:line} | {what changed}
-
-After all fixes: npm test
-
-PROHIBITED: committing, re-scoring, modifying unrelated code
-End with: FIX_COMPLETE
-```
-
-**8e. Collect** `FIX_APPLIED` lines from fix agent output. Continue to next iteration.
-
-**8f. Lessons** — after the loop, spawn **LESSON agent** (`subagent_type: "general-purpose"`, model: `sonnet`):
+**8e. Lessons** — spawn LESSON agent (`subagent_type: "general-purpose"`, model: `sonnet`):
 
 ```
 Classify fixes and write evaluation outputs. Do NOT modify source code.
 
-Initial scores: {INITIAL_SCORES}
-Final scores: {FINAL_SCORES}
-Fixes applied:
-{ALL FIX_APPLIED LINES}
+Initial score: {INITIAL_SCORE}/100
+Final score: {FINAL_SCORE}/100
+Issues found: {ISSUES_LIST}
+Fixes applied: {ALL FIX_APPLIED LINES}
+Remaining issues: {REMAINING_ISSUES}
 
 Classify each fix using this tree:
 - Code pattern to avoid? YES + general → LESSON in both .claude/lessons.md and .claude/universal-lessons.md
@@ -391,7 +391,7 @@ Build: {TARGET}
   ✓ Refine    refactored + deduped
   ✓ Review    4 scans, {N} findings fixed
   ✓ Verify    {N} tests, 0 failures
-  ↻ Learn     lessons written
+  ✓ Evaluate  {initial}/100 → {final}/100, lessons written
 
 Rollback: /build --rollback
 ```
