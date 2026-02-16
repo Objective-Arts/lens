@@ -35,9 +35,9 @@
       "hash": "aa70c466d930703e",
       "modified": false
     },
-    "ai-smell-review": {
+    "ai-smell-fix": {
       "installedAt": "2026-02-12T17:41:22.674Z",
-      "sourceFile": "ai-smell-review/SKILL.md",
+      "sourceFile": "ai-smell-fix/SKILL.md",
       "hash": "d68680e212c14f2a",
       "modified": false
     }

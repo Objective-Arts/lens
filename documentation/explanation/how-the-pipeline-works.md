@@ -24,7 +24,7 @@ PRD → Phase 0:reference (Opus raw build, /build only)
 | 5 | deduplication | Haiku | Consolidate duplicated code. Pattern-matching only. |
 | 6 | review | Sonnet | 4 scan agents run in parallel (Gemini, Codex, Qodana, AI smell). Findings are deduped across all 4. One fix agent applies the unified list. |
 | 7 | testing | Sonnet | Write and run tests. |
-| 8 | evaluation | Sonnet | Codex review. Fix everything found. Write lessons for next run. |
+| 8 | evaluation | Sonnet | Codex scores 7 dimensions (1-10). Fix anything below 9. Re-score until all 9+ (max 3 iterations). Write lessons. |
 
 After phase 3, `scripts/quality-gate.ts` runs lint and code pattern checks. If it fails, phase 3 gets another shot (max 2 retries).
 

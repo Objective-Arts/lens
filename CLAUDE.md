@@ -9,7 +9,7 @@
 | `/build [path] [--rollback] [--dry-run]` | Build new feature with quality pipeline |
 | `/improve [path] [--rollback] [--dry-run]` | Improve existing code with quality pipeline |
 | `/quick-change [description]` | Simple changes done right — make it, clean it, report it |
-| `/ai-smell-review [path]` | Deep AI smell removal |
+| `/ai-smell-fix [path]` | Deep AI smell removal |
 | `/generate-docs [path]` | Generate documentation |
 
 **Read-only scans:**

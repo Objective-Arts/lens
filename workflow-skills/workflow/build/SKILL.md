@@ -21,7 +21,7 @@ Build a new feature using the full quality pipeline.
 5. **deduplication** — Consolidate
 6. **review** — Parallel scans, dedupe findings, fix
 7. **testing** — Write and run tests
-8. **evaluation** — Codex review, write lessons
+8. **evaluation** — Codex scores 7 dimensions, fix until all 9+, write lessons
 
 ```
 PRD → Phase 0:reference (Opus raw build)
@@ -47,6 +47,7 @@ PRD → Phase 0:reference (Opus raw build)
 |------|---------|
 | `--dry-run` | Show the phase table and stop |
 | `--rollback` | Restore from last build stash |
+| `--from N` | Skip to phase N (e.g., `--from review`, `--from 6`, `--from evaluation`) |
 
 ## Phase Table
 
@@ -60,7 +61,7 @@ PRD → Phase 0:reference (Opus raw build)
 | 5 | deduplication | haiku | DEDUPLICATION_COMPLETE | |
 | 6 | review | sonnet | REVIEW_COMPLETE | Parallel scans → dedupe → fix |
 | 7 | testing | sonnet | TESTING_COMPLETE | |
-| 8 | evaluation | sonnet | EVALUATION_COMPLETE | Codex review. Writes lessons. Quality gate runs after. |
+| 8 | evaluation | sonnet | EVALUATION_COMPLETE | Codex scores 7 dimensions. Fix until all 9+. Max 3 iterations. Quality gate runs after. |
 
 ## Orchestrator Rules
 
@@ -86,6 +87,15 @@ Then stop.
 ## Dry Run
 
 If `--dry-run`, print the phase table and stop.
+
+## Resume From
+
+If `--from` is set, skip all phases before the specified phase. Accept phase name or number:
+- `--from evaluation` or `--from 8` → skip to Phase 8
+- `--from review` or `--from 6` → skip to Phase 6
+- `--from testing` or `--from 7` → skip to Phase 7
+
+No rollback point is created when resuming (code already exists). Skip plan approval. Start execution at the specified step.
 
 ## Execution
 
@@ -122,7 +132,7 @@ For each phase, spawn a **single Task subagent** (`subagent_type: "general-purpo
 **Phase 1 prompt:**
 
 ```
-Read the skill file at .claude/phases/plan/SKILL.md
+Read the skill file at workflow-skills/workflow/plan/SKILL.md
 and execute ALL of its instructions against: {TARGET}
 
 You are planning HARDENING work against a reference implementation
@@ -138,7 +148,7 @@ When complete, end your final message with the marker: PLAN_COMPLETE
 **Phase 2 prompt:**
 
 ```
-Read the skill file at .claude/phases/structure/SKILL.md
+Read the skill file at workflow-skills/workflow/structure/SKILL.md
 and execute ALL of its instructions against: {TARGET}
 
 You are IMPROVING the structure of a reference implementation that
@@ -152,7 +162,7 @@ When complete, end your final message with the marker: STRUCTURE_COMPLETE
 **Phase 3 prompt (implementation):**
 
 ```
-Read the skill file at .claude/phases/implementation/SKILL.md
+Read the skill file at workflow-skills/workflow/implementation/SKILL.md
 and execute ALL of its instructions against: {TARGET}
 
 IMPORTANT: Follow the compile loop. For each unit: refresh the relevant
@@ -221,7 +231,7 @@ If non-zero, pass error output to Phase 3 for correction (max 2 retries).
 **Phase 4-5 prompt:**
 
 ```
-Read the skill file at .claude/phases/{SKILL_NAME}/SKILL.md
+Read the skill file at workflow-skills/workflow/{SKILL_NAME}/SKILL.md
 and execute ALL of its instructions against: {TARGET}
 
 Follow every step in the skill. Do not skip any steps.
@@ -232,7 +242,15 @@ When complete, end your final message with the marker: {GATE_MARKER}
 
 All reviewers see the **same code state**. One fix pass at the end.
 
-**4a. Parallel scans** — spawn 4 Task agents simultaneously:
+**5a. Insert canaries** — plant known violations before scans:
+
+```bash
+tsx scripts/quality-gate.ts insert-canaries review {TARGET}
+```
+
+This plants 3-5 known violations (bad names, shell injection, hardcoded secrets, `any` types, deep nesting) into random source files. If reviewers don't catch them, the review is invalid.
+
+**5b. Parallel scans** — spawn 4 Task agents simultaneously:
 
 - **Agent A (gemini-scan):** model: sonnet
   ```
@@ -282,12 +300,12 @@ All reviewers see the **same code state**. One fix pass at the end.
   End with: AI_SMELL_SCAN_DONE
   ```
 
-**4b. Deduplicate findings** — the orchestrator (not an agent) parses all 4 scan outputs:
+**5c. Deduplicate findings** — the orchestrator (not an agent) parses all 4 scan outputs:
 - Extract `[file:line] description` from each
 - Same file + line within 5 lines + similar description = one finding
 - Keep the most specific description
 
-**4c. Fix** — if findings exist, spawn 1 fix agent (model: sonnet):
+**5d. Fix** — if findings exist, spawn 1 fix agent (model: sonnet):
 
 ```
 Fix these review findings in {TARGET}:
@@ -309,6 +327,14 @@ When complete, end with: REVIEW_COMPLETE
 
 If no findings from any scan, skip the fix agent and emit REVIEW_COMPLETE.
 
+**5e. Validate canaries** — verify reviewers caught the planted violations:
+
+```bash
+tsx scripts/quality-gate.ts validate-canaries review {TARGET}
+```
+
+If any canaries were missed, the review is invalid. Re-run Phase 6 from 5a (max 2 retries). Canary validation also restores the original files — planted code is removed regardless of pass/fail.
+
 ### Step 6: Phases 7-8 (Verify)
 
 **Do NOT start Phase 7 until Phase 6 (review) has returned REVIEW_COMPLETE.** The review fix agent modifies code — testing against stale code produces false results.
@@ -316,7 +342,7 @@ If no findings from any scan, skip the fix agent and emit REVIEW_COMPLETE.
 **Phase 7 (testing) prompt:**
 
 ```
-Read the skill file at .claude/phases/testing/SKILL.md
+Read the skill file at workflow-skills/workflow/testing/SKILL.md
 and execute ALL of its instructions against: {TARGET}
 
 Follow every step in the skill. Do not skip any steps.
@@ -326,20 +352,31 @@ When complete, end your final message with the marker: TESTING_COMPLETE
 **Phase 8 (evaluation) prompt:**
 
 ```
-Read the skill file at .claude/phases/evaluation/SKILL.md
+Read the skill file at workflow-skills/workflow/evaluation/SKILL.md
 and execute ALL of its instructions against: {TARGET}
 
-You have access to the codex CLI. Codex is the reviewer.
+CRITICAL CONSTRAINTS — follow these exactly:
 
-Do NOT read any prior phase artifacts before reviews.
-Evaluate the source code with fresh eyes. Only read lessons.md files
-during the deduplication step AFTER findings are collected.
+1. CODEX ONLY. Do NOT use Gemini for evaluation. The evaluator is Codex.
+   Run: codex exec -s read-only -o /tmp/lens-eval-scores.md "<scorecard prompt>"
+   If codex CLI is unavailable, note it and skip scoring.
 
-FIX EVERYTHING: Every finding must be fixed — not summarized, not
-deferred. The only valid reason to skip is if fixing would break a
-known constraint.
+2. SCORE 7 DIMENSIONS (1-10 each, total out of 70):
+   Security, Structure, Error Handling, Naming, Complexity, Type Safety, Testability
 
-Follow every step in the skill. Do not skip any steps.
+3. ITERATE: If ANY dimension scores below 9:
+   a. Fix the weakest dimension first (read the justification + weakest files)
+   b. Re-score via Codex
+   c. Repeat until all dimensions hit 9+ OR max 3 iterations
+
+4. Do NOT read prior phase artifacts before scoring. Fresh eyes only.
+   Only read lessons.md files during the deduplication step AFTER scoring.
+
+5. Do NOT commit changes. Do NOT run git add or git commit.
+
+6. Write outputs: eval-report.md, lessons.md, universal-lessons.md
+
+Follow every step in the skill file. Do not skip any steps.
 When complete, end your final message with the marker: EVALUATION_COMPLETE
 ```
 
@@ -364,7 +401,7 @@ Build: {TARGET}
   ✓ Refine    refactored + deduped
   ✓ Review    4 scans, {N} findings fixed
   ✓ Verify    {N} tests, 0 failures
-  ✓ Evaluate  Codex review, lessons written
+  ✓ Evaluate  {initial}/70 → {final}/70, lessons written
 
 Rollback: /build --rollback
 ```

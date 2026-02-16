@@ -14,7 +14,9 @@ import { hashDirectoryContents, hashFileContents } from '../utils/hash.js';
 /** Skills visible as slash commands in Claude Code */
 const USER_FACING_SKILLS = new Set([
   'build', 'improve', 'quick-change',
-  'ai-smell-scan', 'ai-smell-review', 'generate-docs', 'lens'
+  'ai-smell-scan', 'ai-smell-fix', 'generate-docs', 'lens',
+  'code-scan', 'codex-scan', 'dedupe-scan', 'gemini-scan',
+  'naming-scan', 'qodana-scan', 'refactor-scan'
 ]);
 
 // Default workflow skills source (in-repo, relative to compiled output)
@@ -211,8 +213,9 @@ export function installWorkflowSkill(
 /**
  * Install all workflow skills to a project.
  *
- * User-facing skills go to `.claude/skills/` (visible as slash commands).
- * Internal phase skills go to `.claude/phases/` (used by build/improve, not visible).
+ * Only user-facing skills go to `.claude/skills/` (visible as slash commands).
+ * Internal phase skills are referenced directly from `workflow-skills/` by
+ * the build/improve orchestrators — no installation needed.
  */
 export function installAllWorkflowSkills(
   projectPath: string,
@@ -222,15 +225,16 @@ export function installAllWorkflowSkills(
   const results = { installed: [] as string[], skipped: [] as string[], errors: [] as string[] };
 
   const skillsDir = path.join(projectPath, '.claude', 'skills');
-  const phasesDir = path.join(projectPath, '.claude', 'phases');
-  if (!fs.existsSync(phasesDir)) fs.mkdirSync(phasesDir, { recursive: true });
 
   for (const skill of skills) {
-    const targetDir = USER_FACING_SKILLS.has(skill.name) ? skillsDir : phasesDir;
-    const result = installWorkflowSkill(skill.name, projectPath, { ...options, targetDir });
+    if (!USER_FACING_SKILLS.has(skill.name)) {
+      results.skipped.push(`${skill.name}: internal (referenced from workflow-skills/)`);
+      continue;
+    }
+    const result = installWorkflowSkill(skill.name, projectPath, { ...options, targetDir: skillsDir });
     if (result.success) {
       results.installed.push(skill.name);
-    } else if (!options.force && fs.existsSync(path.join(targetDir, skill.name))) {
+    } else if (!options.force && fs.existsSync(path.join(skillsDir, skill.name))) {
       results.skipped.push(`${skill.name}: already installed`);
     } else {
       results.errors.push(`${skill.name}: ${result.message}`);
@@ -311,13 +315,14 @@ export function checkWorkflowStatus(projectPath: string): WorkflowStatusInfo[] {
   const sourcePath = getWorkflowSourcePath();
   const sourceInfo = getWorkflowSourceInfo();
 
-  return Object.entries(manifest.skills).map(([skillName, info]) => {
-    const subdir = USER_FACING_SKILLS.has(skillName) ? 'skills' : 'phases';
-    const installedPath = path.join(projectPath, '.claude', subdir, skillName);
-    const sourceSkillPath = findWorkflowSkillPath(skillName) ?? path.join(sourcePath, skillName);
-    const status = determineSkillStatus(info, installedPath, sourceSkillPath, sourceInfo.commit);
-    return { ...status, name: skillName };
-  });
+  return Object.entries(manifest.skills)
+    .filter(([skillName]) => USER_FACING_SKILLS.has(skillName))
+    .map(([skillName, info]) => {
+      const installedPath = path.join(projectPath, '.claude', 'skills', skillName);
+      const sourceSkillPath = findWorkflowSkillPath(skillName) ?? path.join(sourcePath, skillName);
+      const status = determineSkillStatus(info, installedPath, sourceSkillPath, sourceInfo.commit);
+      return { ...status, name: skillName };
+    });
 }
 
 export function upgradeWorkflowSkills(
@@ -350,9 +355,11 @@ export function upgradeWorkflowSkills(
       continue;
     }
 
-    const targetDir = USER_FACING_SKILLS.has(status.name)
-      ? path.join(projectPath, '.claude', 'skills')
-      : path.join(projectPath, '.claude', 'phases');
+    if (!USER_FACING_SKILLS.has(status.name)) {
+      results.skipped.push(`${status.name}: internal (referenced from workflow-skills/)`);
+      continue;
+    }
+    const targetDir = path.join(projectPath, '.claude', 'skills');
     const result = installWorkflowSkill(status.name, projectPath, { force: true, targetDir });
     if (result.success) {
       results.upgraded.push(status.name);

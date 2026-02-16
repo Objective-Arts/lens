@@ -31,7 +31,7 @@ Multi-step processes that modify code. Each follows a scan → fix → verify pa
 | Skill | Purpose |
 |-------|---------|
 | `/refactoring` | Clean up and simplify code |
-| `/ai-smell-review` | Remove AI-generated code smells |
+| `/ai-smell-fix` | Remove AI-generated code smells |
 | `/gemini-review` | Gemini review + fix all issues |
 | `/qodana-review` | Qodana analysis + fix all issues |
 | `/deduplication` | Consolidate duplicated code |
@@ -42,7 +42,7 @@ Multi-step processes that modify code. Each follows a scan → fix → verify pa
 |-------|---------|
 | `/codex-review` | Codex review + fix all issues |
 | `/security-review` | Security audit + fix issues |
-| `/evaluation` | Final external review via Codex + Gemini |
+| `/evaluation` | Score-driven evaluation via Codex. Fixes until all dimensions 9+. |
 
 ## Usage
 
@@ -56,7 +56,7 @@ Multi-step processes that modify code. Each follows a scan → fix → verify pa
 /improve src/component.ts     # Improve existing (full pipeline)
 /quick-change add email field  # Simple change + cleanup
 /refactoring src/      # Refactor with verification
-/ai-smell-review src/            # Remove AI patterns
+/ai-smell-fix src/            # Remove AI patterns
 /gemini-review src/              # Gemini review + fix
 ```
 

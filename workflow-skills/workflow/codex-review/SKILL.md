@@ -76,7 +76,7 @@ If `codex` is not installed, fall back to Step 1b. If it fails for any other rea
 Run the review-bot.sh script bundled with this skill:
 
 ```bash
-SKILL_DIR="$(dirname "$(readlink -f .claude/phases/codex-review/SKILL.md)" 2>/dev/null || dirname .claude/phases/codex-review/SKILL.md)"
+SKILL_DIR="$(dirname "$(readlink -f workflow-skills/workflow/codex-review/SKILL.md)" 2>/dev/null || dirname workflow-skills/workflow/codex-review/SKILL.md)"
 bash "$SKILL_DIR/review-bot.sh" {TARGET} --run --out /tmp/lens-codex-report.json
 ```
 

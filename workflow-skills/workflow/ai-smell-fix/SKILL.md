@@ -1,9 +1,9 @@
 ---
-name: ai-smell-review
+name: ai-smell-fix
 description: Remove AI-generated code smells. Make code look human-written.
 ---
 
-# /ai-smell-review [path]
+# /ai-smell-fix [path]
 
 Hunt and remove AI-generated code patterns. Make code look like a skilled human wrote it.
 
@@ -12,7 +12,7 @@ Hunt and remove AI-generated code patterns. Make code look like a skilled human 
 ## First: Activate Workflow
 
 ```bash
-mkdir -p .claude && echo '{"skill":"ai-smell-review","started":"'$(date -Iseconds)'"}' > .claude/active-workflow.json
+mkdir -p .claude && echo '{"skill":"ai-smell-fix","started":"'$(date -Iseconds)'"}' > .claude/active-workflow.json
 ```
 
 ## The AI Smell Checklist
@@ -109,7 +109,7 @@ Append the specific finding with file paths and context:
 
 ```markdown
 ## {date} - {target path}
-### AI Smell Review Found (ai-smell-review)
+### AI Smell Review Found (ai-smell-fix)
 - {CATEGORY}: {specific description with file:line} → {which earlier phase should catch this and how}
 ```
 
