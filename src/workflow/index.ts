@@ -190,13 +190,22 @@ export function installWorkflowSkill(
 
   const dir = options.targetDir ?? path.join(projectPath, '.claude', 'skills');
   const targetPath = path.join(dir, skillName);
-  if (fs.existsSync(targetPath) && !options.force) {
+
+  // lstatSync detects broken symlinks that existsSync misses (existsSync follows links)
+  let targetExists = false;
+  let targetIsSymlink = false;
+  try {
+    const lstat = fs.lstatSync(targetPath);
+    targetExists = true;
+    targetIsSymlink = lstat.isSymbolicLink();
+  } catch { /* does not exist at all */ }
+
+  if (targetExists && !targetIsSymlink && !options.force) {
     return { success: false, message: `Skill already installed: ${skillName}. Use --force to overwrite.` };
   }
 
-  if (fs.existsSync(targetPath)) {
-    const stat = fs.lstatSync(targetPath);
-    if (stat.isSymbolicLink()) {
+  if (targetExists) {
+    if (targetIsSymlink) {
       fs.unlinkSync(targetPath);
     } else {
       fs.rmSync(targetPath, { recursive: true });

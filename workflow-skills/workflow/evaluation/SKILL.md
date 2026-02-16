@@ -23,24 +23,22 @@ If a rubric file doesn't exist, skip it and continue.
 The orchestrator runs this directly via Bash:
 
 ```
-cd {TARGET} && codex exec -s read-only -o /tmp/lens-eval-scores.md "PRODUCTION READINESS REVIEW
+cd {TARGET} && codex exec -s read-only -o /tmp/lens-eval-scores.md "CODE QUALITY REVIEW
 
-Rate this codebase for quality and production readiness on a scale of 1-100.
+Rate this codebase on a scale of 1-100. Evaluate everything: code quality, security, error handling, naming, structure, test coverage, CI/CD, documentation, and project hygiene.
 
 Also check against these criteria:
 {RUBRIC_CRITERIA}
 
-List every issue you find. For each issue, cite the file and line number.
+Every issue you report will be sent to an agent for fixing. Be specific — cite the exact file and line, and say exactly what needs to change.
 
-OUTPUT FORMAT (strict):
+OUTPUT FORMAT (strict — no prose, no strengths, no explanation):
 
 ISSUE: {file:line} — {description}
 ISSUE: {file:line} — {description}
 ...
 
-SCORE: NN/100
-
-Do not explain the scoring system. Do not add caveats. List issues, then score." 2>&1
+SCORE: NN/100" 2>&1
 ```
 
 ## Rescore Prompt
@@ -48,27 +46,22 @@ Do not explain the scoring system. Do not add caveats. List issues, then score."
 After fixes are applied, the orchestrator runs this to get the final score:
 
 ```
-cd {TARGET} && codex exec -s read-only -o /tmp/lens-eval-scores.md "PRODUCTION READINESS RE-SCORE
-
-You previously scored this codebase. Here was the result:
+cd {TARGET} && codex exec -s read-only -o /tmp/lens-eval-scores.md "CODE QUALITY RE-SCORE
 
 Previous score: {PREVIOUS_SCORE}/100
 
-These fixes were applied since that scoring:
+Fixes applied since last scoring:
 
 {FIX_APPLIED_LINES}
 
-Re-read the codebase. Rate quality and production readiness 1-100.
-List any remaining issues.
+Re-read the codebase and re-score 1-100. Every issue you report will be sent to an agent for fixing. Be specific.
 
-OUTPUT FORMAT (strict):
+OUTPUT FORMAT (strict — no prose, no strengths, no explanation):
 
 ISSUE: {file:line} — {description}
 ...
 
-SCORE: NN/100
-
-Do not explain the scoring system. Do not add caveats. List issues, then score." 2>&1
+SCORE: NN/100" 2>&1
 ```
 
 ## Classification Tree
