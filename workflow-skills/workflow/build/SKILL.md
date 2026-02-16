@@ -272,6 +272,8 @@ If no findings from any scan, skip the fix agent and emit REVIEW_COMPLETE.
 
 ### Step 5: Phases 7-8 (Verify)
 
+**Do NOT start Phase 7 until Phase 6 (review) has returned REVIEW_COMPLETE.** The review fix agent modifies code — testing against stale code produces false results.
+
 **Phase 7 (testing) prompt:**
 
 ```
