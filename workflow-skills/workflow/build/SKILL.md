@@ -57,7 +57,7 @@ Build a new feature using the full quality pipeline.
 | 5 | deduplication | haiku | DEDUPLICATION_COMPLETE | |
 | 6 | review | sonnet | REVIEW_COMPLETE | Parallel scans → dedupe → fix |
 | 7 | testing | sonnet | TESTING_COMPLETE | |
-| 8 | evaluation | sonnet | EVALUATION_COMPLETE | Loads rubrics. Writes lessons. Quality gate runs after. |
+| 8 | evaluation | Bash+sonnet | EVALUATION_COMPLETE | Orchestrator-owned: Bash scores via Codex, agent fixes. Max 3 iterations. |
 
 ## Orchestrator Rules
 
@@ -284,27 +284,93 @@ Follow every step in the skill. Do not skip any steps.
 When complete, end your final message with the marker: TESTING_COMPLETE
 ```
 
-**Phase 8 (evaluation) prompt:**
+**Phase 8 (evaluation) — orchestrator-owned loop:**
+
+The orchestrator owns the score-fix loop. Do NOT delegate evaluation to a single agent — agents fabricate scores.
+
+**Prepare:** Read `.claude/phases/evaluation/SKILL.md` for the scorecard prompt template, rescore prompt, scoreboard format, classification tree, and report template. Load rubrics per its Rubric Loading section. Build `{SCORECARD_PROMPT}` by inserting `{RUBRIC_CRITERIA}` into the scorecard template.
+
+**Score-fix loop** (max 3 iterations):
+
+**8a. Score via Bash (no agent):**
+
+```bash
+# Check Codex availability
+which codex 2>/dev/null && echo "CODEX_AVAILABLE" || echo "CODEX_UNAVAILABLE"
+```
+
+If `CODEX_UNAVAILABLE` on iteration 1: skip the loop, note in report, continue to 8d.
+
+```bash
+# Iteration 1: initial scorecard
+rm -f /tmp/lens-eval-scores.md
+{SCORECARD_PROMPT}
+
+# Iteration 2+: rescore with context
+rm -f /tmp/lens-eval-scores.md
+{RESCORE_PROMPT}
+```
+
+The orchestrator builds `{RESCORE_PROMPT}` using the Rescore Prompt template from
+`.claude/phases/evaluation/SKILL.md`, injecting `{PREVIOUS_SCORES_BLOCK}` (parsed scores
+from previous iteration) and `{FIX_APPLIED_LINES}` (collected from the FIX agent output).
+
+```bash
+# Read scores
+cat /tmp/lens-eval-scores.md
+rm -f /tmp/lens-eval-scores.md
+```
+
+**8b. Orchestrator parses scores** — extract numeric scores for each dimension. Log the scoreboard using the format from evaluation SKILL.md. Save iteration 1 scores as `{INITIAL_SCORES}`.
+
+**8c. Check threshold** — all dimensions >= 9? Break the loop.
+
+**8d. Spawn FIX agent** (`subagent_type: "general-purpose"`, model: `sonnet`):
 
 ```
-Read the skill file at .claude/phases/evaluation/SKILL.md
-and execute ALL of its instructions against: {TARGET}
+Fix ONLY these issues in {TARGET}:
 
-You have access to the mcp__gemini-reviewer__gemini_review tool
-and the codex CLI. Use both as instructed by the skill.
-Codex is the primary reviewer. Gemini is the secondary reviewer.
+{For each dimension below 9, ordered lowest-first:}
+{DIMENSION} ({SCORE}/10) — {JUSTIFICATION} — Weakest: {file:line}, ...
 
-Do NOT read any prior phase artifacts before reviews.
-Evaluate the source code with fresh eyes. Only read lessons.md files
-during the deduplication step AFTER findings are collected.
+For each fix, print: FIX_APPLIED: {dimension} | {file:line} | {what changed}
 
-FIX EVERYTHING: Every finding must be fixed — not summarized, not
-deferred. The only valid reason to skip is if fixing would break a
-known constraint.
+After all fixes: npm test
 
-Follow every step in the skill. Do not skip any steps.
-When complete, end your final message with the marker: EVALUATION_COMPLETE
+PROHIBITED: committing, re-scoring, modifying unrelated code
+End with: FIX_COMPLETE
 ```
+
+**8e. Collect** `FIX_APPLIED` lines from fix agent output. Continue to next iteration.
+
+**8f. Lessons** — after the loop, spawn **LESSON agent** (`subagent_type: "general-purpose"`, model: `sonnet`):
+
+```
+Classify fixes and write evaluation outputs. Do NOT modify source code.
+
+Initial scores: {INITIAL_SCORES}
+Final scores: {FINAL_SCORES}
+Fixes applied:
+{ALL FIX_APPLIED LINES}
+
+Classify each fix using this tree:
+- Code pattern to avoid? YES + general → LESSON in both .claude/lessons.md and .claude/universal-lessons.md
+- Code pattern to avoid? YES + project-specific → LESSON in .claude/lessons.md only
+- Suggests pipeline/tool change? → PROPOSAL in .claude/eval-proposals.md
+- Neither → eval-report.md only
+
+Category: LOGIC | DESIGN | CODE_QUALITY | DUPLICATION | AI_SMELL
+
+Read .claude/lessons.md and .claude/universal-lessons.md — skip duplicates.
+Write .claude/eval-report.md (replace file using template from
+.claude/phases/evaluation/SKILL.md Report Template section).
+Append to lessons + proposals.
+Verify writes by reading each file.
+
+End with: LESSONS_COMPLETE
+```
+
+The orchestrator checks for `FIX_COMPLETE` and `LESSONS_COMPLETE` markers. After the lesson agent completes, emit `EVALUATION_COMPLETE`.
 
 ### Step 6: Quality Gate (final)
 
