@@ -7,7 +7,7 @@ skills:
   canon:
     - sql              # SQL patterns, set-based thinking
     - sql-perf         # SQL performance, indexing
-    - java             # API design (for stored procs/functions)
+    - data-first       # Set-based thinking, data structures first
     - security-mindset # SQL injection prevention
 
 claudeMd:
