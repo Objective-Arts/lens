@@ -424,6 +424,107 @@ describe('applyComposableProfile - config deployment', () => {
   });
 });
 
+describe('canon skill symlinks into .claude/skills/', () => {
+  let tempDir: string;
+
+  beforeEach(() => {
+    tempDir = fs.mkdtempSync(path.join(tmpdir(), 'canon-symlink-test-'));
+  });
+
+  afterEach(() => {
+    if (tempDir && fs.existsSync(tempDir)) {
+      fs.rmSync(tempDir, { recursive: true, force: true });
+    }
+  });
+
+  it('creates relative symlinks from .claude/skills/ to ../canon/ for profile canon skills', async () => {
+    const profile: ComposableProfile = {
+      name: 'test-symlink',
+      composable: true,
+      skills: { canon: ['clarity', 'simplicity'] }
+    };
+
+    await applyComposableProfile(profile, tempDir);
+
+    const skillsDir = path.join(tempDir, '.claude', 'skills');
+
+    for (const skillName of ['clarity', 'simplicity']) {
+      const linkPath = path.join(skillsDir, skillName);
+      // Canon dir should have the actual copy
+      const canonPath = path.join(tempDir, '.claude', 'canon', skillName);
+      if (!fs.existsSync(canonPath)) continue; // Skill not found in library
+
+      const stat = fs.lstatSync(linkPath);
+      expect(stat.isSymbolicLink()).toBe(true);
+
+      const target = fs.readlinkSync(linkPath);
+      expect(target).toBe(path.join('..', 'canon', skillName));
+
+      // Symlink should resolve to a readable directory
+      expect(fs.statSync(linkPath).isDirectory()).toBe(true);
+    }
+  });
+
+  it('does not overwrite non-symlink entries in .claude/skills/', async () => {
+    const skillsDir = path.join(tempDir, '.claude', 'skills', 'clarity');
+    fs.mkdirSync(skillsDir, { recursive: true });
+    fs.writeFileSync(path.join(skillsDir, 'SKILL.md'), 'workflow version');
+
+    const profile: ComposableProfile = {
+      name: 'test-no-overwrite',
+      composable: true,
+      skills: { canon: ['clarity'] }
+    };
+
+    await applyComposableProfile(profile, tempDir);
+
+    // Should still be a real directory, not a symlink
+    const stat = fs.lstatSync(path.join(tempDir, '.claude', 'skills', 'clarity'));
+    expect(stat.isSymbolicLink()).toBe(false);
+
+    // Content should be preserved
+    const content = fs.readFileSync(path.join(tempDir, '.claude', 'skills', 'clarity', 'SKILL.md'), 'utf-8');
+    expect(content).toBe('workflow version');
+  });
+
+  it('replaces stale symlinks in .claude/skills/', async () => {
+    const skillsDir = path.join(tempDir, '.claude', 'skills');
+    fs.mkdirSync(skillsDir, { recursive: true });
+    // Create a stale symlink
+    fs.symlinkSync('../old-path/clarity', path.join(skillsDir, 'clarity'));
+
+    const profile: ComposableProfile = {
+      name: 'test-replace-stale',
+      composable: true,
+      skills: { canon: ['clarity'] }
+    };
+
+    await applyComposableProfile(profile, tempDir);
+
+    const linkPath = path.join(skillsDir, 'clarity');
+    const canonPath = path.join(tempDir, '.claude', 'canon', 'clarity');
+    if (fs.existsSync(canonPath)) {
+      const target = fs.readlinkSync(linkPath);
+      expect(target).toBe(path.join('..', 'canon', 'clarity'));
+    }
+  });
+
+  it('reports symlink results in linked array', async () => {
+    const profile: ComposableProfile = {
+      name: 'test-report',
+      composable: true,
+      skills: { canon: ['clarity'] }
+    };
+
+    const result = await applyComposableProfile(profile, tempDir);
+
+    const canonPath = path.join(tempDir, '.claude', 'canon', 'clarity');
+    if (fs.existsSync(canonPath)) {
+      expect(result.linked.some(l => l.includes('skills/clarity') && l.includes('canon/clarity'))).toBe(true);
+    }
+  });
+});
+
 describe('path traversal protection', () => {
   const testDir = path.join(tmpdir(), 'cc-traversal-test');
 

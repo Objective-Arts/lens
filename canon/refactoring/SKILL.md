@@ -1,284 +1,225 @@
 ---
 name: refactoring
-description: Refactoring patterns - improving code design without changing behavior
+description: Systematic code cleanup with MANDATORY verification. All issues must be fixed.
 ---
 
-# /refactoring — Refactoring Patterns
+# /refactoring [target]
 
-Channel Martin Fowler, Michael Feathers, and Joshua Kerievsky.
+Systematically refactor code. ALL identified issues must be fixed.
 
-## Core Philosophy
+> **No arguments?** Describe this skill and stop. Do not execute.
 
-"Refactoring is a disciplined technique for restructuring an existing body of code, altering its internal structure without changing its external behavior." — Fowler
+## First: Activate Workflow
 
-**The Two Hats:**
-- Adding functionality (don't change existing code)
-- Refactoring (don't add functionality)
-
-Never wear both hats at once.
-
-**Smell-driven, not pattern-driven.** Identify a smell first. Pick the minimum refactoring to fix it. Never scan for opportunities to introduce patterns.
-
-## Code Smells → Refactorings (Fowler)
-
-### Bloaters
-
-| Smell | Refactoring |
-|-------|-------------|
-| Long Method | Extract Method, Replace Temp with Query |
-| Large Class | Extract Class, Extract Subclass |
-| Long Parameter List | Introduce Parameter Object, Preserve Whole Object |
-| Data Clumps | Extract Class, Introduce Parameter Object |
-| Primitive Obsession | Replace Primitive with Object, Replace Type Code with Class |
-
-### Object-Orientation Abusers
-
-| Smell | Refactoring |
-|-------|-------------|
-| Switch Statements | Replace Conditional with Polymorphism |
-| Parallel Inheritance | Move Method, Move Field |
-| Lazy Class | Inline Class, Collapse Hierarchy |
-| Speculative Generality | Collapse Hierarchy, Inline Class, Remove Parameter |
-| Temporary Field | Extract Class, Introduce Null Object |
-
-### Change Preventers
-
-| Smell | Refactoring |
-|-------|-------------|
-| Divergent Change | Extract Class |
-| Shotgun Surgery | Move Method, Move Field, Inline Class |
-| Parallel Inheritance | Move Method, Move Field |
-
-### Dispensables
-
-| Smell | Refactoring |
-|-------|-------------|
-| Comments (as deodorant) | Extract Method, Rename Method |
-| Duplicate Code | Extract Method, Pull Up Method, Form Template Method |
-| Dead Code | Remove Dead Code |
-| Lazy Class | Inline Class |
-| Speculative Generality | Collapse Hierarchy, Remove Parameter |
-
-### Couplers
-
-| Smell | Refactoring |
-|-------|-------------|
-| Feature Envy | Move Method, Extract Method |
-| Inappropriate Intimacy | Move Method, Move Field, Hide Delegate |
-| Message Chains | Hide Delegate, Extract Method, Move Method |
-| Middle Man | Remove Middle Man, Inline Method |
-
-## Smell → Pattern Mappings (Kerievsky)
-
-Apply patterns **only** when a smell justifies the destination. The smell is the trigger — the pattern is the minimum fix.
-
-| Smell | Refactoring to Pattern | Justification Gate |
-|-------|------------------------|-------------------|
-| Repeated conditional on type | Replace Conditional with Strategy | 3+ branches on same discriminator |
-| Constructor with many combos | Replace Constructors with Builder | 4+ optional parameters, callers use different subsets |
-| Notification spaghetti | Replace Hard-Coded Notifications with Observer | 3+ listeners or listeners change at runtime |
-| Embedded algorithm varies | Replace Algorithm with Strategy | 2+ variants exist or are imminent |
-| Composite structure with type checks | Replace Implicit Tree with Composite | Recursive structure with uniform operations |
-| Accumulating decorations | Replace Layered Behavior with Decorator | Behaviors compose independently |
-| State-dependent conditionals | Replace State-Altering Conditionals with State | 3+ states with transition logic spread across methods |
-| Complex object creation | Replace Constructor with Factory Method | Creation varies by context or subtype |
-
-<never>
-Do NOT apply these patterns speculatively. Each row requires the smell to be present AND the justification gate to be met. A single switch statement is not enough for Strategy. Two constructor parameters is not enough for Builder.
-</never>
-
-## Working with Untested Code (Feathers)
-
-When code has no tests, you cannot safely refactor. Use these techniques to get tests in place first.
-
-### Characterization Tests
-
-Write tests that document **current behavior**, not intended behavior:
-
-1. Write a test you expect to fail
-2. Run it — observe the actual output
-3. Change the test to assert the actual output
-4. You now have a characterization test that locks existing behavior
-
-Characterization tests are not aspirational. They describe what the code does, not what it should do.
-
-### Finding Seams
-
-A **seam** is a place where you can alter behavior without editing the source. Three types:
-
-| Seam Type | How It Works | When to Use |
-|-----------|-------------|-------------|
-| **Object seam** | Override method in subclass or pass different implementation | Class with injectable dependency |
-| **Link seam** | Swap module/import at build or test time | Module-level dependency |
-| **Preprocessing seam** | Conditional compilation or feature flags | Build-time variation |
-
-### Dependency-Breaking Techniques
-
-Use these to get legacy code under test:
-
-| Technique | What It Does |
-|-----------|-------------|
-| **Extract Interface** | Create interface from class to enable substitution |
-| **Parameterize Constructor** | Pass dependency in instead of creating internally |
-| **Subclass and Override Method** | Override the problematic method in a test subclass |
-| **Extract and Override Call** | Move a hard-to-test call into its own method, override in test |
-| **Replace Global Reference with Getter** | Wrap global access in a method you can override |
-| **Introduce Instance Delegator** | Replace static method with instance method that delegates to it |
-
-### The Legacy Code Dilemma
-
-To refactor safely, you need tests. To add tests, you often need to refactor. Break the deadlock:
-
-1. Identify the **change point** — where you need to make your change
-2. Find the **seams** — places to inject test behavior
-3. Break **one dependency** using the simplest technique above
-4. Write **characterization tests** around the change point
-5. Now refactor safely
-
-## Key Refactorings (Mechanics)
-
-### Extract Method
-```javascript
-// Before
-function printOwing() {
-  printBanner();
-  // print details
-  console.log("name: " + name);
-  console.log("amount: " + getOutstanding());
-}
-
-// After
-function printOwing() {
-  printBanner();
-  printDetails(getOutstanding());
-}
-
-function printDetails(outstanding) {
-  console.log("name: " + name);
-  console.log("amount: " + outstanding);
-}
+```bash
+mkdir -p .claude && echo '{"skill":"refactoring","started":"'$(date -Iseconds)'"}' > .claude/active-workflow.json
 ```
 
-### Replace Conditional with Polymorphism
-```javascript
-// Before
-function getSpeed() {
-  switch (this.type) {
-    case 'european': return getBaseSpeed();
-    case 'african': return getBaseSpeed() - getLoadFactor() * numberOfCoconuts;
-    case 'norwegian_blue': return isNailed ? 0 : getBaseSpeed();
-  }
-}
+## Craft Standards (MANDATORY)
 
-// After
-class European extends Bird {
-  getSpeed() { return this.getBaseSpeed(); }
-}
-class African extends Bird {
-  getSpeed() { return this.getBaseSpeed() - this.getLoadFactor() * this.numberOfCoconuts; }
-}
-class NorwegianBlue extends Bird {
-  getSpeed() { return this.isNailed ? 0 : this.getBaseSpeed(); }
-}
+**Refactor toward code a master craftsperson would be proud of.**
+
+The goal is code that looks like it was written by a skilled human engineer, not generated by AI.
+
+### AI Antipatterns to ELIMINATE
+
+In addition to standard refactoring, actively hunt and remove:
+
+- Over-abstraction (factories/wrappers used only once → inline them)
+- Defensive paranoia (null checks where null is impossible → remove them)
+- Comment spam (`// increment counter` → delete it)
+- Speculative features (config options nobody uses → remove them)
+- Wrapper classes that add no value → unwrap them
+- Enterprise patterns in simple code → simplify ruthlessly
+
+### Human Craft to ACHIEVE
+
+After refactoring, code should have:
+- Functions that do exactly one thing
+- Names so clear they don't need comments
+- No code a senior engineer would delete
+- Every abstraction justified by actual use
+
+**Test:** Would someone reviewing this PR say "why is this here?" If yes, remove it.
+
+---
+
+## ⚠️ STRICT REQUIREMENTS - NO JUDGMENT CALLS
+
+You MUST check for and FIX all of these issues. Not "consider" - FIX:
+
+1. **FUNCTIONS > 30 LINES** - Split them. No exceptions.
+2. **FILES > 300 LINES** - Split into focused modules. Create thin re-export index if needed.
+3. **COMPLEXITY > 10** - Cyclomatic complexity too high. Flatten with early returns, extract helpers.
+4. **VAGUE NAMES** - Rename data/result/temp/item/info to meaningful names.
+5. **DUPLICATE CODE** - Extract to shared function. Run `lens dedupe` to find cross-file duplications.
+6. **CROSS-FILE DUPLICATION** - Same function in multiple files → extract to utils/.
+7. **DEEP NESTING** - Flatten with early returns.
+8. **MAGIC NUMBERS/STRINGS** - Extract to named constants.
+9. **MISSING ERROR HANDLING** - Add it.
+10. **GOD FILES** - Split files with multiple concerns.
+
+## FORBIDDEN (Phase will FAIL if detected):
+
+- Saying "could be improved" without fixing
+- Skipping issues because they're "minor"
+- Suggesting future refactorings instead of doing them
+- Leaving any identified issue unfixed
+- Tests failing after refactoring
+
+## Process
+
+### Step 0: Load Expert Guidance
+
+Before starting, read these canon skills and apply their principles throughout:
+
+**Always load (base brain — all 10):**
+1. `canon/clarity/SUMMARY.md`
+2. `canon/pragmatism/SUMMARY.md`
+3. `canon/simplicity/SUMMARY.md`
+4. `canon/composition/SUMMARY.md`
+5. `canon/distributed/SUMMARY.md`
+6. `canon/data-first/SUMMARY.md`
+7. `canon/correctness/SUMMARY.md`
+8. `canon/algorithms/SUMMARY.md`
+9. `canon/abstraction/SUMMARY.md`
+10. `canon/optimization/SUMMARY.md`
+
+**Then load (domain-specific):**
+11. `canon/design-patterns/SUMMARY.md`
+12. `canon/refactoring/SKILL.md`
+
+**Auto-detect domain canon (check files, load matches):**
+
+| Check | If found, also read |
+|-------|---------------------|
+| `*.ts` or `*.js` files in target | `canon/javascript/typescript/SUMMARY.md`, `canon/javascript/js-safety/SUMMARY.md`, `canon/javascript/js-perf/SUMMARY.md`, `canon/javascript/js-internals/SUMMARY.md`, `canon/javascript/functional/SUMMARY.md` |
+| `angular.json` in project root | `canon/angular/angular-arch/SUMMARY.md`, `canon/angular/angular-core/SUMMARY.md`, `canon/angular/angular-perf/SUMMARY.md`, `canon/angular/rxjs/SUMMARY.md` |
+| `package.json` contains `"react"` | `canon/javascript/react-state/SUMMARY.md`, `canon/javascript/react-test/SUMMARY.md`, `canon/javascript/reactivity/SUMMARY.md` |
+| `pom.xml` or `build.gradle` in project | `canon/java/SUMMARY.md` |
+| `*.py` files in target | `canon/python/python-advanced/SUMMARY.md`, `canon/python/python-idioms/SUMMARY.md`, `canon/python/python-patterns/SUMMARY.md`, `canon/python/python-protocols/SUMMARY.md` |
+| `*.cs` files or `*.csproj` in project | `canon/csharp/csharp-depth/SUMMARY.md`, `canon/csharp/type-systems/SUMMARY.md`, `canon/csharp/async/SUMMARY.md` |
+| `.tsx`, `.jsx`, or HTML template files | `canon/ui-ux/components/SUMMARY.md`, `canon/ui-ux/usability/SUMMARY.md`, `canon/ui-ux/tokens/SUMMARY.md` |
+| `d3` in package.json or imports | `canon/visualization/d3/SUMMARY.md`, `canon/visualization/charts/SUMMARY.md`, `canon/visualization/dashboards/SUMMARY.md` |
+| SQL files or ORM imports | `canon/database/sql/SUMMARY.md`, `canon/database/sql-perf/SUMMARY.md` |
+| Auth, tokens, secrets, encryption | `canon/security/security-mindset/SUMMARY.md`, `canon/security/owasp/SUMMARY.md`, `canon/security/web-security/SUMMARY.md` |
+
+If a skill file doesn't exist (not installed in this project), skip it and continue.
+List loaded experts in EXPERTS_LOADED. Tag each fix with `(via [expert-skill])` showing which expert drove it.
+
+### Step 0b: Learn From Past Mistakes
+
+Read both lessons files if they exist:
+1. `.claude/universal-lessons.md` — universal patterns (ships with skills, applies to all projects)
+2. `.claude/lessons.md` — project-specific patterns (accumulated from this project's runs)
+
+Add relevant lessons to your checklist of things to look for:
+
+- **CODE_QUALITY** entries → actively hunt for these patterns (e.g., dead exports, unused imports, redundant verification reads)
+- **LOGIC** entries → check for these bug patterns during refactoring (e.g., TOCTOU, missing validation)
+- **AI_SMELL** entries → look for single-use helpers to inline, JSDoc restating function names, impossible null checks, empty catch blocks
+
+If a file doesn't exist, skip it and continue.
+
+### Step 1: Identify Issues
+
+1. **Identify Issues** - Find all code quality problems
+2. **Fix Each One** - Use Edit tool to fix
+3. **Run Tests** - Verify behavior preserved
+4. **Report** - Document what was fixed
+
+## REQUIRED Output Format
+
+```markdown
+## Refactoring: [target]
+
+ISSUES_IDENTIFIED:
+- [file:line] [issue type] [description]
+- [file:line] [issue type] [description]
+
+REFACTORED:
+- [file:line] [issue type] - FIXED: [what was done] (via [expert-skill])
+- [file:line] [issue type] - FIXED: [what was done] (via [expert-skill])
+
+ISSUES_REMAINING: 0 (must be zero)
+
+REFACTOR_COUNT: N
+
+TESTS_PASS: yes
+
+EXPERTS_LOADED: [list of skill names actually read]
+
+REFACTORING_COMPLETE
 ```
 
-### Introduce Parameter Object
-```javascript
-// Before
-function amountInvoiced(startDate, endDate) { ... }
-function amountReceived(startDate, endDate) { ... }
-function amountOverdue(startDate, endDate) { ... }
+## Evidence Checklists (MANDATORY)
 
-// After
-class DateRange {
-  constructor(start, end) { this.start = start; this.end = end; }
-}
-function amountInvoiced(dateRange) { ... }
-function amountReceived(dateRange) { ... }
-function amountOverdue(dateRange) { ... }
+After refactoring, produce three evidence checklists. Write each to `.claude/evidence/` (create directory if needed).
+
+### Checklist 4a: Name Sufficiency
+
+Review EVERY exported function and constant. Write to `.claude/evidence/refactor-4a.md`:
+
+```markdown
+# Evidence: Refactor 4a — Name Sufficiency
+
+| Location | Item | Verdict | Reasoning |
+|----------|------|---------|-----------|
+| src/foo.ts:barFunction | Name describes behavior | PASS | Name clearly indicates what it does |
+| src/baz.ts:processData | Vague name | FAIL | 'processData' says nothing about what processing occurs |
 ```
 
-### Slide Statements (Fowler, 2nd ed.)
-```javascript
-// Before — related code is scattered
-const price = order.basePrice;
-sendConfirmation(order);
-const discount = calculateDiscount(price);
+### Checklist 4b: Single Responsibility
 
-// After — related code is together
-const price = order.basePrice;
-const discount = calculateDiscount(price);
-sendConfirmation(order);
+Review EVERY exported function. Write to `.claude/evidence/refactor-4b.md`:
+
+```markdown
+# Evidence: Refactor 4b — Single Responsibility
+
+| Location | Item | Verdict | Reasoning |
+|----------|------|---------|-----------|
+| src/foo.ts:createUser | Does one thing | PASS | Only creates user record |
+| src/bar.ts:handleRequest | Multiple concerns | FAIL | Validates, transforms, saves, and logs |
 ```
 
-### Replace Loop with Pipeline (Fowler, 2nd ed.)
-```javascript
-// Before
-const result = [];
-for (const person of people) {
-  if (person.age > 18) {
-    result.push(person.name);
-  }
-}
+### Checklist 4c: Magic Values
 
-// After
-const result = people
-  .filter(p => p.age > 18)
-  .map(p => p.name);
+Review for magic numbers and strings. Write to `.claude/evidence/refactor-4c.md`:
+
+```markdown
+# Evidence: Refactor 4c — Magic Values
+
+| Location | Item | Verdict | Reasoning |
+|----------|------|---------|-----------|
+| src/config.ts:10 | Timeout 5000 | PASS | Named constant TIMEOUT_MS |
+| src/auth.ts:24 | Literal "admin" | FAIL | Role string should be a constant |
 ```
 
-### Split Phase
-```javascript
-// Before — parsing and calculation interleaved
-function priceOrder(product, quantity, shippingMethod) {
-  const basePrice = product.basePrice * quantity;
-  const discount = Math.max(quantity - 500, 0) * product.basePrice * 0.05;
-  const shippingCost = calcShipping();
-  return basePrice - discount + shippingCost;
-}
+Every row must have a PASS or FAIL verdict. No blanks. The machine gate validates row counts against codebase counters — incomplete checklists block the pipeline.
 
-// After — separated into pricing phase and shipping phase
-function priceOrder(product, quantity, shippingMethod) {
-  const priceData = calculatePricingData(product, quantity);
-  return applyShipping(priceData, shippingMethod);
-}
-```
+## Pipeline Constraints
 
-## The Refactoring Process
+When running as part of a pipeline (called by `/build` or `/improve`):
 
-1. **Ensure tests pass** before starting
-2. **If no tests exist**, write characterization tests first (Feathers)
-3. **Make small changes** — one refactoring at a time
-4. **Run tests** after each change
-5. **Commit frequently** — each refactoring is a commit
-6. **If tests fail**, revert immediately
+**SCOPE CONSTRAINT:** Only modify code directly related to issues you identify. Do not refactor, rename, or restructure code that was not flagged as an issue.
 
-## When to Refactor
+**COMPLEXITY BUDGET:** After your changes, the codebase must have the same or fewer: files, exported functions, types/interfaces, and total lines. If your fix adds lines, find lines elsewhere to remove. Net-zero or net-negative. EXCEPTION: Security fixes are exempt.
 
-- **Rule of Three**: First time, just do it. Second time, wince. Third time, refactor.
-- **Before adding a feature**: Make the code easier to add the feature first (preparatory refactoring)
-- **During code review**: Spot smells, suggest refactorings
-- **When debugging**: If code is hard to understand, refactor first (comprehension refactoring)
+**NO SILENT FAILURES:** Do not change a throw/crash to a log-and-continue. Fail-fast on misconfiguration is always correct.
 
-## When NOT to Refactor
+## Validation (Phase will FAIL if violated)
 
-- Code is broken (fix bugs first)
-- Deadline is imminent (but schedule refactoring after)
-- Complete rewrite is needed
-- No tests exist and you can't find seams (write characterization tests first)
+- ISSUES_REMAINING > 0
+- TESTS_PASS: no
+- Issues identified but not in REFACTORED section
+- Any file > 300 lines after refactoring
+- Any function with cyclomatic complexity > 10 after refactoring
+- Evidence checklists missing or incomplete
 
-## Concrete Checks
+## 🛑 MANDATORY STOP
 
-- [ ] **Smell identified?** Name the specific Fowler smell before choosing a refactoring
-- [ ] **Minimum fix?** Is this the smallest refactoring that addresses the smell?
-- [ ] **Tests green before?** Did you run tests before touching anything?
-- [ ] **Tests green after?** Did you run tests after each individual change?
-- [ ] **Pattern justified?** If introducing a GoF pattern, does the Kerievsky justification gate pass?
-- [ ] **One hat?** Are you only refactoring, or are you sneaking in behavior changes?
+After refactoring:
+- DO NOT proceed to next phase
+- DO NOT continue with "let me also..."
 
-## References
-
-- "Refactoring: Improving the Design of Existing Code" (2nd ed.) — Martin Fowler
-- "Working Effectively with Legacy Code" — Michael Feathers
-- "Refactoring to Patterns" — Joshua Kerievsky
-- refactoring.com — Online catalog of refactorings
+**Your turn ends here.** Output REFACTORING_COMPLETE and STOP.

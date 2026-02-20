@@ -180,6 +180,37 @@ async function applySkillsToProject(
   recordCopyResults(copyResults, manifest, canonDir, canonPath, getGitCommit(canonPath), result);
   writeManifest(projectPath, manifest);
   result.created.push(`${CLAUDE_DIR_NAME}/canon-manifest.json`);
+
+  // Symlink profile-specified canon skills into .claude/skills/ so Claude Code discovers them.
+  const skillsDir = path.join(projectPath, CLAUDE_DIR_NAME, 'skills');
+  await fsPromises.mkdir(skillsDir, { recursive: true });
+
+  for (const cr of copyResults) {
+    if (cr.status === 'error') continue;
+    const linkPath = path.join(skillsDir, cr.skillName);
+    const relTarget = path.join('..', 'canon', cr.skillName);
+
+    try {
+      const stat = await fsPromises.lstat(linkPath);
+      if (stat.isSymbolicLink()) {
+        // Replace stale symlinks
+        await fsPromises.unlink(linkPath);
+      } else {
+        // Non-symlink exists (workflow skill) — don't overwrite
+        continue;
+      }
+    } catch {
+      // Doesn't exist — good, we'll create it
+    }
+
+    try {
+      await fsPromises.symlink(relTarget, linkPath);
+      result.linked.push(`skills/${cr.skillName} → canon/${cr.skillName}`);
+    } catch (error) {
+      const message = error instanceof Error ? error.message : String(error);
+      result.errors.push(`Failed to symlink skill ${cr.skillName}: ${message}`);
+    }
+  }
 }
 
 async function applyCommandsToProject(

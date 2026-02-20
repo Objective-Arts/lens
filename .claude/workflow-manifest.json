@@ -35,12 +35,162 @@
       "hash": "aa70c466d930703e",
       "modified": false
     },
-    "ai-smell-fix": {
-      "installedAt": "2026-02-12T17:41:22.674Z",
-      "sourceFile": "ai-smell-fix/SKILL.md",
-      "hash": "d68680e212c14f2a",
+    "ai-smell-review": {
+      "installedAt": "2026-02-18T22:08:56.463Z",
+      "sourceFile": "ai-smell-review/SKILL.md",
+      "hash": "cde6ca144ced3fdc",
+      "modified": false
+    },
+    "ralph-loop": {
+      "installedAt": "2026-02-18T22:08:56.376Z",
+      "sourceFile": "ralph-loop/SKILL.md",
+      "hash": "666cd46792ea371f",
+      "modified": false
+    },
+    "deadcode-scan": {
+      "installedAt": "2026-02-18T22:08:56.397Z",
+      "sourceFile": "deadcode-scan/SKILL.md",
+      "hash": "aeb9e914fcb15c40",
+      "modified": false
+    },
+    "dedupe-scan": {
+      "installedAt": "2026-02-18T22:08:56.401Z",
+      "sourceFile": "dedupe-scan/SKILL.md",
+      "hash": "64c5482b49cf46d7",
+      "modified": false
+    },
+    "explain-skill": {
+      "installedAt": "2026-02-18T22:08:56.408Z",
+      "sourceFile": "explain-skill/SKILL.md",
+      "hash": "732fc91c70499699",
+      "modified": false
+    },
+    "gemini-scan": {
+      "installedAt": "2026-02-18T22:08:56.415Z",
+      "sourceFile": "gemini-scan/SKILL.md",
+      "hash": "1cab850c3aa27ac1",
+      "modified": false
+    },
+    "generate-docs": {
+      "installedAt": "2026-02-18T22:08:56.427Z",
+      "sourceFile": "generate-docs/SKILL.md",
+      "hash": "c798d17347d03587",
+      "modified": false
+    },
+    "lens": {
+      "installedAt": "2026-02-18T22:08:56.431Z",
+      "sourceFile": "lens/SKILL.md",
+      "hash": "7c323d3732b3f8bb",
+      "modified": false
+    },
+    "naming-review": {
+      "installedAt": "2026-02-18T22:08:56.442Z",
+      "sourceFile": "naming-review/SKILL.md",
+      "hash": "a9856ee0c1bcb896",
+      "modified": false
+    },
+    "qodana-scan": {
+      "installedAt": "2026-02-18T22:08:56.447Z",
+      "sourceFile": "qodana-scan/SKILL.md",
+      "hash": "c8b02e9160b190e3",
+      "modified": false
+    },
+    "refactor-scan": {
+      "installedAt": "2026-02-18T22:08:56.451Z",
+      "sourceFile": "refactor-scan/SKILL.md",
+      "hash": "f09ea2c0ac3c646f",
+      "modified": false
+    },
+    "run-tests": {
+      "installedAt": "2026-02-18T22:08:56.455Z",
+      "sourceFile": "run-tests/SKILL.md",
+      "hash": "0921f27e3b58309d",
+      "modified": false
+    },
+    "build": {
+      "installedAt": "2026-02-18T22:08:56.470Z",
+      "sourceFile": "build/SKILL.md",
+      "hash": "770e2dc481383b2b",
+      "modified": false
+    },
+    "codex-review": {
+      "installedAt": "2026-02-18T22:08:56.473Z",
+      "sourceFile": "codex-review/SKILL.md",
+      "hash": "799d24c65d7e02e0",
+      "modified": false
+    },
+    "deduplication": {
+      "installedAt": "2026-02-18T22:08:56.477Z",
+      "sourceFile": "deduplication/SKILL.md",
+      "hash": "285edfe4793b39bf",
+      "modified": false
+    },
+    "evaluation": {
+      "installedAt": "2026-02-18T22:08:56.479Z",
+      "sourceFile": "evaluation/SKILL.md",
+      "hash": "227add962e954233",
+      "modified": false
+    },
+    "gemini-review": {
+      "installedAt": "2026-02-18T22:08:56.481Z",
+      "sourceFile": "gemini-review/SKILL.md",
+      "hash": "3ec84fc7f227062b",
+      "modified": false
+    },
+    "implementation": {
+      "installedAt": "2026-02-18T22:08:56.483Z",
+      "sourceFile": "implementation/SKILL.md",
+      "hash": "090efc8cf1bc1036",
+      "modified": false
+    },
+    "improve": {
+      "installedAt": "2026-02-18T22:08:56.485Z",
+      "sourceFile": "improve/SKILL.md",
+      "hash": "63cb96311ed3b782",
+      "modified": false
+    },
+    "plan": {
+      "installedAt": "2026-02-18T22:08:56.489Z",
+      "sourceFile": "plan/SKILL.md",
+      "hash": "e7fbd7b38158cbdd",
+      "modified": false
+    },
+    "qodana-review": {
+      "installedAt": "2026-02-18T22:08:56.492Z",
+      "sourceFile": "qodana-review/SKILL.md",
+      "hash": "149ef6deeafefb1b",
+      "modified": false
+    },
+    "quick-change": {
+      "installedAt": "2026-02-18T22:08:56.494Z",
+      "sourceFile": "quick-change/SKILL.md",
+      "hash": "2aafe95304040319",
+      "modified": false
+    },
+    "refactoring": {
+      "installedAt": "2026-02-18T22:08:56.496Z",
+      "sourceFile": "refactoring/SKILL.md",
+      "hash": "58d3820a8d8395c8",
+      "modified": false
+    },
+    "security-review": {
+      "installedAt": "2026-02-18T22:08:56.498Z",
+      "sourceFile": "security-review/SKILL.md",
+      "hash": "678f5f72eeb0a45f",
+      "modified": false
+    },
+    "structure": {
+      "installedAt": "2026-02-18T22:08:56.500Z",
+      "sourceFile": "structure/SKILL.md",
+      "hash": "a57e14257f265c71",
+      "modified": false
+    },
+    "testing": {
+      "installedAt": "2026-02-18T22:08:56.502Z",
+      "sourceFile": "testing/SKILL.md",
+      "hash": "5fb85a2060c40dc1",
       "modified": false
     }
   },
-  "scriptHash": "0a941b61dd8a7360"
+  "scriptHash": "95c7d8bc8307f021"
 }

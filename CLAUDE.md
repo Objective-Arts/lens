@@ -1,6 +1,6 @@
 ## Profiles Applied
 
-`typescript-cli`
+`sql`
 
 ## Available Commands
 
@@ -38,86 +38,34 @@
 
 ## Standards
 
-- Clarity over cleverness
-- Data structures first, algorithms follow
-- Small, composable interfaces
-- Do one thing and do it well
-- Handle failure explicitly
-- Correctness by construction
-- Get it working first, then optimize
-- Measure before optimizing
-- Subtypes must be substitutable
-- Think like an attacker
-- Validate all input, encode all output
-- Learn from failures
-- Safety is a system property
-- Let TypeScript infer types - annotate sparingly
-- Use discriminated unions for state machines
-- Prefer unknown over any, narrow with type guards
-- Use const assertions for literal types
-- Understand the type system, don't fight it
-- Avoid the bad parts - with, eval, implied globals
-- Understand closures, this binding, scope chain
-- Use strict mode always
-- Prefer composition over inheritance
-- Use async/await over raw promises
-- Understand the event loop - never block it
-- Handle promise rejections explicitly
-- Use const by default, let when reassignment needed
-- Prefer arrow functions for callbacks
-- Destructure objects and arrays
-- Use template literals for string interpolation
-- Prefer named exports over default exports
-- Use TypeScript strict mode
-- Do one thing well, compose with pipes
-- Exit codes matter - 0 for success, non-zero for failure
-- Stderr for errors and diagnostics, stdout for output
+- Think in sets, not loops
+- Index columns in WHERE clause
+- Leftmost prefix rule for composite indexes
+- Equality columns before range columns in indexes
+- Use explicit JOIN syntax, never comma-separated tables
+- Parameterized queries only, never string concatenation
+- NULL is not a value - use IS NULL, not = NULL
+- Avoid SELECT * - list columns explicitly
+- Use EXPLAIN ANALYZE to verify query plans
+- Prefer keyset pagination over OFFSET for large datasets
 
 ## Anti-Patterns (Avoid)
 
-- Clever code that requires comments to understand
-- Deep inheritance hierarchies
-- Ignoring error conditions
-- Premature optimization without measurement
-- Functions longer than 30 lines
-- Trusting user input
-- Security through obscurity
-- Violating substitution principle
-- God objects that do everything
-- Over-annotating types TypeScript can infer
-- Using any instead of unknown
-- Ignoring strict mode warnings
-- Type assertions (as) instead of type guards
-- Blocking the event loop with sync operations
-- Memory leaks from unclosed handles or listeners
-- var declarations (use const/let)
-- Implicit type coercion (use === and !==)
-- Global variables
-- Callback hell (use async/await)
-- Mutating function parameters
-- Ignoring promise rejections
-- Mixing stdout and stderr incorrectly
+- Cursors and row-by-row processing
+- SELECT * in production code
+- Implicit joins (comma-separated tables)
+- LIKE with leading wildcard (%term)
+- Functions on indexed columns in WHERE
+- String concatenation for SQL (injection risk)
+- DISTINCT as a fix for duplicate rows
+- ORDER BY ordinal position
+- Entity-Attribute-Value tables (EAV)
+- Too many single-column indexes
 
 ## Auto-Invoke Skills
 
 | Context | Action |
 |---------|--------|
-| Writing any code | Apply Base Brain lens (clarity, simplicity, composition, data-first, correctness) |
-| Performance-critical code | INVOKE `/optimization` for optimization patterns |
-| Algorithm design | INVOKE `/algorithms` for algorithmic rigor |
-| OOP design, inheritance, patterns | INVOKE `/abstraction` then `/design-patterns` |
-| Security-sensitive code (auth, input, data) | INVOKE `/security-mindset` then `/owasp` |
-| Writing tests | INVOKE `/test-doubles` for test patterns |
-| Working with legacy code | INVOKE `/legacy` for seams and characterization tests |
-| Writing documentation | INVOKE `/docs` for Diataxis, `/prose` for clarity |
-| Writing READMEs, comments, commit messages | INVOKE `/brevity` (omit needless words) and `/editing` (kill darlings) |
-| Analyzing failures or risks | INVOKE `/failure` and `/safety` |
-| TypeScript types, generics, inference, utility types | INVOKE /typescript |
-| Type guards, discriminated unions, exhaustive checks | INVOKE /typescript |
-| TypeScript compiler behavior, type system edge cases | INVOKE /type-systems |
-| JavaScript closures, this, scope, prototypes | INVOKE /js-internals |
-| JavaScript pitfalls, safe patterns | INVOKE /js-safety |
-| Async/await, promises, event loop | INVOKE /async |
-| Functional patterns, lodash-style operations | INVOKE /functional |
-| Module patterns, design patterns in JS | INVOKE /js-perf |
-| CLI argument parsing, stdin/stdout handling | INVOKE /composition and /simplicity |
+| Writing SQL queries, database operations | INVOKE `/sql` for set-based thinking |
+| Query performance, slow queries, indexes | INVOKE `/sql-perf` for optimization |
+| User input in queries, dynamic SQL | INVOKE `/security-mindset` then `/owasp` for injection prevention |

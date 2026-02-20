@@ -159,7 +159,7 @@ describe('lens CLI integration', () => {
       expect(fs.existsSync(path.join(testDir, '.claude', 'skills'))).toBe(true);
     });
 
-    it('copies skill files (not symlinks) to .claude/skills/', () => {
+    it('makes canon skills discoverable via .claude/skills/ symlinks', () => {
       runCli(`profile apply javascript ${testDir}`);
 
       const skillsDir = path.join(testDir, '.claude', 'skills');
@@ -168,10 +168,14 @@ describe('lens CLI integration', () => {
       // Should have at least one skill
       expect(entries.length).toBeGreaterThan(0);
 
-      // All should be real directories, not symlinks
+      // Canon skills are relative symlinks into ../canon/, workflow skills are real dirs.
+      // All entries should resolve to readable directories.
       for (const entry of entries) {
         const skillPath = path.join(skillsDir, entry);
-        expect(isSymlink(skillPath)).toBe(false);
+        if (isSymlink(skillPath)) {
+          const target = fs.readlinkSync(skillPath);
+          expect(target).toMatch(/^\.\.\/canon\//);
+        }
         expect(fs.statSync(skillPath).isDirectory()).toBe(true);
       }
     });

@@ -239,6 +239,107 @@ export function checkHardcodedSecrets(files: string[], base: string): Violation[
   return violations;
 }
 
+export function checkEmptyErrorHandling(files: string[], base: string): Violation[] {
+  const violations: Violation[] = [];
+
+  for (const file of files) {
+    const ext = path.extname(file);
+    const lines = fs.readFileSync(file, 'utf-8').split('\n');
+
+    for (let i = 0; i < lines.length; i++) {
+      const trimmed = lines[i].trimStart();
+      if (trimmed.startsWith('//') || trimmed.startsWith('#') || trimmed.startsWith('*')) continue;
+
+      // Python: except...: followed by pass
+      if (ext === '.py' && /^\s*except\b/.test(lines[i])) {
+        for (let j = i + 1; j < Math.min(i + 3, lines.length); j++) {
+          const next = lines[j].trim();
+          if (!next) continue;
+          if (next === 'pass') {
+            violations.push({ file: relativeTo(base, file), line: i + 1, check: 'empty-error-handler', message: 'except block only contains pass — handle or propagate the error' });
+          }
+          break;
+        }
+        continue;
+      }
+
+      // Ruby: rescue followed by end with nothing between
+      if (ext === '.rb' && /^\s*rescue\b/.test(lines[i])) {
+        for (let j = i + 1; j < Math.min(i + 3, lines.length); j++) {
+          const next = lines[j].trim();
+          if (!next) continue;
+          if (next === 'end') {
+            violations.push({ file: relativeTo(base, file), line: i + 1, check: 'empty-error-handler', message: 'rescue block is empty — handle or propagate the error' });
+          }
+          break;
+        }
+        continue;
+      }
+
+      // Brace languages: JS/TS, Java, C#, Go, PHP
+      let isCatch = /\bcatch\b/.test(lines[i]);
+      if (ext === '.go' && /if\s+err\s*!=\s*nil/.test(lines[i])) isCatch = true;
+      if (!isCatch || !lines[i].includes('{')) continue;
+
+      // Same-line empty: catch (e) {} or if err != nil {}
+      if (/\{\s*\}/.test(lines[i])) {
+        violations.push({ file: relativeTo(base, file), line: i + 1, check: 'empty-error-handler', message: 'Empty error handler — handle or propagate the error' });
+        continue;
+      }
+
+      // Multi-line: next non-blank line is just }
+      for (let j = i + 1; j < Math.min(i + 3, lines.length); j++) {
+        const next = lines[j].trim();
+        if (!next) continue;
+        if (next === '}') {
+          violations.push({ file: relativeTo(base, file), line: i + 1, check: 'empty-error-handler', message: 'Empty error handler — handle or propagate the error' });
+        }
+        break;
+      }
+    }
+  }
+  return violations;
+}
+
+export function checkTodoAccumulation(files: string[], base: string): Violation[] {
+  const violations: Violation[] = [];
+  const pattern = /\b(TODO|FIXME|HACK|XXX)\b/;
+
+  for (const file of files) {
+    const lines = fs.readFileSync(file, 'utf-8').split('\n');
+    let count = 0;
+    for (const line of lines) {
+      if (pattern.test(line)) count++;
+    }
+    if (count > 3) {
+      violations.push({ file: relativeTo(base, file), line: 1, check: 'todo-accumulation', message: `${count} TODO/FIXME/HACK markers (max 3 per file)` });
+    }
+  }
+  return violations;
+}
+
+export function checkHardcodedUrls(files: string[], base: string): Violation[] {
+  const violations: Violation[] = [];
+  const httpPattern = /http:\/\/(?!localhost|127\.0\.0\.1|0\.0\.0\.0|\[::1\]|example\.com|example\.org)/;
+  const ipPortPattern = /\b(\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}):(\d{1,5})\b/;
+
+  for (const file of files) {
+    const lines = fs.readFileSync(file, 'utf-8').split('\n');
+    for (let i = 0; i < lines.length; i++) {
+      const trimmed = lines[i].trimStart();
+      if (trimmed.startsWith('//') || trimmed.startsWith('#') || trimmed.startsWith('*') || trimmed.startsWith('<!--')) continue;
+      if (httpPattern.test(lines[i])) {
+        violations.push({ file: relativeTo(base, file), line: i + 1, check: 'insecure-http', message: 'http:// URL — use https:// or environment variable' });
+      }
+      const ipMatch = lines[i].match(ipPortPattern);
+      if (ipMatch && ipMatch[1] !== '127.0.0.1' && ipMatch[1] !== '0.0.0.0') {
+        violations.push({ file: relativeTo(base, file), line: i + 1, check: 'hardcoded-ip-port', message: 'Hardcoded IP:port — use environment variable or config' });
+      }
+    }
+  }
+  return violations;
+}
+
 // ─── JS/TS-Specific Custom Checks ───────────────────────────────────────────
 
 export function checkShellInjection(files: string[], base: string): Violation[] {
@@ -1187,6 +1288,9 @@ export function runGate(projectDir: string, skipLinters = false): GateResult {
   const allSourceFiles = collectSourceFiles(projectDir, allExtensions);
 
   violations.push(...checkHardcodedSecrets(allSourceFiles, projectDir));
+  violations.push(...checkEmptyErrorHandling(allSourceFiles, projectDir));
+  violations.push(...checkTodoAccumulation(allSourceFiles, projectDir));
+  violations.push(...checkHardcodedUrls(allSourceFiles, projectDir));
 
   if (languages.includes('typescript')) {
     const tsFiles = collectSourceFiles(projectDir, SOURCE_EXTENSIONS.typescript);
