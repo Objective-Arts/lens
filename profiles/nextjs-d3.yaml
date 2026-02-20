@@ -1,0 +1,58 @@
+name: nextjs-d3
+description: Next.js App Router + D3/Recharts + Supabase/Postgres fullstack
+projectType: software
+composable: true
+extends: d3
+
+ralph:
+  skills:
+    plan:
+      - nextjs           # Server/client boundary decisions
+      - sql              # Schema and query planning
+    build:
+      - nextjs           # App Router, Server Components, Server Actions
+      - sql              # Set-based data access
+      - typescript       # Type safety
+    refactor:
+      - nextjs           # Push client boundaries down
+      - sql-perf         # Query optimization
+    review:
+      - nextjs           # Server/client boundary review
+      - sql-perf         # Query plan review
+
+skills:
+  canon:
+    - nextjs           # App Router, RSC, Server Actions, middleware
+    - sql              # SQL patterns, set-based thinking
+    - sql-perf         # SQL performance, indexing, query plans
+
+claudeMd:
+  standards:
+    - "Server Components by default — only add 'use client' for interactivity"
+    - "Push 'use client' boundary to smallest leaf component"
+    - "Fetch data in Server Components, not via useEffect"
+    - "Use Server Actions for mutations, not custom API routes"
+    - "Parameterized queries only, never string concatenation"
+    - "Think in sets, not loops"
+    - "Use Supabase RLS — never trust client-side auth checks alone"
+    - "Avoid SELECT * — list columns explicitly"
+
+  antiPatterns:
+    - "'use client' on components that only display data"
+    - "useEffect fetch for data available at render time"
+    - "API routes that just proxy a database query (use Server Components)"
+    - "Passing server-only data (DB connections, secrets) through client boundary"
+    - "String concatenation for SQL (injection risk)"
+    - "Implicit joins (comma-separated tables)"
+    - "LIKE with leading wildcard (%term)"
+    - "Functions on indexed columns in WHERE"
+
+  autoInvoke:
+    - context: Next.js routing, layouts, Server Components, Server Actions, middleware
+      action: INVOKE `/nextjs`
+    - context: Writing SQL queries, Supabase queries, database operations
+      action: INVOKE `/sql` for set-based thinking
+    - context: Query performance, slow queries, indexes, RLS performance
+      action: INVOKE `/sql-perf` for optimization
+    - context: User input in queries, dynamic SQL, Supabase RPC
+      action: INVOKE `/security-mindset` then `/owasp` for injection prevention

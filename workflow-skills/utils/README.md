@@ -13,7 +13,7 @@ Single-purpose tools. Read-only scans, reports, and status checks.
 | `/dedupe-scan` | Find duplicated code patterns |
 | `/refactor-scan` | Find refactoring opportunities |
 | `/ai-smell-scan` | Detect AI-generated code smells |
-| `/naming-review` | Review names for clarity |
+| `/naming-scan` | Review names for clarity |
 
 ### Documentation
 

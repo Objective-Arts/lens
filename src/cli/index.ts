@@ -28,7 +28,7 @@ ${chalk.bold.yellow('CONFIGURE A PROJECT')}
   ${chalk.white('3.')} ${chalk.green('$')} claude                                  ${chalk.dim('Start Claude Code')}
 
   ${chalk.dim('Combine profiles with +: javascript+react, python+security, java+sql')}
-  ${chalk.dim('Copies canon skills to .claude/skills/, phases to .claude/phases/,')}
+  ${chalk.dim('Copies canon skills to .claude/skills/,')}
   ${chalk.dim('sets up CLAUDE.md with auto-invoke rules, and configures MCP servers.')}
 
 ${chalk.bold.yellow('INSIDE CLAUDE CODE')} ${chalk.dim('(slash commands after setup)')}
@@ -37,7 +37,7 @@ ${chalk.bold.yellow('INSIDE CLAUDE CODE')} ${chalk.dim('(slash commands after se
   ${chalk.cyan('/improve')} ${chalk.dim('path')}             Improve existing code (10 phases)
   ${chalk.cyan('/quick-change')} ${chalk.dim('desc')}        Simple change + cleanup
   ${chalk.cyan('/ai-smell-scan')} ${chalk.dim('path')}       Check for AI-generated patterns
-  ${chalk.cyan('/ai-smell-review')} ${chalk.dim('path')}        Fix AI-generated patterns
+  ${chalk.cyan('/ai-smell-fix')} ${chalk.dim('path')}        Fix AI-generated patterns
   ${chalk.cyan('/generate-docs')} ${chalk.dim('path')}       Generate documentation
   ${chalk.cyan('/lens')}                        Status, help, choices
 

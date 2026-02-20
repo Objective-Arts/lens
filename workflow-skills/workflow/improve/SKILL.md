@@ -14,13 +14,13 @@ Improve existing code using the full quality pipeline.
 `/improve` runs 8 phases on **existing** code:
 
 1. **plan** — Analyze what needs improvement
-2. **structure** — Map existing architecture, design changes
+2. **structure** — Improve the existing structure
 3. **implementation** — Apply the improvements
 4. **refactoring** — Refine structurally
 5. **deduplication** — Remove duplicates
 6. **review** — Parallel scans, dedupe findings, fix
 7. **testing** — Write and run tests
-8. **evaluation** — Final review, write lessons
+8. **evaluation** — Codex scores 7 dimensions, fix until all 9+, write lessons
 
 ```
 [rollback] → Phase 1:plan → [approval] → Phase 2:structure
@@ -45,19 +45,20 @@ Improve existing code using the full quality pipeline.
 |------|---------|
 | `--dry-run` | Show the phase table and stop |
 | `--rollback` | Restore from last improve stash |
+| `--from N` | Skip to phase N (e.g., `--from review`, `--from 6`, `--from evaluation`) |
 
 ## Phase Table
 
 | # | Skill | Model | Gate Marker | Notes |
 |---|-------|-------|-------------|-------|
 | 1 | plan | sonnet | PLAN_COMPLETE | Pause for user approval. Loads rubrics. |
-| 2 | structure | sonnet | STRUCTURE_COMPLETE | Map existing, design changes |
+| 2 | structure | sonnet | STRUCTURE_COMPLETE | Improve existing structure |
 | 3 | implementation | opus | IMPLEMENTATION_COMPLETE | Loop if partial (max 5). Quality gate runs after. |
 | 4 | refactoring | sonnet | REFACTORING_COMPLETE | |
 | 5 | deduplication | haiku | DEDUPLICATION_COMPLETE | |
 | 6 | review | sonnet | REVIEW_COMPLETE | Parallel scans → dedupe → fix |
 | 7 | testing | sonnet | TESTING_COMPLETE | |
-| 8 | evaluation | Bash+sonnet | EVALUATION_COMPLETE | Codex scores 1-100, fix→rescore loop (max 3), lessons. |
+| 8 | evaluation | sonnet | EVALUATION_COMPLETE | Orchestrator-owned loop: score (Codex) → fix → rescore. Max 3 iterations. Quality gate runs after. |
 
 ## Orchestrator Rules
 
@@ -84,6 +85,15 @@ Then stop.
 
 If `--dry-run`, print the phase table and stop.
 
+## Resume From
+
+If `--from` is set, skip all phases before the specified phase. Accept phase name or number:
+- `--from evaluation` or `--from 8` → skip to Phase 8
+- `--from review` or `--from 6` → skip to Phase 6
+- `--from testing` or `--from 7` → skip to Phase 7
+
+No rollback point is created when resuming (code already exists). Skip plan approval. Start execution at the specified step.
+
 ## Execution
 
 ### Step 0: Rollback Point
@@ -101,7 +111,7 @@ For each phase, spawn a **single Task subagent** (`subagent_type: "general-purpo
 **Phase 1-2 prompt:**
 
 ```
-Read the skill file at .claude/phases/{SKILL_NAME}/SKILL.md
+Read the skill file at workflow-skills/workflow/{SKILL_NAME}/SKILL.md
 and execute ALL of its instructions against: {TARGET}
 
 This is an IMPROVEMENT workflow on existing code. Focus on analysis,
@@ -116,7 +126,7 @@ When complete, end your final message with the marker: {GATE_MARKER}
 **Phase 3 prompt (implementation):**
 
 ```
-Read the skill file at .claude/phases/implementation/SKILL.md
+Read the skill file at workflow-skills/workflow/implementation/SKILL.md
 and execute ALL of its instructions against: {TARGET}
 
 This is an IMPROVEMENT workflow on existing code. Focus on analysis,
@@ -188,7 +198,7 @@ If non-zero, pass error output to Phase 3 for correction (max 2 retries).
 **Phase 4-5 prompt:**
 
 ```
-Read the skill file at .claude/phases/{SKILL_NAME}/SKILL.md
+Read the skill file at workflow-skills/workflow/{SKILL_NAME}/SKILL.md
 and execute ALL of its instructions against: {TARGET}
 
 This is an IMPROVEMENT workflow on existing code.
@@ -201,7 +211,15 @@ When complete, end your final message with the marker: {GATE_MARKER}
 
 All reviewers see the **same code state**. One fix pass at the end.
 
-**4a. Parallel scans** — spawn 4 Task agents simultaneously:
+**4a. Insert canaries** — plant known violations before scans:
+
+```bash
+tsx scripts/quality-gate.ts insert-canaries review {TARGET}
+```
+
+This plants 3-5 known violations (bad names, shell injection, hardcoded secrets, `any` types, deep nesting) into random source files. If reviewers don't catch them, the review is invalid.
+
+**4b. Parallel scans** — spawn 4 Task agents simultaneously:
 
 - **Agent A (gemini-scan):** model: sonnet
   ```
@@ -251,12 +269,12 @@ All reviewers see the **same code state**. One fix pass at the end.
   End with: AI_SMELL_SCAN_DONE
   ```
 
-**4b. Deduplicate findings** — the orchestrator (not an agent) parses all 4 scan outputs:
+**4c. Deduplicate findings** — the orchestrator (not an agent) parses all 4 scan outputs:
 - Extract `[file:line] description` from each
 - Same file + line within 5 lines + similar description = one finding
 - Keep the most specific description
 
-**4c. Fix** — if findings exist, spawn 1 fix agent (model: sonnet):
+**4d. Fix** — if findings exist, spawn 1 fix agent (model: sonnet):
 
 ```
 Fix these review findings in {TARGET}:
@@ -278,12 +296,20 @@ When complete, end with: REVIEW_COMPLETE
 
 If no findings from any scan, skip the fix agent and emit REVIEW_COMPLETE.
 
+**4e. Validate canaries** — verify reviewers caught the planted violations:
+
+```bash
+tsx scripts/quality-gate.ts validate-canaries review {TARGET}
+```
+
+If any canaries were missed, the review is invalid. Re-run Phase 6 from 4a (max 2 retries). Canary validation also restores the original files — planted code is removed regardless of pass/fail.
+
 ### Step 5: Phases 7-8 (Verify)
 
 **Phase 7 (testing) prompt:**
 
 ```
-Read the skill file at .claude/phases/testing/SKILL.md
+Read the skill file at workflow-skills/workflow/testing/SKILL.md
 and execute ALL of its instructions against: {TARGET}
 
 This is an IMPROVEMENT workflow on existing code.
@@ -292,74 +318,78 @@ Follow every step in the skill. Do not skip any steps.
 When complete, end your final message with the marker: TESTING_COMPLETE
 ```
 
-**Phase 8 (evaluation) — orchestrator-owned:**
+**Phase 8 (evaluation) — orchestrator-owned loop:**
 
-The orchestrator owns scoring and fix coordination. Scoring runs via Bash — never delegated to an agent.
+The orchestrator owns the score-fix loop. Do NOT delegate the entire evaluation to one agent.
 
-**Prepare:** Read `.claude/phases/evaluation/SKILL.md` for the scorecard prompt, rescore prompt, classification tree, and report template. Load rubrics per its Rubric Loading section. Build `{SCORECARD_PROMPT}` by inserting `{RUBRIC_CRITERIA}` into the scorecard template.
+**8a. Prepare:**
 
-**8a. Score via Bash (no agent):**
+Read `workflow-skills/workflow/evaluation/SKILL.md` for the scorecard prompt template, scoreboard format, classification tree, and report template. Load rubrics per its Rubric Loading section. Build `{SCORECARD_PROMPT}` by inserting `{RUBRIC_CRITERIA}` into the scorecard template.
 
-```bash
-which codex 2>/dev/null && echo "CODEX_AVAILABLE" || echo "CODEX_UNAVAILABLE"
-```
+**8b. Score-fix loop** (max 3 iterations):
 
-If `CODEX_UNAVAILABLE`: skip evaluation, note in report, continue to Step 6. Otherwise:
-
-```bash
-rm -f /tmp/lens-eval-scores.md
-{SCORECARD_PROMPT}
-cat /tmp/lens-eval-scores.md
-```
-
-**8b. Orchestrator parses output** — extract `ISSUE:` lines and the `SCORE: NN/100` line. Save as `{INITIAL_SCORE}` and `{ISSUES_LIST}`.
-
-**8c–8d. Fix→Rescore loop (max 3 iterations):**
-
-Set `{CURRENT_SCORE}` = `{INITIAL_SCORE}`, `{CURRENT_ISSUES}` = `{ISSUES_LIST}`, `{ALL_FIX_APPLIED}` = empty.
-
-**For each iteration** (while `{CURRENT_ISSUES}` is non-empty AND iteration <= 3):
-
-**8c. Fix all issues** — spawn FIX agent (`subagent_type: "general-purpose"`, model: `sonnet`):
+**i. Spawn SCORE agent** (`subagent_type: "general-purpose"`, model: `sonnet`):
 
 ```
-Fix ALL of these issues in {TARGET}:
+You have ONE task: run the Codex scorecard and report scores. Do NOTHING else.
 
-{CURRENT_ISSUES}
+1. which codex 2>/dev/null && echo "CODEX_AVAILABLE" || echo "CODEX_UNAVAILABLE"
+   If unavailable: print CODEX_UNAVAILABLE and end with SCORE_COMPLETE.
 
-For each fix, print: FIX_APPLIED: {file:line} | {what changed}
+2. Run this exact command:
+   {SCORECARD_PROMPT}
+
+3. cat /tmp/lens-eval-scores.md
+
+4. Print parsed scores in this EXACT format:
+   SCORE_SECURITY: N
+   SCORE_STRUCTURE: N
+   SCORE_ERROR_HANDLING: N
+   SCORE_NAMING: N
+   SCORE_COMPLEXITY: N
+   SCORE_TYPE_SAFETY: N
+   SCORE_TESTABILITY: N
+   SCORE_TOTAL: NN
+
+5. rm -f /tmp/lens-eval-scores.md
+
+PROHIBITED: editing files, committing, using Gemini, fixing code
+End with: SCORE_COMPLETE
+```
+
+**ii. Orchestrator parses scores** — extract `SCORE_*` lines from agent output. Log the scoreboard using the format from evaluation SKILL.md. Save iteration 1 scores as `{INITIAL_SCORES}`.
+
+If `CODEX_UNAVAILABLE` on iteration 1: skip the loop, note in report, continue to 8c.
+
+**iii. Check threshold** — all dimensions >= 9? Break the loop.
+
+**iv. Spawn FIX agent** (`subagent_type: "general-purpose"`, model: `sonnet`):
+
+```
+Fix ONLY these issues in {TARGET}:
+
+{For each dimension below 9, ordered lowest-first:}
+{DIMENSION} ({SCORE}/10) — {JUSTIFICATION} — Weakest: {file:line}, ...
+
+For each fix, print: FIX_APPLIED: {dimension} | {file:line} | {what changed}
 
 After all fixes: npm test
 
-PROHIBITED: committing, re-scoring, modifying code not cited in the issues
+PROHIBITED: committing, re-scoring, modifying unrelated code
 End with: FIX_COMPLETE
 ```
 
-**8d. Rescore via Bash** — collect `FIX_APPLIED` lines from fix agent, append to `{ALL_FIX_APPLIED}`. Build `{RESCORE_PROMPT}` using the Rescore Prompt template, injecting `{CURRENT_SCORE}` and the new `FIX_APPLIED` lines:
+**v. Collect** `FIX_APPLIED` lines from fix agent output. Continue to next iteration.
 
-```bash
-rm -f /tmp/lens-eval-scores.md
-{RESCORE_PROMPT}
-cat /tmp/lens-eval-scores.md
-rm -f /tmp/lens-eval-scores.md
-```
-
-Parse `SCORE: NN/100` → update `{CURRENT_SCORE}`. Parse remaining `ISSUE:` lines → update `{CURRENT_ISSUES}`.
-
-**Exit loop** if: no remaining issues, OR score did not improve from previous iteration, OR iteration limit reached.
-
-**End of loop.** Set `{FINAL_SCORE}` = `{CURRENT_SCORE}`, `{REMAINING_ISSUES}` = `{CURRENT_ISSUES}`.
-
-**8e. Lessons** — spawn LESSON agent (`subagent_type: "general-purpose"`, model: `sonnet`):
+**8c. Lessons** — after the loop, spawn **LESSON agent** (`subagent_type: "general-purpose"`, model: `sonnet`):
 
 ```
 Classify fixes and write evaluation outputs. Do NOT modify source code.
 
-Initial score: {INITIAL_SCORE}/100
-Final score: {FINAL_SCORE}/100
-Issues found: {ISSUES_LIST}
-Fixes applied: {ALL FIX_APPLIED LINES}
-Remaining issues: {REMAINING_ISSUES}
+Initial scores: {INITIAL_SCORES}
+Final scores: {FINAL_SCORES}
+Fixes applied:
+{ALL FIX_APPLIED LINES}
 
 Classify each fix using this tree:
 - Code pattern to avoid? YES + general → LESSON in both .claude/lessons.md and .claude/universal-lessons.md
@@ -371,14 +401,14 @@ Category: LOGIC | DESIGN | CODE_QUALITY | DUPLICATION | AI_SMELL
 
 Read .claude/lessons.md and .claude/universal-lessons.md — skip duplicates.
 Write .claude/eval-report.md (replace file using template from
-.claude/phases/evaluation/SKILL.md Report Template section).
+workflow-skills/workflow/evaluation/SKILL.md Report Template section).
 Append to lessons + proposals.
 Verify writes by reading each file.
 
 End with: LESSONS_COMPLETE
 ```
 
-The orchestrator checks for `FIX_COMPLETE` and `LESSONS_COMPLETE` markers. After the lesson agent completes, emit `EVALUATION_COMPLETE`.
+The orchestrator checks for `SCORE_COMPLETE`, `FIX_COMPLETE`, and `LESSONS_COMPLETE` markers. After the lesson agent completes, emit `EVALUATION_COMPLETE`.
 
 ### Step 6: Quality Gate (final)
 
@@ -399,7 +429,7 @@ Improve: {TARGET}
   ✓ Refine    refactored + deduped
   ✓ Review    4 scans, {N} findings fixed
   ✓ Verify    {N} tests, 0 failures
-  ✓ Evaluate  {initial}/100 → {final}/100, lessons written
+  ✓ Evaluate  {initial}/70 → {final}/70, lessons written
 
 Rollback: /improve --rollback
 ```

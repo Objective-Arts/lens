@@ -107,7 +107,7 @@ const WORKFLOW_SKILL_META: Record<string, { cmd: string; desc: string; category:
   'structure': { cmd: '/structure [path]', desc: 'Map architecture or design data structures', category: 'phase' },
   'implementation': { cmd: '/implementation [target]', desc: 'Implement code from plan', category: 'phase' },
   'refactoring': { cmd: '/refactoring [target]', desc: 'Systematic code cleanup', category: 'phase' },
-  'ai-smell-review': { cmd: '/ai-smell-review [path]', desc: 'Deep AI smell removal', category: 'phase' },
+  'ai-smell-fix': { cmd: '/ai-smell-fix [path]', desc: 'Deep AI smell removal', category: 'phase' },
   'deduplication': { cmd: '/deduplication [path]', desc: 'Consolidate duplicated code', category: 'phase' },
   'gemini-review': { cmd: '/gemini-review [path]', desc: 'Gemini review + fix all issues', category: 'phase' },
   'codex-review': { cmd: '/codex-review [path]', desc: 'Codex review + fix all issues', category: 'phase' },
@@ -123,7 +123,7 @@ const WORKFLOW_SKILL_META: Record<string, { cmd: string; desc: string; category:
   'ai-smell-scan': { cmd: '/ai-smell-scan [path]', desc: 'AI code patterns (report only)', category: 'scan' },
   'dedupe-scan': { cmd: '/dedupe-scan [path]', desc: 'Duplicate code (report only)', category: 'scan' },
   'codex-scan': { cmd: '/codex-scan [path]', desc: 'Codex pattern scan (report only)', category: 'scan' },
-  'naming-review': { cmd: '/naming-review [path]', desc: 'Name clarity check', category: 'scan' },
+  'naming-scan': { cmd: '/naming-scan [path]', desc: 'Name clarity check', category: 'scan' },
 
   // Utilities
   'lens': { cmd: '/lens', desc: 'Home base - status and help', category: 'utility' },

@@ -5,9 +5,9 @@ description: "Reference templates for Codex evaluation. Used by build/improve or
 
 # Evaluation Reference
 
-Templates for the Phase 8 evaluation loop. The orchestrator in `/build` and `/improve` reads these templates and runs scoring via Bash.
+Templates and formats for the Phase 8 evaluation loop. The orchestrator in `/build` and `/improve` reads these templates and injects them into single-purpose agents.
 
-**This file is NOT executed directly.** The orchestrator owns the score-fix loop. Scoring runs via `codex exec` in Bash — never delegated to an agent (agents fabricate scores).
+**This file is NOT executed directly.** The orchestrator owns the score-fix-lesson loop.
 
 ## Rubric Loading
 
@@ -20,48 +20,75 @@ If a rubric file doesn't exist, skip it and continue.
 
 ## Scorecard Prompt
 
-The orchestrator runs this directly via Bash:
+The orchestrator injects this into the SCORE agent's `codex exec` command:
 
 ```
-cd {TARGET} && codex exec -s read-only -o /tmp/lens-eval-scores.md "CODE QUALITY REVIEW
+cd {TARGET} && codex exec -s read-only -o /tmp/lens-eval-scores.md "PRODUCTION READINESS SCORECARD
 
-Rate this codebase on a scale of 1-100. Evaluate everything: code quality, security, error handling, naming, structure, test coverage, CI/CD, documentation, and project hygiene.
+Score this codebase 1-10 on each dimension. No partial credit — round to
+the nearest integer. A 5 means acceptable for production. Below 5 means
+you would block the PR. Above 5 means you would approve with confidence.
 
 Also check against these criteria:
 {RUBRIC_CRITERIA}
 
-Every issue you report will be sent to an agent for fixing. Be specific — cite the exact file and line, and say exactly what needs to change.
+1. SECURITY (1-10)
+   Injection, traversal, secrets, trust boundaries, input validation
 
-OUTPUT FORMAT (strict — no prose, no strengths, no explanation):
+2. STRUCTURE (1-10)
+   Single responsibility, file organization, dependency direction,
+   interface clarity, no god objects
 
-ISSUE: {file:line} — {description}
-ISSUE: {file:line} — {description}
-...
+3. ERROR HANDLING (1-10)
+   Cause chains preserved, no swallowed errors, explicit failure paths,
+   no log-and-continue
 
-SCORE: NN/100" 2>&1
+4. NAMING (1-10)
+   Intent-revealing names, no abbreviations, no generic names (data,
+   result, info, item), consistent vocabulary
+
+5. COMPLEXITY (1-10)
+   Function length, nesting depth, branching factor, parameter count,
+   cognitive load per function
+
+6. TYPE SAFETY (1-10)
+   No any, proper narrowing, discriminated unions where appropriate,
+   inference used correctly
+
+7. TESTABILITY (1-10)
+   Pure functions, injectable dependencies, observable behavior,
+   no hidden state
+
+OUTPUT FORMAT (strict — one line per dimension, then total):
+
+SECURITY: N/10 — one sentence justification. Top 3 weakest files: file:line, file:line, file:line
+STRUCTURE: N/10 — one sentence justification. Top 3 weakest files: file:line, file:line, file:line
+ERROR_HANDLING: N/10 — one sentence justification. Top 3 weakest files: file:line, file:line, file:line
+NAMING: N/10 — one sentence justification. Top 3 weakest files: file:line, file:line, file:line
+COMPLEXITY: N/10 — one sentence justification. Top 3 weakest files: file:line, file:line, file:line
+TYPE_SAFETY: N/10 — one sentence justification. Top 3 weakest files: file:line, file:line, file:line
+TESTABILITY: N/10 — one sentence justification. Top 3 weakest files: file:line, file:line, file:line
+
+TOTAL: NN/70
+
+Do not explain the scoring system. Do not add caveats. Score and justify." 2>&1
 ```
 
-## Rescore Prompt
+## Scoreboard Format
 
-After fixes are applied, the orchestrator runs this to get the final score:
+The orchestrator prints this after parsing SCORE agent output:
 
 ```
-cd {TARGET} && codex exec -s read-only -o /tmp/lens-eval-scores.md "CODE QUALITY RE-SCORE
-
-Previous score: {PREVIOUS_SCORE}/100
-
-Fixes applied since last scoring:
-
-{FIX_APPLIED_LINES}
-
-Re-read the codebase and re-score 1-100. Every issue you report will be sent to an agent for fixing. Be specific.
-
-OUTPUT FORMAT (strict — no prose, no strengths, no explanation):
-
-ISSUE: {file:line} — {description}
-...
-
-SCORE: NN/100" 2>&1
+EVAL_SCORES (iteration {N}):
+  Security:       {N}/10
+  Structure:      {N}/10
+  Error Handling: {N}/10
+  Naming:         {N}/10
+  Complexity:     {N}/10
+  Type Safety:    {N}/10
+  Testability:    {N}/10
+  TOTAL:          {NN}/70
+  Below 9:        {list of dimensions below 9, or "none"}
 ```
 
 ## Classification Tree
@@ -89,25 +116,26 @@ The LESSON agent replaces `.claude/eval-report.md` with:
 
 **Date:** {ISO date}
 **Evaluator:** Codex
-**Score:** {initial}/100 → {final}/100
+**Iterations:** {N}
 
-## Issues Found ({count})
+## Scores
 
-| # | File | Issue |
-|---|------|-------|
-| 1 | {file:line} | {description} |
+| Dimension | Initial | Final |
+|-----------|---------|-------|
+| Security | N/10 | N/10 |
+| Structure | N/10 | N/10 |
+| Error Handling | N/10 | N/10 |
+| Naming | N/10 | N/10 |
+| Complexity | N/10 | N/10 |
+| Type Safety | N/10 | N/10 |
+| Testability | N/10 | N/10 |
+| **Total** | **NN/70** | **NN/70** |
 
 ## Fixes Applied ({count})
 
-| # | File | Fix |
-|---|------|-----|
-| 1 | {file:line} | {what was fixed} |
-
-## Remaining Issues ({count})
-
-| # | File | Issue |
-|---|------|-------|
-| 1 | {file:line} | {description} |
+| # | Dimension | File | Fix |
+|---|-----------|------|-----|
+| 1 | {dim} | {file:line} | {what was fixed} |
 
 ## Lessons ({count})
 

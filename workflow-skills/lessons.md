@@ -1,6 +1,6 @@
 # Lessons (Universal)
 
-Cross-project patterns accumulated from review phases (ai-smell-review, gemini-review, qodana-review, security-review).
+Cross-project patterns accumulated from review phases (ai-smell-fix, gemini-review, qodana-review, security-review).
 Planning and implementation phases read this file to proactively avoid known mistakes.
 
 This file ships with workflow-skills/ and applies to ALL projects.

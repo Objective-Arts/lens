@@ -1,9 +1,9 @@
 ---
-name: naming-review
+name: naming-scan
 description: Review names for clarity principles. Find jargon, ambiguity, inconsistency.
 ---
 
-# /naming-review [path]
+# /naming-scan [path]
 
 Review names in code or configuration for clarity, consistency, and intent.
 
