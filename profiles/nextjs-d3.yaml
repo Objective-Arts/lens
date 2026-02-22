@@ -25,6 +25,7 @@ skills:
     - nextjs           # App Router, RSC, Server Actions, middleware
     - sql              # SQL patterns, set-based thinking
     - sql-perf         # SQL performance, indexing, query plans
+    - ui-ux            # Unified UI/UX design principles (12 masters)
 
 claudeMd:
   standards:
