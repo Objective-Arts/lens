@@ -9,7 +9,9 @@ import {
   listWorkflowSkills,
   checkWorkflowStatus,
   upgradeWorkflowSkills,
-  getWorkflowSourceInfo
+  getWorkflowSourceInfo,
+  pushWorkflowSkills,
+  listInstallations
 } from '../../workflow/index.js';
 import { printList } from '../display/index.js';
 
@@ -29,6 +31,13 @@ export function registerWorkflowCommands(program: Command): void {
     .action(handleUpgrade);
 
   workflowCmd.command('source').description('Show source info').action(handleSource);
+
+  workflowCmd.command('push').description('Push skill updates to all registered projects')
+    .option('-f, --force', 'Overwrite locally modified skills')
+    .action(handlePush);
+
+  workflowCmd.command('installations').description('List registered project installations')
+    .action(handleInstallations);
 }
 
 function handleList(): void {
@@ -105,4 +114,48 @@ function handleSource(): void {
   console.log(`Path:   ${chalk.cyan(info.path)}`);
   console.log(`Commit: ${info.commit ? chalk.yellow(info.commit) : chalk.gray('unknown')}`);
   console.log(`Remote: ${info.remote || chalk.gray('none')}`);
+}
+
+function handlePush(options: { force?: boolean }): void {
+  console.log(chalk.bold('\nPushing workflow skill updates...'));
+  const result = pushWorkflowSkills({ force: options.force });
+
+  if (result.pruned.length > 0) {
+    console.log(chalk.gray(`\nPruned ${result.pruned.length} stale registration(s):`));
+    for (const p of result.pruned) {
+      console.log(chalk.gray(`  - ${p}`));
+    }
+  }
+
+  printList('Updated', result.updated, chalk.green, '✓');
+  printList('Current', result.current, chalk.gray, '-');
+  printList('Errors', result.errors, chalk.red, '✗');
+
+  const total = result.updated.length + result.current.length;
+  if (total === 0 && result.errors.length === 0) {
+    console.log(chalk.gray('No registered installations found. Run `lns profile apply` in a project first.'));
+  } else if (result.errors.length === 0) {
+    console.log(chalk.green(`\nDone. ${result.updated.length} updated, ${result.current.length} already current.`));
+  }
+}
+
+function handleInstallations(): void {
+  const installations = listInstallations();
+
+  if (installations.length === 0) {
+    console.log(chalk.gray('No registered installations.'));
+    return;
+  }
+
+  console.log(chalk.bold('\nRegistered Installations'));
+  console.log(chalk.gray('─'.repeat(60)));
+
+  for (const { projectPath, entry } of installations) {
+    const profile = entry.profileName ? chalk.cyan(entry.profileName) : chalk.gray('unknown');
+    const updated = new Date(entry.lastUpdated).toLocaleDateString();
+    console.log(`  ${projectPath}`);
+    console.log(chalk.gray(`    Profile: ${profile}  Last updated: ${updated}`));
+  }
+
+  console.log(chalk.gray(`\nTotal: ${installations.length} project(s)`));
 }

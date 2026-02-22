@@ -20,7 +20,7 @@ import {
   getCanonSourcePath
 } from '../canon/index.js';
 import { getGitCommit, getGitRemote } from '../utils/git.js';
-import { installAllWorkflowSkills } from '../workflow/index.js';
+import { installAllWorkflowSkills, registerInstallation } from '../workflow/index.js';
 import { CLAUDE_DIR_NAME, SKILL_LIBRARY_PATHS, CANON_SUBDIRS, DEBUG } from './paths.js';
 import { SKILL_CATEGORIES } from './validation.js';
 import { applyMcpToProject } from './apply-mcp.js';
@@ -270,6 +270,9 @@ export async function applyComposableProfile(
   if (workflowResult.installed.length > 0) result.created.push(`Workflow skills: ${workflowResult.installed.join(', ')}`);
   result.skipped.push(...workflowResult.skipped.filter(s => !s.includes('already installed')));
   result.errors.push(...workflowResult.errors);
+
+  // Register with profile name for central push support
+  registerInstallation(projectPath, profile.name);
 
   await applyCommandsToProject(profile, projectPath, result);
 

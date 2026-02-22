@@ -8,17 +8,28 @@
  * 4. Status checking and upgrade categorization
  */
 
-import { describe, it, expect, afterAll } from 'vitest';
+import { describe, it, expect, afterAll, beforeEach, afterEach } from 'vitest';
 import * as fs from 'fs';
 import * as path from 'path';
 import { tmpdir } from 'os';
 import {
   installWorkflowSkill,
+  installAllWorkflowSkills,
   listWorkflowSkills,
   checkWorkflowStatus,
   upgradeWorkflowSkills,
-  getWorkflowSourceInfo
+  getWorkflowSourceInfo,
+  pushWorkflowSkills
 } from './index.js';
+import {
+  getRegistryPath,
+  loadRegistry,
+  saveRegistry,
+  registerInstallation,
+  unregisterInstallation,
+  listInstallations,
+  pruneRegistry
+} from './registry.js';
 
 describe('path traversal protection', () => {
   const testDir = path.join(tmpdir(), `workflow-traversal-test-${Date.now()}`);
@@ -189,5 +200,139 @@ describe('upgradeWorkflowSkills', () => {
     const testDir = path.join(tmpdir(), `workflow-upgrade-test-${Date.now()}`);
     const result = upgradeWorkflowSkills(testDir);
     expect(result.errors).toContain('No workflow manifest found');
+  });
+});
+
+describe('installation registry', () => {
+  let originalRegistry: string | null = null;
+  const registryPath = getRegistryPath();
+
+  beforeEach(() => {
+    // Back up existing registry
+    try {
+      originalRegistry = fs.readFileSync(registryPath, 'utf-8');
+    } catch {
+      originalRegistry = null;
+    }
+    // Start with empty registry
+    saveRegistry({ installations: {} });
+  });
+
+  afterEach(() => {
+    // Restore original registry
+    if (originalRegistry !== null) {
+      fs.writeFileSync(registryPath, originalRegistry);
+    } else {
+      try { fs.unlinkSync(registryPath); } catch { /* ignore */ }
+    }
+  });
+
+  it('register and list an installation', () => {
+    registerInstallation('/tmp/test-project-a');
+    const installations = listInstallations();
+    expect(installations).toHaveLength(1);
+    expect(installations[0].projectPath).toBe('/tmp/test-project-a');
+    expect(installations[0].entry.registeredAt).toBeTruthy();
+    expect(installations[0].entry.lastUpdated).toBeTruthy();
+  });
+
+  it('upsert preserves registeredAt and updates lastUpdated', () => {
+    registerInstallation('/tmp/test-project-b', 'sql');
+    const first = listInstallations()[0].entry;
+
+    // Small delay to ensure different timestamp
+    registerInstallation('/tmp/test-project-b', 'react');
+    const second = listInstallations()[0].entry;
+
+    expect(second.registeredAt).toBe(first.registeredAt);
+    expect(second.profileName).toBe('react');
+  });
+
+  it('unregister removes an entry', () => {
+    registerInstallation('/tmp/test-project-c');
+    expect(listInstallations()).toHaveLength(1);
+
+    unregisterInstallation('/tmp/test-project-c');
+    expect(listInstallations()).toHaveLength(0);
+  });
+
+  it('prune removes entries whose .claude/ dir does not exist', () => {
+    registerInstallation('/tmp/nonexistent-project-xyz');
+    expect(listInstallations()).toHaveLength(1);
+
+    const pruned = pruneRegistry();
+    expect(pruned).toContain('/tmp/nonexistent-project-xyz');
+    expect(listInstallations()).toHaveLength(0);
+  });
+
+  it('prune keeps entries with existing .claude/ dir', () => {
+    const testDir = path.join(tmpdir(), `registry-prune-test-${Date.now()}`);
+    fs.mkdirSync(path.join(testDir, '.claude'), { recursive: true });
+
+    registerInstallation(testDir);
+    const pruned = pruneRegistry();
+    expect(pruned).not.toContain(testDir);
+    expect(listInstallations()).toHaveLength(1);
+
+    fs.rmSync(testDir, { recursive: true });
+  });
+
+  it('loadRegistry returns empty object for missing file', () => {
+    try { fs.unlinkSync(registryPath); } catch { /* ignore */ }
+    const registry = loadRegistry();
+    expect(registry.installations).toEqual({});
+  });
+});
+
+describe('pushWorkflowSkills', () => {
+  let originalRegistry: string | null = null;
+  const registryPath = getRegistryPath();
+
+  beforeEach(() => {
+    try {
+      originalRegistry = fs.readFileSync(registryPath, 'utf-8');
+    } catch {
+      originalRegistry = null;
+    }
+    saveRegistry({ installations: {} });
+  });
+
+  afterEach(() => {
+    if (originalRegistry !== null) {
+      fs.writeFileSync(registryPath, originalRegistry);
+    } else {
+      try { fs.unlinkSync(registryPath); } catch { /* ignore */ }
+    }
+  });
+
+  it('returns empty results with no installations', () => {
+    const result = pushWorkflowSkills();
+    expect(result.updated).toEqual([]);
+    expect(result.current).toEqual([]);
+    expect(result.errors).toEqual([]);
+    expect(result.pruned).toEqual([]);
+  });
+
+  it('prunes stale entries during push', () => {
+    registerInstallation('/tmp/stale-push-project-xyz');
+    const result = pushWorkflowSkills();
+    expect(result.pruned).toContain('/tmp/stale-push-project-xyz');
+  });
+
+  it('upgrades a registered project with installed skills', () => {
+    const testDir = path.join(tmpdir(), `push-test-${Date.now()}`);
+    fs.mkdirSync(path.join(testDir, '.claude', 'skills'), { recursive: true });
+
+    // Install skills to create a manifest
+    installAllWorkflowSkills(testDir, { force: true });
+
+    // Register and push — project should appear in updated or current (rubric re-copy counts as upgrade)
+    registerInstallation(testDir);
+    const result = pushWorkflowSkills();
+    const allProcessed = [...result.updated, ...result.current];
+    expect(allProcessed).toContain(testDir);
+    expect(result.errors).toEqual([]);
+
+    fs.rmSync(testDir, { recursive: true });
   });
 });

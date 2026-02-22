@@ -10,6 +10,7 @@ import type {
 import { getGitCommit, getGitRemote } from '../utils/git.js';
 import { copyDirectorySync } from '../utils/fs.js';
 import { hashDirectoryContents, hashFileContents } from '../utils/hash.js';
+import { registerInstallation, listInstallations, pruneRegistry } from './registry.js';
 
 /** Skills visible as slash commands in Claude Code */
 const USER_FACING_SKILLS = new Set([
@@ -292,6 +293,9 @@ export function installAllWorkflowSkills(
     fs.copyFileSync(lessonsSource, lessonsTarget);
   }
 
+  // Register this project in the central installation registry
+  registerInstallation(projectPath);
+
   return results;
 }
 
@@ -426,4 +430,32 @@ export function upgradeWorkflowSkills(
   return results;
 }
 
+export function pushWorkflowSkills(
+  options?: { force?: boolean }
+): { updated: string[]; current: string[]; errors: string[]; pruned: string[] } {
+  const pruned = pruneRegistry();
+  const installations = listInstallations();
+  const results = { updated: [] as string[], current: [] as string[], errors: [] as string[], pruned };
+
+  for (const { projectPath, entry } of installations) {
+    try {
+      const upgrade = upgradeWorkflowSkills(projectPath, { force: options?.force });
+      if (upgrade.upgraded.length > 0) {
+        results.updated.push(projectPath);
+      } else {
+        results.current.push(projectPath);
+      }
+      // Update lastUpdated timestamp on success
+      registerInstallation(projectPath, entry.profileName);
+    } catch (error) {
+      const message = error instanceof Error ? error.message : String(error);
+      results.errors.push(`${projectPath}: ${message}`);
+    }
+  }
+
+  return results;
+}
+
+export { registerInstallation, listInstallations, pruneRegistry } from './registry.js';
+export type { InstallationEntry, InstallationRegistry } from './registry.js';
 export type { WorkflowSkillInfo, WorkflowStatusInfo };
