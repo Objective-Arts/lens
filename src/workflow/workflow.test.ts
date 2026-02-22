@@ -135,6 +135,24 @@ describe('installWorkflowSkill', () => {
     expect(result.message).toContain('already installed');
   });
 
+  it('updates stale skill when source differs', () => {
+    const skills = listWorkflowSkills();
+    if (skills.length === 0) return;
+
+    const skill = skills[0];
+    const installedSkillMd = path.join(testDir, '.claude', 'skills', skill.name, 'SKILL.md');
+    // Mutate the installed copy so its hash differs from source
+    fs.appendFileSync(installedSkillMd, '\n<!-- stale -->');
+
+    const result = installWorkflowSkill(skill.name, testDir);
+    expect(result.success).toBe(true);
+    expect(result.message).toContain('Updated');
+
+    // Verify the installed file no longer has our mutation
+    const content = fs.readFileSync(installedSkillMd, 'utf-8');
+    expect(content).not.toContain('<!-- stale -->');
+  });
+
   it('allows overwrite with force', () => {
     const skills = listWorkflowSkills();
     if (skills.length === 0) return;

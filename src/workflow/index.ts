@@ -203,8 +203,15 @@ export function installWorkflowSkill(
   } catch { /* does not exist at all */ }
 
   if (targetExists && !targetIsSymlink && !options.force) {
-    return { success: false, message: `Skill already installed: ${skillName}. Use --force to overwrite.` };
+    const installedHash = hashDirectoryContents(targetPath);
+    const sourceHash = hashDirectoryContents(validation.skillSourcePath);
+    if (installedHash === sourceHash) {
+      return { success: false, message: `Skill already installed: ${skillName}. Use --force to overwrite.` };
+    }
+    // Source changed — fall through to update
   }
+
+  const isUpdate = targetExists && !targetIsSymlink && !options.force;
 
   if (targetExists) {
     if (targetIsSymlink) {
@@ -216,6 +223,9 @@ export function installWorkflowSkill(
   copyDirectorySync(validation.skillSourcePath, targetPath);
   recordSkillInstall(projectPath, skillName, targetPath);
 
+  if (isUpdate) {
+    return { success: true, message: `Updated skill: ${skillName} (source changed)` };
+  }
   return { success: true, message: `Installed workflow skill: ${skillName}` };
 }
 

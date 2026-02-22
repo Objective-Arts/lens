@@ -46,6 +46,7 @@ Improve existing code using the full quality pipeline.
 | `--dry-run` | Show the phase table and stop |
 | `--rollback` | Restore from last improve stash |
 | `--from N` | Skip to phase N (e.g., `--from review`, `--from 6`, `--from evaluation`) |
+| `--auto-approve` | Skip plan approval after Phase 1 (auto-approve) |
 
 ## Phase Table
 
@@ -65,7 +66,7 @@ Improve existing code using the full quality pipeline.
 1. **NEVER do phase work yourself** — you are a sequencer, not an implementer
 2. **NEVER skip a phase** — every phase runs in order
 3. **NEVER proceed without gate marker** — the subagent result must contain the marker string
-4. **ALWAYS present Phase 1 plan to user for approval** before continuing
+4. **Present Phase 1 plan to user for approval** before continuing (unless `--auto-approve`)
 5. **ALWAYS create rollback point first** before any phase runs
 6. **ALWAYS record metrics** after each phase completes
 
@@ -121,7 +122,7 @@ Follow every step in the skill. Do not skip any steps.
 When complete, end your final message with the marker: {GATE_MARKER}
 ```
 
-**After Phase 1:** Read the plan file. Present the summary to the user. Ask for approval (Approve / Reject / Revise). Do not proceed until approved.
+**After Phase 1:** Read the plan file. Present the summary to the user. If `--auto-approve`: log "Plan auto-approved" and proceed. Otherwise: ask for approval (Approve / Reject / Revise). Do not proceed until approved.
 
 **Phase 3 prompt (implementation):**
 
@@ -445,7 +446,7 @@ After each subagent completes, check that its result contains the gate marker st
 
 | # | Mechanism | Where | What |
 |---|-----------|-------|------|
-| 1 | plan-approval | after Phase 1 | User approves plan before building |
+| 1 | plan-approval | after Phase 1 | User approves plan before building (skip with `--auto-approve`) |
 | 2 | quality-gate | after Phase 3, after Phase 8 | Phase 3: lint + code pattern checks. Phase 8: lint + tests + code pattern checks. |
 | 3 | implementation-loop | Phase 3 | Re-run for remaining work items. Max 5. |
 | 4 | gate-retry | all phases | Check for marker string. Retry 3x. |
