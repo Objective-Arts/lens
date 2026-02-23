@@ -9,6 +9,8 @@ Build a new feature using the full quality pipeline.
 
 > **No arguments?** Describe this skill and stop. Do not execute.
 
+> **First action:** Run `/clear` to free context for the pipeline. This is a long-running workflow — stale conversation history wastes context budget.
+
 ## What Is This?
 
 `/build` runs 9 phases in sequence:
@@ -39,7 +41,7 @@ PRD → Phase 0:reference (Opus raw build)
 
 - New feature from PRD, new component, new module
 
-**Don't use for:** Improving existing code → `/improve` | Simple changes → `/quick-change`
+**Don't use for:** Improving existing code → `/improve` | Simple changes → `/change`
 
 ## Flags
 
@@ -72,6 +74,8 @@ PRD → Phase 0:reference (Opus raw build)
 4. **Present Phase 1 plan to user for approval** before continuing (unless `--auto-approve`)
 5. **ALWAYS create rollback point first** before any phase runs
 6. **ALWAYS record metrics** after each phase completes
+7. **ALWAYS update `.claude/build-log/build-state.json`** after each phase completes
+8. **BEFORE each phase, re-read this skill file** (`workflow-skills/workflow/build/SKILL.md`) to refresh your instructions — context compaction may have removed them
 
 ## Rollback
 
@@ -98,9 +102,33 @@ If `--from` is set, skip all phases before the specified phase. Accept phase nam
 
 No rollback point is created when resuming (code already exists). Skip plan approval. Start execution at the specified step.
 
+**State restore:** Read `.claude/build-log/build-state.json` if it exists. Restore target path, stash ref, phase summaries, scores, and flags. This preserves metrics across conversations when context runs out mid-pipeline.
+
 ## Execution
 
-### Step 0: Phase 0 — Reference Build
+### Step 0: Clean Start + Phase 0 — Reference Build
+
+```bash
+rm -rf .claude/build-log && mkdir -p .claude/build-log
+```
+
+Initialize the state file:
+
+```bash
+# Write initial build-state.json
+```
+
+```json
+{
+  "target": "{TARGET}",
+  "startedAt": "{ISO_TIMESTAMP}",
+  "currentPhase": 0,
+  "stashRef": null,
+  "phaseResults": {},
+  "scores": {},
+  "flags": { "force": false, "autoApprove": false }
+}
+```
 
 Spawn a **single Task subagent** (`subagent_type: "general-purpose"`, model: `opus`) to build the feature from the PRD:
 
@@ -113,10 +141,16 @@ completeness. Do not worry about hardening — that comes later.
 PRD / Feature description: {TARGET}
 
 Write the code. Make it work. Make it feature-complete.
-When complete, end your final message with the marker: REFERENCE_COMPLETE
+
+OUTPUT RULES:
+Write a summary of what you built to .claude/build-log/phase-0-reference.md
+Your final message back MUST contain ONLY:
+  1. REFERENCE_COMPLETE on its own line
+  2. A single summary line (e.g. "Built 4 files: auth module with login, logout, session management")
+Do NOT return your full work log — the orchestrator reads the file when needed.
 ```
 
-When the reference build completes, report to the user what was built.
+When the reference build completes, update `build-state.json` with phase 0 result and report the summary to the user.
 
 ### Step 1: Rollback Point
 
@@ -141,10 +175,16 @@ that Opus already built. The code exists. Plan what needs to be
 improved, hardened, and fixed — not what needs to be created.
 
 Follow every step in the skill. Do not skip any steps.
-When complete, end your final message with the marker: PLAN_COMPLETE
+
+OUTPUT RULES:
+Write your full detailed output to .claude/build-log/phase-1-plan.md
+Your final message back MUST contain ONLY:
+  1. PLAN_COMPLETE on its own line
+  2. A single summary line (e.g. "12 hardening items planned across 4 files")
+Do NOT return your full work log — the orchestrator reads the file when needed.
 ```
 
-**After Phase 1:** Read the plan file. Present the summary to the user. If `--auto-approve`: log "Plan auto-approved" and proceed. Otherwise: ask for approval (Approve / Reject / Revise). Do not proceed until approved.
+**After Phase 1:** Read `.claude/build-log/phase-1-plan.md`. Present the summary to the user. If `--auto-approve`: log "Plan auto-approved" and proceed. Otherwise: ask for approval (Approve / Reject / Revise). Do not proceed until approved. Update `build-state.json`.
 
 **Phase 2 prompt:**
 
@@ -157,8 +197,16 @@ Opus already built. Analyze the architecture and improve it — assign
 quality contract types, fix boundaries, restructure where needed.
 
 Follow every step in the skill. Do not skip any steps.
-When complete, end your final message with the marker: STRUCTURE_COMPLETE
+
+OUTPUT RULES:
+Write your full detailed output to .claude/build-log/phase-2-structure.md
+Your final message back MUST contain ONLY:
+  1. STRUCTURE_COMPLETE on its own line
+  2. A single summary line (e.g. "3 modules restructured, 2 interfaces extracted")
+Do NOT return your full work log — the orchestrator reads the file when needed.
 ```
+
+Update `build-state.json` after Phase 2.
 
 **Phase 3 prompt (implementation):**
 
@@ -212,17 +260,25 @@ that passes on the first attempt:
   - No hardcoded IP:port values — use config/env vars
 
 Follow every step in the skill. Do not skip any steps.
-When complete, end your final message with the marker: IMPLEMENTATION_COMPLETE
+
+OUTPUT RULES:
+Write your full detailed output to .claude/build-log/phase-3-implementation.md
+Your final message back MUST contain ONLY:
+  1. IMPLEMENTATION_COMPLETE (or IMPLEMENTATION_PARTIAL) on its own line
+  2. A single summary line (e.g. "12 items implemented across 5 files")
+Do NOT return your full work log — the orchestrator reads the file when needed.
 ```
 
 **Phase 3 completion loop:** If output contains IMPLEMENTATION_PARTIAL, re-run targeting only remaining items. Max 5 iterations. If items remain after 5, report to user and ask whether to continue or halt.
+
+Update `build-state.json` after Phase 3.
 
 ### Step 3: Quality Gate (after Phase 3)
 
 Run via Bash (no subagent):
 
 ```bash
-tsx scripts/quality-gate.ts {TARGET}
+tsx .claude/scripts/quality-gate.ts {TARGET}
 ```
 
 If non-zero, pass error output to Phase 3 for correction (max 2 retries).
@@ -236,8 +292,16 @@ Read the skill file at workflow-skills/workflow/{SKILL_NAME}/SKILL.md
 and execute ALL of its instructions against: {TARGET}
 
 Follow every step in the skill. Do not skip any steps.
-When complete, end your final message with the marker: {GATE_MARKER}
+
+OUTPUT RULES:
+Write your full detailed output to .claude/build-log/phase-{N}-{SKILL_NAME}.md
+Your final message back MUST contain ONLY:
+  1. {GATE_MARKER} on its own line
+  2. A single summary line
+Do NOT return your full work log — the orchestrator reads the file when needed.
 ```
+
+Update `build-state.json` after each phase.
 
 ### Step 5: Phase 6 (Review)
 
@@ -246,7 +310,7 @@ All reviewers see the **same code state**. One fix pass at the end.
 **5a. Insert canaries** — plant known violations before scans:
 
 ```bash
-tsx scripts/quality-gate.ts insert-canaries review {TARGET}
+tsx .claude/scripts/quality-gate.ts insert-canaries review {TARGET}
 ```
 
 This plants 3-5 known violations (bad names, shell injection, hardcoded secrets, `any` types, deep nesting) into random source files. If reviewers don't catch them, the review is invalid.
@@ -262,10 +326,14 @@ This plants 3-5 known violations (bad names, shell injection, hardcoded secrets,
   1. focus: "general" — code quality, architecture, AI smells
   2. focus: "security" — think like an attacker, find vulnerabilities
 
-  Combine findings from both passes. Output all findings as:
+  Combine findings from both passes. Write all findings to .claude/build-log/scan-gemini.md as:
   [file:line] — description (severity)
 
-  End with: GEMINI_SCAN_DONE
+  OUTPUT RULES:
+  Your final message back MUST contain ONLY:
+    1. GEMINI_SCAN_DONE on its own line
+    2. A single summary line (e.g. "7 findings")
+  Do NOT return findings in your message — the orchestrator reads the file.
   ```
 
 - **Agent B (codex-scan):** model: sonnet
@@ -273,10 +341,14 @@ This plants 3-5 known violations (bad names, shell injection, hardcoded secrets,
   Read the skill at workflow-skills/utils/codex-scan/SKILL.md.
   Execute against: {TARGET}
 
-  Output all findings as:
+  Write all findings to .claude/build-log/scan-codex.md as:
   [file:line] — description (category)
 
-  End with: CODEX_SCAN_DONE
+  OUTPUT RULES:
+  Your final message back MUST contain ONLY:
+    1. CODEX_SCAN_DONE on its own line
+    2. A single summary line (e.g. "4 findings")
+  Do NOT return findings in your message — the orchestrator reads the file.
   ```
 
 - **Agent C (qodana-scan):** model: haiku
@@ -284,10 +356,14 @@ This plants 3-5 known violations (bad names, shell injection, hardcoded secrets,
   Read the skill at workflow-skills/utils/qodana-scan/SKILL.md.
   Execute against: {TARGET}
 
-  Output all findings as:
+  Write all findings to .claude/build-log/scan-qodana.md as:
   [file:line] — description (severity)
 
-  End with: QODANA_SCAN_DONE
+  OUTPUT RULES:
+  Your final message back MUST contain ONLY:
+    1. QODANA_SCAN_DONE on its own line
+    2. A single summary line (e.g. "3 findings")
+  Do NOT return findings in your message — the orchestrator reads the file.
   ```
 
 - **Agent D (ai-smell-scan):** model: haiku
@@ -295,23 +371,28 @@ This plants 3-5 known violations (bad names, shell injection, hardcoded secrets,
   Read the skill at workflow-skills/utils/ai-smell-scan/SKILL.md.
   Execute against: {TARGET}
 
-  Output all findings as:
+  Write all findings to .claude/build-log/scan-ai-smell.md as:
   [file:line] [smell type]: description
 
-  End with: AI_SMELL_SCAN_DONE
+  OUTPUT RULES:
+  Your final message back MUST contain ONLY:
+    1. AI_SMELL_SCAN_DONE on its own line
+    2. A single summary line (e.g. "5 findings")
+  Do NOT return findings in your message — the orchestrator reads the file.
   ```
 
-**5c. Deduplicate findings** — the orchestrator (not an agent) parses all 4 scan outputs:
+**5c. Deduplicate findings** — the orchestrator (not an agent) reads all 4 scan files:
+- Read `.claude/build-log/scan-gemini.md`, `scan-codex.md`, `scan-qodana.md`, `scan-ai-smell.md`
 - Extract `[file:line] description` from each
 - Same file + line within 5 lines + similar description = one finding
 - Keep the most specific description
+- Write deduplicated findings to `.claude/build-log/phase-6-review-findings.md`
 
 **5d. Fix** — if findings exist, spawn 1 fix agent (model: sonnet):
 
 ```
-Fix these review findings in {TARGET}:
-
-{DEDUPED_FINDINGS_LIST}
+Read the deduplicated findings from .claude/build-log/phase-6-review-findings.md
+Fix these review findings in {TARGET}.
 
 SCOPE CONSTRAINT: Only modify code directly related to findings.
 Do not refactor, rename, or restructure code that was not flagged.
@@ -323,7 +404,13 @@ EXCEPTION: Security fixes are exempt.
 NO SILENT FAILURES: Do not change a throw/crash to a log-and-continue.
 
 Apply each fix. Run tests after.
-When complete, end with: REVIEW_COMPLETE
+
+OUTPUT RULES:
+Write your detailed fix log to .claude/build-log/phase-6-review-fix.md
+Your final message back MUST contain ONLY:
+  1. REVIEW_COMPLETE on its own line
+  2. A single summary line (e.g. "Fixed 8 findings across 4 files")
+Do NOT return your full work log — the orchestrator reads the file when needed.
 ```
 
 If no findings from any scan, skip the fix agent and emit REVIEW_COMPLETE.
@@ -331,7 +418,7 @@ If no findings from any scan, skip the fix agent and emit REVIEW_COMPLETE.
 **5e. Validate canaries** — verify reviewers caught the planted violations:
 
 ```bash
-tsx scripts/quality-gate.ts validate-canaries review {TARGET}
+tsx .claude/scripts/quality-gate.ts validate-canaries review {TARGET}
 ```
 
 If any canaries were missed, the review is invalid. Re-run Phase 6 from 5a (max 2 retries). Canary validation also restores the original files — planted code is removed regardless of pass/fail.
@@ -347,8 +434,16 @@ Read the skill file at workflow-skills/workflow/testing/SKILL.md
 and execute ALL of its instructions against: {TARGET}
 
 Follow every step in the skill. Do not skip any steps.
-When complete, end your final message with the marker: TESTING_COMPLETE
+
+OUTPUT RULES:
+Write your full detailed output to .claude/build-log/phase-7-testing.md
+Your final message back MUST contain ONLY:
+  1. TESTING_COMPLETE on its own line
+  2. A single summary line (e.g. "23 tests written, all passing")
+Do NOT return your full work log — the orchestrator reads the file when needed.
 ```
+
+Update `build-state.json` after Phase 7.
 
 **Phase 8 (evaluation) — orchestrator-owned loop:**
 
@@ -373,7 +468,7 @@ You have ONE task: run the Codex scorecard and report scores. Do NOTHING else.
 
 3. cat /tmp/lens-eval-scores.md
 
-4. Print parsed scores in this EXACT format:
+4. Write parsed scores to .claude/build-log/phase-8-scores.md in this EXACT format:
    SCORE_SECURITY: N
    SCORE_STRUCTURE: N
    SCORE_ERROR_HANDLING: N
@@ -386,10 +481,15 @@ You have ONE task: run the Codex scorecard and report scores. Do NOTHING else.
 5. rm -f /tmp/lens-eval-scores.md
 
 PROHIBITED: editing files, committing, using Gemini, fixing code
-End with: SCORE_COMPLETE
+
+OUTPUT RULES:
+Your final message back MUST contain ONLY:
+  1. SCORE_COMPLETE on its own line
+  2. The total score (e.g. "Total: 58/70")
+Do NOT return full scores — the orchestrator reads .claude/build-log/phase-8-scores.md.
 ```
 
-**ii. Orchestrator parses scores** — extract `SCORE_*` lines from agent output. Log the scoreboard using the format from evaluation SKILL.md. Save iteration 1 scores as `{INITIAL_SCORES}`.
+**ii. Orchestrator parses scores** — read `.claude/build-log/phase-8-scores.md` and extract `SCORE_*` lines. Log the scoreboard using the format from evaluation SKILL.md. Save iteration 1 scores as `{INITIAL_SCORES}`. Update `build-state.json` with scores.
 
 If `CODEX_UNAVAILABLE` on iteration 1: skip the loop, note in report, continue to 8c.
 
@@ -398,30 +498,38 @@ If `CODEX_UNAVAILABLE` on iteration 1: skip the loop, note in report, continue t
 **iv. Spawn FIX agent** (`subagent_type: "general-purpose"`, model: `sonnet`):
 
 ```
+Read scores from .claude/build-log/phase-8-scores.md.
 Fix ONLY these issues in {TARGET}:
 
 {For each dimension below 9, ordered lowest-first:}
 {DIMENSION} ({SCORE}/10) — {JUSTIFICATION} — Weakest: {file:line}, ...
 
-For each fix, print: FIX_APPLIED: {dimension} | {file:line} | {what changed}
+For each fix, write to .claude/build-log/phase-8-fixes.md:
+FIX_APPLIED: {dimension} | {file:line} | {what changed}
 
 After all fixes: npm test
 
 PROHIBITED: committing, re-scoring, modifying unrelated code
-End with: FIX_COMPLETE
+
+OUTPUT RULES:
+Your final message back MUST contain ONLY:
+  1. FIX_COMPLETE on its own line
+  2. A single summary line (e.g. "Fixed 3 dimensions across 5 files")
+Do NOT return your full work log — the orchestrator reads the file when needed.
 ```
 
-**v. Collect** `FIX_APPLIED` lines from fix agent output. Continue to next iteration.
+**v. Read** `FIX_APPLIED` lines from `.claude/build-log/phase-8-fixes.md`. Continue to next iteration.
 
 **8c. Lessons** — after the loop, spawn **LESSON agent** (`subagent_type: "general-purpose"`, model: `sonnet`):
 
 ```
 Classify fixes and write evaluation outputs. Do NOT modify source code.
 
+Read scores and fixes from:
+- .claude/build-log/phase-8-scores.md (final scores)
+- .claude/build-log/phase-8-fixes.md (all fixes applied)
+
 Initial scores: {INITIAL_SCORES}
-Final scores: {FINAL_SCORES}
-Fixes applied:
-{ALL FIX_APPLIED LINES}
 
 Classify each fix using this tree:
 - Code pattern to avoid? YES + general → LESSON in both .claude/lessons.md and .claude/universal-lessons.md
@@ -434,23 +542,30 @@ Category: LOGIC | DESIGN | CODE_QUALITY | DUPLICATION | AI_SMELL
 Read .claude/lessons.md and .claude/universal-lessons.md — skip duplicates.
 Write .claude/eval-report.md (replace file using template from
 workflow-skills/workflow/evaluation/SKILL.md Report Template section).
+Write detailed evaluation log to .claude/build-log/phase-8-evaluation.md
 Append to lessons + proposals.
 Verify writes by reading each file.
 
-End with: LESSONS_COMPLETE
+OUTPUT RULES:
+Your final message back MUST contain ONLY:
+  1. LESSONS_COMPLETE on its own line
+  2. A single summary line (e.g. "3 lessons written, 1 proposal filed")
+Do NOT return your full work log — the orchestrator reads the file when needed.
 ```
 
-The orchestrator checks for `SCORE_COMPLETE`, `FIX_COMPLETE`, and `LESSONS_COMPLETE` markers. After the lesson agent completes, emit `EVALUATION_COMPLETE`.
+The orchestrator checks for `SCORE_COMPLETE`, `FIX_COMPLETE`, and `LESSONS_COMPLETE` markers. After the lesson agent completes, update `build-state.json` and emit `EVALUATION_COMPLETE`.
 
 ### Step 7: Quality Gate (final)
 
 ```bash
-npm test && tsx scripts/quality-gate.ts {TARGET}
+npm test && tsx .claude/scripts/quality-gate.ts {TARGET}
 ```
 
 If non-zero, pass error to Phase 7 (testing) for correction (max 2 retries). After Phase 7 fixes and gate passes, do NOT re-run Phase 8.
 
 ### Step 8: Report
+
+Read `build-state.json` to assemble the summary using phase summaries:
 
 ```
 Build: {TARGET}
@@ -470,9 +585,9 @@ Rollback: /build --rollback
 
 ## Gate Check
 
-After each subagent completes, check that its result contains the gate marker string.
+After each subagent completes, check that its result contains the gate marker string. Because subagents return only the marker + summary, this is a simple string check.
 
-- **Passes:** Report phase completion, proceed.
+- **Passes:** Update `build-state.json`, report phase completion, proceed.
 - **Fails:** Retry (same prompt) up to **3 times**. If still failing, halt and report.
 
 ## 6 Mechanisms

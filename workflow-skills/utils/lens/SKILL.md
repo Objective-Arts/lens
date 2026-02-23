@@ -119,7 +119,7 @@ Show workflow skills grouped by purpose:
    / [path]     Senior review prep
 
  LIGHT WORKFLOWS
-   /quick-change [desc]     Simple change + cleanup
+   /change [desc]     Simple change + cleanup
 
  AUTONOMOUS
    /ralph-loop [prd]        Full PRD implementation
@@ -138,7 +138,7 @@ Quick Start Options:
 
 1. **New feature** — /build [target] (full pipeline)
 2. **Improve existing code** — /improve [path] (full pipeline)
-3. **Simple change** — /quick-change [description]
+3. **Simple change** — /change [description]
 4. **Review code** — /gemini-scan [path]
 5. **Run full PRD** — /ralph-loop [prd.md]
 

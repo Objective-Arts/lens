@@ -24,7 +24,7 @@ Multi-step processes that modify code. Each follows a scan → fix → verify pa
 
 | Skill | Purpose |
 |-------|---------|
-| `/quick-change` | Simple changes + cleanup |
+| `/change` | Simple changes + cleanup |
 
 ### Quality Skills
 
@@ -54,7 +54,7 @@ Multi-step processes that modify code. Each follows a scan → fix → verify pa
 
 /build user-auth              # New feature (full pipeline)
 /improve src/component.ts     # Improve existing (full pipeline)
-/quick-change add email field  # Simple change + cleanup
+/change add email field  # Simple change + cleanup
 /refactoring src/      # Refactor with verification
 /ai-smell-fix src/            # Remove AI patterns
 /gemini-review src/              # Gemini review + fix

@@ -39,7 +39,7 @@ workflow-skills/
 ### Light Workflow
 
 ```bash
-/quick-change add email field  # Simple change + cleanup
+/change add email field  # Simple change + cleanup
 ```
 
 ### Individual Skills

@@ -14,7 +14,7 @@ import { registerInstallation, listInstallations, pruneRegistry } from './regist
 
 /** Skills visible as slash commands in Claude Code */
 const USER_FACING_SKILLS = new Set([
-  'build', 'improve', 'quick-change',
+  'build', 'improve', 'change',
   'ai-smell-scan', 'ai-smell-fix', 'generate-docs', 'lens',
   'code-scan', 'codex-scan', 'dedupe-scan', 'gemini-scan',
   'naming-scan', 'qodana-scan', 'refactor-scan'

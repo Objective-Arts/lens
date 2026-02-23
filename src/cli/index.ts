@@ -35,7 +35,7 @@ ${chalk.bold.yellow('INSIDE CLAUDE CODE')} ${chalk.dim('(slash commands after se
 
   ${chalk.cyan('/build')} ${chalk.dim('target')}              Build new feature (10 phases)
   ${chalk.cyan('/improve')} ${chalk.dim('path')}             Improve existing code (10 phases)
-  ${chalk.cyan('/quick-change')} ${chalk.dim('desc')}        Simple change + cleanup
+  ${chalk.cyan('/change')} ${chalk.dim('desc')}              Simple change + cleanup
   ${chalk.cyan('/ai-smell-scan')} ${chalk.dim('path')}       Check for AI-generated patterns
   ${chalk.cyan('/ai-smell-fix')} ${chalk.dim('path')}        Fix AI-generated patterns
   ${chalk.cyan('/generate-docs')} ${chalk.dim('path')}       Generate documentation

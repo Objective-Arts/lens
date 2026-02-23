@@ -100,7 +100,7 @@ const WORKFLOW_SKILL_META: Record<string, { cmd: string; desc: string; category:
   'ralph-loop': { cmd: '/ralph-loop [prd-file] [--max N] [--resume]', desc: 'Autonomous PRD implementation loop', category: 'pipeline' },
   'build': { cmd: '/build [path] [--rollback] [--dry-run]', desc: 'Build new feature with quality pipeline', category: 'pipeline' },
   'improve': { cmd: '/improve [path] [--rollback] [--dry-run]', desc: 'Improve existing code with quality pipeline', category: 'pipeline' },
-  'quick-change': { cmd: '/quick-change [description]', desc: 'Simple changes done right — make it, clean it, report it', category: 'pipeline' },
+  'change': { cmd: '/change [description]', desc: 'Simple changes done right — make it, clean it, report it', category: 'pipeline' },
 
   // Individual phase skills
   'plan': { cmd: '/plan [task]', desc: 'Create implementation plan before coding', category: 'phase' },

@@ -1,9 +1,9 @@
 ---
-name: quick-change
+name: change
 description: Simple changes done right. Make the change, clean up after yourself, report what happened.
 ---
 
-# /quick-change [description]
+# /change [description]
 
 For simple changes that don't warrant full planning — with a built-in cleanup pass.
 
@@ -11,7 +11,7 @@ For simple changes that don't warrant full planning — with a built-in cleanup 
 
 ## What Is This?
 
-`/quick-change` is the **light workflow**: make a small change carefully, then clean up what you wrote. One command instead of two.
+`/change` is the **light workflow**: make a small change carefully, then clean up what you wrote. One command instead of two.
 
 Use this when:
 - Add a field to a model/DTO
@@ -190,7 +190,7 @@ List what was changed and what was cleaned.
 ## Output Format
 
 ```markdown
-## Quick Change: [description]
+## Change: [description]
 
 CHANGE_TYPE: [add-field | rename | add-param | bug-fix | other]
 
@@ -226,7 +226,7 @@ CHANGE_TYPE: [add-field | rename | add-param | bug-fix | other]
 BUILD: pass
 TESTS: pass
 
-QUICK_CHANGE_COMPLETE
+CHANGE_COMPLETE
 ```
 
 ## What NOT to Fix
@@ -265,4 +265,4 @@ Use `/build` or `/improve` instead if:
 |----------|-------------|----------|
 | `/build` | New feature from scratch | Full pipeline |
 | `/improve` | Refine existing code | Full pipeline |
-| `/quick-change` | Add field, rename, small fix | Light (checklist + cleanup) |
+| `/change` | Add field, rename, small fix | Light (checklist + cleanup) |
