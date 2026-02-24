@@ -6,6 +6,7 @@
 
 | Command | Description |
 |---------|-------------|
+| `/fix [path] [--dry-run]` | Fast quality loop — Codex reviews, Claude fixes, Codex verifies |
 | `/build [path] [--rollback] [--dry-run]` | Build new feature with quality pipeline |
 | `/improve [path] [--rollback] [--dry-run]` | Improve existing code with quality pipeline |
 | `/change [description]` | Simple changes done right — make it, clean it, report it |

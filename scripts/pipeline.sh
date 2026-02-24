@@ -165,7 +165,7 @@ phase_num_to_model() {
     0) echo "opus" ;;
     1) echo "sonnet" ;;
     2) echo "sonnet" ;;
-    3) echo "opus" ;;
+    3) if [[ "$FAST" == true ]]; then echo "sonnet"; else echo "opus"; fi ;;
     4) echo "sonnet" ;;
     5) echo "haiku" ;;
     6) echo "sonnet" ;;
@@ -197,6 +197,7 @@ parse_args() {
   FROM_PHASE=""
   DRY_RUN=false
   ROLLBACK=false
+  FAST=false
 
   if [[ $# -lt 1 ]]; then
     usage
@@ -229,6 +230,10 @@ parse_args() {
       --desc)
         shift
         DESC="$1"
+        shift
+        ;;
+      --fast)
+        FAST=true
         shift
         ;;
       --rollback)
@@ -283,8 +288,8 @@ parse_args() {
 usage() {
   cat <<'EOF'
 Usage:
-  pipeline.sh build <target|"description"> [--prd FILE] [--desc "..."] [--from N|name] [--rollback] [--dry-run]
-  pipeline.sh improve <target|"description"> [--desc "..."] [--from N|name] [--rollback] [--dry-run]
+  pipeline.sh build <target|"description"> [--prd FILE] [--desc "..."] [--fast] [--from N|name] [--rollback] [--dry-run]
+  pipeline.sh improve <target|"description"> [--desc "..."] [--fast] [--from N|name] [--rollback] [--dry-run]
 
   If the argument is not a path on disk, it is treated as a task description
   and the current directory is used as the target.
@@ -292,6 +297,7 @@ Usage:
 Options:
   --prd FILE      PRD document for phase 0 (build only, target = output path)
   --desc "..."    Description of what to build/improve (injected into all phases)
+  --fast          Sonnet for phase 3, parallel phases 4+5 (keeps opus for phase 0)
   --from N|name   Resume from phase N (number or name)
   --dry-run       Show phase table and exit
   --rollback      Restore from last stash
@@ -529,7 +535,9 @@ run_standard_phase() {
 }
 
 run_phase_3_loop() {
-  color_phase 3 "implementation (opus)"
+  local impl_model="opus"
+  if [[ "$FAST" == true ]]; then impl_model="sonnet"; fi
+  color_phase 3 "implementation ($impl_model)"
   local output="$BUILD_LOG/phase-3-output.txt"
   local start_epoch
   start_epoch=$(date +%s)
@@ -541,7 +549,7 @@ run_phase_3_loop() {
     prompt=$(build_phase3_prompt "$remaining_context")
 
     for attempt in $(seq 1 $MAX_RETRIES); do
-      run_claude "$prompt" opus "$output" || true
+      run_claude "$prompt" "$impl_model" "$output" || true
       if check_gate "$output" "IMPLEMENTATION_COMPLETE"; then
         local summary duration
         summary=$(extract_summary "$output" "IMPLEMENTATION_COMPLETE")
@@ -569,7 +577,7 @@ run_phase_3_loop() {
     # One more attempt
     local prompt
     prompt=$(build_phase3_prompt "$remaining_context")
-    run_claude "$prompt" opus "$output" || true
+    run_claude "$prompt" "$impl_model" "$output" || true
     if check_gate "$output" "IMPLEMENTATION_COMPLETE"; then
       local summary duration
       summary=$(extract_summary "$output" "IMPLEMENTATION_COMPLETE")
@@ -598,6 +606,9 @@ run_quality_gate() {
 run_phase_3_with_gate() {
   run_phase_3_loop
 
+  local impl_model="opus"
+  if [[ "$FAST" == true ]]; then impl_model="sonnet"; fi
+
   for qg_attempt in $(seq 1 $MAX_QG); do
     if run_quality_gate "$TARGET" "quality gate (post-implementation)"; then
       return 0
@@ -623,7 +634,7 @@ Your final message MUST contain ONLY:
 Do NOT return your full work log.
 PROMPT
 )
-    run_claude "$fix_prompt" opus "$output" || true
+    run_claude "$fix_prompt" "$impl_model" "$output" || true
   done
   color_fail "Quality gate still failing after $MAX_QG fix attempts"
   exit 1
@@ -1119,6 +1130,9 @@ print_dry_run() {
     fi
   done
 
+  if [[ "$FAST" == true ]]; then
+    printf "\n${BOLD}Mode: FAST${RESET} — sonnet for phase 3, phases 4+5 parallel\n"
+  fi
   printf "\n${BOLD}Quality gates:${RESET} after phase 3, after phase 8\n"
   printf "${BOLD}Phase 3:${RESET} implementation loop (max %d iterations)\n" "$MAX_IMPL"
   printf "${BOLD}Phase 6:${RESET} 4 parallel scans → dedup → fix → canary validate\n"
@@ -1269,14 +1283,22 @@ main() {
     run_phase_3_with_gate
   fi
 
-  # Phase 4: Refactoring
-  if [[ $start_phase -le 4 ]]; then
-    run_standard_phase 4 refactoring sonnet REFACTORING_COMPLETE
-  fi
-
-  # Phase 5: Deduplication
-  if [[ $start_phase -le 5 ]]; then
-    run_standard_phase 5 deduplication haiku DEDUPLICATION_COMPLETE
+  # Phases 4+5: Refactoring + Deduplication
+  if [[ "$FAST" == true && $start_phase -le 4 ]]; then
+    # Fast mode: run 4 and 5 in parallel
+    color_info "Fast mode — running phases 4+5 in parallel"
+    run_standard_phase 4 refactoring sonnet REFACTORING_COMPLETE &
+    local pid_phase4=$!
+    run_standard_phase 5 deduplication haiku DEDUPLICATION_COMPLETE &
+    local pid_phase5=$!
+    wait $pid_phase4 $pid_phase5
+  else
+    if [[ $start_phase -le 4 ]]; then
+      run_standard_phase 4 refactoring sonnet REFACTORING_COMPLETE
+    fi
+    if [[ $start_phase -le 5 ]]; then
+      run_standard_phase 5 deduplication haiku DEDUPLICATION_COMPLETE
+    fi
   fi
 
   # Phase 6: Review
