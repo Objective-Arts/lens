@@ -4,18 +4,6 @@ projectType: software
 composable: true
 extends: software-base
 
-ralph:
-  skills:
-    plan:
-      - type-systems   # Type system design
-    build:
-      - csharp-depth   # C# in depth
-      - async          # Async patterns
-      - type-systems   # Language features
-    refactor:
-      - csharp-depth   # Modern C# idioms
-      - async          # Async refactoring
-
 skills:
   canon:
     - csharp-depth   # C# in Depth - language mechanics, generics, edge cases

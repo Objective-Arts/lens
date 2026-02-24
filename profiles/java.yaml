@@ -4,13 +4,6 @@ projectType: software
 composable: true
 extends: software-base
 
-ralph:
-  skills:
-    plan:
-      - java           # API architecture
-    build:
-      - java           # Effective Java patterns
-
 skills:
   canon:
     - java           # Effective Java - API design, immutability, builders

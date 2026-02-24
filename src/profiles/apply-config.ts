@@ -6,9 +6,8 @@
 import * as fs from 'fs';
 import * as fsPromises from 'fs/promises';
 import * as path from 'path';
-import { stringify as stringifyYaml } from 'yaml';
 import type { ComposableProfile } from '../types.js';
-import { CLAUDE_DIR_NAME, PHASE_CONFIG_SOURCE_DIR } from './paths.js';
+import { CLAUDE_DIR_NAME } from './paths.js';
 
 /** Result subset needed by config application */
 interface ConfigApplyResult {
@@ -39,65 +38,9 @@ export async function applyHooksToProject(profile: ComposableProfile, projectPat
   result.created.push(`Hooks installed: ${Object.keys(profile.hooks).join(', ')}`);
 }
 
-export async function copyPhaseConfigFiles(projectPath: string, result: ConfigApplyResult): Promise<void> {
-  const targetDir = path.join(projectPath, CLAUDE_DIR_NAME, 'config');
-  const files = ['workflow-phases.yaml', 'keyword-detection.yaml'];
-
-  if (!fs.existsSync(PHASE_CONFIG_SOURCE_DIR)) {
-    result.warnings.push(`Phase config source not found: ${PHASE_CONFIG_SOURCE_DIR}`);
-    return;
-  }
-
-  await fsPromises.mkdir(targetDir, { recursive: true });
-
-  for (const file of files) {
-    const src = path.join(PHASE_CONFIG_SOURCE_DIR, file);
-    const dest = path.join(targetDir, file);
-    if (!fs.existsSync(src)) { result.warnings.push(`Phase config file not found: ${file}`); continue; }
-    if (fs.existsSync(dest)) { result.skipped.push(`.claude/config/${file} (already exists)`); continue; }
-    try { await fsPromises.copyFile(src, dest); result.created.push(`.claude/config/${file}`); }
-    catch (e) { result.errors.push(`Failed to copy ${file}: ${e instanceof Error ? e.message : e}`); }
-  }
-}
-
-/** Generate ralph-config.yaml */
-export async function generateRalphConfig(profile: ComposableProfile, projectPath: string, result: ConfigApplyResult): Promise<void> {
-  if (!profile.ralph) return;
-
-  const configPath = path.join(projectPath, CLAUDE_DIR_NAME, 'ralph-config.yaml');
-  const config: Record<string, unknown> = {
-    _generated: `Auto-generated from profile: ${profile.name}`,
-    _regenerate: 'lens profile apply',
-  };
-
-  if (profile.ralph.skills) {
-    config.skills = {
-      plan: profile.ralph.skills.plan ?? [],
-      build: profile.ralph.skills.build ?? [],
-      refactor: profile.ralph.skills.refactor ?? [],
-      test: profile.ralph.skills.test ?? [],
-      review: profile.ralph.skills.review ?? [],
-      doc: profile.ralph.skills.doc ?? []
-    };
-  }
-
-  if (profile.ralph.max_iterations) config.max_iterations = profile.ralph.max_iterations;
-  if (profile.ralph.max_iterations_per_item) config.max_iterations_per_item = profile.ralph.max_iterations_per_item;
-  if (profile.ralph.exit_on_idle_commits) config.exit_on_idle_commits = profile.ralph.exit_on_idle_commits;
-  if (profile.ralph.quality_gates) config.quality_gates = profile.ralph.quality_gates;
-  if (profile.ralph.post_loop_validation) config.post_loop_validation = profile.ralph.post_loop_validation;
-  if (profile.ralph.exit_criteria) config.exit_criteria = profile.ralph.exit_criteria;
-
-  try {
-    await fsPromises.writeFile(configPath, stringifyYaml(config), 'utf-8');
-    result.created.push('.claude/ralph-config.yaml');
-  } catch (e) { result.errors.push(`Failed to generate ralph-config.yaml: ${e instanceof Error ? e.message : e}`); }
-}
-
 /** Metadata for workflow skills, keyed by actual directory name */
 const WORKFLOW_SKILL_META: Record<string, { cmd: string; desc: string; category: 'pipeline' | 'phase' | 'scan' | 'utility' }> = {
   // Pipeline orchestrators
-  'ralph-loop': { cmd: '/ralph-loop [prd-file] [--max N] [--resume]', desc: 'Autonomous PRD implementation loop', category: 'pipeline' },
   'build': { cmd: '/build [path] [--rollback] [--dry-run]', desc: 'Build new feature with quality pipeline', category: 'pipeline' },
   'improve': { cmd: '/improve [path] [--rollback] [--dry-run]', desc: 'Improve existing code with quality pipeline', category: 'pipeline' },
   'change': { cmd: '/change [description]', desc: 'Simple changes done right — make it, clean it, report it', category: 'pipeline' },
@@ -135,12 +78,6 @@ type SkillMeta = { cmd: string; desc: string; category: string };
 
 const TABLE_HEADER = '| Command | Description |\n|---------|-------------|';
 const FLAGS_SECTION = `
-**Flags for /ralph-loop:**
-- \`--max N\` — Override max iterations (default: 50)
-- \`--resume\` — Continue from last incomplete PRD item
-- \`--external\` — Enable Gemini + Qodana post-loop validation
-- \`--dry-run\` — Show what would be done without executing
-
 **Flags for /build and /improve:**
 - \`--rollback\` — Restore from last stash
 - \`--dry-run\` — Show what would change without modifying

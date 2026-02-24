@@ -17,7 +17,7 @@ PRD → Phase 0:reference (Opus raw build, /build only)
 | # | Phase | Model | What happens |
 |---|-------|-------|-------------|
 | 0 | reference | Opus | `/build` only. Opus builds from PRD — feature-rich, complete. This is the control. |
-| 1 | plan | Sonnet | Plan the hardening work against the reference. User approves before continuing. |
+| 1 | plan | Sonnet | Plan the hardening work against the reference. |
 | 2 | structure | Sonnet | Improve the structure. Assign quality contract types to boundaries. |
 | 3 | implementation | Opus | Fix what the plan identified. One work item at a time: read canon, write code, compile-check. Loops if partial (max 5). |
 | 4 | refactoring | Sonnet | Systematic cleanup. Net-zero or net-negative complexity. |
@@ -29,6 +29,32 @@ PRD → Phase 0:reference (Opus raw build, /build only)
 After phase 3, `scripts/quality-gate.ts` runs lint and code pattern checks. If it fails, phase 3 gets another shot (max 2 retries).
 
 After phase 8, `npm test` and the quality gate run again. If they fail, phase 7 fixes the tests (max 2 retries). Phase 8 does not re-run.
+
+## Two Ways to Run
+
+### In-Session
+
+Run all phases within one Claude Code conversation:
+
+```
+/build user authentication system
+/improve src/services/auth/
+```
+
+Simple, but long pipelines can exhaust the context window.
+
+### Bash Orchestrator
+
+Each phase spawns its own `claude -p` session — full context window per phase, file-based handoff via `.claude/build-log/`:
+
+```bash
+pipeline build src/auth --prd docs/requirements.md
+pipeline improve --fast "Wire ScoreEntryForm per docs/plan.md"
+pipeline build --from review src/feature   # Resume from phase 6
+pipeline build --rollback                  # Undo last build
+```
+
+Flags: `--fast` (Sonnet for phase 3, parallel 4+5), `--prd FILE`, `--desc "..."`, `--from N|name`, `--rollback`, `--dry-run`
 
 ## Why Opus for Phases 0 and 3
 
@@ -64,8 +90,6 @@ Loaded Skills = Base + Profile + Phase + Detected Keywords
 ```
 
 The context window is fixed. More skills means better decisions but less room for code. That's why phase 3 (one unit at a time) loads 15+ skills, while review (entire codebase in view) loads 2-3.
-
-Config files: `profiles/software-base.yaml` (base), `profiles/{name}.yaml` (profile), `config/workflow-phases.yaml` (phase), `config/keyword-detection.yaml` (detection).
 
 ## Quality Contracts
 
@@ -125,14 +149,13 @@ Multiple rubrics can stack. Phase 1 generates a production checklist from them. 
 
 ## Orchestrator Behaviors
 
-The orchestrator (the code that sequences the phases) has six behaviors:
+The orchestrator (the code that sequences the phases) has five behaviors:
 
-1. **Plan approval** — Phase 1 output is shown to the user. Nothing proceeds until approved.
-2. **Quality checks** — Lint + code patterns after phase 3. Lint + tests after phase 8. No AI cost.
-3. **Implementation loop** — If phase 3 can't finish in one pass, it loops (max 5 iterations).
-4. **Gate retry** — Each phase must emit a marker string. If missing, retry up to 3 times.
-5. **Rollback** — Git stash before the pipeline starts. Restore with `--rollback`.
-6. **Learning** — Phases 6 and 8 write lessons. Next run, phases 1-5 read them.
+1. **Quality checks** — Lint + code patterns after phase 3. Lint + tests after phase 8. No AI cost.
+2. **Implementation loop** — If phase 3 can't finish in one pass, it loops (max 5 iterations).
+3. **Gate retry** — Each phase must emit a marker string. If missing, retry up to 3 times.
+4. **Rollback** — Git stash before the pipeline starts. Restore with `--rollback`.
+5. **Learning** — Phases 6 and 8 write lessons. Next run, phases 1-5 read them.
 
 ## Using the Pipeline
 

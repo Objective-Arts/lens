@@ -149,7 +149,6 @@ function handleClean(
   const targets = [
     { path: path.join(claudeDir, 'skills'), label: '.claude/skills/', type: 'dir' as const },
     { path: path.join(claudeDir, 'canon-manifest.json'), label: '.claude/canon-manifest.json', type: 'file' as const },
-    { path: path.join(claudeDir, 'ralph-config.yaml'), label: '.claude/ralph-config.yaml', type: 'file' as const },
     { path: path.join(claudeDir, 'config'), label: '.claude/config/', type: 'dir' as const },
     { path: path.join(targetPath, 'canon'), label: 'canon (symlink)', type: 'symlink' as const },
     { path: path.join(targetPath, 'workflow-skills'), label: 'workflow-skills (symlink)', type: 'symlink' as const },

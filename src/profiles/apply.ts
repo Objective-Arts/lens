@@ -26,8 +26,6 @@ import { SKILL_CATEGORIES } from './validation.js';
 import { applyMcpToProject } from './apply-mcp.js';
 import {
   applyHooksToProject,
-  copyPhaseConfigFiles,
-  generateRalphConfig,
   updateClaudeMdWithProfile
 } from './apply-config.js';
 
@@ -280,12 +278,6 @@ export async function applyComposableProfile(
     const claudeMdPath = path.join(projectPath, 'CLAUDE.md');
     await updateClaudeMdWithProfile(claudeMdPath, profile, projectPath);
     result.created.push('Updated CLAUDE.md with profile info and auto-invoke rules');
-  }
-
-  await generateRalphConfig(profile, projectPath, result);
-
-  if (profile.ralph || profile.name === 'ralph-integration') {
-    await copyPhaseConfigFiles(projectPath, result);
   }
 
   await applyMcpToProject(profile, projectPath, result);

@@ -10,7 +10,7 @@ Lens is a system that embeds domain expertise into Claude Code — Anthropic's c
 
 Lens is built on a single observation. Claude has access to more programming knowledge than any human developer. It knows about single responsibility, separation of concerns, defensive coding, and framework idioms. The problem is not knowledge. The problem is perspective. A developer who has spent years working with a book like Effective Java doesn't just know the rules — they see code differently. They notice when a constructor should be a static factory method, when a mutable return value will cause a thread-safety bug, when an interface has too many methods. This isn't recall. It's a lens that filters every decision.
 
-Lens makes this concrete. Each "canon skill" is a markdown file that captures one expert's approach to one domain: how they think, what they check for, what patterns they follow, when they break the rules. There are 75 of these skills across 29 categories. Some examples:
+Lens makes this concrete. Each "canon skill" is a markdown file that captures one expert's approach to one domain: how they think, what they check for, what patterns they follow, when they break the rules. There are 77 of these skills across 29 categories. Some examples:
 
 - **clarity** distills Brian Kernighan's principles: clear code above clever code, meaningful names, functions that do one thing.
 - **security-mindset** teaches Claude to think like an attacker: what input can be abused, what state can be corrupted, where does trust cross a boundary.
@@ -25,25 +25,24 @@ The skills are organized into categories that mirror how engineers think about p
 
 ## Profiles: composable expertise for project types
 
-Nobody needs all 75 skills at once. A React frontend project needs different expertise than a Python data pipeline or a C# enterprise backend. Lens solves this with 14 composable profiles that bundle the right skills for each project type.
+Nobody needs all 77 skills at once. A React frontend project needs different expertise than a Python data pipeline or a C# enterprise backend. Lens solves this with 15 composable profiles that bundle the right skills for each project type.
 
 Profiles stack with `+` syntax. Running `lens profile apply javascript+react+security` combines three profiles, merging their skill sets without duplication. The result is a `.claude/` directory in your project containing the skills, standards, anti-patterns, and auto-invoke rules that Claude will use for every interaction.
 
-The `software-base` profile is always included. It provides 24 skills: the 10 "Base Brain" skills that shape how Claude thinks (clarity, simplicity, correctness, pragmatism, composition, data-first, distributed, algorithms, abstraction, optimization), plus security fundamentals, testing strategy, documentation standards, and engineering philosophy. These create productive tensions — pragmatism says "get it working" while correctness says "prove it works" — and Claude resolves the tension based on context. Prototyping? Lean pragmatism. Production authentication? Lean correctness. The tensions are intentional. A system that only optimizes for one value produces brittle output. A system that balances competing values produces engineering judgment.
+The `software-base` profile is always included for software projects. It provides 18 foundational skills: the 10 "Base Brain" skills that shape how Claude thinks (clarity, simplicity, correctness, pragmatism, composition, data-first, distributed, algorithms, abstraction, optimization), plus security fundamentals, testing strategy, documentation standards, and engineering philosophy. These create productive tensions — pragmatism says "get it working" while correctness says "prove it works" — and Claude resolves the tension based on context. Prototyping? Lean pragmatism. Production authentication? Lean correctness. The tensions are intentional. A system that only optimizes for one value produces brittle output. A system that balances competing values produces engineering judgment.
 
-Domain profiles add targeted expertise. The `frontend` profile adds 12 UI/UX skills covering atomic design, usability heuristics, typography, motion design, and accessibility. The `python` profile adds four Python-specific skills covering generators, protocols, the data model, and idiomatic patterns. The `security` profile adds threat modeling, OWASP vulnerability patterns, application security, and web security. Each profile was designed so that the skills within it reinforce each other rather than conflict.
+Domain profiles add targeted expertise. The `frontend` profile adds 12 UI/UX skills covering atomic design, usability heuristics, typography, motion design, and accessibility. The `python` profile adds four Python-specific skills covering generators, protocols, the data model, and idiomatic patterns. The `security` profile adds seven security skills covering threat modeling, OWASP vulnerability patterns, application security, and web security. Each profile was designed so that the skills within it reinforce each other rather than conflict.
 
 The pipeline also auto-detects which skills to load at each phase. If the target directory contains TypeScript files, TypeScript and JavaScript skills load automatically. If the project uses Angular, Angular architecture skills load. If React is a dependency, React state management and testing skills load. Java, Python, C#, database, visualization, and security skills all trigger from the same detection table. This means the pipeline works correctly on a Java monorepo, a React frontend, or a mixed TypeScript-and-Python project without the developer specifying which languages are involved.
 
-When a profile is applied, skills install as real files in the project's `.claude/skills/` directory. They're versioned, diffable, and upgradeable. If a skill is updated in the Lens canon, you can see the diff and choose whether to upgrade. Local modifications are preserved. This is deliberate: expertise should be inspectable and ownable, not a black box.
+When a profile is applied, skills install as real files in the project's `.claude/canon/` directory. They're versioned, diffable, and upgradeable. If a skill is updated in the Lens canon, you can see the diff and choose whether to upgrade. Local modifications are preserved. This is deliberate: expertise should be inspectable and ownable, not a black box.
 
 ## The pipeline: systematic quality at scale
 
 Skills shape how Claude writes code in a single interaction. But real development involves sequences of decisions — architecture, implementation, testing, review, cleanup — where the output of each phase feeds the next. Lens addresses this with a build/improve pipeline, invoked with `/build` (for new features) or `/improve` (for existing code).
 
-The pipeline has eight phases — **plan**, **structure**, **implementation**, **refactoring**, **deduplication**, **review**, **testing**, **evaluation** — with a **Learn** loop that feeds late-phase findings back to early phases. Six mechanisms recur throughout:
+The pipeline has eight phases — **plan**, **structure**, **implementation**, **refactoring**, **deduplication**, **review**, **testing**, **evaluation** — with a **Learn** loop that feeds late-phase findings back to early phases. Five mechanisms recur throughout:
 
-- **Plan-approval** — the plan phase output must contain specific sections (files, functions, types, dependencies, invariants, security, tests, work items) or it is rejected.
 - **Quality-gate** — a mechanical pass/fail check at phase boundaries. No AI, no judgment, no override. Compilation, test suite, live-start verification.
 - **Implementation-loop** — retry with specifics until all work items complete or max attempts reached.
 - **Gate-retry** — if a phase fails its quality gate, a fix agent applies corrections and the gate reruns.
@@ -64,11 +63,11 @@ The pipeline has eight phases — **plan**, **structure**, **implementation**, *
 
 Each phase must produce structured output before the next begins. If a phase reports three issues, it must list all three with severity, description, file, and line number. Phases that fail validation — missing sections, empty work items, vague language like "as needed" or "if applicable" — are rejected.
 
-The pipeline can be run as a single command (`/build user authentication system`) or phase by phase for more control. Each phase is also available standalone (`/refactoring src/auth/`, `/gemini-review src/services/`). A `--dry-run` flag previews what will happen. A `--rollback` flag restores from the snapshot created at the start.
+The pipeline can run two ways. In-session, a single command (`/build user authentication system`) runs all phases within one Claude Code conversation. Or the bash pipeline orchestrator (`pipeline build src/auth`) spawns a separate `claude -p` session per phase, giving each phase a full context window and using file-based handoff between phases. The orchestrator supports `--fast` mode (using Sonnet for implementation, parallelizing refactoring and deduplication), `--from` to resume from any phase, and `--dry-run` to preview what will happen. Each phase is also available standalone (`/refactoring src/auth/`, `/gemini-review src/services/`). A `--rollback` flag restores from the snapshot created at the start.
 
 ## Enforcement: giving the canon teeth
 
-Having 75 skills full of good advice is worthless if the AI can ignore them. In a traditional team, code review and social pressure enforce standards. An AI has no social pressure. It needs structural enforcement.
+Having 77 skills full of good advice is worthless if the AI can ignore them. In a traditional team, code review and social pressure enforce standards. An AI has no social pressure. It needs structural enforcement.
 
 The patterns compose into a trust spectrum. Each level catches what the previous levels miss:
 
@@ -98,24 +97,14 @@ The evaluation phase adds a second feedback channel. External evaluators score p
 
 The result is measurable. The first run catches problems in late phases. The second run avoids generating many of those problems in early phases. Over multiple iterations, the late phases find fewer issues because the early phases have learned from previous feedback. The system converges toward code that passes every phase on the first attempt.
 
-## Ralph Loop: autonomous implementation from requirements
-
-All of these pieces come together in Ralph Loop, Lens's autonomous implementation system. Given a Product Requirements Document (PRD), Ralph iterates through each requirement, running the full plan-build-refactor-test-review cycle for each item.
-
-Ralph doesn't simply call each pipeline phase in sequence. It manages context across requirements, tracking which files were created or modified, which tests cover which requirements, and which lessons were learned during earlier iterations. If requirement 3 introduces a database layer, the self-learning feedback from that iteration's security review informs how requirement 7's API endpoint handles database queries. The pipeline improves within a single Ralph run, not just across separate runs.
-
-Ralph loads the relevant skills from the active profile at each phase. Plan and structure get architecture and design skills. Implementation gets language-specific and framework skills, auto-detected from the project's file types. Review gets security and quality skills. Testing gets testing strategy and testing pattern skills. Each phase receives the expertise it needs without the overhead of loading all 75 skills simultaneously.
-
-A single command — `/ralph-loop requirements.md` — can implement an entire PRD. Ralph supports up to 50 iterations with quality gates between items, resume capability for interrupted runs, and an optional external validation pass using Gemini and Qodana after the loop completes. The resume capability matters for large PRDs: if a session is interrupted after completing 12 of 20 requirements, `/ralph-loop requirements.md --resume` picks up at requirement 13 with full context of what was already built.
-
 ## Current state and what it means
 
-Lens ships as `@objective-arts/lens`, a Node.js command-line tool installable via npm. It has 75 canon skills across 29 categories, 14 composable profiles, 33 workflow skills, an eight-phase pipeline (plan → structure → implementation → refactoring → deduplication → review → testing → evaluation) with six mechanisms, and an autonomous implementation system.
+Lens ships as `@objective-arts/lens`, a Node.js command-line tool installable via npm. It has 77 canon skills across 29 categories, 15 composable profiles, 33 workflow skills, and an eight-phase pipeline (plan → structure → implementation → refactoring → deduplication → review → testing → evaluation) with five mechanisms. The pipeline runs either in-session via `/build` and `/improve` commands, or through a bash orchestrator that spawns isolated sessions per phase — each approach suited to different project sizes and preferences.
 
-The system was used to build itself. Every module in Lens — the CLI, the canon loader, the profile system, the scanner, the workflow orchestrator, Ralph Loop itself — went through the pipeline. The self-learning feedback loop accumulated lessons from each module's run, and later modules benefited from earlier modules' mistakes. By the final modules, the late phases were finding fewer issues because the early phases had absorbed the project's recurring patterns. This is the strongest evidence that the architecture works: it improved the quality of its own codebase over the course of its own development.
+The system was used to build itself. Every module in Lens — the CLI, the canon loader, the profile system, the scanner, the workflow manager — went through the pipeline. The self-learning feedback loop accumulated lessons from each module's run, and later modules benefited from earlier modules' mistakes. By the final modules, the late phases were finding fewer issues because the early phases had absorbed the project's recurring patterns. This is the strongest evidence that the architecture works: it improved the quality of its own codebase over the course of its own development.
 
 The fundamental bet Lens makes is this: the bottleneck in AI-assisted development is not code generation. It's code quality. AI can write code faster than any human. But without the judgment that experienced engineers bring — judgment about architecture, security, maintainability, and the thousand small decisions that separate production code from prototype code — speed just means you produce technical debt faster.
 
-Lens doesn't replace that judgment. It encodes it. Seventy-five skills, each capturing one expert's hard-won perspective. Six mechanisms — plan-approval, quality-gate, implementation-loop, gate-retry, rollback, learning — ensuring the expertise is applied, not merely available. A pipeline that treats quality as a manufacturing process, not a hope. And a system that learns from its own mistakes.
+Lens doesn't replace that judgment. It encodes it. Seventy-seven skills, each capturing one expert's hard-won perspective. Five mechanisms — quality-gate, implementation-loop, gate-retry, rollback, learning — ensuring the expertise is applied, not merely available. A pipeline that treats quality as a manufacturing process, not a hope. And a system that learns from its own mistakes.
 
 The senior engineer who catches subtle design flaws might not exist at your company. They might not exist at most companies. Lens replaces the absence of that engineer — not with another AI opinion, but with a structured system that makes the AI's own knowledge actionable, verifiable, and improvable over time.

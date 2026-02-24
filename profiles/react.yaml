@@ -4,23 +4,6 @@ projectType: software
 composable: true
 extends: javascript
 
-ralph:
-  skills:
-    plan:
-      - react-state    # State architecture
-      - components     # Component hierarchy
-    build:
-      - react-state    # Composition patterns
-      - components     # Atomic design
-      - reactivity     # Reactive patterns
-    refactor:
-      - react-state    # State refactoring
-      - components     # Component extraction
-    test:
-      - react-test     # React Testing Library
-    review:
-      - usability      # UX review
-
 skills:
   canon:
     - react-state    # Mental models, hooks, composition

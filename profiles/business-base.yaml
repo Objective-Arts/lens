@@ -3,22 +3,6 @@ description: Base canon for business strategy and management projects.
 projectType: business
 composable: true
 
-ralph:
-  skills:
-    plan:
-      - competition    # Competitive strategy
-      - strategy       # Good strategy/bad strategy
-      - management     # OKRs, execution
-    build:
-      - management     # High output management
-      - leadership     # Hard things execution
-    review:
-      - leadership     # Reality check
-      - competition    # Strategic review
-    doc:
-      - moats          # Business writing
-      - data-story     # Data presentation
-
 skills:
   canon:
     # Strategy

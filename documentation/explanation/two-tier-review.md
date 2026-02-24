@@ -11,19 +11,19 @@ This document contains proprietary and confidential information. Unauthorized re
 
 ## The Problem
 
-Running external validators on every iteration creates cost, latency, and nested loops. We needed an architecture that gets the benefits of external validation without these costs.
+Running external validators on every code change creates cost, latency, and nested loops. We needed an architecture that gets the benefits of external validation without these costs.
 
 ---
 
 ## The Solution: Two Tiers
 
-### Tier 1: Self-Review (In-Loop)
+### Tier 1: Self-Review (Every Phase)
 
-During each iteration, Claude reviews its own code against:
+During each pipeline phase, Claude reviews its own code against:
 
 - Standards in CLAUDE.md (explicit rules)
 - Canon principles (expert lenses)
-- Previous findings in `.claude/ext-validation-findings.md` (learned patterns)
+- Previous findings in lesson files (learned patterns)
 
 This is **fast** because it requires no external calls. Claude already has the standards loaded.
 
@@ -35,11 +35,12 @@ This is **fast** because it requires no external calls. Claude already has the s
 - Missing error handling
 - Security basics (from security-mindset/owasp skills)
 
-### Tier 2: External Validation (Post-Loop)
+### Tier 2: External Validation (Phase 6 + Phase 8)
 
-After the PRD is complete, external validators run **once**:
+During the review and evaluation phases, external validators run:
 
-- **Gemini**: AI-powered code review
+- **Gemini**: AI-powered code review (code quality + security)
+- **Codex**: Independent model review
 - **Qodana**: Static analysis
 
 These catch what self-review misses:
@@ -54,29 +55,31 @@ These catch what self-review misses:
 
 ```
 ┌────────────────────────────────────────────────────────────┐
-│                    RALPH LOOP                               │
+│                    PIPELINE                                 │
 │                                                            │
-│  Iteration 1 → Implement → Self-review → Commit            │
+│  Phase 1: Plan   → Self-review (canon + lessons)           │
+│  Phase 2: Structure → Self-review                          │
+│  Phase 3: Implementation → Self-review + quality gate      │
+│  Phase 4: Refactoring → Self-review                        │
+│  Phase 5: Deduplication → Self-review                      │
 │       ↓                                                    │
-│  Iteration 2 → Implement → Self-review → Commit            │
+│  Phase 6: Review (4 external scans in parallel)            │
 │       ↓                                                    │
-│  Iteration N → Implement → Self-review → Commit            │
+│  Phase 7: Testing                                          │
+│  Phase 8: Evaluation (Codex + Gemini scoring)              │
 │       ↓                                                    │
-│  PRD Complete?                                             │
-│       ↓                                                    │
+│  Quality gate (lint + tests)                               │
 └────────────────────────────────────────────────────────────┘
                        ↓
 ┌────────────────────────────────────────────────────────────┐
-│              POST-LOOP VALIDATION                           │
+│              LEARNING LOOP (cross-run)                      │
 │                                                            │
-│   Gemini Review ──────────┐                                │
-│                           ├──→ Consolidated Report         │
-│   Qodana Analysis ────────┘                                │
+│   Findings from phases 6-8 ─────┐                          │
+│                                  ├──→ Lesson files          │
+│   Next pipeline run:             │                          │
+│   Phases 1-5 read lessons ◀─────┘                          │
 │                                                            │
-│   Human Decision:                                          │
-│   ├── Accept: Ship it                                      │
-│   ├── Fix: Re-enter loop with focus                        │
-│   └── Defer: Log findings for later                        │
+│   Defect caught once → prevented forever                   │
 └────────────────────────────────────────────────────────────┘
 ```
 
@@ -87,45 +90,44 @@ These catch what self-review misses:
 External validation findings improve future self-review:
 
 ```
-External Finding
+External Finding (phase 6 or 8)
        ↓
-.claude/ext-validation-findings.md
+.claude/lessons.md (project-specific)
+.claude/universal-lessons.md (cross-project)
        ↓
 (Pattern appears 3+ times)
        ↓
-Add to CLAUDE.md standards
+Promote to CLAUDE.md standards
        ↓
-(Validated across projects)
-       ↓
-Promote to profile standards
+Self-review catches it without external validation
 ```
 
 **Example**: Qodana flags "async method without CancellationToken" three times. After the third occurrence, promote to CLAUDE.md: "Always pass CancellationToken through async chains." Now self-review catches this pattern without external validation.
 
 ---
 
-## Configuration
+## Phase 6: How External Review Works
 
-In `ralph-integration.yaml`:
+Four scan agents run in parallel against identical code:
 
-```yaml
-ralph:
-  quality_gates:
-    review_mode: self           # self | external | both
-    review_threshold: no_critical
-
-post_loop_validation:
-  enabled: true
-  gemini: true
-  qodana: true
-  action: report                # report | fix | defer
-  findings_file: .claude/ext-validation-findings.md
-  promote_threshold: 3          # How many times before promoting
 ```
+┌─────────────────────────────────────────────────┐
+│              PHASE 6: REVIEW                     │
+│                                                  │
+│   Gemini scan ──────────┐                        │
+│   Codex scan ───────────┤                        │
+│   Qodana scan ──────────┼──→ Dedupe → Fix agent  │
+│   AI smell scan ────────┘                        │
+│                                                  │
+└─────────────────────────────────────────────────┘
+```
+
+All four see the same code. Findings are deduped (same file + line within 5 lines + similar description = one finding). A single fix agent applies the unified list. This prevents cascade damage.
 
 ---
 
 ## Further Reading
 
 - [How to Set Up External Validation](../how-to/external-validation.md) - Setup guide
-- [How to Configure Ralph Loop](../how-to/configure-ralph-loop.md) - Configuration options
+- [How the Pipeline Works](how-the-pipeline-works.md) - Full pipeline explanation
+- [Skill Enforcement Model](skill-enforcement-model.md) - How skills become gates

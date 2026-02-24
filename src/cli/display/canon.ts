@@ -7,7 +7,7 @@
 
 import chalk from 'chalk';
 import type { CanonListItem, SkillStatusInfo } from '../../canon/types.js';
-import type { Skill } from '../../ralph/types.js';
+import type { Skill } from '../../types.js';
 
 export function printCanonSkillsByCategory(
   skills: CanonListItem[],

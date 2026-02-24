@@ -4,22 +4,6 @@ projectType: software
 composable: true
 extends: javascript
 
-ralph:
-  skills:
-    plan:
-      - angular-core   # DI architecture
-      - angular-perf   # Angular patterns
-    build:
-      - angular-core   # Angular core
-      - rxjs           # RxJS
-      - angular-perf   # Performance
-      - angular-arch   # Angular best practices
-    refactor:
-      - angular-perf   # Angular optimization
-      - rxjs           # RxJS refactoring
-    test:
-      - angular-core   # Angular testing
-
 skills:
   canon:
     - angular-core   # DI, testability, component design

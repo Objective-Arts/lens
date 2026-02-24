@@ -2,34 +2,6 @@ name: frontend
 description: UI/UX canon for frontend projects. 12 experts for beautiful interfaces without being a designer.
 composable: true
 
-ralph:
-  skills:
-    plan:
-      - personas       # Interaction design
-      - usability      # Affordances
-      - charts         # Information design
-    build:
-      - frontend-design # Anthropic's bold aesthetic direction
-      - components     # Atomic design
-      - visual         # Visual minimalism
-      - usability      # UX principles
-      - mobile         # Mobile-first, forms
-      - motion         # Motion design
-      - interaction    # Input design
-      - tokens         # Design systems
-      - typography     # Typography
-      - design         # 10 principles
-      - handoff        # Design-dev handoff
-      - charts         # Information design
-    refactor:
-      - components     # Component extraction
-      - design         # Simplification
-    review:
-      - usability      # UX review
-      - personas       # Interaction critique
-    doc:
-      - charts         # Visual documentation
-
 skills:
   canon:
     # Anthropic Official

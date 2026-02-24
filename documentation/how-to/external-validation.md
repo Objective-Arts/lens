@@ -7,11 +7,11 @@ This document contains proprietary and confidential information. Unauthorized re
 
 # How to Set Up External Validation
 
-*Configure Gemini and Qodana for two-tier code review.*
+*Configure Gemini and Qodana for multi-model code review.*
 
 ## Why External Validation?
 
-Different tools catch blind spots Claude misses: Gemini provides a second AI opinion, Qodana runs static analysis.
+Different tools catch blind spots Claude misses: Gemini provides a second AI opinion, Qodana runs static analysis. The pipeline's review phase (phase 6) runs all four scanners in parallel.
 
 ## Prerequisites
 
@@ -59,17 +59,17 @@ export QODANA_TOKEN="your-token-here"
 
 ### Automatic (Recommended)
 
-When using `ralph-integration` profile, the CLI automatically creates `.mcp.json`:
+MCP servers are configured automatically when you apply a profile:
 
 ```bash
-lens profile apply "javascript+ralph-integration" -p .
+lens profile apply javascript+react -p .
 ```
 
 This creates `.mcp.json` with Gemini and Qodana server configs. The servers inherit environment variables from your shell, so `GEMINI_API_KEY` must be set before starting Claude Code.
 
 ### Manual Installation
 
-If not using ralph-integration, install servers manually:
+Install servers individually:
 
 ```bash
 # Gemini reviewer
@@ -127,11 +127,7 @@ docker pull jetbrains/qodana-python:latest
 In Claude Code:
 
 ```
-Review this code with Gemini:
-
-function add(a, b) {
-  return a + b;
-}
+/gemini-scan src/
 ```
 
 Claude should use the Gemini MCP tool to get an external review.
@@ -139,7 +135,7 @@ Claude should use the Gemini MCP tool to get an external review.
 ### Test Qodana Scan
 
 ```
-Run Qodana on this project
+/qodana-scan
 ```
 
 Or via CLI:
@@ -151,67 +147,57 @@ docker run --rm -v $(pwd):/data/project jetbrains/qodana-js:latest --save-report
 
 ---
 
-## Using with Ralph Loop
+## Using with the Pipeline
 
-When running Ralph Loop with external validation:
+External validation runs automatically during phase 6 (review) of the `/build` and `/improve` pipelines:
 
-```bash
-claude "/ralph-loop PRD.md --external"
 ```
-
-This runs Gemini + Qodana as post-loop validation after all PRD items complete.
+Phase 6: Review
+  ├── Gemini scan (code quality + security)
+  ├── Codex scan (independent review)
+  ├── Qodana scan (static analysis)
+  └── AI smell scan (antipattern detection)
+         ↓
+  Findings deduped across all 4 scanners
+         ↓
+  Single fix agent applies unified list
+```
 
 ### Two-Tier Architecture
 
 ```
 ┌─────────────────────────────────────────────────┐
-│                 RALPH LOOP                       │
+│             PIPELINE (phases 1-8)                │
 │                                                  │
-│  Per PRD item:                                   │
-│      implement → test → /gemini-review → commit     │
+│  Phase 3: implementation (Claude writes code)    │
+│  Phase 6: review (4 parallel external scans)     │
+│  Phase 8: evaluation (Codex + Gemini scoring)    │
 │                                                  │
 └─────────────────────────────────────────────────┘
                       │
                       ▼
 ┌─────────────────────────────────────────────────┐
-│           POST-LOOP VALIDATION (once)            │
+│           LEARNING LOOP (cross-run)              │
 │                                                  │
-│  Gemini: Second opinion, edge cases              │
-│  Qodana: Static analysis, deep checks            │
+│  Findings → .claude/lessons.md                   │
+│  Next run → phases 1-5 read lessons              │
+│  Defect caught once → prevented forever          │
 │                                                  │
 └─────────────────────────────────────────────────┘
-```
-
----
-
-## Configuration Options
-
-In your profile or `.claude/settings.json`:
-
-```yaml
-ralph:
-  post_loop_validation:
-    enabled: true
-    gemini: true
-    qodana: true
-    action: report           # report | fail
-    findings_file: .claude/ext-validation-findings.md
-    promote_threshold: 3     # Suggest adding to CLAUDE.md after N occurrences
 ```
 
 ---
 
 ## Reviewing Findings
 
-After external validation, check the findings:
+Findings are written to lesson files during the pipeline:
 
-```bash
-cat .claude/ext-validation-findings.md
-```
+- `.claude/lessons.md` — project-specific patterns with file paths
+- `.claude/universal-lessons.md` — general patterns carried across projects
 
-The file accumulates findings across runs. Review periodically and:
+Review periodically and:
 - Fix critical issues
-- Add recurring patterns to CLAUDE.md standards
+- Promote recurring patterns to CLAUDE.md standards
 - Dismiss false positives
 
 ---
@@ -277,5 +263,4 @@ lens mcp list --enabled -p .
 ## See Also
 
 - [Two-Tier Review Architecture](../explanation/two-tier-review.md)
-- [Configure Ralph Loop](configure-ralph-loop.md)
 - [Installation Reference](../reference/installation.md)

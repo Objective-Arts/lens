@@ -3,29 +3,6 @@ description: Security-focused profile for security-critical projects. Compose wi
 projectType: software
 composable: true
 
-ralph:
-  skills:
-    plan:
-      - security-mindset # Security architecture, threat modeling
-    build:
-      - appsec           # Secure SDLC, DevSecOps
-      - owasp            # OWASP guidelines
-      - security-mindset # Cryptography principles
-    refactor:
-      - owasp            # Security debt cleanup
-    test:
-      - owasp            # Security testing
-      - web-security     # Breach pattern testing
-    review:
-      - security-mindset # Attacker mindset
-      - owasp            # Vulnerability patterns
-      - appsec           # DevSecOps review
-      - web-security     # Breach patterns
-      - safety           # Safety analysis
-      - resilience       # Antifragility
-    doc:
-      - owasp            # Security documentation
-
 skills:
   canon:
     - security-mindset   # Think like an attacker, crypto principles

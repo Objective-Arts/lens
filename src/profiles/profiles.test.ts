@@ -11,8 +11,7 @@ import {
   combineProfiles,
   getSkillLibraryPaths,
   listProfiles,
-  applyComposableProfile,
-  PHASE_CONFIG_SOURCE_DIR
+  applyComposableProfile
 } from './index.js';
 import { findSkillSourcePath, getCanonSourcePath } from '../canon/index.js';
 import type { ComposableProfile } from '../types.js';
@@ -335,95 +334,6 @@ describe('all profiles have valid skill references', () => {
   });
 });
 
-describe('applyComposableProfile - config deployment', () => {
-  let tempDir: string;
-
-  beforeEach(() => {
-    tempDir = fs.mkdtempSync(path.join(tmpdir(), 'profile-apply-test-'));
-  });
-
-  afterEach(() => {
-    if (tempDir && fs.existsSync(tempDir)) {
-      fs.rmSync(tempDir, { recursive: true, force: true });
-    }
-  });
-
-  it('places config files in .claude/config/, not project root', async () => {
-    // Create a profile that triggers phase config copy
-    const profile: ComposableProfile = {
-      name: 'test-ralph',
-      ralph: {
-        max_iterations: 10
-      }
-    };
-
-    const _result = await applyComposableProfile(profile, tempDir);
-
-    // Config should be in .claude/config/, not ./config/
-    const correctPath = path.join(tempDir, '.claude', 'config');
-    const wrongPath = path.join(tempDir, 'config');
-
-    // Should NOT create config/ at project root
-    expect(fs.existsSync(wrongPath)).toBe(false);
-
-    // If source files exist, should create .claude/config/
-    if (fs.existsSync(PHASE_CONFIG_SOURCE_DIR)) {
-      expect(fs.existsSync(correctPath)).toBe(true);
-      // Check for expected files
-      const expectedFiles = ['workflow-phases.yaml', 'keyword-detection.yaml'];
-      for (const file of expectedFiles) {
-        const srcExists = fs.existsSync(path.join(PHASE_CONFIG_SOURCE_DIR, file));
-        if (srcExists) {
-          expect(fs.existsSync(path.join(correctPath, file))).toBe(true);
-        }
-      }
-    }
-  });
-
-  it('reports config files with .claude/config/ path in result', async () => {
-    const profile: ComposableProfile = {
-      name: 'test-ralph',
-      ralph: {
-        max_iterations: 10
-      }
-    };
-
-    const result = await applyComposableProfile(profile, tempDir);
-
-    // Any created config files should show .claude/config/ path
-    const configCreated = result.created.filter(c => c.includes('config/'));
-    for (const item of configCreated) {
-      expect(item).toContain('.claude/config/');
-      expect(item).not.toMatch(/^config\//); // Should not be just "config/"
-    }
-  });
-
-  it('skips config copy when already exists in .claude/config/', async () => {
-    // Pre-create the config dir and a file
-    const configDir = path.join(tempDir, '.claude', 'config');
-    fs.mkdirSync(configDir, { recursive: true });
-    fs.writeFileSync(path.join(configDir, 'workflow-phases.yaml'), 'existing: true');
-
-    const profile: ComposableProfile = {
-      name: 'test-ralph',
-      ralph: { max_iterations: 10 }
-    };
-
-    const result = await applyComposableProfile(profile, tempDir);
-
-    // Should skip existing file
-    const skipped = result.skipped.filter(s => s.includes('workflow-phases.yaml'));
-    if (fs.existsSync(PHASE_CONFIG_SOURCE_DIR)) {
-      expect(skipped.length).toBeGreaterThan(0);
-      expect(skipped[0]).toContain('.claude/config/');
-    }
-
-    // Content should be unchanged (not overwritten)
-    const content = fs.readFileSync(path.join(configDir, 'workflow-phases.yaml'), 'utf-8');
-    expect(content).toBe('existing: true');
-  });
-});
-
 describe('canon skill symlinks into .claude/skills/', () => {
   let tempDir: string;
 
@@ -583,12 +493,12 @@ describe('path traversal protection', () => {
 });
 
 describe('profile combination integration', () => {
-  it('combines software-base + csharp + javascript + ralph-integration', () => {
-    const result = combineProfiles(['software-base', 'csharp', 'javascript', 'ralph-integration']);
+  it('combines software-base + csharp + javascript', () => {
+    const result = combineProfiles(['software-base', 'csharp', 'javascript']);
 
     expect(result).not.toBeNull();
     if (result) {
-      expect(result.name).toBe('software-base + csharp + javascript + ralph-integration');
+      expect(result.name).toBe('software-base + csharp + javascript');
       expect(result.skills).toBeDefined();
 
       // Should have canon skills from all profiles (now uses generic names)

@@ -23,8 +23,8 @@ This document contains proprietary and confidential information. Unauthorized re
 |-------------|---------|
 | Node.js 18+ | Run lens CLI |
 | Claude Code CLI | AI coding assistant |
-| Docker | Run Qodana static analysis |
-| Gemini API Key | External code review |
+| Docker | Run Qodana static analysis (optional) |
+| Gemini API Key | External code review (optional) |
 
 ## Step 1: Install the CLI
 
@@ -119,10 +119,10 @@ Created:
   + .claude/settings.json
 
 Linked:
-  → skills/js-internals
-  → skills/typescript
-  → skills/js-safety
-  → skills/react-state
+  -> canon/js-internals
+  -> canon/typescript
+  -> canon/js-safety
+  -> canon/react-state
 
 Profile applied successfully!
 ```
@@ -141,7 +141,8 @@ You should see:
 .claude/
 ├── CLAUDE.md      # Standards and auto-invoke rules
 ├── settings.json  # Profile configuration
-└── skills/        # Symlinked canon skills
+├── canon/         # Deployed canon skills
+└── skills/        # Symlinked workflow skills
 ```
 
 Open `.claude/CLAUDE.md` to see the standards that were added:
@@ -181,20 +182,24 @@ Open Claude Code in your project:
 claude
 ```
 
-Ask Claude to check its configuration:
+Try running a scan to see skills in action:
 
 ```
-/status
+/gemini-scan src/
 ```
-
-Claude should show the active skills, standards, and agents.
 
 ## Step 8: Write Some Code
 
-Ask Claude to build something:
+Ask Claude to build something using the pipeline:
 
 ```
 /build a simple counter component
+```
+
+Or make a quick change:
+
+```
+/change add a dark mode toggle
 ```
 
 ## Step 9: Run an Audit
@@ -202,7 +207,7 @@ Ask Claude to build something:
 Check your project's configuration:
 
 ```bash
-lens audit -p .
+lens scan -p .
 ```
 
 This shows:
@@ -215,12 +220,12 @@ This shows:
 You've successfully:
 - Installed the Lens CLI
 - Configured API keys for external validation
-- Applied a profile that loads the right canon
+- Applied a profile that loads the right canon skills
 - Configured standards that enforce quality
 - Verified that Claude is using the configuration
 
 ## Next Steps
 
-- [Running Ralph Loop](ralph-loop-basics.md) - Autonomous development with PRDs
 - [How the Pipeline Works](../explanation/how-the-pipeline-works.md) - The 8-phase quality pipeline
 - [Why Expert Skills?](../explanation/why-expert-skills.md) - Understand the philosophy
+- [Set Up External Validation](../how-to/external-validation.md) - Configure Gemini and Qodana

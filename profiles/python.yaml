@@ -4,22 +4,6 @@ projectType: software
 composable: true
 extends: software-base
 
-ralph:
-  skills:
-    plan:
-      - python-idioms    # Pythonic design
-    build:
-      - python-idioms    # Pythonic code
-      - python-protocols # Fluent Python
-      - python-advanced  # Python cookbook
-      - python-patterns  # Effective Python
-    refactor:
-      - python-idioms    # Pythonic refactoring
-      - python-protocols # Idiomatic patterns
-    test:
-      - python-idioms    # pytest patterns
-    # review and doc inherit from software-base
-
 skills:
   canon:
     - python-idioms    # Pythonic idioms, generators, decorators

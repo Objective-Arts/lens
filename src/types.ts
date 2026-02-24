@@ -70,7 +70,7 @@ export type SkillCategory = 'security' | 'tech' | 'canon' | 'global';
 export interface SkillLibraryPaths {
   security: string;  // ~/.claude/skill-library/security/
   tech: string;      // ~/.claude/skill-library/tech/
-  canon: string;     // ~/local-tech-projects/lens/canon/
+  canon: string;     // Resolved via PATHS.canons (package or dev)
   global: string;    // ~/.claude/skills/
 }
 
@@ -140,50 +140,16 @@ export interface ComposableProfile {
   };
   mcpServers?: ProfileMCPServerConfig;
   settings?: Record<string, unknown>;
-  hooks?: ProfileHooksConfig;  // Hooks to install in project settings.json
-  ralph?: RalphConfig;  // Ralph Loop configuration
+  hooks?: ProfileHooksConfig;
 }
 
-/**
- * Ralph phase-specific skills configuration
- */
-export interface RalphSkillsConfig {
-  plan?: string[];
-  build?: string[];
-  refactor?: string[];
-  test?: string[];
-  review?: string[];
-  doc?: string[];
-}
-
-/**
- * Ralph Loop configuration for autonomous PRD implementation
- */
-export interface RalphConfig {
-  skills?: RalphSkillsConfig;
-  max_iterations?: number;
-  max_iterations_per_item?: number;
-  exit_on_idle_commits?: number;
-  quality_gates?: {
-    tests_required?: boolean;
-    test_level?: 'unit' | 'integration' | 'e2e';
-    review_required?: boolean;
-    review_mode?: 'self' | 'full';
-    review_threshold?: 'no_critical' | 'no_high' | 'clean';
-  };
-  post_loop_validation?: {
-    enabled?: boolean;
-    gemini?: boolean;
-    qodana?: boolean;
-    action?: 'report' | 'fail';
-    findings_file?: string;
-    promote_threshold?: number;
-  };
-  exit_criteria?: {
-    prd_items_complete?: string;
-    tests_passing?: string;
-    review_issues_critical?: number;
-  };
+/** Skill reference (used by canon inspect) */
+export interface Skill {
+  name: string;
+  content: string;
+  summary: string;
+  checklist: readonly string[];
+  source: 'profile' | 'dynamic';
 }
 
 /**

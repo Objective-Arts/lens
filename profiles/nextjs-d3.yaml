@@ -4,22 +4,6 @@ projectType: software
 composable: true
 extends: d3
 
-ralph:
-  skills:
-    plan:
-      - nextjs           # Server/client boundary decisions
-      - sql              # Schema and query planning
-    build:
-      - nextjs           # App Router, Server Components, Server Actions
-      - sql              # Set-based data access
-      - typescript       # Type safety
-    refactor:
-      - nextjs           # Push client boundaries down
-      - sql-perf         # Query optimization
-    review:
-      - nextjs           # Server/client boundary review
-      - sql-perf         # Query plan review
-
 skills:
   canon:
     - nextjs           # App Router, RSC, Server Actions, middleware

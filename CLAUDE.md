@@ -19,6 +19,7 @@
 |---------|-------------|
 | `/gemini-scan [path]` | Gemini review (report only) |
 | `/ai-smell-scan [path]` | AI code patterns (report only) |
+| `/canon-audit <canon> [path]` | Audit project against a canon's rules (report only) |
 | `/codex-scan [path]` | Codex pattern scan (report only) |
 
 **Utilities:**
@@ -27,15 +28,20 @@
 |---------|-------------|
 | `/lens` | Home base - status and help |
 
-**Flags for /ralph-loop:**
-- `--max N` — Override max iterations (default: 50)
-- `--resume` — Continue from last incomplete PRD item
-- `--external` — Enable Gemini + Qodana post-loop validation
-- `--dry-run` — Show what would be done without executing
-
 **Flags for /build and /improve:**
 - `--rollback` — Restore from last stash
 - `--dry-run` — Show what would change without modifying
+- `--from N|name` — Resume from a specific phase
+
+**Bash pipeline orchestrator** (runs from any project):
+```
+pipeline build <target|"description"> [--prd FILE] [--desc "..."] [--fast] [--from N|name] [--rollback] [--dry-run]
+pipeline improve <target|"description"> [--desc "..."] [--fast] [--from N|name] [--rollback] [--dry-run]
+```
+- `--fast` — Sonnet for phase 3, parallel phases 4+5
+- `--prd FILE` — PRD document for phase 0 (build only)
+- `--desc "..."` — Task description injected into all phases
+- Pass a description string instead of a path to use current directory as target
 
 ## Standards
 

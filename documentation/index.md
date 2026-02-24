@@ -23,9 +23,9 @@ Both flows converge at shared review gates: `/testing` → `/gemini-review`
 
 ---
 
-## Documentation Structure (Diátaxis Framework)
+## Documentation Structure (Diataxis Framework)
 
-This documentation follows the Diátaxis framework, organizing content by purpose:
+This documentation follows the Diataxis framework, organizing content by purpose:
 
 ```
                 PRACTICAL                      THEORETICAL
@@ -67,7 +67,6 @@ See [Installation Reference](reference/installation.md) for complete setup guide
 | Tutorial | Description |
 |----------|-------------|
 | [Getting Started](tutorials/getting-started.md) | Your first Lens project |
-| [Running Ralph Loop](tutorials/ralph-loop-basics.md) | Autonomous development with PRDs |
 
 ---
 
@@ -79,7 +78,6 @@ See [Installation Reference](reference/installation.md) for complete setup guide
 | Guide | Description |
 |-------|-------------|
 | [Apply a Profile](how-to/apply-profile.md) | Configure a project with a profile |
-| [Configure Ralph Loop](how-to/configure-ralph-loop.md) | Set up autonomous iteration |
 
 ### Development Workflows
 | Guide | Description |
@@ -102,10 +100,9 @@ See [Installation Reference](reference/installation.md) for complete setup guide
 
 | File | Location | Purpose |
 |------|----------|---------|
-| workflow-phases.yaml | `config/workflow-phases.yaml` | Pipeline phase workflow with experts |
-| keyword-detection.yaml | `config/keyword-detection.yaml` | Dynamic keyword-based expert detection |
 | Profiles | `profiles/*.yaml` | Project type configurations |
 | Canon Skills | `canon/*/SKILL.md` | Expert guidance content |
+| Rubrics | `workflow-skills/rubric/*.md` | Quality criteria for pipeline phases |
 
 ---
 

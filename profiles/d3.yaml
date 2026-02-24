@@ -4,31 +4,13 @@ projectType: software
 composable: true
 extends: javascript
 
-ralph:
-  skills:
-    plan:
-      - charts         # Data-ink planning
-      - dashboards     # Dashboard design
-    build:
-      - d3             # D3 implementation
-      - charts         # Graphical excellence
-      - dashboards     # Chart best practices
-      - data-story     # Storytelling with data
-    refactor:
-      - charts         # Remove chartjunk
-      - dashboards     # Simplify dashboards
-    review:
-      - dashboards     # Visualization critique
-      - charts         # Data integrity
-    doc:
-      - data-story     # Data storytelling
-
 skills:
   canon:
     - d3             # Selections, data joins, scales
     - charts         # Visual Display of Quantitative Information
     - dashboards     # Dashboard design, information clarity
     - data-story     # Storytelling with Data
+    - ui-ux          # Unified UI/UX design principles
 
 agents:
   - css-expert

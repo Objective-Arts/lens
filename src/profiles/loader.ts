@@ -41,26 +41,6 @@ function mergeHooks(
   return Object.keys(merged).length > 0 ? merged : undefined;
 }
 
-/** Merge ralph.skills configurations */
-function mergeRalphSkills(
-  parent: ComposableProfile['ralph'],
-  child: ComposableProfile['ralph']
-): ComposableProfile['ralph'] {
-  const parentSkills = parent?.skills ?? {};
-  const childSkills = child?.skills ?? {};
-
-  const mergedSkills = {
-    plan: mergeArrays(parentSkills.plan ?? [], childSkills.plan ?? []),
-    build: mergeArrays(parentSkills.build ?? [], childSkills.build ?? []),
-    refactor: mergeArrays(parentSkills.refactor ?? [], childSkills.refactor ?? []),
-    test: mergeArrays(parentSkills.test ?? [], childSkills.test ?? []),
-    review: mergeArrays(parentSkills.review ?? [], childSkills.review ?? []),
-    doc: mergeArrays(parentSkills.doc ?? [], childSkills.doc ?? [])
-  };
-
-  return { ...parent, ...child, skills: mergedSkills };
-}
-
 function mergeProfiles(parent: ComposableProfile, child: ComposableProfile): ComposableProfile {
   return {
     name: child.name,
@@ -84,8 +64,7 @@ function mergeProfiles(parent: ComposableProfile, child: ComposableProfile): Com
       enable: mergeArrays(parent.mcpServers?.enable ?? [], child.mcpServers?.enable ?? []),
       disable: mergeArrays(parent.mcpServers?.disable ?? [], child.mcpServers?.disable ?? [])
     },
-    hooks: mergeHooks(parent.hooks, child.hooks),
-    ralph: mergeRalphSkills(parent.ralph, child.ralph)
+    hooks: mergeHooks(parent.hooks, child.hooks)
   };
 }
 
@@ -228,4 +207,4 @@ export async function getProfileAsync(name: string): Promise<ComposableProfile |
 }
 
 // Re-export merge utilities for combiner
-export { mergeArrays, mergeHooks, mergeRalphSkills };
+export { mergeArrays, mergeHooks };

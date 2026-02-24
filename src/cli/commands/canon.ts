@@ -14,7 +14,7 @@ import {
   deployAllSkills,
   verifySkillsMatch
 } from '../../canon/index.js';
-import { loadSkills } from '../../ralph/skills/loader.js';
+import { loadSkills } from '../../canon/skill-loader.js';
 import { printList, printCanonSkillsByCategory, printSkillStatuses, printVerifyResults, printSkillInspection } from '../display/index.js';
 import { validateProjectPath, getPathValidationError } from '../../utils/validation.js';
 

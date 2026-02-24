@@ -200,16 +200,15 @@ The gap between "cited a decision" and "actually followed through" still relies 
 
 ---
 
-## Files Changed
+## Key Files
 
-| File | Change |
-|------|--------|
-| `src/ralph/types.ts` | Added `summary` and `checklist` fields to `Skill` interface |
-| `src/ralph/skills/loader.ts` | Loads SUMMARY.md, extracts checklist items from both formats |
-| `src/ralph/phases/types.ts` | Replaced truncation with full summary, added enforcement checklist builder and APPLIED validator |
-| `src/ralph/phases/implement.ts` | Wired principle validation after code generation |
-| `src/ralph/phases/plan.ts` | Wired principle validation after plan generation |
-| `src/ralph/phases/refactoring.ts` | Wired principle validation after refactoring |
+| File | Purpose |
+|------|---------|
+| `src/types.ts` | `Skill` interface with `summary` and `checklist` fields |
+| `src/canon/skill-loader.ts` | Loads SUMMARY.md, extracts checklist items from both formats |
+| `workflow-skills/workflow/plan/SKILL.md` | Plan phase with enforcement checklist |
+| `workflow-skills/workflow/implementation/SKILL.md` | Implementation phase with principle validation |
+| `workflow-skills/workflow/refactoring/SKILL.md` | Refactoring phase with principle validation |
 
 ---
 

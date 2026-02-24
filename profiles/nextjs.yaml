@@ -1,0 +1,33 @@
+name: nextjs
+description: Next.js App Router projects. Combine with react for component patterns.
+projectType: software
+composable: true
+extends: react
+
+skills:
+  canon:
+    - nextjs           # App Router, RSC, Server Actions, best practices
+
+claudeMd:
+  standards:
+    - "Server Components by default — only add 'use client' for interactivity"
+    - "Push 'use client' boundary to smallest leaf component"
+    - "Fetch data in Server Components, not via useEffect"
+    - "Use Server Actions for mutations, not custom API routes"
+    - "Proper loading.tsx and error.tsx for each route segment"
+    - "Use next/image over <img>, next/font over manual font loading"
+    - "Metadata exported for SEO (title, description, openGraph)"
+
+  antiPatterns:
+    - "'use client' on components that only display data"
+    - "useEffect fetch for data available at render time"
+    - "API routes that just proxy a database query (use Server Components)"
+    - "Passing server-only data (DB connections, secrets) through client boundary"
+    - "Manual Suspense/ErrorBoundary when file conventions (loading.tsx, error.tsx) suffice"
+    - "Leading wildcard LIKE patterns on unindexed columns"
+
+  autoInvoke:
+    - context: Next.js routing, layouts, Server Components, Server Actions, middleware
+      action: INVOKE `/nextjs`
+    - context: React component patterns, hooks, state management
+      action: INVOKE `/react-state`

@@ -196,12 +196,11 @@ After installation, your system will have:
 /path/to/lens/                      # Source repository
 ├── src/                            # TypeScript source code
 ├── dist/                           # Compiled output
-├── canon/                          # 75 canon skill definitions
-├── profiles/                       # 14 profile definitions
-├── workflow-skills/                # 29 workflow + utility skills
+├── canon/                          # 77 canon skill definitions
+├── profiles/                       # 15 profile definitions
+├── workflow-skills/                # 33 workflow + utility skills
 ├── mcp-servers/                    # MCP server implementations
-├── config/                         # Workflow phases, keyword detection
-└── scripts/                        # Quality gate scripts
+└── scripts/                        # Pipeline orchestrator, quality gate
 
 /path/to/your-project/              # Your project
 └── .claude/

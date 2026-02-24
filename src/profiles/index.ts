@@ -24,7 +24,6 @@ export {
   USER_PROFILES_DIR,
   BUILTIN_PROFILES_DIR,
   MCP_SERVERS_DIR,
-  PHASE_CONFIG_SOURCE_DIR,
   CANON_SUBDIRS,
   SKILL_LIBRARY_PATHS,
   getSkillLibraryPaths
@@ -37,8 +36,7 @@ export {
   getProfile,
   getProfileAsync,
   mergeArrays,
-  mergeHooks,
-  mergeRalphSkills
+  mergeHooks
 } from './loader.js';
 
 // Re-export combiner

@@ -1,14 +1,15 @@
 /**
- * Skill file loader.
+ * Skill file loader for canon inspect.
  *
- * Explicit dependencies, testable.
- * Simple file operations, clear errors.
+ * Loads SKILL.md + SUMMARY.md from installed skills.
  */
 
 import * as fs from 'fs';
 import * as path from 'path';
-import { Skill } from '../types.js';
-import { resolveSkillName, formatSkillName } from '../../canon/naming.js';
+import type { Skill } from '../types.js';
+import { resolveSkillName, formatSkillName } from './naming.js';
+
+const PREVIEW_LENGTH = 60;
 
 function extractChecklist(content: string): string[] {
   const items: string[] = [];
@@ -39,12 +40,16 @@ function extractChecklist(content: string): string[] {
   return items;
 }
 
-/**
- * Load SKILL.md + SUMMARY.md for a skill, extracting enforcement checklist.
- * Resolves tribute names when CANON_TRIBUTE_NAMES=1.
- */
+function isValidSkillName(name: string): boolean {
+  return !name.includes('/') && !name.includes('\\') && !name.includes('..');
+}
+
 function loadSkill(projectPath: string, skillName: string): Skill | null {
+  if (!isValidSkillName(skillName)) return null;
+
   const resolvedName = resolveSkillName(skillName);
+  if (!isValidSkillName(resolvedName)) return null;
+
   const skillDir = path.join(projectPath, '.claude', 'skills', resolvedName);
   const skillPath = path.join(skillDir, 'SKILL.md');
 
@@ -58,7 +63,6 @@ function loadSkill(projectPath: string, skillName: string): Skill | null {
       summary = fs.readFileSync(summaryPath, 'utf-8');
       checklist = extractChecklist(summary);
     } catch {
-      // No SUMMARY.md - extract checklist from SKILL.md instead
       checklist = extractChecklist(content);
     }
 
@@ -68,14 +72,6 @@ function loadSkill(projectPath: string, skillName: string): Skill | null {
   }
 }
 
-/**
- * Load multiple skills by name.
- *
- * @param projectPath - Project root path
- * @param skillNames - Array of skill names (can be tribute or generic names)
- * @param verbose - Print confirmation of loaded skills
- * @returns Array of loaded skills (excludes not found)
- */
 export function loadSkills(projectPath: string, skillNames: string[], verbose: boolean = false): Skill[] {
   const skills: Skill[] = [];
 
@@ -85,8 +81,7 @@ export function loadSkills(projectPath: string, skillNames: string[], verbose: b
       skills.push(skill);
       if (verbose) {
         const lines = skill.content.split('\n').length;
-        const preview = skill.content.slice(0, 60).replace(/\n/g, ' ').trim();
-        // Show tribute name in parentheses when CANON_TRIBUTE_NAMES=1
+        const preview = skill.content.slice(0, PREVIEW_LENGTH).replace(/\n/g, ' ').trim();
         const displayName = formatSkillName(skill.name);
         console.log(`      ✓ ${displayName}: ${lines} lines loaded "${preview}..."`);
       }
@@ -95,4 +90,3 @@ export function loadSkills(projectPath: string, skillNames: string[], verbose: b
 
   return skills;
 }
-

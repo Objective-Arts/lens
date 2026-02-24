@@ -13,7 +13,8 @@ import {
   registerCanonCommands,
   registerWorkflowCommands,
   registerTraceCommand,
-  registerDedupeCommands
+  registerDedupeCommands,
+  registerInitCommand
 } from './commands/index.js';
 
 const program = new Command();
@@ -21,7 +22,14 @@ const program = new Command();
 const DESCRIPTION = `
 ${chalk.bold.white('Lens')} ${chalk.dim('— AI Assisted Development That Builds In Quality')}
 
-${chalk.bold.yellow('CONFIGURE A PROJECT')}
+${chalk.bold.yellow('QUICK START')}
+
+  ${chalk.green('$')} npm install -g @objective-arts/lens
+  ${chalk.green('$')} cd your-project
+  ${chalk.green('$')} lens init                ${chalk.dim('Auto-detect stack, create skills + config')}
+  ${chalk.green('$')} claude                   ${chalk.dim('Start Claude Code')}
+
+${chalk.bold.yellow('CONFIGURE A PROJECT')} ${chalk.dim('(manual)')}
 
   ${chalk.white('1.')} ${chalk.green('$')} lens profile list              ${chalk.dim('See available profiles')}
   ${chalk.white('2.')} ${chalk.green('$')} lens profile apply ${chalk.white('javascript+react .')}  ${chalk.dim('Install skills + config')}
@@ -59,6 +67,7 @@ program
   });
 
 // Register all command groups
+registerInitCommand(program);
 registerScanCommands(program);
 registerProfileCommands(program);
 registerMcpCommands(program);

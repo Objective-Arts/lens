@@ -177,7 +177,7 @@ Read `.claude/rubric/contracts.md`. Use the 7 abstract types when writing WORK_I
 1. **Explore** - Use Glob, Grep, Read to understand existing code
 2. **Design** - Create plan with ALL required sections
 3. **Save** - Write to `.claude/plans/[slug].md`
-4. **Stop** - Exit and wait for approval
+4. **Stop** - Exit and return to orchestrator
 
 ## ⚠️ NO INTERVIEW QUESTIONS
 

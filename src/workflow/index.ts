@@ -9,56 +9,36 @@ import type {
 } from './types.js';
 import { getGitCommit, getGitRemote } from '../utils/git.js';
 import { copyDirectorySync } from '../utils/fs.js';
-import { hashDirectoryContents, hashFileContents } from '../utils/hash.js';
+import { hashDirectoryContents } from '../utils/hash.js';
 import { registerInstallation, listInstallations, pruneRegistry } from './registry.js';
+import { PATHS } from '../paths.js';
+import {
+  lstatTarget, removeTarget, checkAlreadyInstalled,
+  copyQualityGateScript, copyRubricFiles, seedUniversalLessons,
+  upgradeQualityGateScript, upgradeRubricFiles, upgradeSeedLessons,
+  installOneSkill, upgradeOneSkill
+} from './install-helpers.js';
 
 /** Skills visible as slash commands in Claude Code */
 const USER_FACING_SKILLS = new Set([
   'build', 'improve', 'change',
   'ai-smell-scan', 'ai-smell-fix', 'generate-docs', 'lens',
-  'code-scan', 'codex-scan', 'dedupe-scan', 'gemini-scan',
+  'canon-audit', 'code-scan', 'codex-scan', 'dedupe-scan', 'gemini-scan',
   'naming-scan', 'qodana-scan', 'refactor-scan'
 ]);
 
-// Default workflow skills source (in-repo, relative to compiled output)
-// From dist/workflow/ or src/workflow/, go up 2 levels to project root
-const DEFAULT_WORKFLOW_SOURCE = path.resolve(
-  path.dirname(new URL(import.meta.url).pathname),
-  '../../workflow-skills'
-);
-
-// Alternative paths to check (order matters - first match wins)
-const WORKFLOW_PATHS = [
-  // Environment variable override
-  process.env.CC_WORKFLOW_SKILLS_PATH,
-  // Relative to project root (works in dev and dist)
-  DEFAULT_WORKFLOW_SOURCE,
-  // User's home directory alternatives
-  path.resolve(process.env.HOME || '', '.claude/workflow-skills'),
-  path.resolve(process.env.HOME || '', 'workflow-skills')
-].filter((p): p is string => Boolean(p));
-
 function getWorkflowSourcePath(): string {
-  for (const p of WORKFLOW_PATHS) {
-    if (fs.existsSync(p)) {
-      return p;
-    }
+  if (process.env.CC_WORKFLOW_SKILLS_PATH && fs.existsSync(process.env.CC_WORKFLOW_SKILLS_PATH)) {
+    return process.env.CC_WORKFLOW_SKILLS_PATH;
   }
-  return DEFAULT_WORKFLOW_SOURCE;
+  return PATHS.workflowSkills;
 }
 
 export function getWorkflowSourceInfo(): WorkflowSource & { commit?: string; remote?: string } {
   const sourcePath = getWorkflowSourcePath();
   const commit = getGitCommit(sourcePath);
   const remote = getGitRemote(sourcePath);
-
-  return {
-    type: 'local',
-    path: sourcePath,
-    commit,
-    remote,
-    gitRemote: remote
-  };
+  return { type: 'local', path: sourcePath, commit, remote, gitRemote: remote };
 }
 
 function readSkillDescription(skillFile: string): { exists: true; description?: string } | null {
@@ -76,18 +56,15 @@ export function listWorkflowSkills(): WorkflowSkillInfo[] {
   if (!fs.existsSync(sourcePath)) return [];
 
   const skills: WorkflowSkillInfo[] = [];
-
   const scanDir = (dirPath: string): void => {
     const entries = fs.readdirSync(dirPath, { withFileTypes: true });
     for (const entry of entries) {
       if (!entry.isDirectory() || entry.name.startsWith('.') || entry.name === 'node_modules') continue;
-
       const skillPath = path.join(dirPath, entry.name);
       const result = readSkillDescription(path.join(skillPath, 'SKILL.md'));
       if (result) {
         skills.push({ name: entry.name, path: skillPath, description: result.description });
       } else {
-        // Recurse into subdirectories (e.g., workflow/, utils/, ralph-loop/)
         scanDir(skillPath);
       }
     }
@@ -108,23 +85,14 @@ function getWorkflowManifest(projectPath: string): WorkflowManifest | null {
 
 function saveWorkflowManifest(projectPath: string, manifest: WorkflowManifest): void {
   const claudeDir = path.join(projectPath, '.claude');
-  if (!fs.existsSync(claudeDir)) {
-    fs.mkdirSync(claudeDir, { recursive: true });
-  }
-
-  const manifestPath = path.join(claudeDir, 'workflow-manifest.json');
-  fs.writeFileSync(manifestPath, JSON.stringify(manifest, null, 2));
+  if (!fs.existsSync(claudeDir)) fs.mkdirSync(claudeDir, { recursive: true });
+  fs.writeFileSync(path.join(claudeDir, 'workflow-manifest.json'), JSON.stringify(manifest, null, 2));
 }
 
 function createWorkflowManifest(): WorkflowManifest {
   const sourceInfo = getWorkflowSourceInfo();
-
   return {
-    source: {
-      type: sourceInfo.type,
-      path: sourceInfo.path,
-      gitRemote: sourceInfo.gitRemote
-    },
+    source: { type: sourceInfo.type, path: sourceInfo.path, gitRemote: sourceInfo.gitRemote },
     installedAt: new Date().toISOString(),
     sourceCommit: sourceInfo.commit,
     skills: {}
@@ -137,14 +105,12 @@ function isValidSkillName(name: string): boolean {
 }
 
 function findWorkflowSkillPath(skillName: string): string | null {
-  const skills = listWorkflowSkills();
-  const found = skills.find(s => s.name === skillName);
+  const found = listWorkflowSkills().find(s => s.name === skillName);
   return found?.path ?? null;
 }
 
 function validateSkillSource(
-  skillName: string,
-  _sourcePath: string
+  skillName: string
 ): { valid: true; skillSourcePath: string } | { valid: false; message: string } {
   const skillSourcePath = findWorkflowSkillPath(skillName);
   if (!skillSourcePath) {
@@ -156,16 +122,9 @@ function validateSkillSource(
   return { valid: true, skillSourcePath };
 }
 
-function recordSkillInstall(
-  projectPath: string,
-  skillName: string,
-  targetPath: string
-): void {
+function recordSkillInstall(projectPath: string, skillName: string, targetPath: string): void {
   let manifest = getWorkflowManifest(projectPath);
-  if (!manifest) {
-    manifest = createWorkflowManifest();
-  }
-
+  if (!manifest) manifest = createWorkflowManifest();
   const sourceInfo = getWorkflowSourceInfo();
   manifest.skills[skillName] = {
     installedAt: new Date().toISOString(),
@@ -174,8 +133,23 @@ function recordSkillInstall(
     modified: false,
     installedCommit: sourceInfo.commit
   };
-
   saveWorkflowManifest(projectPath, manifest);
+}
+
+function prepareInstallTarget(
+  targetPath: string,
+  skillSourcePath: string,
+  skillName: string,
+  force: boolean
+): { proceed: true; isUpdate: boolean } | { proceed: false; message: string } {
+  const { exists, isSymlink } = lstatTarget(targetPath);
+  const isCopy = exists && !isSymlink;
+  if (isCopy && !force) {
+    const alreadyInstalled = checkAlreadyInstalled(targetPath, skillSourcePath, skillName);
+    if (alreadyInstalled) return { proceed: false, message: alreadyInstalled.message };
+  }
+  if (exists) removeTarget(targetPath, isSymlink);
+  return { proceed: true, isUpdate: isCopy && !force };
 }
 
 export function installWorkflowSkill(
@@ -187,47 +161,20 @@ export function installWorkflowSkill(
     return { success: false, message: `Invalid skill name (path traversal): ${skillName}` };
   }
 
-  const sourcePath = getWorkflowSourcePath();
-  const validation = validateSkillSource(skillName, sourcePath);
+  const validation = validateSkillSource(skillName);
   if (!validation.valid) return { success: false, message: validation.message };
 
   const dir = options.targetDir ?? path.join(projectPath, '.claude', 'skills');
   const targetPath = path.join(dir, skillName);
+  const prep = prepareInstallTarget(targetPath, validation.skillSourcePath, skillName, options.force ?? false);
+  if (!prep.proceed) return { success: false, message: prep.message };
 
-  // lstatSync detects broken symlinks that existsSync misses (existsSync follows links)
-  let targetExists = false;
-  let targetIsSymlink = false;
-  try {
-    const lstat = fs.lstatSync(targetPath);
-    targetExists = true;
-    targetIsSymlink = lstat.isSymbolicLink();
-  } catch { /* does not exist at all */ }
-
-  if (targetExists && !targetIsSymlink && !options.force) {
-    const installedHash = hashDirectoryContents(targetPath);
-    const sourceHash = hashDirectoryContents(validation.skillSourcePath);
-    if (installedHash === sourceHash) {
-      return { success: false, message: `Skill already installed: ${skillName}. Use --force to overwrite.` };
-    }
-    // Source changed — fall through to update
-  }
-
-  const isUpdate = targetExists && !targetIsSymlink && !options.force;
-
-  if (targetExists) {
-    if (targetIsSymlink) {
-      fs.unlinkSync(targetPath);
-    } else {
-      fs.rmSync(targetPath, { recursive: true });
-    }
-  }
   copyDirectorySync(validation.skillSourcePath, targetPath);
   recordSkillInstall(projectPath, skillName, targetPath);
 
-  if (isUpdate) {
-    return { success: true, message: `Updated skill: ${skillName} (source changed)` };
-  }
-  return { success: true, message: `Installed workflow skill: ${skillName}` };
+  return prep.isUpdate
+    ? { success: true, message: `Updated skill: ${skillName} (source changed)` }
+    : { success: true, message: `Installed workflow skill: ${skillName}` };
 }
 
 /**
@@ -243,57 +190,18 @@ export function installAllWorkflowSkills(
 ): { installed: string[]; skipped: string[]; errors: string[] } {
   const skills = listWorkflowSkills();
   const results = { installed: [] as string[], skipped: [] as string[], errors: [] as string[] };
-
   const skillsDir = path.join(projectPath, '.claude', 'skills');
   if (!fs.existsSync(skillsDir)) fs.mkdirSync(skillsDir, { recursive: true });
 
   for (const skill of skills) {
-    if (!USER_FACING_SKILLS.has(skill.name)) {
-      results.skipped.push(`${skill.name}: internal (referenced from workflow-skills/)`);
-      continue;
-    }
-    const result = installWorkflowSkill(skill.name, projectPath, { ...options, targetDir: skillsDir });
-    if (result.success) {
-      results.installed.push(skill.name);
-    } else if (!options.force && fs.existsSync(path.join(skillsDir, skill.name))) {
-      results.skipped.push(`${skill.name}: already installed`);
-    } else {
-      results.errors.push(`${skill.name}: ${result.message}`);
-    }
+    installOneSkill(skill, projectPath, skillsDir, options, USER_FACING_SKILLS, installWorkflowSkill, results);
   }
 
-  // Copy quality-gate script to target project
   const sourcePath = getWorkflowSourcePath();
-  const gateSource = path.join(path.dirname(sourcePath), 'scripts', 'quality-gate.ts');
-  const gateTarget = path.join(projectPath, '.claude', 'scripts', 'quality-gate.ts');
-  if (fs.existsSync(gateSource)) {
-    fs.mkdirSync(path.dirname(gateTarget), { recursive: true });
-    fs.copyFileSync(gateSource, gateTarget);
-    const manifest = getWorkflowManifest(projectPath);
-    if (manifest) {
-      manifest.scriptHash = hashFileContents(gateSource);
-      saveWorkflowManifest(projectPath, manifest);
-    }
-  }
-
-  // Copy rubric files to target project
-  const rubricSource = path.join(sourcePath, 'rubric');
-  const rubricTarget = path.join(projectPath, '.claude', 'rubric');
-  if (fs.existsSync(rubricSource)) {
-    if (fs.existsSync(rubricTarget)) {
-      fs.rmSync(rubricTarget, { recursive: true });
-    }
-    copyDirectorySync(rubricSource, rubricTarget);
-  }
-
-  // Copy universal lessons file to target project (seed only — don't overwrite accumulated lessons)
-  const lessonsSource = path.join(sourcePath, 'lessons.md');
-  const lessonsTarget = path.join(projectPath, '.claude', 'universal-lessons.md');
-  if (fs.existsSync(lessonsSource) && !fs.existsSync(lessonsTarget)) {
-    fs.copyFileSync(lessonsSource, lessonsTarget);
-  }
-
-  // Register this project in the central installation registry
+  const manifest = getWorkflowManifest(projectPath);
+  if (manifest) copyQualityGateScript(projectPath, sourcePath, manifest, (m) => saveWorkflowManifest(projectPath, m));
+  copyRubricFiles(projectPath, sourcePath);
+  seedUniversalLessons(projectPath, sourcePath);
   registerInstallation(projectPath);
 
   return results;
@@ -307,20 +215,15 @@ function determineSkillStatus(
 ): WorkflowStatusInfo & { name: string } {
   const base = { name: '', installedCommit: info.installedCommit };
 
-  if (!fs.existsSync(installedPath)) {
-    return { ...base, status: 'missing' };
-  }
+  if (!fs.existsSync(installedPath)) return { ...base, status: 'missing' };
 
   const currentHash = hashDirectoryContents(installedPath);
   const modified = currentHash !== info.hash;
 
-  if (!fs.existsSync(sourceSkillPath)) {
-    return { ...base, status: 'unknown', modified };
-  }
+  if (!fs.existsSync(sourceSkillPath)) return { ...base, status: 'unknown', modified };
 
   const sourceHash = hashDirectoryContents(sourceSkillPath);
   let status: WorkflowSkillStatus;
-
   if (modified) {
     status = 'modified';
   } else if (info.installedCommit !== sourceCommit && currentHash !== sourceHash) {
@@ -364,68 +267,13 @@ export function upgradeWorkflowSkills(
 
   for (const status of statuses) {
     if (options.skills && !options.skills.includes(status.name)) continue;
-
-    // Categorize skill for upgrade decision
-    if (status.status === 'current') {
-      results.skipped.push(`${status.name}: already current`);
-      continue;
-    }
-    if (status.status === 'modified' && !force) {
-      results.skipped.push(`${status.name}: locally modified (use --force to overwrite)`);
-      continue;
-    }
-    if (status.status === 'missing' || status.status === 'unknown') {
-      results.skipped.push(`${status.name}: ${status.status}`);
-      continue;
-    }
-
-    if (!USER_FACING_SKILLS.has(status.name)) {
-      results.skipped.push(`${status.name}: internal (referenced from workflow-skills/)`);
-      continue;
-    }
-    const targetDir = path.join(projectPath, '.claude', 'skills');
-    const result = installWorkflowSkill(status.name, projectPath, { force: true, targetDir });
-    if (result.success) {
-      results.upgraded.push(status.name);
-    } else {
-      results.errors.push(`${status.name}: ${result.message}`);
-    }
+    upgradeOneSkill(status, projectPath, force, USER_FACING_SKILLS, installWorkflowSkill, results);
   }
 
-  // Re-copy quality-gate script if outdated
   const sourcePath = getWorkflowSourcePath();
-  const gateSource = path.join(path.dirname(sourcePath), 'scripts', 'quality-gate.ts');
-  const gateTarget = path.join(projectPath, '.claude', 'scripts', 'quality-gate.ts');
-  if (fs.existsSync(gateSource)) {
-    const currentHash = manifest.scriptHash;
-    const sourceHash = hashFileContents(gateSource);
-    if (currentHash !== sourceHash) {
-      fs.mkdirSync(path.dirname(gateTarget), { recursive: true });
-      fs.copyFileSync(gateSource, gateTarget);
-      manifest.scriptHash = sourceHash;
-      saveWorkflowManifest(projectPath, manifest);
-      results.upgraded.push('quality-gate.ts (script)');
-    }
-  }
-
-  // Re-copy rubric files (always overwrite — rubrics are read-only source)
-  const rubricSource = path.join(sourcePath, 'rubric');
-  const rubricTarget = path.join(projectPath, '.claude', 'rubric');
-  if (fs.existsSync(rubricSource)) {
-    if (fs.existsSync(rubricTarget)) {
-      fs.rmSync(rubricTarget, { recursive: true });
-    }
-    copyDirectorySync(rubricSource, rubricTarget);
-    results.upgraded.push('rubric/ (criteria files)');
-  }
-
-  // Seed universal lessons if missing (don't overwrite — project accumulates its own)
-  const lessonsSource = path.join(sourcePath, 'lessons.md');
-  const lessonsTarget = path.join(projectPath, '.claude', 'universal-lessons.md');
-  if (fs.existsSync(lessonsSource) && !fs.existsSync(lessonsTarget)) {
-    fs.copyFileSync(lessonsSource, lessonsTarget);
-    results.upgraded.push('universal-lessons.md (seeded)');
-  }
+  upgradeQualityGateScript(projectPath, sourcePath, manifest, (m) => saveWorkflowManifest(projectPath, m), results.upgraded);
+  upgradeRubricFiles(projectPath, sourcePath, results.upgraded);
+  upgradeSeedLessons(projectPath, sourcePath, results.upgraded);
 
   return results;
 }
@@ -445,7 +293,6 @@ export function pushWorkflowSkills(
       } else {
         results.current.push(projectPath);
       }
-      // Update lastUpdated timestamp on success
       registerInstallation(projectPath, entry.profileName);
     } catch (error) {
       const message = error instanceof Error ? error.message : String(error);

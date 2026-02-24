@@ -1,6 +1,6 @@
 # lens CLI
 
-**lens** sets up Claude Code projects with expert skills and configuration profiles, while **ralph** autonomously implements features by running code through an 8-phase quality pipeline (plan → structure → implementation → refactoring → deduplication → review → testing → evaluation) with a learning loop and machine gates. Expert guidance shapes the code from the first line, and gates between phases catch issues when they're cheap to fix.
+**lens** sets up Claude Code projects with expert skills and configuration profiles. An 8-phase quality pipeline (plan → structure → implementation → refactoring → deduplication → review → testing → evaluation) with a learning loop and machine gates can be run in-session via `/build` and `/improve`, or via the bash orchestrator (`pipeline`) with isolated sessions per phase. Expert guidance shapes the code from the first line, and gates between phases catch issues when they're cheap to fix.
 
 ## Quick Start
 
@@ -17,9 +17,9 @@ lens scan -p /path/to/project
 
 ## Features
 
-- **Profile Management**: Compose and apply 14 configuration profiles with `+` syntax
-- **Canon Skills**: 75 expert-authored skills across 30 categories with version tracking
-- **Workflow Skills**: 29 workflow/utility skills for quality control and automation
+- **Profile Management**: Compose and apply 15 configuration profiles with `+` syntax
+- **Canon Skills**: 77 expert-authored skills across 29 categories with version tracking
+- **Workflow Skills**: 33 workflow/utility skills for quality control and automation
 - **MCP Registry**: Manage MCP server installation and configuration
 - **Configuration Scanner**: Discover and audit all Claude Code configuration
 - **Token Analysis**: Track context usage across skills and scopes
@@ -30,12 +30,10 @@ Full documentation at [documentation/index.md](documentation/index.md).
 
 | Section | Contents |
 |---------|----------|
-| [Project Overview](documentation/PROJECT-OVERVIEW.md) | Architecture, design principles, skill catalog |
-| [Tutorials](documentation/tutorials/) | Getting started, first Ralph run |
+| [Tutorials](documentation/tutorials/) | Getting started |
 | [How-To Guides](documentation/how-to/) | Apply profiles, configure workflow, external validation |
 | [Reference](documentation/reference/) | Installation, profiles, hooks, canon catalog |
 | [Explanation](documentation/explanation/) | Why expert skills, two-tier review, skill enforcement |
-| [Developer Guide](documentation/DEVELOPER-GUIDE.md) | Contributing to the Lens codebase |
 
 ## Commands
 
@@ -62,13 +60,13 @@ Full documentation at [documentation/index.md](documentation/index.md).
 
 | Command | Description |
 |---------|-------------|
-| `canon list` | List all 75 canon skills |
+| `canon list` | List all 77 canon skills |
 | `canon status` | Check installed skill versions |
 | `canon deploy` | Deploy all skills to project |
 | `canon upgrade` | Upgrade outdated skills |
 | `canon diff <skill>` | Show diff between installed and source |
 | `canon verify` | Verify installed skills match source |
-| `canon inspect <skill>` | Show what Ralph sees when loading a skill |
+| `canon inspect <skill>` | Show what a skill contains when loaded |
 | `canon source` | Show canon source info |
 
 ### MCP Servers
@@ -97,7 +95,7 @@ Full documentation at [documentation/index.md](documentation/index.md).
 | Binary | Purpose |
 |--------|---------|
 | `lens` | CLI for profiles, canon, scanning, workflow |
-| `ralph` | Autonomous PRD implementation loop |
+| `pipeline` | Bash orchestrator — isolated sessions per phase |
 | `lens-reset` | Reset configuration to defaults |
 
 ## License

@@ -122,9 +122,7 @@ export async function applyMcpToProject(profile: ComposableProfile, projectPath:
     result.created.push(...mcpResult.created);
     result.skipped.push(...mcpResult.skipped);
     result.errors.push(...mcpResult.errors);
-  }
 
-  if (profile.ralph || profile.name === 'ralph-integration') {
     const mcpJsonResult = await createProjectMcpJson(projectPath);
     switch (mcpJsonResult.status) {
       case 'created': {

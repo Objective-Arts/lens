@@ -4,22 +4,6 @@ projectType: software
 composable: true
 extends: software-base
 
-ralph:
-  skills:
-    plan:
-      - js-internals   # JS runtime mental model
-    build:
-      - typescript     # TypeScript types
-      - js-safety      # Good parts
-      - js-internals   # Closures, scope, this
-      - js-perf        # JS design patterns
-    refactor:
-      - js-perf        # Pattern refactoring
-      - js-safety      # Simplify to good parts
-    test:
-      - react-test     # Testing Trophy
-    # review and doc inherit from software-base
-
 skills:
   canon:
     # JavaScript experts

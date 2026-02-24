@@ -10,3 +10,4 @@ export { registerCanonCommands } from './canon.js';
 export { registerWorkflowCommands } from './workflow.js';
 export { registerTraceCommand } from './trace.js';
 export { registerDedupeCommands } from './dedupe.js';
+export { registerInitCommand } from './init.js';
