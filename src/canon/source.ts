@@ -1,15 +1,13 @@
 import * as fs from 'fs';
 import * as path from 'path';
-import { homedir } from 'os';
 import type { CanonListItem } from './types.js';
 import { resolveSkillName, getTributeName } from './naming.js';
 import { CANON_SUBDIRS, scanDirForSkills } from './helpers.js';
 import { getGitCommit, getGitRemote } from '../utils/git.js';
-
-const DEFAULT_CANON_PATH = path.join(homedir(), 'local-tech-projects', 'lens', 'canon');
+import { PATHS } from '../paths.js';
 
 export function getCanonSourcePath(): string {
-  return process.env.CANON_SKILLS_PATH || DEFAULT_CANON_PATH;
+  return process.env.CANON_SKILLS_PATH || PATHS.canons;
 }
 
 export function listCanonSkills(): CanonListItem[] {

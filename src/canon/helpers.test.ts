@@ -154,7 +154,6 @@ describe('determineSkillStatus', () => {
 
   it('returns current when hashes match with manifest', () => {
     const skillDir = createSkillDir('test-skill');
-    const hash = ''; // Will be computed
     const result = determineSkillStatus(skillDir, skillDir, undefined);
     expect(result.status).toBe('current');
   });

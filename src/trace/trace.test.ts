@@ -27,19 +27,18 @@ describe('traceSkillConfig', () => {
     fs.mkdirSync(claudeDir);
     fs.writeFileSync(
       path.join(claudeDir, 'CLAUDE.md'),
-      '## Profiles Applied\n\n`typescript-cli`\n'
+      '## Profiles Applied\n\n`nonexistent-profile-xyzzy`\n'
     );
 
     const result = traceSkillConfig(tmpDir, 'plan');
     // Profile won't be in yamlStack because the profile YAML file doesn't exist
-    // in the expected location, but the function should not throw
     expect(result.yamlStack).toEqual([]);
   });
 
   it('reads profiles from root CLAUDE.md', () => {
     fs.writeFileSync(
       path.join(tmpDir, 'CLAUDE.md'),
-      '## Profiles Applied\n\n`base-tech`\n'
+      '## Profiles Applied\n\n`nonexistent-profile-xyzzy`\n'
     );
 
     const result = traceSkillConfig(tmpDir, 'plan');

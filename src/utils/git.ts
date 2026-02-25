@@ -1,5 +1,6 @@
 import * as fs from 'fs';
 import * as path from 'path';
+import { isEnoent } from './fs.js';
 
 /** Reads .git/HEAD directly instead of spawning `git rev-parse`. */
 export function getGitCommit(repoPath: string): string | undefined {
@@ -11,7 +12,11 @@ export function getGitCommit(repoPath: string): string | undefined {
       return fs.readFileSync(path.join(repoPath, '.git', refPath), 'utf-8').trim().slice(0, 7);
     }
     return headContent.slice(0, 7);
-  } catch {
+  } catch (cause) {
+    if (!isEnoent(cause) && cause instanceof Error) {
+      // Non-ENOENT errors (permission denied, etc.) are unexpected — surface them in debug
+      if (process.env['DEBUG']) console.debug('getGitCommit failed:', cause.message);
+    }
     return undefined;
   }
 }
@@ -23,7 +28,10 @@ export function getGitRemote(repoPath: string): string | undefined {
     const content = fs.readFileSync(configPath, 'utf-8');
     const match = content.match(/\[remote "origin"\][\s\S]*?url\s*=\s*(.+)/);
     return match ? match[1].trim() : undefined;
-  } catch {
+  } catch (cause) {
+    if (!isEnoent(cause) && cause instanceof Error) {
+      if (process.env['DEBUG']) console.debug('getGitRemote failed:', cause.message);
+    }
     return undefined;
   }
 }

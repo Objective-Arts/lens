@@ -1,6 +1,6 @@
 ---
 name: nextjs
-description: "Next.js App Router patterns"
+description: "Next.js App Router patterns and best practices"
 allowed-tools: []
 ---
 
@@ -408,6 +408,67 @@ const data = await db.query('SELECT ...');
 | User-specific dashboard | Dynamic (`no-store` or `cookies()`) |
 | Periodically updated data | ISR (`revalidate: N`) |
 | Real-time data | Dynamic + client polling or WebSocket |
+
+---
+
+## Reference: Best Practices by Topic
+
+### File Conventions
+See [file-conventions.md](./file-conventions.md) — project structure, special files, route segments, parallel/intercepting routes
+
+### RSC Boundaries
+See [rsc-boundaries.md](./rsc-boundaries.md) — async client component detection, non-serializable props, Server Action exceptions
+
+### Async Patterns
+See [async-patterns.md](./async-patterns.md) — Next.js 15+ async `params`, `searchParams`, `cookies()`, `headers()`
+
+### Runtime Selection
+See [runtime-selection.md](./runtime-selection.md) — Node.js vs Edge runtime
+
+### Directives
+See [directives.md](./directives.md) — `'use client'`, `'use server'`, `'use cache'`
+
+### Functions
+See [functions.md](./functions.md) — navigation hooks, server functions, generate functions
+
+### Error Handling
+See [error-handling.md](./error-handling.md) — error/not-found files, redirect, `unstable_rethrow`
+
+### Data Patterns
+See [data-patterns.md](./data-patterns.md) — Server Components vs Server Actions vs Route Handlers, avoiding waterfalls
+
+### Route Handlers
+See [route-handlers.md](./route-handlers.md) — `route.ts` basics, GET conflicts, when to use vs Server Actions
+
+### Metadata & OG Images
+See [metadata.md](./metadata.md) — static/dynamic metadata, `generateMetadata`, OG image generation
+
+### Image Optimization
+See [image.md](./image.md) — `next/image`, remote images, responsive sizes, blur placeholders, LCP priority
+
+### Font Optimization
+See [font.md](./font.md) — `next/font`, Google/local fonts, Tailwind integration, preloading
+
+### Bundling
+See [bundling.md](./bundling.md) — server-incompatible packages, CSS imports, ESM/CJS, bundle analysis
+
+### Scripts
+See [scripts.md](./scripts.md) — `next/script`, inline script IDs, loading strategies, `@next/third-parties`
+
+### Hydration Errors
+See [hydration-error.md](./hydration-error.md) — common causes, debugging, fixes
+
+### Suspense Boundaries
+See [suspense-boundaries.md](./suspense-boundaries.md) — CSR bailout, which hooks need Suspense
+
+### Parallel & Intercepting Routes
+See [parallel-routes.md](./parallel-routes.md) — modal patterns, `default.tsx` fallbacks, `router.back()`
+
+### Self-Hosting
+See [self-hosting.md](./self-hosting.md) — standalone output, Docker, cache handlers, multi-instance ISR
+
+### Debug Tricks
+See [debug-tricks.md](./debug-tricks.md) — MCP debugging endpoint, `--debug-build-paths`
 
 ---
 

@@ -81,3 +81,16 @@ export function getPathValidationError(projectPath: string): string {
 
   return 'Invalid project path';
 }
+
+/** Type guard: true for non-null, non-array plain objects. */
+export function isRecord(value: unknown): value is Record<string, unknown> {
+  return !!value && typeof value === 'object' && !Array.isArray(value);
+}
+
+/**
+ * Validate a skill name - prevents path traversal (e.g., "../../etc/passwd")
+ * Alias for isValidName when used specifically for skill/workflow names
+ */
+export function isValidSkillName(name: string): boolean {
+  return isValidName(name);
+}

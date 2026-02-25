@@ -8,6 +8,7 @@ import {
   updateSkillInManifest
 } from './manifest.js';
 import { getGitCommit, getGitRemote } from '../utils/git.js';
+import { isValidSkillName } from '../utils/validation.js';
 import type { SkillStatusInfo, CanonUpgradeResult } from './types.js';
 import {
   determineSkillStatus,
@@ -20,7 +21,7 @@ import { getCanonSourcePath, findSkillSourcePath } from './source.js';
 export function checkSkillStatus(projectPath: string): SkillStatusInfo[] {
   const manifest = readManifest(projectPath);
   const installedSkills = getInstalledSkills(projectPath);
-  const skillsDir = path.join(projectPath, '.claude', 'canon');
+  const skillsDir = path.join(projectPath, '.claude', 'skills');
   const canonPath = getCanonSourcePath();
   const sourceCommit = getGitCommit(canonPath);
 
@@ -43,9 +44,32 @@ export function checkSkillStatus(projectPath: string): SkillStatusInfo[] {
   }).sort((a, b) => a.name.localeCompare(b.name));
 }
 
-/** Reject skill names with path traversal characters */
-function isValidSkillName(name: string): boolean {
-  return !name.includes('/') && !name.includes('\\') && !name.includes('..');
+function updateManifestAfterCopy(
+  projectPath: string,
+  skillName: string,
+  sourcePath: string,
+  targetPath: string
+): void {
+  const canonPath = getCanonSourcePath();
+  let manifest = readManifest(projectPath);
+  if (!manifest) {
+    manifest = createManifest({
+      type: 'local',
+      path: canonPath,
+      gitRemote: getGitRemote(canonPath)
+    });
+  }
+  updateSkillInManifest(manifest, skillName, {
+    installedCommit: getGitCommit(canonPath),
+    installedAt: new Date().toISOString(),
+    sourceFile: (() => {
+      const rel = path.relative(canonPath, sourcePath);
+      return rel.startsWith('..') ? skillName : (rel || skillName);
+    })(),
+    hash: hashSkillDirectory(targetPath),
+    modified: false
+  });
+  writeManifest(projectPath, manifest);
 }
 
 export function copySkill(
@@ -57,7 +81,7 @@ export function copySkill(
     return { success: false, message: `Invalid skill name (path traversal): ${skillName}` };
   }
 
-  const targetPath = path.join(projectPath, '.claude', 'canon', skillName);
+  const targetPath = path.join(projectPath, '.claude', 'skills', skillName);
   const force = options.force ?? false;
 
   // Validate skill can be copied
@@ -79,29 +103,28 @@ export function copySkill(
   }
   copyDirectorySync(sourcePath, targetPath);
 
-  // Update manifest after copy
-  const canonPath = getCanonSourcePath();
-  let manifest = readManifest(projectPath);
-  if (!manifest) {
-    manifest = createManifest({
-      type: 'local',
-      path: canonPath,
-      gitRemote: getGitRemote(canonPath)
-    });
-  }
-  updateSkillInManifest(manifest, skillName, {
-    installedCommit: getGitCommit(canonPath),
-    installedAt: new Date().toISOString(),
-    sourceFile: (() => {
-      const rel = path.relative(canonPath, sourcePath);
-      return rel.startsWith('..') ? skillName : (rel || skillName);
-    })(),
-    hash: hashSkillDirectory(targetPath),
-    modified: false
-  });
-  writeManifest(projectPath, manifest);
+  updateManifestAfterCopy(projectPath, skillName, sourcePath, targetPath);
 
   return { success: true, message: `Copied skill: ${skillName}` };
+}
+
+function categorizeForUpgrade(
+  status: SkillStatusInfo | undefined,
+  force: boolean
+): { action: 'upgrade' | 'skip' | 'error'; message: string } {
+  if (!status) {
+    return { action: 'error', message: 'not installed' };
+  }
+  if (status.status === 'current') {
+    return { action: 'skip', message: 'already current' };
+  }
+  if (status.status === 'modified' && !force) {
+    return { action: 'skip', message: 'locally modified (use --force to overwrite)' };
+  }
+  if (status.status === 'missing') {
+    return { action: 'error', message: 'source not found' };
+  }
+  return { action: 'upgrade', message: '' };
 }
 
 export function upgradeSkills(
@@ -114,22 +137,15 @@ export function upgradeSkills(
   const skillsToUpgrade = options.skills || statuses.map(s => s.name);
 
   for (const skillName of skillsToUpgrade) {
-    // Categorize skill for upgrade decision
     const status = statuses.find(s => s.name === skillName);
-    if (!status) {
-      result.errors.push(`${skillName}: not installed`);
+    const category = categorizeForUpgrade(status, force);
+
+    if (category.action === 'skip') {
+      result.skipped.push(`${skillName}: ${category.message}`);
       continue;
     }
-    if (status.status === 'current') {
-      result.skipped.push(`${skillName}: already current`);
-      continue;
-    }
-    if (status.status === 'modified' && !force) {
-      result.skipped.push(`${skillName}: locally modified (use --force to overwrite)`);
-      continue;
-    }
-    if (status.status === 'missing') {
-      result.errors.push(`${skillName}: source not found`);
+    if (category.action === 'error') {
+      result.errors.push(`${skillName}: ${category.message}`);
       continue;
     }
 
@@ -149,7 +165,7 @@ export function diffSkill(skillName: string, projectPath: string): string | null
     return `Invalid skill name (path traversal): ${skillName}`;
   }
 
-  const installedPath = path.join(projectPath, '.claude', 'canon', skillName);
+  const installedPath = path.join(projectPath, '.claude', 'skills', skillName);
 
   // Validate paths
   if (!fs.existsSync(installedPath)) {

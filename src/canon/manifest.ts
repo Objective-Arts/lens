@@ -5,6 +5,7 @@
 import * as fs from 'fs';
 import * as path from 'path';
 import type { CanonManifest, CanonSource, InstalledSkillInfo } from './types.js';
+import { isEnoent } from '../utils/fs.js';
 
 const MANIFEST_FILENAME = 'canon-manifest.json';
 
@@ -20,8 +21,15 @@ export function readManifest(projectPath: string): CanonManifest | null {
   const manifestPath = getManifestPath(projectPath);
   try {
     const content = fs.readFileSync(manifestPath, 'utf-8');
-    return JSON.parse(content) as CanonManifest;
-  } catch {
+    const parsed = JSON.parse(content);
+    if (!parsed || typeof parsed !== 'object' || !parsed.skills || typeof parsed.skills !== 'object') {
+      console.warn(`Warning: invalid canon manifest structure at ${manifestPath} — treating as missing`);
+      return null;
+    }
+    return parsed as CanonManifest;
+  } catch (e) {
+    if (isEnoent(e)) return null;
+    console.warn(`Warning: corrupt canon manifest at ${manifestPath} — treating as missing`);
     return null;
   }
 }
@@ -35,7 +43,9 @@ export function writeManifest(projectPath: string, manifest: CanonManifest): voi
     fs.mkdirSync(claudeDir, { recursive: true });
   }
 
-  fs.writeFileSync(manifestPath, JSON.stringify(manifest, null, 2) + '\n', 'utf-8');
+  const tmpPath = `${manifestPath}.tmp.${process.pid}`;
+  fs.writeFileSync(tmpPath, JSON.stringify(manifest, null, 2) + '\n', 'utf-8');
+  fs.renameSync(tmpPath, manifestPath);
 }
 
 export function createManifest(source: CanonSource): CanonManifest {

@@ -61,8 +61,13 @@ describe('profile commands', () => {
       expect(vi.mocked(saveProfile).mock.calls[0][0].name).toBe('my-profile');
     });
 
-    it('allows names with spaces', async () => {
+    it('rejects names with spaces', async () => {
       await program.parseAsync(['node', 'test', 'profile', 'create', 'My Profile']);
+      expect(saveProfile).not.toHaveBeenCalled();
+    });
+
+    it('allows names with underscores', async () => {
+      await program.parseAsync(['node', 'test', 'profile', 'create', 'My_Profile']);
       expect(saveProfile).toHaveBeenCalledTimes(1);
     });
 

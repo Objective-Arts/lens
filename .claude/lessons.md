@@ -70,3 +70,27 @@ Each entry records what a later phase found that an earlier phase missed. Over t
 - Gemini consistently suggests "allowed base directory" restrictions for `validateProjectPath` — not applicable when the user explicitly chooses their project directory
 - Gemini consistently flags `process.env` propagation to child processes as "environment variable injection" — not applicable when the user controls their own terminal environment
 - Gemini consistently recommends transaction/rollback for multi-step CLI operations — disproportionate for a dev tool where re-running is trivial
+
+## 2026-02-24 - src (phase 8 eval)
+
+### CODE_QUALITY Found (phase 8)
+- CODE_QUALITY: Use `cause` as the catch parameter name when re-wrapping errors — signals intent and aligns with JS `Error.cause` convention (e.g., `catch (cause) { throw new Error('msg', { cause }) }`) → implementation should name catch params `cause` when wrapping
+- CODE_QUALITY: Abbreviated parameter names (`opts`, `pkg`, `name`, `info`) hide intent — use full descriptive names that reveal what the argument represents (`stackInfo`, `packageJson`, `depName`, `installedInfo`) → implementation should reject one-word generic param names when a more descriptive alternative exists
+
+### LOGIC Found (phase 8)
+- LOGIC: Always check file size via `fs.stat` before reading any user-controlled or external file — prevents memory exhaustion from unexpectedly large inputs; use a 1 MB (or domain-appropriate) limit before calling `readFile` or `readFileSync`
+
+### TYPE_SAFETY Found (phase 8)
+- LOGIC: After JSON.parse, always assign to `unknown` and validate structure before casting — never cast `JSON.parse` result directly to a typed interface. Pattern: `const parsed: unknown = JSON.parse(raw); if (!isRecord(parsed)) throw ...; return parsed as unknown as T;`
+
+### DESIGN Found (phase 8)
+- DESIGN: Module-level singletons that cache computed state must export a reset function for testability — without it, tests that change environment variables or mode flags cannot isolate scenarios. Pattern: `export function resetXCache() { _cached = undefined; }`
+
+## 2026-02-24 - src (phase 8 fix eval)
+
+### TYPE_SAFETY Found (phase 8)
+- TYPE_SAFETY: Non-null assertion operators (!) bypass the type checker at runtime — replace with explicit null guards (`if (!obj.field) obj.field = init()`) or Map get+set patterns (`const existing = map.get(k); if (!existing) { const v = init(); map.set(k, v); existing = v; }`)
+- TYPE_SAFETY: Type assertions (`value as string[]`, `result as SomeInterface`) without a preceding runtime type guard are unsafe — extract a named guard function (`isStringArray`, `isRecord`, `isStringValueRecord`) and call it before asserting; if the guard fails, throw or return early
+
+### DESIGN Found (phase 8)
+- DESIGN: Functions that access global path constants (e.g., GLOBAL_CLAUDE_PATH, registry directory derived from HOME) should accept an optional injectable parameter with the constant as its default — without this seam, unit tests must set up real filesystem state for every test scenario. Pattern: `function loadRegistry(dir = getRegistryDir()) { ... }`

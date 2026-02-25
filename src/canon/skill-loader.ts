@@ -8,13 +8,14 @@ import * as fs from 'fs';
 import * as path from 'path';
 import type { Skill } from '../types.js';
 import { resolveSkillName, formatSkillName } from './naming.js';
+import { isValidSkillName } from '../utils/validation.js';
 
 const PREVIEW_LENGTH = 60;
 
 function extractChecklist(content: string): string[] {
   const items: string[] = [];
 
-  const checklistPattern = /##\s+(?:[\w\s]*Checklist)[^\n]*\n([\s\S]*?)(?=\n##|\n---|\s*$)/gi;
+  const checklistPattern = /##\s+[\w\s]*Checklist[^\n]*\n([\s\S]*?)(?=\n##|\n---|\s*$)/gi;
   let match;
   while ((match = checklistPattern.exec(content)) !== null) {
     const lines = match[1].split('\n');
@@ -40,8 +41,26 @@ function extractChecklist(content: string): string[] {
   return items;
 }
 
-function isValidSkillName(name: string): boolean {
-  return !name.includes('/') && !name.includes('\\') && !name.includes('..');
+function loadSkillContent(skillDir: string): { content: string; summary: string; checklist: string[] } | null {
+  const skillMdPath = path.join(skillDir, 'SKILL.md');
+  let content: string;
+  try {
+    content = fs.readFileSync(skillMdPath, 'utf-8');
+  } catch {
+    return null;
+  }
+
+  const summaryPath = path.join(skillDir, 'SUMMARY.md');
+  let summary = '';
+  let checklist: string[];
+  try {
+    summary = fs.readFileSync(summaryPath, 'utf-8');
+    checklist = extractChecklist(summary);
+  } catch {
+    checklist = extractChecklist(content);
+  }
+
+  return { content, summary, checklist };
 }
 
 function loadSkill(projectPath: string, skillName: string): Skill | null {
@@ -51,39 +70,24 @@ function loadSkill(projectPath: string, skillName: string): Skill | null {
   if (!isValidSkillName(resolvedName)) return null;
 
   const skillDir = path.join(projectPath, '.claude', 'skills', resolvedName);
-  const skillPath = path.join(skillDir, 'SKILL.md');
+  const loaded = loadSkillContent(skillDir);
+  if (!loaded) return null;
 
-  try {
-    const content = fs.readFileSync(skillPath, 'utf-8');
-    let summary = '';
-    let checklist: string[] = [];
-
-    const summaryPath = path.join(skillDir, 'SUMMARY.md');
-    try {
-      summary = fs.readFileSync(summaryPath, 'utf-8');
-      checklist = extractChecklist(summary);
-    } catch {
-      checklist = extractChecklist(content);
-    }
-
-    return { name: resolvedName, content, summary, checklist, source: 'profile' };
-  } catch {
-    return null;
-  }
+  return { name: resolvedName, ...loaded, source: 'profile' };
 }
 
 export function loadSkills(projectPath: string, skillNames: string[], verbose: boolean = false): Skill[] {
   const skills: Skill[] = [];
 
-  for (const name of skillNames) {
-    const skill = loadSkill(projectPath, name);
+  for (const skillName of skillNames) {
+    const skill = loadSkill(projectPath, skillName);
     if (skill) {
       skills.push(skill);
       if (verbose) {
-        const lines = skill.content.split('\n').length;
+        const lineCount = skill.content.split('\n').length;
         const preview = skill.content.slice(0, PREVIEW_LENGTH).replace(/\n/g, ' ').trim();
         const displayName = formatSkillName(skill.name);
-        console.log(`      ✓ ${displayName}: ${lines} lines loaded "${preview}..."`);
+        console.log(`      ✓ ${displayName}: ${lineCount} lines loaded "${preview}..."`);
       }
     }
   }

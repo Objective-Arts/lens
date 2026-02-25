@@ -5,9 +5,14 @@
 import * as fs from 'fs';
 import type { ClaudeMdParsed, ClaudeMdAutoInvoke, ConfigScope } from '../types.js';
 
+/** Maximum CLAUDE.md file size in bytes */
+const MAX_CLAUDE_MD_SIZE = 5 * 1024 * 1024;
+
 export async function parseClaudeMd(filePath: string, scope: ConfigScope): Promise<ClaudeMdParsed | null> {
   let content: string;
   try {
+    const stat = fs.statSync(filePath);
+    if (stat.size > MAX_CLAUDE_MD_SIZE) return null;
     content = fs.readFileSync(filePath, 'utf-8');
   } catch {
     return null;
@@ -30,12 +35,8 @@ export async function parseClaudeMd(filePath: string, scope: ConfigScope): Promi
   };
 }
 
-function extractAutoInvokes(content: string): ClaudeMdAutoInvoke[] {
-  const autoInvokes: ClaudeMdAutoInvoke[] = [];
-
-  // Pattern 1: Markdown table format
-  // | Context | Action |
-  // | React/JSX/TSX files | INVOKE `/react-state` |
+function extractTableInvokes(content: string): ClaudeMdAutoInvoke[] {
+  const invokes: ClaudeMdAutoInvoke[] = [];
   const tablePattern = /\|([^|]+)\|([^|]*(?:invoke|INVOKE)[^|]*)\|/gi;
   let match;
 
@@ -43,54 +44,45 @@ function extractAutoInvokes(content: string): ClaudeMdAutoInvoke[] {
     const context = match[1].trim();
     const action = match[2].trim();
 
-    // Skip header rows
-    if (context.toLowerCase() === 'context' || context.includes('---')) {
-      continue;
-    }
+    if (context.toLowerCase() === 'context' || context.includes('---')) continue;
 
-    // Extract skill name from action
     const skillMatch = action.match(/[`\/](\w+(?:[-:]\w+)?)[`]?/);
     if (skillMatch) {
-      autoInvokes.push({
-        context,
-        action,
-        skillName: skillMatch[1]
-      });
+      invokes.push({ context, action, skillName: skillMatch[1] });
     }
   }
 
-  // Pattern 2: Prose format
-  // "Before writing React code, invoke /react-state"
-  // "When working with D3, use the d3 skill"
+  return invokes;
+}
+
+function extractProseInvokes(content: string): ClaudeMdAutoInvoke[] {
+  const invokes: ClaudeMdAutoInvoke[] = [];
   const prosePatterns = [
     /(?:before|when|for|if)\s+(?:writing|working|editing|creating)?\s*(?:with|on)?\s*([^,]+),?\s*(?:invoke|use|activate|load)\s+[`\/]?(\w+(?:[-:]\w+)?)/gi,
     /invoke\s+[`\/](\w+(?:[-:]\w+)?)\s+(?:for|when|before)\s+([^.]+)/gi
   ];
 
   for (const pattern of prosePatterns) {
+    let match;
     while ((match = pattern.exec(content)) !== null) {
       const [, contextOrSkill, skillOrContext] = match;
 
-      // Determine which capture group is which based on pattern
       if (pattern.source.startsWith('(?:before')) {
-        autoInvokes.push({
-          context: contextOrSkill.trim(),
-          action: `INVOKE /${skillOrContext}`,
-          skillName: skillOrContext
-        });
+        invokes.push({ context: contextOrSkill.trim(), action: `INVOKE /${skillOrContext}`, skillName: skillOrContext });
       } else {
-        autoInvokes.push({
-          context: skillOrContext.trim(),
-          action: `INVOKE /${contextOrSkill}`,
-          skillName: contextOrSkill
-        });
+        invokes.push({ context: skillOrContext.trim(), action: `INVOKE /${contextOrSkill}`, skillName: contextOrSkill });
       }
     }
   }
 
-  // Deduplicate
+  return invokes;
+}
+
+function extractAutoInvokes(content: string): ClaudeMdAutoInvoke[] {
+  const all = [...extractTableInvokes(content), ...extractProseInvokes(content)];
+
   const seen = new Set<string>();
-  return autoInvokes.filter(ai => {
+  return all.filter(ai => {
     const key = `${ai.context}:${ai.skillName}`;
     if (seen.has(key)) return false;
     seen.add(key);

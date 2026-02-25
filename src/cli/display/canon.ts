@@ -36,8 +36,12 @@ function groupByCategory(skills: CanonListItem[]): Map<string, CanonListItem[]> 
   const byCategory = new Map<string, CanonListItem[]>();
   for (const skill of skills) {
     const cat = skill.category || 'root';
-    if (!byCategory.has(cat)) byCategory.set(cat, []);
-    byCategory.get(cat)!.push(skill);
+    const existing = byCategory.get(cat);
+    if (existing) {
+      existing.push(skill);
+    } else {
+      byCategory.set(cat, [skill]);
+    }
   }
   return byCategory;
 }
@@ -93,6 +97,13 @@ function printStatusSummary(statuses: SkillStatusInfo[], projectPath: string): v
   }
 }
 
+function printVerifySection(label: string, items: string[], color: (s: string) => string, prefix: string): void {
+  if (items.length === 0) return;
+  console.log(color(`${label} (${items.length}):`));
+  items.forEach(item => console.log(color(`  ${prefix} ${item}`)));
+  console.log();
+}
+
 export function printVerifyResults(
   result: {
     matches: string[];
@@ -103,30 +114,12 @@ export function printVerifyResults(
   },
   verbose: boolean
 ): void {
-  if (result.differs.length > 0) {
-    console.log(chalk.red(`Differs (${result.differs.length}):`));
-    result.differs.forEach(d => console.log(chalk.red(`  ✗ ${d.name}: ${d.reason}`)));
-    console.log();
+  printVerifySection('Differs', result.differs.map(d => `${d.name}: ${d.reason}`), chalk.red, '✗');
+  printVerifySection('Missing in project', result.missingInProject, chalk.yellow, '?');
+  if (verbose) {
+    printVerifySection(`Extra in project (${result.extraInProject.length} non-canon skills)`, result.extraInProject, chalk.gray, '+');
+    printVerifySection('Matches', result.matches, chalk.green, '✓');
   }
-
-  if (result.missingInProject.length > 0) {
-    console.log(chalk.yellow(`Missing in project (${result.missingInProject.length}):`));
-    result.missingInProject.forEach(m => console.log(chalk.yellow(`  ? ${m}`)));
-    console.log();
-  }
-
-  if (result.extraInProject.length > 0 && verbose) {
-    console.log(chalk.gray(`Extra in project (${result.extraInProject.length} non-canon skills):`));
-    result.extraInProject.forEach(e => console.log(chalk.gray(`  + ${e}`)));
-    console.log();
-  }
-
-  if (verbose && result.matches.length > 0) {
-    console.log(chalk.green(`Matches (${result.matches.length}):`));
-    result.matches.forEach(m => console.log(chalk.green(`  ✓ ${m}`)));
-    console.log();
-  }
-
   printVerifySummary(result);
 }
 

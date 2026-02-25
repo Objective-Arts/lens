@@ -11,6 +11,9 @@ import {
   LENS_MARKER_START, LENS_MARKER_END,
   type DetectedStack, type InitResult
 } from './init-display.js';
+import { detectStack } from '../stack-detector.js';
+import { validateProjectPath } from '../../utils/validation.js';
+import { isEnoent } from '../../utils/fs.js';
 
 interface SkillLinkContext {
   packageDir: string;
@@ -19,71 +22,6 @@ interface SkillLinkContext {
 }
 
 const FALLBACK_STACK: DetectedStack = { language: 'unknown', framework: null, profile: 'software-base' };
-
-function allDeps(pkg: Record<string, unknown>): Record<string, string> {
-  return {
-    ...(pkg.dependencies as Record<string, string> || {}),
-    ...(pkg.devDependencies as Record<string, string> || {})
-  };
-}
-
-function detectJsFramework(pkg: Record<string, unknown>): DetectedStack {
-  const deps = allDeps(pkg);
-  const hasDep = (name: string): boolean => name in deps;
-
-  if (hasDep('next')) return { language: 'typescript', framework: 'nextjs', profile: 'nextjs' };
-  if (hasDep('angular') || hasDep('@angular/core')) return { language: 'typescript', framework: 'angular', profile: 'angular' };
-  if (hasDep('react')) {
-    const language = hasDep('typescript') ? 'typescript' : 'javascript';
-    return { language, framework: 'react', profile: 'react' };
-  }
-  if (hasDep('d3') || hasDep('d3-selection')) return { language: 'javascript', framework: 'd3', profile: 'd3' };
-  if (hasDep('typescript')) return { language: 'typescript', framework: null, profile: 'javascript' };
-  return { language: 'javascript', framework: null, profile: 'javascript' };
-}
-
-function fileExistsAt(projectPath: string, file: string): boolean {
-  try { fs.accessSync(path.join(projectPath, file)); return true; }
-  catch { return false; }
-}
-
-function readJsonFile(projectPath: string, file: string): Record<string, unknown> | null {
-  try { return JSON.parse(fs.readFileSync(path.join(projectPath, file), 'utf-8')); }
-  catch { return null; }
-}
-
-function detectCSharp(projectPath: string): DetectedStack | null {
-  try {
-    const hasCsProj = fs.readdirSync(projectPath).some(f => f.endsWith('.csproj') || f.endsWith('.sln'));
-    return hasCsProj ? { language: 'csharp', framework: null, profile: 'csharp' } : null;
-  } catch {
-    return null;
-  }
-}
-
-function isPythonProject(has: (f: string) => boolean): boolean {
-  return has('requirements.txt') || has('pyproject.toml') || has('setup.py') || has('Pipfile');
-}
-
-function isJavaProject(has: (f: string) => boolean): boolean {
-  return has('pom.xml') || has('build.gradle') || has('build.gradle.kts');
-}
-
-function detectStack(projectPath: string): DetectedStack {
-  const has = (file: string): boolean => fileExistsAt(projectPath, file);
-
-  const pkg = readJsonFile(projectPath, 'package.json');
-  if (pkg) return detectJsFramework(pkg);
-  if (isPythonProject(has)) return { language: 'python', framework: null, profile: 'python' };
-  if (isJavaProject(has)) return { language: 'java', framework: null, profile: 'java' };
-
-  const csharp = detectCSharp(projectPath);
-  if (csharp) return csharp;
-
-  if (has('go.mod')) return { language: 'go', framework: null, profile: 'software-base' };
-  if (has('Cargo.toml')) return { language: 'rust', framework: null, profile: 'software-base' };
-  return FALLBACK_STACK;
-}
 
 async function getPackageSkills(): Promise<string[]> {
   try {
@@ -103,34 +41,49 @@ async function updateExistingSymlink(
   initResult: InitResult
 ): Promise<void> {
   const existingTarget = await fsPromises.readlink(targetLink);
+  let isBroken = false;
   try {
     if (fs.realpathSync(targetLink) === resolvedPath) {
       initResult.skipped.push(`${skillName} (symlink already correct)`);
       return;
     }
-  } catch { /* broken — replace */ }
+  } catch {
+    // Broken symlink — proceed to replace
+    isBroken = true;
+  }
   await fsPromises.unlink(targetLink);
   await fsPromises.symlink(resolvedPath, targetLink);
-  initResult.replaced.push(`${skillName} (symlink updated: was ${existingTarget})`);
+  const reason = isBroken ? 'symlink was broken' : `was ${existingTarget}`;
+  initResult.replaced.push(`${skillName} (symlink updated: ${reason})`);
+}
+
+function resolvePackageSkillPath(packageDir: string, skillName: string): string | null {
+  try {
+    return fs.realpathSync(path.join(packageDir, skillName));
+  } catch {
+    return null;
+  }
 }
 
 async function linkOneSkill(
   ctx: SkillLinkContext, skillName: string, initResult: InitResult
 ): Promise<void> {
   const targetLink = path.join(ctx.projectDir, skillName);
-  let resolvedPath: string;
-  try { resolvedPath = fs.realpathSync(path.join(ctx.packageDir, skillName)); }
-  catch {
+  const resolvedPath = resolvePackageSkillPath(ctx.packageDir, skillName);
+  if (!resolvedPath) {
     initResult.warnings.push(`Skipped ${skillName}: broken symlink in package`);
     return;
   }
+
   let lstat;
   try { lstat = await fsPromises.lstat(targetLink); } catch { lstat = null; }
+
   if (!lstat) {
     await fsPromises.symlink(resolvedPath, targetLink);
     initResult.created.push(`.claude/skills/${skillName}`);
     return;
   }
+
   if (lstat.isSymbolicLink()) {
     await updateExistingSymlink(targetLink, resolvedPath, skillName, initResult);
   } else if (ctx.force) {
@@ -181,7 +134,12 @@ async function setupClaudeMd(
   let content: string | null = null;
 
   try { content = await fsPromises.readFile(claudeMdPath, 'utf-8'); }
-  catch { /* new file */ }
+  catch (cause) {
+    if (!isEnoent(cause)) {
+      throw new Error(`Failed to read CLAUDE.md`, { cause });
+    }
+    /* file not found — content stays null, will create new */
+  }
 
   if (content !== null) {
     const hadMarkers = content.includes(LENS_MARKER_START);
@@ -229,41 +187,75 @@ async function setupClaudeDirectories(projectPath: string, initResult: InitResul
         await fsPromises.copyFile(path.join(sourceDir, entry.name), path.join(targetDir, entry.name));
       }
       initResult.created.push(`${dir}/`);
-    } catch (error) {
-      initResult.warnings.push(`Could not copy ${dir}: ${error instanceof Error ? error.message : String(error)}`);
+    } catch (cause) {
+      const message = cause instanceof Error ? cause.message : String(cause);
+      initResult.warnings.push(`Could not copy ${dir}: ${message}`);
     }
   }
 }
 
 function safeAction(initResult: InitResult, label: string, fn: () => Promise<void>): Promise<void> {
-  return fn().catch((error: unknown) => {
-    initResult.errors.push(`${label}: ${error instanceof Error ? error.message : String(error)}`);
+  return fn().catch((cause: unknown) => {
+    const detail = cause instanceof Error ? cause.message : String(cause);
+    initResult.errors.push(`${label}: ${detail}`);
+    if (process.env['DEBUG'] && cause instanceof Error) {
+      console.debug(`[safeAction] ${label} error chain:`, cause);
+    }
   });
 }
 
-async function handleInit(options: { force?: boolean }): Promise<void> {
-  const projectPath = process.cwd();
+function printDetectionHeader(stack: DetectedStack): void {
+  console.log(chalk.bold('\nlens init\n'));
+  console.log(chalk.gray(`  Detected: ${stack.language}${stack.framework ? ` / ${stack.framework}` : ''}`));
+  console.log(chalk.gray(`  Profile:  ${stack.profile}`));
+  console.log(chalk.gray(`  Package:  ${PATHS.root}`));
+  console.log(chalk.gray(`  Mode:     ${PATHS.mode}\n`));
+}
+
+function detectProjectStack(projectPath: string): DetectedStack {
+  try {
+    return detectStack(projectPath);
+  } catch (cause) {
+    if (process.env['DEBUG']) {
+      console.debug('[init] Stack detection failed, using fallback:', cause instanceof Error ? cause.message : String(cause));
+    }
+    return FALLBACK_STACK;
+  }
+}
+
+async function runInitSteps(
+  projectPath: string,
+  stack: DetectedStack,
+  options: { force?: boolean },
+  initResult: InitResult
+): Promise<void> {
+  await safeAction(initResult, 'Skill symlinks', () => setupSkillSymlinks(projectPath, initResult, options.force ?? false));
+  await safeAction(initResult, 'Directories', () => setupClaudeDirectories(projectPath, initResult));
+  await safeAction(initResult, 'CLAUDE.md', () => setupClaudeMd(projectPath, stack, initResult));
+  detectCopiedDirectories(projectPath, initResult);
+}
+
+async function handleInit(options: { force?: boolean; project?: string }): Promise<void> {
+  const rawProjectPath = options.project ?? process.cwd();
+  const projectPath = validateProjectPath(rawProjectPath);
+  if (!projectPath) {
+    console.error(chalk.red(`Invalid project path: ${rawProjectPath}`));
+    process.exitCode = 1;
+    return;
+  }
+
   const initResult: InitResult = {
     created: [], replaced: [], skipped: [],
     warnings: [], errors: [], cleanupHints: []
   };
 
-  console.log(chalk.bold('\nlens init\n'));
+  const stack = detectProjectStack(projectPath);
+  printDetectionHeader(stack);
 
-  let stack: DetectedStack;
-  try { stack = detectStack(projectPath); } catch { stack = FALLBACK_STACK; }
-  console.log(chalk.gray(`  Detected: ${stack.language}${stack.framework ? ` / ${stack.framework}` : ''}`));
-  console.log(chalk.gray(`  Profile:  ${stack.profile}`));
-  console.log(chalk.gray(`  Package:  ${PATHS.root}`));
-  console.log(chalk.gray(`  Mode:     ${PATHS.mode}\n`));
-
-  await safeAction(initResult, 'Skill symlinks', () => setupSkillSymlinks(projectPath, initResult, options.force ?? false));
-  await safeAction(initResult, 'Directories', () => setupClaudeDirectories(projectPath, initResult));
-  await safeAction(initResult, 'CLAUDE.md', () => setupClaudeMd(projectPath, stack, initResult));
-  detectCopiedDirectories(projectPath, initResult);
+  await runInitSteps(projectPath, stack, options, initResult);
   printResults(initResult);
 
-  if (initResult.errors.length > 0) process.exit(1);
+  if (initResult.errors.length > 0) { process.exitCode = 1; return; }
 }
 
 export function registerInitCommand(program: Command): void {
@@ -271,5 +263,6 @@ export function registerInitCommand(program: Command): void {
     .command('init')
     .description('Initialize Lens in the current project')
     .option('-f, --force', 'Overwrite existing symlinks and files')
+    .option('-p, --project <path>', 'Project directory (defaults to cwd)')
     .action(handleInit);
 }

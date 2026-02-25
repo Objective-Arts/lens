@@ -45,6 +45,7 @@
     "workflow-skills/",
     "config/",
     "scripts/pipeline.sh",
+    "scripts/reset.sh",
     ".claude/skills/",
     ".claude/phases/",
     ".claude/rubric/",

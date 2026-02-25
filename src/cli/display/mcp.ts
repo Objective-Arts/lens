@@ -43,13 +43,16 @@ export function printRegistryServers(
   const byCategory = new Map<string, MCPServerDefinition[]>();
   for (const server of servers) {
     const cat = server.category;
-    if (!byCategory.has(cat)) byCategory.set(cat, []);
-    byCategory.get(cat)!.push(server);
+    const existing = byCategory.get(cat);
+    if (existing) {
+      existing.push(server);
+    } else {
+      byCategory.set(cat, [server]);
+    }
   }
 
   for (const [category, categoryServers] of byCategory) {
-    console.log(chalk.yellow(`  ${category.toUpperCase()}`));
-
+    console.log(chalk.yellow(`\n  ${category.toUpperCase()}`));
     for (const server of categoryServers) {
       const status = formatServerStatus(isInstalled(server.name), isEnabled(server.name));
       const envWarning = server.requiredEnv?.length
@@ -61,7 +64,6 @@ export function printRegistryServers(
         console.log(chalk.gray(`      ${server.description}`));
       }
     }
-    console.log();
   }
 
   if (categories.length > 0) {

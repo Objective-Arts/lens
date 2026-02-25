@@ -190,6 +190,12 @@
       "sourceFile": "testing/SKILL.md",
       "hash": "5fb85a2060c40dc1",
       "modified": false
+    },
+    "fix": {
+      "installedAt": "2026-02-24T00:00:00.000Z",
+      "sourceFile": "fix/SKILL.md",
+      "hash": "e6df14b10654711d",
+      "modified": false
     }
   },
   "scriptHash": "95c7d8bc8307f021"

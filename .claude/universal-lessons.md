@@ -50,6 +50,30 @@ Project-specific lessons go in `.claude/lessons.md` (local to each project).
 - `JSON.stringify` inside `<script type="application/json">` is vulnerable if data contains `</script>`
 - Always escape: `.replace(/<\//g, '<\\/')`
 
+### File Size Check Before Reading
+- Always check file size via `fs.stat` (or equivalent) before reading any user-controlled or external file
+- Without a size check, an unexpectedly large file causes memory exhaustion / denial of service
+- Use a domain-appropriate limit (e.g., 1 MB for config/JSON files); reject with a clear error if exceeded
+- Pattern: `const { size } = await fs.stat(filePath); if (size > MAX_BYTES) throw new Error('File too large');`
+
+### JSON Parse to Unknown
+- Never cast `JSON.parse` result directly to a typed interface: `const data = JSON.parse(raw) as MyType` skips all validation
+- Always assign to `unknown`, validate structure, then cast: `const parsed: unknown = JSON.parse(raw); if (!isRecord(parsed)) throw ...; return parsed as unknown as MyType;`
+- The double-assertion `as unknown as T` is intentional after a type guard — it signals "we validated, now we assert"
+- Write a reusable `isRecord(v: unknown): v is Record<string, unknown>` helper and use it everywhere JSON is parsed
+
+### Non-null Assertion Operators (!)
+- `obj.field!.method()` bypasses the TypeScript type checker entirely — if `field` is actually `undefined` at runtime, this throws with no type-system warning
+- Replace with an explicit null guard: `if (!obj.field) obj.field = initValue(); obj.field.method()`
+- For Maps: replace `map.get(k)!.push(v)` with an explicit get+set: `const existing = map.get(k) ?? []; map.set(k, existing); existing.push(v)`
+- Non-null assertions are appropriate only when the value is guaranteed by an invariant documented in a comment at the same line
+
+### Type Assertions Without Guards (as SomeType)
+- `(value as string[])` and `(result as SomeInterface)` assert a shape without runtime verification — a shape mismatch produces silent runtime errors, not TypeScript errors
+- Extract a named type guard function (`isStringArray`, `isStringValueRecord`, `isPlainObject`) that validates the shape at runtime, then call it before the assertion
+- Pattern: `if (!isStringArray(value)) throw new Error('expected string[]'); return value as string[];`
+- The `as` cast after a type guard is safe and intentional; an `as` cast without a guard is a smell
+
 ### Sorting Inside Nested Loops
 - Never sort an array inside a loop that iterates over it repeatedly -- sort once before the loop, then scan linearly
 - Common in carry-forward / last-known-value calculations where assessments are sorted per client per sample point
@@ -162,6 +186,18 @@ Project-specific lessons go in `.claude/lessons.md` (local to each project).
 - Without a version field, v2 code cannot distinguish v1 data from corrupted data
 - Plan migration paths: version field in format, validation on read, clear error for unsupported versions
 
+### Module Singleton Reset for Testability
+- Module-level `let` variables that cache computed state (mode, resolved paths, config) must export a reset function
+- Without a reset, tests that need different env var values or mode states cannot isolate scenarios without reloading the module
+- Pattern: `let _cached: T | undefined; export function resetXCache() { _cached = undefined; }`
+- Applies to: path resolvers, mode detectors, config loaders — any module-level memoization
+
+### Injectable Parameters for Global Constants
+- Functions that hardcode global filesystem constants (e.g., `GLOBAL_CLAUDE_PATH`, registry directory derived from `HOME`) require real filesystem state in every unit test
+- Add an optional parameter that defaults to the global constant; tests pass a temp directory directly without filesystem setup
+- Pattern: `function loadRegistry(dir = getRegistryDir()) { ... }` — production callers use the default; tests inject a temp path
+- Applies to: any function that constructs paths from env vars, OS home directories, or process-level globals
+
 ### Non-Happy-Path Test Coverage
 - Tests that only cover success paths miss corrupted files, lock contention, interrupted writes, and resource exhaustion
 - Require at least one test per failure category that applies: corrupted data, lock contention, interrupted writes, symlink escape, resource exhaustion
@@ -218,6 +254,16 @@ Project-specific lessons go in `.claude/lessons.md` (local to each project).
 - This pattern anti-establishes control flow: validation checks and synchronous business logic should live OUTSIDE the try block; only actual I/O and async operations should be wrapped
 - Move validation checks before the try block or extract them into helper functions called outside try-catch
 - Only wrap errors that originate from async/I/O operations (file system, crypto, network) in try-catch; let validation errors bubble naturally
+
+### Intent-Revealing Catch Parameter Names
+- Name the catch parameter `cause` when the error is being wrapped and re-thrown: `catch (cause) { throw new Error('msg', { cause }) }`
+- This signals intent, aligns with the JS `Error.cause` convention, and makes stack traces navigable
+- `catch (err)` is acceptable when the error is being inspected for type — use `cause` only when forwarding
+
+### Abbreviated Parameter Names
+- Generic abbreviated names (`opts`, `pkg`, `name`, `info`, `e`) hide what the argument actually contains
+- Use full descriptive names that reveal the argument's domain role: `opts` → `stackInfo`, `pkg` → `packageJson`, `name` → `depName` or `skillName`, `info` → `installedInfo`
+- Rule of thumb: if the parameter name could apply to three different things in the codebase, rename it
 
 ## DUPLICATION Patterns
 

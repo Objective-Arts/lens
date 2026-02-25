@@ -60,15 +60,20 @@ function findConflicts(items: ConfigItem[]): ConfigConflict[] {
   const nameMap = new Map<string, ConfigItem[]>();
   for (const item of items) {
     const key = `${item.type}:${item.name}`;
-    if (!nameMap.has(key)) nameMap.set(key, []);
-    nameMap.get(key)!.push(item);
+    const existing = nameMap.get(key);
+    if (existing) {
+      existing.push(item);
+    } else {
+      nameMap.set(key, [item]);
+    }
   }
 
   return Array.from(nameMap.entries())
     .filter(([, itemsWithName]) => itemsWithName.length > 1)
-    .map(([key, itemsWithName]) => {
-      const [type, name] = key.split(':');
-      return { name, type: type as ConfigItemType, locations: itemsWithName.map(i => i.path) };
+    .map(([, itemsWithName]) => {
+      // Use the first item's properties directly instead of parsing the composite key
+      const firstItem = itemsWithName[0];
+      return { name: firstItem.name, type: firstItem.type, locations: itemsWithName.map(conflictItem => conflictItem.path) };
     });
 }
 
@@ -91,9 +96,11 @@ function findMissingReferences(
 export function generateSummary(items: ConfigItem[], claudeMds: (ClaudeMdParsed | null)[]): ScanSummary {
   const counts = countItems(items);
   const conflicts = findConflicts(items);
-  const allItemNames = new Set(items.map(i => i.name));
+  const allItemNames = new Set(items.map(configItem => configItem.name));
   const missingReferences = findMissingReferences(claudeMds, allItemNames);
-  const unusedItems = items.filter(i => i.type === 'skill' && i.referencedBy.length === 0).map(i => i.name);
+  const unusedItems = items
+    .filter(configItem => configItem.type === 'skill' && configItem.referencedBy.length === 0)
+    .map(configItem => configItem.name);
 
   return {
     totalItems: items.length,

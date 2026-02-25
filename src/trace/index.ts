@@ -10,6 +10,7 @@ import * as path from 'path';
 import chalk from 'chalk';
 import { getProfile } from '../profiles/index.js';
 import { isValidName } from '../utils/validation.js';
+import { PATHS } from '../paths.js';
 
 export interface YamlSource {
   file: string;
@@ -44,28 +45,29 @@ function getAppliedProfiles(projectPath: string): string[] {
   }
 }
 
+function buildContributions(profile: ReturnType<typeof getProfile>): string[] {
+  const contributed: string[] = [];
+  if (profile?.skills?.canon?.length) {
+    contributed.push(`canon skills: ${profile.skills.canon.length}`);
+  }
+  if (profile?.claudeMd?.standards?.length) {
+    contributed.push(`standards: ${profile.claudeMd.standards.length}`);
+  }
+  return contributed.length ? contributed : ['(base profile)'];
+}
+
 function traceProfileSources(projectPath: string, profiles: string[]): YamlSource[] {
-  const profilesDir = path.join(projectPath, '..', 'profiles');
+  const profilesDir = PATHS.profiles;
   const sources: YamlSource[] = [];
 
   for (const profileName of profiles) {
     const profilePath = findFile(profilesDir, `${profileName}.yaml`, `${profileName}.yml`);
     if (!profilePath) continue;
 
-    const profile = getProfile(profileName);
-    const contributed: string[] = [];
-
-    if (profile?.skills?.canon?.length) {
-      contributed.push(`canon skills: ${profile.skills.canon.length}`);
-    }
-    if (profile?.claudeMd?.standards?.length) {
-      contributed.push(`standards: ${profile.claudeMd.standards.length}`);
-    }
-
     sources.push({
       file: profilePath,
       purpose: `Profile: ${profileName}`,
-      contributed: contributed.length ? contributed : ['(base profile)'],
+      contributed: buildContributions(getProfile(profileName)),
     });
   }
 

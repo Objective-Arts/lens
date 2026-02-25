@@ -1,0 +1,21 @@
+{
+  "target": "src",
+  "startedAt": "2026-02-24T15:05:00.000Z",
+  "currentPhase": 8,
+  "stashRef": "stash@{0}",
+  "phaseResults": {
+    "1": { "phase": "plan", "status": "complete", "summary": "14 items across 11 files" },
+    "2": { "phase": "structure", "status": "complete", "summary": "11 issues across 8 files" },
+    "3": { "phase": "implementation", "status": "complete", "summary": "All 14 items, 681 tests, 0 errors" },
+    "4": { "phase": "refactoring", "status": "complete", "summary": "15 fixes" },
+    "5": { "phase": "deduplication", "status": "complete", "summary": "5 duplicates consolidated" },
+    "6": { "phase": "review", "status": "complete", "summary": "4 scans, 34 findings deduped, all fixed, 4/4 canaries caught" },
+    "7": { "phase": "testing", "status": "complete", "summary": "124 new tests, 805 total passing" },
+    "8": { "phase": "evaluation", "status": "complete", "summary": "34/70 → 40/70, 3 lessons written" }
+  },
+  "scores": {
+    "initial": { "security": 4, "structure": 6, "errorHandling": 4, "naming": 7, "complexity": 5, "typeSafety": 4, "testability": 4, "total": 34 },
+    "final": { "security": 6, "structure": 6, "errorHandling": 6, "naming": 5, "complexity": 6, "typeSafety": 6, "testability": 5, "total": 40 }
+  },
+  "flags": { "force": false, "autoApprove": false }
+}

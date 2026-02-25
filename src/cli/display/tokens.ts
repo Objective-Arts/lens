@@ -34,10 +34,7 @@ export function printTokenBreakdown(result: ScanResult): void {
   // By type
   console.log(`\n${chalk.cyan('By Type:')}`);
   const tokensByType: Record<string, number> = {};
-  for (const item of items) {
-    tokensByType[item.type] = (tokensByType[item.type] || 0) + item.tokens;
-  }
-
+  for (const item of items) tokensByType[item.type] = (tokensByType[item.type] || 0) + item.tokens;
   const sortedTypes = Object.entries(tokensByType).sort((a, b) => b[1] - a[1]);
   for (const [type, tokens] of sortedTypes) {
     const bar = createBar(tokens, summary.totalTokens, 30);

@@ -4,13 +4,13 @@
  * Type guards and validation for ComposableProfile schema.
  */
 
+import { isRecord as isRecordUtil } from '../utils/validation.js';
+
+// Re-export for backward compatibility with test files
+export const isRecord = isRecordUtil;
+
 /** Skill categories for iteration */
 export const SKILL_CATEGORIES = ['security', 'tech', 'canon', 'global'] as const;
-
-/** Type guard for Record<string, unknown> */
-export function isRecord(value: unknown): value is Record<string, unknown> {
-  return typeof value === 'object' && value !== null && !Array.isArray(value);
-}
 
 export function isStringArray(value: unknown): value is string[] {
   return Array.isArray(value) && value.every(item => typeof item === 'string');
@@ -80,8 +80,41 @@ function validateHooks(hooks: unknown, filename: string): string[] {
     }
     if (!Array.isArray(hooks[eventType])) {
       errors.push(`${filename}: 'hooks.${eventType}' must be an array`);
+    } else {
+      (hooks[eventType] as unknown[]).forEach((entry, i) => {
+        if (!isRecord(entry)) {
+          errors.push(`${filename}: 'hooks.${eventType}[${i}]' must be an object`);
+        } else if (!Array.isArray(entry.hooks)) {
+          errors.push(`${filename}: 'hooks.${eventType}[${i}].hooks' must be an array of hook definitions`);
+        } else {
+          (entry.hooks as unknown[]).forEach((hook, j) => {
+            if (!isRecord(hook) || (hook.type !== 'command' && hook.type !== 'prompt')) {
+              errors.push(`${filename}: 'hooks.${eventType}[${i}].hooks[${j}]' must have type 'command' or 'prompt'`);
+            }
+          });
+        }
+      });
     }
   }
+  return errors;
+}
+
+function validateOptionalFields(data: Record<string, unknown>, filename: string): string[] {
+  const errors: string[] = [];
+
+  if (data.description !== undefined && typeof data.description !== 'string') {
+    errors.push(`${filename}: 'description' must be a string`);
+  }
+  if (data.projectType !== undefined && data.projectType !== 'software' && data.projectType !== 'business') {
+    errors.push(`${filename}: 'projectType' must be 'software' or 'business'`);
+  }
+  if (data.agents !== undefined && !isStringArray(data.agents)) {
+    errors.push(`${filename}: 'agents' must be an array of strings`);
+  }
+  if (data.commands !== undefined && !isStringArray(data.commands)) {
+    errors.push(`${filename}: 'commands' must be an array of strings`);
+  }
+
   return errors;
 }
 
@@ -92,28 +125,11 @@ export function validateProfileSchema(data: unknown, filename: string): Validati
 
   const errors: string[] = [];
 
-  // Required fields
   if (typeof data.name !== 'string' || data.name.trim() === '') {
     errors.push(`${filename}: 'name' is required and must be a non-empty string`);
   }
 
-  // Optional string fields
-  if (data.description !== undefined && typeof data.description !== 'string') {
-    errors.push(`${filename}: 'description' must be a string`);
-  }
-  if (data.projectType !== undefined && data.projectType !== 'software' && data.projectType !== 'business') {
-    errors.push(`${filename}: 'projectType' must be 'software' or 'business'`);
-  }
-
-  // Optional array fields
-  if (data.agents !== undefined && !isStringArray(data.agents)) {
-    errors.push(`${filename}: 'agents' must be an array of strings`);
-  }
-  if (data.commands !== undefined && !isStringArray(data.commands)) {
-    errors.push(`${filename}: 'commands' must be an array of strings`);
-  }
-
-  // Nested object validation
+  errors.push(...validateOptionalFields(data, filename));
   errors.push(...validateSkills(data.skills, filename));
   errors.push(...validateClaudeMd(data.claudeMd, filename));
   errors.push(...validateHooks(data.hooks, filename));

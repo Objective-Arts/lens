@@ -586,7 +586,7 @@ export class QodanaClient {
       throw new Error(`Qodana API error (${response.status}): ${error}`);
     }
 
-    return response.json() as Promise<T>;
+    return await response.json() as T;
   }
 
   /**
