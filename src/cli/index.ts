@@ -56,12 +56,19 @@ ${chalk.bold.yellow('OTHER CLI COMMANDS')}
   ${chalk.cyan('lens scan')}                       Show current project config
 
 Run ${chalk.yellow('lens <command> --help')} for details.
+
+${chalk.bold.yellow('ENVIRONMENT VARIABLES')}
+
+  ${chalk.white('CANON_SKILLS_PATH')}            Override canon skills source directory
+  ${chalk.white('CC_WORKFLOW_SKILLS_PATH')}       Override workflow skills source directory
+  ${chalk.white('MCP_REGISTRY_DIR')}              Override MCP server registry directory
+  ${chalk.white('DEBUG')}                         Show stack traces on errors
 `;
 
 program
   .name('lens')
   .description('Lens - AI Assisted Development That Builds In Quality')
-  .version('0.2.0')
+  .version('0.4.0')
   .action(() => {
     console.log(DESCRIPTION);
   });
@@ -76,4 +83,11 @@ registerWorkflowCommands(program);
 registerTraceCommand(program);
 registerDedupeCommands(program);
 
-program.parse();
+program.parseAsync().catch((err: unknown) => {
+  const message = err instanceof Error ? err.message : String(err);
+  console.error(chalk.red(`Error: ${message}`));
+  if (process.env['DEBUG'] && err instanceof Error && err.stack) {
+    console.error(chalk.gray(err.stack));
+  }
+  process.exitCode = 1;
+});

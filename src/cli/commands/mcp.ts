@@ -15,6 +15,7 @@ import {
 } from '../../mcp/index.js';
 import { printInstalledServers, printRegistryServers, printEnvCheckResults } from '../display/index.js';
 import type { MCPServerCategory } from '../../mcp/types.js';
+import { validatePath } from './index.js';
 
 export function registerMcpCommands(program: Command): void {
   const mcpCmd = program.command('mcp').description('View MCP server status');
@@ -32,13 +33,18 @@ export function registerMcpCommands(program: Command): void {
 }
 
 function handleList(options: { project?: string; installed?: boolean; category?: string; enabled?: boolean }): void {
-  const projectPath = options.project;
+  let projectPath: string | undefined;
+  if (options.project) {
+    const validated = validatePath(options.project);
+    if (!validated) { process.exitCode = 1; return; }
+    projectPath = validated;
+  }
 
   if (options.installed || options.enabled) {
     const installed = listInstalledServers(projectPath);
     if (installed.length === 0) {
       console.log(chalk.gray('No MCP servers installed.'));
-      console.log(chalk.gray(`\nRun 'lns profile apply <profile>' to install servers.`));
+      console.log(chalk.gray(`\nRun 'lens profile apply <profile>' to install servers.`));
       return;
     }
     printInstalledServers(installed, !!options.enabled);
@@ -59,10 +65,13 @@ function handleList(options: { project?: string; installed?: boolean; category?:
 }
 
 function handleCheck(options: { project: string }): void {
-  const results = checkAllServers(options.project);
+  const projectPath = validatePath(options.project);
+  if (!projectPath) { process.exitCode = 1; return; }
+
+  const results = checkAllServers(projectPath);
   if (results.length === 0) {
     console.log(chalk.gray('No installed servers to check.'));
-    console.log(chalk.gray(`Config: ${getMcpConfigPath(options.project)}`));
+    console.log(chalk.gray(`Config: ${getMcpConfigPath(projectPath)}`));
     return;
   }
   printEnvCheckResults(results);

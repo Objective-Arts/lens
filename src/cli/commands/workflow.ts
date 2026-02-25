@@ -14,6 +14,7 @@ import {
   listInstallations
 } from '../../workflow/index.js';
 import { printList } from '../display/index.js';
+import { validatePath } from './index.js';
 
 export function registerWorkflowCommands(program: Command): void {
   const workflowCmd = program.command('workflow').description('Manage workflow skills');
@@ -63,7 +64,10 @@ function handleList(): void {
 }
 
 function handleStatus(options: { project: string }): void {
-  const statuses = checkWorkflowStatus(options.project);
+  const projectPath = validatePath(options.project);
+  if (!projectPath) { process.exitCode = 1; return; }
+
+  const statuses = checkWorkflowStatus(projectPath);
   const sourceInfo = getWorkflowSourceInfo();
 
   if (statuses.length === 0) {
@@ -72,7 +76,7 @@ function handleStatus(options: { project: string }): void {
   }
 
   console.log(chalk.bold('\nWorkflow Skills Status'));
-  console.log(chalk.gray(`Source: ${sourceInfo.path} @ ${sourceInfo.commit || 'unknown'}`));
+  console.log(chalk.gray(`Source: ${sourceInfo.path} @ ${sourceInfo.commit ?? 'unknown'}`));
   console.log(chalk.gray('─'.repeat(60)));
 
   const icons: Record<string, string> = {
@@ -90,13 +94,16 @@ function handleStatus(options: { project: string }): void {
 
   const outdated = statuses.filter(s => s.status === 'outdated').length;
   if (outdated > 0) {
-    console.log(chalk.yellow(`\nRun 'lns workflow upgrade' to update ${outdated} skill(s)`));
+    console.log(chalk.yellow(`\nRun 'lens workflow upgrade' to update ${outdated} skill(s)`));
   }
 }
 
 function handleUpgrade(options: { project: string; force?: boolean; skills?: string }): void {
+  const projectPath = validatePath(options.project);
+  if (!projectPath) { process.exitCode = 1; return; }
+
   const skillList = options.skills?.split(',').map(s => s.trim());
-  const result = upgradeWorkflowSkills(options.project, { force: options.force, skills: skillList });
+  const result = upgradeWorkflowSkills(projectPath, { force: options.force, skills: skillList });
 
   printList('Upgraded', result.upgraded, chalk.green, '✓');
   printList('Skipped', result.skipped, chalk.yellow, '-');
@@ -133,7 +140,7 @@ function handlePush(options: { force?: boolean }): void {
 
   const total = result.updated.length + result.current.length;
   if (total === 0 && result.errors.length === 0) {
-    console.log(chalk.gray('No registered installations found. Run `lns profile apply` in a project first.'));
+    console.log(chalk.gray('No registered installations found. Run `lens profile apply` in a project first.'));
   } else if (result.errors.length === 0) {
     console.log(chalk.green(`\nDone. ${result.updated.length} updated, ${result.current.length} already current.`));
   }

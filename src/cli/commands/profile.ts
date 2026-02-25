@@ -24,6 +24,7 @@ import {
   printProfileNotFound
 } from '../display/index.js';
 import type { ComposableProfile } from '../../types.js';
+import { isValidName, validateProjectPath } from '../../utils/validation.js';
 
 export function registerProfileCommands(program: Command): void {
   const profileCmd = program.command('profile').description('Manage configuration profiles');
@@ -85,8 +86,9 @@ function handleShow(name: string): void {
 }
 
 function handleCreate(name: string): void {
-  if (name.includes('/') || name.includes('\\') || name.includes('..')) {
-    console.log(chalk.red(`Invalid profile name (path traversal): ${name}`));
+  if (!isValidName(name)) {
+    console.error(chalk.red(`Invalid profile name: must contain only letters, numbers, hyphens, and underscores`));
+    process.exitCode = 1;
     return;
   }
   const profile: ComposableProfile = { ...exampleComposableProfile, name };
@@ -95,24 +97,19 @@ function handleCreate(name: string): void {
   console.log(chalk.gray(`Edit at: ~/.claude/profiles/${name.toLowerCase().replace(/\s+/g, '-')}.yaml`));
 }
 
-async function handleApply(
-  profiles: string,
-  projectPath: string | undefined,
-  options: { project?: string; dryRun?: boolean }
-): Promise<void> {
-  const targetPath = projectPath || options.project || process.cwd();
-  const profileNames = parseProfileString(profiles);
-  const profile = resolveProfile(profileNames, profiles);
+function validateProfileNames(profileNames: string[]): boolean {
+  for (const profileName of profileNames) {
+    if (!isValidName(profileName)) {
+      console.error(chalk.red(`Invalid profile name component "${profileName}": must contain only letters, numbers, hyphens, and underscores`));
+      process.exitCode = 1;
+      return false;
+    }
+  }
+  return true;
+}
+
+async function runApplySteps(profile: ReturnType<typeof resolveProfile>, targetPath: string): Promise<void> {
   if (!profile) return;
-
-  if (profileNames.length > 1) {
-    console.log(chalk.blue(`Combining profiles: ${profileNames.join(' + ')}\n`));
-  }
-
-  if (options.dryRun) {
-    printDryRun(profile, targetPath);
-    return;
-  }
 
   console.log(chalk.blue(`Applying profile "${profile.name}" to ${targetPath}...\n`));
 
@@ -126,85 +123,152 @@ async function handleApply(
   const deployResult = deployAllSkills(targetPath, { force: true });
   console.log(chalk.green(`  ✓ Deployed ${deployResult.deployed} canon skills`));
   if (deployResult.deployedNames.length > 0) printDeployedSkills(deployResult.deployedNames);
-  deployResult.errors.forEach(e => console.log(chalk.red(`  Error: ${e}`)));
+  deployResult.errors.forEach(deployError => console.log(chalk.red(`  Error: ${deployError}`)));
 
   console.log(chalk.cyan('[4/4] Finalizing...'));
-  console.log(result.errors.length === 0
-    ? chalk.green('\n✓ Profile applied successfully!')
-    : chalk.yellow('\n⚠ Profile applied with some errors.'));
+  if (result.errors.length > 0 || deployResult.errors.length > 0) {
+    console.log(chalk.yellow('\n⚠ Profile applied with some errors.'));
+    process.exitCode = 1;
+  } else {
+    console.log(chalk.green('\n✓ Profile applied successfully!'));
+  }
 }
 
-function handleClean(
+async function handleApply(
+  profiles: string,
   projectPath: string | undefined,
   options: { project?: string; dryRun?: boolean }
-): void {
-  const targetPath = projectPath || options.project || process.cwd();
+): Promise<void> {
+  const rawPath = projectPath || options.project || process.cwd();
+  const targetPath = validateProjectPath(rawPath);
+  if (!targetPath) {
+    console.error(chalk.red(`Invalid project path: ${rawPath}`));
+    process.exitCode = 1;
+    return;
+  }
+  const profileNames = parseProfileString(profiles);
+
+  if (!validateProfileNames(profileNames)) return;
+
+  const profile = resolveProfile(profileNames, profiles);
+  if (!profile) return;
+
+  if (profileNames.length > 1) {
+    console.log(chalk.blue(`Combining profiles: ${profileNames.join(' + ')}\n`));
+  }
+
+  if (options.dryRun) {
+    printDryRun(profile, targetPath);
+    return;
+  }
+
+  await runApplySteps(profile, targetPath);
+}
+
+type CleanTarget = { path: string; label: string; type: 'dir' | 'file' | 'symlink' };
+
+function findCleanTargets(targetPath: string): CleanTarget[] | null {
   const claudeDir = path.join(targetPath, '.claude');
 
   if (!fs.existsSync(claudeDir)) {
     console.log(chalk.yellow('No .claude directory found. Nothing to clean.'));
-    return;
+    return null;
   }
 
-  const targets = [
-    { path: path.join(claudeDir, 'skills'), label: '.claude/skills/', type: 'dir' as const },
-    { path: path.join(claudeDir, 'canon-manifest.json'), label: '.claude/canon-manifest.json', type: 'file' as const },
-    { path: path.join(claudeDir, 'config'), label: '.claude/config/', type: 'dir' as const },
-    { path: path.join(targetPath, 'canon'), label: 'canon (symlink)', type: 'symlink' as const },
-    { path: path.join(targetPath, 'workflow-skills'), label: 'workflow-skills (symlink)', type: 'symlink' as const },
+  const targets: CleanTarget[] = [
+    { path: path.join(claudeDir, 'skills'), label: '.claude/skills/', type: 'dir' },
+    { path: path.join(claudeDir, 'canon-manifest.json'), label: '.claude/canon-manifest.json', type: 'file' },
+    { path: path.join(claudeDir, 'config'), label: '.claude/config/', type: 'dir' },
+    { path: path.join(targetPath, 'canon'), label: 'canon (symlink)', type: 'symlink' },
+    { path: path.join(targetPath, 'workflow-skills'), label: 'workflow-skills (symlink)', type: 'symlink' },
   ];
 
   const found = targets.filter(t => fs.existsSync(t.path));
 
   if (found.length === 0) {
     console.log(chalk.yellow('No lens-managed files found. Nothing to clean.'));
+    return null;
+  }
+
+  return found;
+}
+
+function printDryRunClean(found: CleanTarget[]): void {
+  console.log(chalk.bold('\nDRY RUN — would remove:\n'));
+  for (const t of found) {
+    if (t.type === 'dir') {
+      const count = fs.readdirSync(t.path).length;
+      console.log(`  ${chalk.red('×')} ${t.label} (${count} items)`);
+    } else {
+      console.log(`  ${chalk.red('×')} ${t.label}`);
+    }
+  }
+  console.log(chalk.gray('\nRun without --dry-run to remove.'));
+}
+
+function executeClean(found: CleanTarget[], targetPath: string): void {
+  console.log(chalk.blue(`Cleaning lens files from ${targetPath}...\n`));
+  const { removed, failed } = removeCleanTargets(found);
+  if (failed > 0) {
+    console.log(chalk.yellow(`\n⚠ Cleaned ${removed} items, ${failed} failed.`));
+    process.exitCode = 1;
+  } else if (removed > 0) {
+    console.log(chalk.green(`\n✓ Cleaned ${removed} items. Project is ready for a fresh apply.`));
+  } else {
+    console.log(chalk.yellow('\nNothing was removed.'));
+  }
+}
+
+function handleClean(
+  projectPath: string | undefined,
+  options: { project?: string; dryRun?: boolean }
+): void {
+  const rawPath = projectPath || options.project || process.cwd();
+  const targetPath = validateProjectPath(rawPath);
+  if (!targetPath) {
+    console.error(chalk.red(`Invalid project path: ${rawPath}`));
+    process.exitCode = 1;
     return;
   }
+
+  const found = findCleanTargets(targetPath);
+  if (!found) return;
 
   if (options.dryRun) {
-    console.log(chalk.bold('\nDRY RUN — would remove:\n'));
-    for (const t of found) {
-      if (t.type === 'dir') {
-        const count = fs.readdirSync(t.path).length;
-        console.log(`  ${chalk.red('×')} ${t.label} (${count} items)`);
-      } else {
-        console.log(`  ${chalk.red('×')} ${t.label}`);
-      }
-    }
-    console.log(chalk.gray('\nRun without --dry-run to remove.'));
-    return;
+    printDryRunClean(found);
+  } else {
+    executeClean(found, targetPath);
   }
+}
 
-  console.log(chalk.blue(`Cleaning lens files from ${targetPath}...\n`));
+function removeCleanTargets(targets: CleanTarget[]): { removed: number; failed: number } {
   let removed = 0;
-
-  for (const t of found) {
+  let failed = 0;
+  for (const target of targets) {
     try {
-      if (t.type === 'symlink') {
-        const stat = fs.lstatSync(t.path);
+      if (target.type === 'symlink') {
+        const stat = fs.lstatSync(target.path);
         if (stat.isSymbolicLink()) {
-          fs.unlinkSync(t.path);
-          console.log(`  ${chalk.red('×')} ${t.label}`);
+          fs.unlinkSync(target.path);
+          console.log(`  ${chalk.red('×')} ${target.label}`);
           removed++;
         }
-      } else if (t.type === 'dir') {
-        const count = fs.readdirSync(t.path).length;
-        fs.rmSync(t.path, { recursive: true });
-        console.log(`  ${chalk.red('×')} ${t.label} (${count} items)`);
+      } else if (target.type === 'dir') {
+        const count = fs.readdirSync(target.path).length;
+        fs.rmSync(target.path, { recursive: true });
+        console.log(`  ${chalk.red('×')} ${target.label} (${count} items)`);
         removed++;
       } else {
-        fs.unlinkSync(t.path);
-        console.log(`  ${chalk.red('×')} ${t.label}`);
+        fs.unlinkSync(target.path);
+        console.log(`  ${chalk.red('×')} ${target.label}`);
         removed++;
       }
-    } catch (err) {
-      console.log(chalk.red(`  Failed to remove ${t.label}: ${err instanceof Error ? err.message : err}`));
+    } catch (removeErr) {
+      console.error(chalk.red(`  Failed to remove ${target.label}: ${removeErr instanceof Error ? removeErr.message : removeErr}`));
+      failed++;
     }
   }
-
-  console.log(removed > 0
-    ? chalk.green(`\n✓ Cleaned ${removed} items. Project is ready for a fresh apply.`)
-    : chalk.yellow('\nNothing was removed.'));
+  return { removed, failed };
 }
 
 // Helpers
@@ -215,6 +279,7 @@ function resolveProfile(names: string[], original: string): ComposableProfile | 
 
   if (!profile) {
     printProfileNotFound(names.length > 1 ? original : names[0], available);
+    process.exitCode = 1;
     return null;
   }
   return profile;
@@ -232,7 +297,7 @@ function printSkillsByCategory(profile: ComposableProfile): void {
     const skills = profile.skills[cat];
     if (skills?.length) {
       console.log((colors[cat] || chalk.white)(`Skills (${cat}):`));
-      skills.forEach(s => console.log(`  • ${s}`));
+      skills.forEach(skillName => console.log(`  • ${skillName}`));
     }
   }
 }
@@ -240,13 +305,13 @@ function printSkillsByCategory(profile: ComposableProfile): void {
 function printCommands(profile: ComposableProfile): void {
   if (profile.commands?.length) {
     console.log(chalk.cyan('\nCommands:'));
-    profile.commands.forEach(c => console.log(`  • ${c}`));
+    profile.commands.forEach(cmdName => console.log(`  • ${cmdName}`));
   }
 }
 
 function printAutoInvoke(profile: ComposableProfile): void {
   if (profile.claudeMd?.autoInvoke?.length) {
     console.log(chalk.cyan('\nAuto-invoke rules:'));
-    profile.claudeMd.autoInvoke.forEach(ai => console.log(`  ${ai.context} → ${ai.action}`));
+    profile.claudeMd.autoInvoke.forEach(rule => console.log(`  ${rule.context} → ${rule.action}`));
   }
 }

@@ -1,6 +1,6 @@
 /**
  * Configuration file application for profiles.
- * Handles hooks, phase configs, ralph config, and CLAUDE.md updates.
+ * Handles hooks and CLAUDE.md updates.
  */
 
 import * as fs from 'fs';
@@ -8,6 +8,8 @@ import * as fsPromises from 'fs/promises';
 import * as path from 'path';
 import type { ComposableProfile } from '../types.js';
 import { CLAUDE_DIR_NAME } from './paths.js';
+import { isEnoent } from '../utils/fs.js';
+import { isRecord } from '../utils/validation.js';
 
 /** Result subset needed by config application */
 interface ConfigApplyResult {
@@ -17,24 +19,53 @@ interface ConfigApplyResult {
   warnings: string[];
 }
 
+async function readSettingsJson(settingsPath: string): Promise<Record<string, unknown>> {
+  try {
+    return JSON.parse(fs.readFileSync(settingsPath, 'utf-8'));
+  } catch (e) {
+    if (!isEnoent(e)) {
+      console.warn(`Warning: corrupt settings at ${settingsPath} — using defaults`);
+    }
+    return {};
+  }
+}
+
+function hookKey(item: Record<string, unknown>): string {
+  return JSON.stringify({ matcher: item.matcher, hooks: item.hooks });
+}
+
+function mergeHooks(existing: Record<string, unknown[]>, profile: Record<string, unknown[]>): void {
+  for (const [eventType, hookItems] of Object.entries(profile)) {
+    if (!Array.isArray(hookItems)) continue;
+    if (!Array.isArray(existing[eventType])) existing[eventType] = [];
+    for (const item of hookItems) {
+      if (!isRecord(item) || !Array.isArray(item.hooks)) continue;
+      const key = hookKey(item);
+      const isDuplicate = existing[eventType].some(
+        (e: unknown) => isRecord(e) && hookKey(e) === key
+      );
+      if (!isDuplicate) existing[eventType].push(item);
+    }
+  }
+}
+
 export async function applyHooksToProject(profile: ComposableProfile, projectPath: string, result: ConfigApplyResult): Promise<void> {
   if (!profile.hooks) return;
 
   const settingsPath = path.join(projectPath, CLAUDE_DIR_NAME, 'settings.json');
-  let settings: Record<string, unknown> = {};
+  const settings = await readSettingsJson(settingsPath);
 
-  try { settings = JSON.parse(fs.readFileSync(settingsPath, 'utf-8')); }
-  catch { /* file missing or invalid JSON — start fresh */ }
-
-  const existingHooks = (settings.hooks as Record<string, unknown[]>) || {};
-  for (const [eventType, hookItems] of Object.entries(profile.hooks as Record<string, unknown[]>)) {
-    if (!existingHooks[eventType]) existingHooks[eventType] = [];
-    existingHooks[eventType].push(...hookItems);
-  }
+  const existingHooks = isRecord(settings.hooks) ? settings.hooks as Record<string, unknown[]> : {};
+  const profileHooks = isRecord(profile.hooks) ? profile.hooks as Record<string, unknown[]> : {};
+  mergeHooks(existingHooks, profileHooks);
   settings.hooks = existingHooks;
 
   await fsPromises.mkdir(path.dirname(settingsPath), { recursive: true });
-  await fsPromises.writeFile(settingsPath, JSON.stringify(settings, null, 2));
+
+  const tmpPath = path.join(path.dirname(settingsPath), `.settings.json.tmp.${process.pid}`);
+  await fsPromises.writeFile(tmpPath, JSON.stringify(settings, null, 2));
+  await fsPromises.rename(tmpPath, settingsPath);
+
   result.created.push(`Hooks installed: ${Object.keys(profile.hooks).join(', ')}`);
 }
 
@@ -115,6 +146,22 @@ function getWorkflowCommandsDocs(projectPath: string): string {
   return doc;
 }
 
+function buildStandardsSection(standards: string[]): string {
+  if (standards.length === 0) return '';
+  return `\n## Standards\n\n${standards.map(s => `- ${s}`).join('\n')}\n`;
+}
+
+function buildAntiPatternsSection(antiPatterns: string[]): string {
+  if (antiPatterns.length === 0) return '';
+  return `\n## Anti-Patterns (Avoid)\n\n${antiPatterns.map(p => `- ${p}`).join('\n')}\n`;
+}
+
+function buildAutoInvokeSection(autoInvoke: NonNullable<ComposableProfile['claudeMd']>['autoInvoke']): string {
+  if (!autoInvoke || autoInvoke.length === 0) return '';
+  const table = autoInvoke.map(ai => `| ${ai.context} | ${ai.action} |`).join('\n');
+  return `\n## Auto-Invoke Skills\n\n| Context | Action |\n|---------|--------|\n${table}\n`;
+}
+
 export function buildProfileSections(profile: ComposableProfile, projectPath?: string): string {
   let sections = `## Profiles Applied\n\n\`${profile.name}\`\n`;
 
@@ -123,17 +170,9 @@ export function buildProfileSections(profile: ComposableProfile, projectPath?: s
     if (cmdDocs) sections += cmdDocs;
   }
 
-  const standards = profile.claudeMd?.standards ?? [];
-  if (standards.length > 0) sections += `\n## Standards\n\n${standards.map(s => `- ${s}`).join('\n')}\n`;
-
-  const antiPatterns = profile.claudeMd?.antiPatterns ?? [];
-  if (antiPatterns.length > 0) sections += `\n## Anti-Patterns (Avoid)\n\n${antiPatterns.map(p => `- ${p}`).join('\n')}\n`;
-
-  const autoInvoke = profile.claudeMd?.autoInvoke ?? [];
-  if (autoInvoke.length > 0) {
-    const table = autoInvoke.map(ai => `| ${ai.context} | ${ai.action} |`).join('\n');
-    sections += `\n## Auto-Invoke Skills\n\n| Context | Action |\n|---------|--------|\n${table}\n`;
-  }
+  sections += buildStandardsSection(profile.claudeMd?.standards ?? []);
+  sections += buildAntiPatternsSection(profile.claudeMd?.antiPatterns ?? []);
+  sections += buildAutoInvokeSection(profile.claudeMd?.autoInvoke ?? []);
 
   return sections;
 }
@@ -149,9 +188,17 @@ function stripProfileSections(content: string): string {
     .trim();
 }
 
+async function readClaudeMd(claudeMdPath: string): Promise<string> {
+  try {
+    return await fsPromises.readFile(claudeMdPath, 'utf-8');
+  } catch (e) {
+    if (isEnoent(e)) return '';
+    throw new Error(`Failed to read CLAUDE.md: ${claudeMdPath}`, { cause: e });
+  }
+}
+
 export async function updateClaudeMdWithProfile(claudeMdPath: string, profile: ComposableProfile, projectPath?: string): Promise<void> {
-  let content = '';
-  try { content = await fsPromises.readFile(claudeMdPath, 'utf-8'); } catch { /* new file */ }
+  let content = await readClaudeMd(claudeMdPath);
 
   const newSections = buildProfileSections(profile, projectPath);
   content = stripProfileSections(content);
@@ -164,5 +211,7 @@ export async function updateClaudeMdWithProfile(claudeMdPath: string, profile: C
     content = newSections + '\n' + content;
   }
 
-  await fsPromises.writeFile(claudeMdPath, content.trim() + '\n', 'utf-8');
+  const tmpPath = path.join(path.dirname(claudeMdPath), `.claude-md.tmp.${process.pid}`);
+  await fsPromises.writeFile(tmpPath, content.trim() + '\n', 'utf-8');
+  await fsPromises.rename(tmpPath, claudeMdPath);
 }

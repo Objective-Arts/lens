@@ -13,7 +13,9 @@ import type {
   MCPOperationResult,
   EnvCheckResult
 } from './types.js';
-import { getServer, checkRequiredEnv, resolveEnvVars } from './registry.js';
+import { getServer, checkRequiredEnv } from './registry.js';
+import { isEnoent, safeReadFileSync } from '../utils/fs.js';
+import { isRecord } from '../utils/validation.js';
 
 const GLOBAL_CLAUDE_DIR = path.join(homedir(), '.claude');
 
@@ -23,9 +25,13 @@ function resolvePaths(projectPath?: string): {
   scope: 'project' | 'global';
 } {
   if (projectPath) {
+    if (projectPath.includes('\0')) {
+      throw new Error('Invalid project path: contains null bytes');
+    }
+    const resolved = path.resolve(projectPath);
     return {
-      mcpJsonPath: path.join(projectPath, '.mcp.json'),
-      settingsJsonPath: path.join(projectPath, '.claude', 'settings.json'),
+      mcpJsonPath: path.join(resolved, '.mcp.json'),
+      settingsJsonPath: path.join(resolved, '.claude', 'settings.json'),
       scope: 'project'
     };
   }
@@ -36,38 +42,38 @@ function resolvePaths(projectPath?: string): {
   };
 }
 
-/**
- * Load MCP server configurations from `.mcp.json`.
- *
- * Supports both global (`~/.claude/.mcp.json`) and project-level (`.mcp.json`).
- *
- * @param projectPath - Project path for project-level config; omit for global
- * @returns Record of server name to configuration
- *
- * @example
- * ```typescript
- * // Load global servers
- * const globalServers = loadMcpJson();
- *
- * // Load project servers
- * const projectServers = loadMcpJson('./myproject');
- * ```
- */
+function isMcpServersMap(value: unknown): value is Record<string, MCPServerConfig> {
+  if (!isRecord(value)) return false;
+  // type field is optional; stdio servers may omit it and use command instead
+  return Object.values(value).every(entry => isRecord(entry));
+}
+
 function loadMcpJson(projectPath?: string): Record<string, MCPServerConfig> {
   const { mcpJsonPath } = resolvePaths(projectPath);
 
   try {
-    const content = fs.readFileSync(mcpJsonPath, 'utf-8');
-    const parsed = JSON.parse(content);
-    // Handle both formats: { mcpServers: {...} } and raw { name: config }
-    return parsed.mcpServers || parsed;
-  } catch {
+    const content = safeReadFileSync(mcpJsonPath);
+    const parsed: unknown = JSON.parse(content);
+    if (!isRecord(parsed)) {
+      throw new Error('.mcp.json is not a JSON object');
+    }
+    const servers = parsed.mcpServers ?? parsed;
+    if (!isMcpServersMap(servers)) {
+      throw new Error('.mcp.json has invalid server configuration structure');
+    }
+    return servers;
+  } catch (cause) {
+    if (isEnoent(cause)) return {};
+    const backupPath = `${mcpJsonPath}.corrupt.${process.pid}.json`;
+    try { fs.renameSync(mcpJsonPath, backupPath); } catch { /* ignore */ }
+    console.warn(`Warning: corrupt .mcp.json — backed up to ${backupPath} and using empty config`);
     return {};
   }
 }
 
 /**
- * Save mcp.json
+ * Save mcp.json using a write-to-temp-then-rename pattern to prevent
+ * partial writes leaving the file in a corrupt state.
  */
 function saveMcpJson(servers: Record<string, MCPServerConfig>, projectPath?: string): void {
   const { mcpJsonPath } = resolvePaths(projectPath);
@@ -78,18 +84,32 @@ function saveMcpJson(servers: Record<string, MCPServerConfig>, projectPath?: str
     fs.mkdirSync(dir, { recursive: true });
   }
 
-  // Use mcpServers wrapper format (Claude Code standard)
+  const tmpPath = `${mcpJsonPath}.tmp.${process.pid}`;
   const content = { mcpServers: servers };
-  fs.writeFileSync(mcpJsonPath, JSON.stringify(content, null, 2), 'utf-8');
+  try {
+    fs.writeFileSync(tmpPath, JSON.stringify(content, null, 2), 'utf-8');
+    fs.renameSync(tmpPath, mcpJsonPath);
+  } catch (cause) {
+    try { fs.unlinkSync(tmpPath); } catch { /* ignore */ }
+    throw new Error(`Failed to save mcp.json`, { cause });
+  }
 }
 
 function loadSettings(projectPath?: string): Record<string, unknown> {
   const { settingsJsonPath } = resolvePaths(projectPath);
 
   try {
-    const content = fs.readFileSync(settingsJsonPath, 'utf-8');
-    return JSON.parse(content);
-  } catch {
+    const content = safeReadFileSync(settingsJsonPath);
+    const parsed: unknown = JSON.parse(content);
+    if (!isRecord(parsed)) {
+      console.warn(`Warning: settings.json is not a JSON object at ${settingsJsonPath} — using defaults`);
+      return {};
+    }
+    return parsed;
+  } catch (cause) {
+    if (!isEnoent(cause)) {
+      console.warn(`Warning: corrupt settings at ${settingsJsonPath} — using defaults`);
+    }
     return {};
   }
 }
@@ -103,12 +123,30 @@ function saveSettings(settings: Record<string, unknown>, projectPath?: string): 
     fs.mkdirSync(dir, { recursive: true });
   }
 
-  fs.writeFileSync(settingsJsonPath, JSON.stringify(settings, null, 2), 'utf-8');
+  const tmpPath = `${settingsJsonPath}.tmp.${process.pid}`;
+  try {
+    fs.writeFileSync(tmpPath, JSON.stringify(settings, null, 2), 'utf-8');
+    fs.renameSync(tmpPath, settingsJsonPath);
+  } catch (cause) {
+    try { fs.unlinkSync(tmpPath); } catch { /* ignore */ }
+    throw cause;
+  }
+}
+
+function isEnabledList(value: unknown): value is string[] {
+  return Array.isArray(value) && value.every(item => typeof item === 'string');
 }
 
 function getEnabledServers(projectPath?: string): string[] {
   const settings = loadSettings(projectPath);
-  return (settings.enabledMcpjsonServers as string[]) || [];
+  const raw = settings['enabledMcpjsonServers'];
+  return isEnabledList(raw) ? raw : [];
+}
+
+function saveEnabledServers(enabledNames: string[], projectPath?: string): void {
+  const settings = loadSettings(projectPath);
+  settings['enabledMcpjsonServers'] = enabledNames;
+  saveSettings(settings, projectPath);
 }
 
 export function isServerInstalled(name: string, projectPath?: string): boolean {
@@ -120,30 +158,52 @@ export function isServerEnabled(name: string, projectPath?: string): boolean {
   return getEnabledServers(projectPath).includes(name);
 }
 
-/**
- * Install an MCP server from the registry to `.mcp.json`.
- *
- * Adds the server configuration from the registry to the mcp.json file.
- * Validates required environment variables before installation.
- *
- * @param name - Server name from the registry
- * @param options - Installation options
- * @param options.skipEnvCheck - Skip environment variable validation
- * @param options.projectPath - Install to project instead of global
- * @returns Operation result with success status and message
- *
- * @example
- * ```typescript
- * // Install to global config
- * const result = installServer('linear');
- * if (!result.success) {
- *   console.error(result.message);
- * }
- *
- * // Install to project config
- * const result = installServer('qodana', { projectPath: './myproject' });
- * ```
- */
+// installServer helpers
+
+function checkEnvForInstall(
+  name: string,
+  server: import('./types.js').MCPServerDefinition,
+  skipEnvCheck: boolean
+): MCPOperationResult | null {
+  if (skipEnvCheck || !server.requiredEnv || server.requiredEnv.length === 0) {
+    return null;
+  }
+  const envCheck = checkRequiredEnv(server);
+  if (!envCheck.ok) {
+    return {
+      success: false,
+      message: `Missing required environment variables: ${envCheck.missing.join(', ')}`,
+      server: name,
+      warnings: [`Set these variables in your shell: ${envCheck.missing.join(', ')}`]
+    };
+  }
+  return null;
+}
+
+function buildServerConfig(
+  server: import('./types.js').MCPServerDefinition
+): MCPServerConfig {
+  const config: MCPServerConfig = { type: server.type };
+
+  if (server.type === 'stdio') {
+    config.command = server.command;
+    config.args = server.args;
+  } else if (server.type === 'http') {
+    config.url = server.url;
+  }
+
+  return config;
+}
+
+function applyServerEnv(
+  server: import('./types.js').MCPServerDefinition,
+  config: MCPServerConfig
+): void {
+  if (server.env) {
+    config.env = { ...server.env }; // Keep ${VAR} references — resolve at runtime, not at install
+  }
+}
+
 export function installServer(
   name: string,
   options: { skipEnvCheck?: boolean; projectPath?: string } = {}
@@ -153,29 +213,13 @@ export function installServer(
   const server = getServer(name);
 
   if (!server) {
-    return {
-      success: false,
-      message: `Server not found in registry: ${name}`,
-      server: name
-    };
+    return { success: false, message: `Server not found in registry: ${name}`, server: name };
   }
 
-  // Check required env vars unless skipped
-  if (!skipEnvCheck && server.requiredEnv && server.requiredEnv.length > 0) {
-    const envCheck = checkRequiredEnv(server);
-    if (!envCheck.ok) {
-      return {
-        success: false,
-        message: `Missing required environment variables: ${envCheck.missing.join(', ')}`,
-        server: name,
-        warnings: [`Set these variables in your shell: ${envCheck.missing.join(', ')}`]
-      };
-    }
-  }
+  const envError = checkEnvForInstall(name, server, skipEnvCheck);
+  if (envError) return envError;
 
-  // Build the server config
   const mcpJson = loadMcpJson(projectPath);
-
   if (mcpJson[name]) {
     return {
       success: true,
@@ -185,90 +229,29 @@ export function installServer(
     };
   }
 
-  const config: MCPServerConfig = {
-    type: server.type
-  };
-
-  if (server.type === 'stdio') {
-    config.command = server.command;
-    config.args = server.args;
-  } else if (server.type === 'http') {
-    config.url = server.url;
-  }
-
-  // Resolve env var references to actual values
-  if (server.env) {
-    try {
-      config.env = resolveEnvVars(server.env);
-    } catch (err) {
-      return {
-        success: false,
-        message: err instanceof Error ? err.message : 'Failed to resolve environment variables',
-        server: name
-      };
-    }
-  }
+  const config = buildServerConfig(server);
+  applyServerEnv(server, config);
 
   mcpJson[name] = config;
   saveMcpJson(mcpJson, projectPath);
 
-  return {
-    success: true,
-    message: `Installed server (${scope}): ${name}`,
-    server: name
-  };
+  return { success: true, message: `Installed server (${scope}): ${name}`, server: name };
 }
 
 export function uninstallServer(name: string, projectPath?: string): MCPOperationResult {
   const { scope } = resolvePaths(projectPath);
   const mcpJson = loadMcpJson(projectPath);
-
   if (!(name in mcpJson)) {
-    return {
-      success: false,
-      message: `Server not installed (${scope}): ${name}`,
-      server: name
-    };
+    return { success: false, message: `Server not installed (${scope}): ${name}`, server: name };
   }
-
-  // Also disable if enabled
-  if (isServerEnabled(name, projectPath)) {
-    disableServer(name, projectPath);
-  }
-
+  if (isServerEnabled(name, projectPath)) disableServer(name, projectPath);
   delete mcpJson[name];
   saveMcpJson(mcpJson, projectPath);
-
-  return {
-    success: true,
-    message: `Uninstalled server (${scope}): ${name}`,
-    server: name
-  };
+  return { success: true, message: `Uninstalled server (${scope}): ${name}`, server: name };
 }
 
-/**
- * Enable an installed MCP server.
- *
- * Adds the server name to `enabledMcpjsonServers` in settings.json.
- * The server must already be installed in `.mcp.json`.
- *
- * @param name - Server name to enable
- * @param projectPath - Project path for project-level settings
- * @returns Operation result with success status and message
- *
- * @example
- * ```typescript
- * // Enable in global settings
- * enableServer('linear');
- *
- * // Enable in project settings
- * enableServer('qodana', './myproject');
- * ```
- */
 export function enableServer(name: string, projectPath?: string): MCPOperationResult {
   const { scope } = resolvePaths(projectPath);
-
-  // Check if installed first
   if (!isServerInstalled(name, projectPath)) {
     return {
       success: false,
@@ -276,52 +259,22 @@ export function enableServer(name: string, projectPath?: string): MCPOperationRe
       server: name
     };
   }
-
-  const settings = loadSettings(projectPath);
-  const enabled = (settings.enabledMcpjsonServers as string[]) || [];
-
+  const enabled = getEnabledServers(projectPath);
   if (enabled.includes(name)) {
-    return {
-      success: true,
-      message: `Server already enabled (${scope}): ${name}`,
-      server: name,
-      warnings: ['Server was already enabled, no changes made']
-    };
+    return { success: true, message: `Server already enabled (${scope}): ${name}`, server: name, warnings: ['Server was already enabled, no changes made'] };
   }
-
-  enabled.push(name);
-  settings.enabledMcpjsonServers = enabled;
-  saveSettings(settings, projectPath);
-
-  return {
-    success: true,
-    message: `Enabled server (${scope}): ${name}`,
-    server: name
-  };
+  saveEnabledServers([...enabled, name], projectPath);
+  return { success: true, message: `Enabled server (${scope}): ${name}`, server: name };
 }
 
 export function disableServer(name: string, projectPath?: string): MCPOperationResult {
   const { scope } = resolvePaths(projectPath);
-  const settings = loadSettings(projectPath);
-  const enabled = (settings.enabledMcpjsonServers as string[]) || [];
-
+  const enabled = getEnabledServers(projectPath);
   if (!enabled.includes(name)) {
-    return {
-      success: true,
-      message: `Server already disabled (${scope}): ${name}`,
-      server: name,
-      warnings: ['Server was already disabled, no changes made']
-    };
+    return { success: true, message: `Server already disabled (${scope}): ${name}`, server: name, warnings: ['Server was already disabled, no changes made'] };
   }
-
-  settings.enabledMcpjsonServers = enabled.filter(s => s !== name);
-  saveSettings(settings, projectPath);
-
-  return {
-    success: true,
-    message: `Disabled server (${scope}): ${name}`,
-    server: name
-  };
+  saveEnabledServers(enabled.filter(s => s !== name), projectPath);
+  return { success: true, message: `Disabled server (${scope}): ${name}`, server: name };
 }
 
 export function checkServer(name: string): EnvCheckResult {

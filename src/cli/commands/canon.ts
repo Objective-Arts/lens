@@ -16,7 +16,7 @@ import {
 } from '../../canon/index.js';
 import { loadSkills } from '../../canon/skill-loader.js';
 import { printList, printCanonSkillsByCategory, printSkillStatuses, printVerifyResults, printSkillInspection } from '../display/index.js';
-import { validateProjectPath, getPathValidationError } from '../../utils/validation.js';
+import { validatePath } from './index.js';
 
 export function registerCanonCommands(program: Command): void {
   const canonCmd = program.command('canon').description('Manage canon skills');
@@ -57,15 +57,6 @@ export function registerCanonCommands(program: Command): void {
     .action(handleInspect);
 }
 
-function validatePath(path: string): string | null {
-  const validated = validateProjectPath(path);
-  if (!validated) {
-    console.log(chalk.red(`Invalid path: ${getPathValidationError(path)}`));
-    return null;
-  }
-  return validated;
-}
-
 // Handlers
 function handleList(options: { category?: string }): void {
   const skills = listCanonSkills();
@@ -82,19 +73,25 @@ function handleList(options: { category?: string }): void {
 }
 
 function handleStatus(options: { project: string }): void {
-  const statuses = checkSkillStatus(options.project);
+  const projectPath = validatePath(options.project);
+  if (!projectPath) { process.exitCode = 1; return; }
+
+  const statuses = checkSkillStatus(projectPath);
 
   if (statuses.length === 0) {
     console.log(chalk.gray('No skills installed.'));
     return;
   }
 
-  printSkillStatuses(statuses, getCanonSourceInfo(), options.project);
+  printSkillStatuses(statuses, getCanonSourceInfo(), projectPath);
 }
 
 function handleUpgrade(options: { project: string; force?: boolean; skills?: string }): void {
+  const projectPath = validatePath(options.project);
+  if (!projectPath) { process.exitCode = 1; return; }
+
   const skillList = options.skills?.split(',').map(s => s.trim());
-  const result = upgradeSkills(options.project, { force: options.force, skills: skillList });
+  const result = upgradeSkills(projectPath, { force: options.force, skills: skillList });
 
   printList('Upgraded', result.upgraded, chalk.green, '✓');
   printList('Skipped', result.skipped, chalk.yellow, '-');
@@ -106,7 +103,10 @@ function handleUpgrade(options: { project: string; force?: boolean; skills?: str
 }
 
 function handleDiff(skill: string, options: { project: string }): void {
-  const diff = diffSkill(skill, options.project);
+  const projectPath = validatePath(options.project);
+  if (!projectPath) { process.exitCode = 1; return; }
+
+  const diff = diffSkill(skill, projectPath);
 
   if (!diff) {
     console.log(chalk.gray('Could not generate diff'));
@@ -129,7 +129,7 @@ function handleSource(): void {
 
 function handleDeploy(options: { project: string; force?: boolean }): void {
   const projectPath = validatePath(options.project);
-  if (!projectPath) return;
+  if (!projectPath) { process.exitCode = 1; return; }
 
   console.log(chalk.bold('\nDeploying Canon Skills'));
   console.log(chalk.gray('─'.repeat(50)));
@@ -145,12 +145,15 @@ function handleDeploy(options: { project: string; force?: boolean }): void {
     }
   }
   if (result.skipped > 0) console.log(chalk.yellow(`Skipped: ${result.skipped}`));
-  result.errors.forEach(e => console.log(chalk.red(`  - ${e}`)));
+  if (result.errors.length > 0) {
+    result.errors.forEach(e => console.log(chalk.red(`  - ${e}`)));
+    process.exitCode = 1;
+  }
 }
 
 function handleVerify(options: { project: string; verbose?: boolean }): void {
   const projectPath = validatePath(options.project);
-  if (!projectPath) return;
+  if (!projectPath) { process.exitCode = 1; return; }
 
   const sourceInfo = getCanonSourceInfo();
   console.log(chalk.bold('\nVerifying Canon Skills'));
@@ -161,12 +164,12 @@ function handleVerify(options: { project: string; verbose?: boolean }): void {
   const result = verifySkillsMatch(projectPath);
   printVerifyResults(result, !!options.verbose);
 
-  if (!result.allMatch) process.exit(1);
+  if (!result.allMatch) { process.exitCode = 1; return; }
 }
 
 function handleInspect(skillNames: string[], options: { project: string }): void {
   const projectPath = validatePath(options.project);
-  if (!projectPath) return;
+  if (!projectPath) { process.exitCode = 1; return; }
 
   const skills = loadSkills(projectPath, skillNames);
 

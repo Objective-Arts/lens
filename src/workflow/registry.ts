@@ -10,6 +10,7 @@
 import * as fs from 'fs';
 import * as path from 'path';
 import { homedir } from 'os';
+import { isEnoent, safeReadFileSync } from '../utils/fs.js';
 
 export interface InstallationEntry {
   registeredAt: string;
@@ -21,27 +22,37 @@ export interface InstallationRegistry {
   installations: Record<string, InstallationEntry>;
 }
 
-export function getRegistryPath(): string {
+export function getDefaultRegistryPath(): string {
   return path.join(homedir(), '.claude', 'lens-registry.json');
 }
 
-export function loadRegistry(): InstallationRegistry {
-  const registryPath = getRegistryPath();
+export function getRegistryPath(registryPath?: string): string {
+  return registryPath ?? getDefaultRegistryPath();
+}
+
+export function loadRegistry(registryPath?: string): InstallationRegistry {
+  const filePath = getRegistryPath(registryPath);
   try {
-    const data = fs.readFileSync(registryPath, 'utf-8');
+    const data = safeReadFileSync(filePath);
     return JSON.parse(data);
-  } catch {
+  } catch (cause) {
+    if (isEnoent(cause)) return { installations: {} };
+    const backupPath = `${filePath}.corrupt.${process.pid}.json`;
+    try { fs.renameSync(filePath, backupPath); } catch { /* ignore */ }
+    console.warn(`Warning: corrupt lens-registry.json — backed up to ${backupPath} and using empty registry`);
     return { installations: {} };
   }
 }
 
-export function saveRegistry(registry: InstallationRegistry): void {
-  const registryPath = getRegistryPath();
-  const dir = path.dirname(registryPath);
+export function saveRegistry(registry: InstallationRegistry, registryPath?: string): void {
+  const filePath = getRegistryPath(registryPath);
+  const dir = path.dirname(filePath);
   if (!fs.existsSync(dir)) {
     fs.mkdirSync(dir, { recursive: true });
   }
-  fs.writeFileSync(registryPath, JSON.stringify(registry, null, 2));
+  const tmpPath = `${filePath}.tmp.${process.pid}`;
+  fs.writeFileSync(tmpPath, JSON.stringify(registry, null, 2));
+  fs.renameSync(tmpPath, filePath);
 }
 
 export function registerInstallation(projectPath: string, profileName?: string): void {

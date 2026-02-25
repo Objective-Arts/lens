@@ -8,8 +8,9 @@ import type {
   WorkflowSkillStatus
 } from './types.js';
 import { getGitCommit, getGitRemote } from '../utils/git.js';
-import { copyDirectorySync } from '../utils/fs.js';
+import { copyDirectorySync, isEnoent } from '../utils/fs.js';
 import { hashDirectoryContents } from '../utils/hash.js';
+import { isValidSkillName, isRecord } from '../utils/validation.js';
 import { registerInstallation, listInstallations, pruneRegistry } from './registry.js';
 import { PATHS } from '../paths.js';
 import {
@@ -27,9 +28,18 @@ const USER_FACING_SKILLS = new Set([
   'naming-scan', 'qodana-scan', 'refactor-scan'
 ]);
 
-function getWorkflowSourcePath(): string {
-  if (process.env.CC_WORKFLOW_SKILLS_PATH && fs.existsSync(process.env.CC_WORKFLOW_SKILLS_PATH)) {
-    return process.env.CC_WORKFLOW_SKILLS_PATH;
+/**
+ * Resolve workflow skills source directory.
+ *
+ * CC_WORKFLOW_SKILLS_PATH is an explicit override for developers who want to
+ * point at a different workflow-skills checkout (e.g., a linked fork).
+ * PATHS.workflowSkills handles normal installed/dev resolution and is the
+ * default when the env var is absent.
+ */
+function getWorkflowSourcePath(env: NodeJS.ProcessEnv = process.env): string {
+  const envPath = env.CC_WORKFLOW_SKILLS_PATH;
+  if (envPath && !envPath.includes('\0') && path.isAbsolute(envPath) && fs.existsSync(envPath)) {
+    return envPath;
   }
   return PATHS.workflowSkills;
 }
@@ -46,8 +56,29 @@ function readSkillDescription(skillFile: string): { exists: true; description?: 
     const content = fs.readFileSync(skillFile, 'utf-8');
     const descMatch = content.match(/^---[\s\S]*?description:\s*(.+?)[\r\n]/m);
     return { exists: true, description: descMatch?.[1]?.trim() };
-  } catch {
+  } catch (cause) {
+    if (!isEnoent(cause)) {
+      console.warn(`Warning: failed to read skill description: ${skillFile}`);
+    }
     return null;
+  }
+}
+
+function isSkillDirectory(entry: { isDirectory(): boolean; name: string }): boolean {
+  return entry.isDirectory() && !entry.name.startsWith('.') && entry.name !== 'node_modules';
+}
+
+function collectSkillsFromDir(dirPath: string, accumulator: WorkflowSkillInfo[]): void {
+  const entries = fs.readdirSync(dirPath, { withFileTypes: true });
+  for (const entry of entries) {
+    if (!isSkillDirectory(entry)) continue;
+    const skillPath = path.join(dirPath, entry.name);
+    const result = readSkillDescription(path.join(skillPath, 'SKILL.md'));
+    if (result) {
+      accumulator.push({ name: entry.name, path: skillPath, description: result.description });
+    } else {
+      collectSkillsFromDir(skillPath, accumulator);
+    }
   }
 }
 
@@ -56,37 +87,52 @@ export function listWorkflowSkills(): WorkflowSkillInfo[] {
   if (!fs.existsSync(sourcePath)) return [];
 
   const skills: WorkflowSkillInfo[] = [];
-  const scanDir = (dirPath: string): void => {
-    const entries = fs.readdirSync(dirPath, { withFileTypes: true });
-    for (const entry of entries) {
-      if (!entry.isDirectory() || entry.name.startsWith('.') || entry.name === 'node_modules') continue;
-      const skillPath = path.join(dirPath, entry.name);
-      const result = readSkillDescription(path.join(skillPath, 'SKILL.md'));
-      if (result) {
-        skills.push({ name: entry.name, path: skillPath, description: result.description });
-      } else {
-        scanDir(skillPath);
-      }
-    }
-  };
-
-  scanDir(sourcePath);
+  collectSkillsFromDir(sourcePath, skills);
   return skills;
 }
+
+function isWorkflowManifest(value: unknown): value is WorkflowManifest {
+  if (!isRecord(value)) return false;
+  if (!isRecord(value.skills)) return false;
+  if (!isRecord(value.source)) return false;
+  return typeof value.installedAt === 'string';
+}
+
+const MAX_MANIFEST_SIZE = 1024 * 1024; // 1 MB
 
 function getWorkflowManifest(projectPath: string): WorkflowManifest | null {
   const manifestPath = path.join(projectPath, '.claude', 'workflow-manifest.json');
   try {
-    return JSON.parse(fs.readFileSync(manifestPath, 'utf-8'));
-  } catch {
-    return null;
+    const stat = fs.statSync(manifestPath);
+    if (stat.size > MAX_MANIFEST_SIZE) {
+      throw new Error('workflow-manifest.json exceeds 1 MB size limit');
+    }
+    const fileContent = fs.readFileSync(manifestPath, 'utf-8');
+    const parsed: unknown = JSON.parse(fileContent);
+    if (!isWorkflowManifest(parsed)) {
+      throw new Error(
+        'Invalid workflow manifest: expected object with "source" (object), "installedAt" (string), and "skills" (object)'
+      );
+    }
+    return parsed;
+  } catch (cause) {
+    if (isEnoent(cause)) return null;
+    throw new Error('Failed to load workflow manifest', { cause });
   }
 }
 
 function saveWorkflowManifest(projectPath: string, manifest: WorkflowManifest): void {
   const claudeDir = path.join(projectPath, '.claude');
   if (!fs.existsSync(claudeDir)) fs.mkdirSync(claudeDir, { recursive: true });
-  fs.writeFileSync(path.join(claudeDir, 'workflow-manifest.json'), JSON.stringify(manifest, null, 2));
+  const filePath = path.join(claudeDir, 'workflow-manifest.json');
+  const tmpPath = `${filePath}.tmp.${process.pid}`;
+  try {
+    fs.writeFileSync(tmpPath, JSON.stringify(manifest, null, 2));
+    fs.renameSync(tmpPath, filePath);
+  } catch (cause) {
+    try { fs.unlinkSync(tmpPath); } catch { /* ignore */ }
+    throw new Error('Failed to save workflow manifest', { cause });
+  }
 }
 
 function createWorkflowManifest(): WorkflowManifest {
@@ -97,11 +143,6 @@ function createWorkflowManifest(): WorkflowManifest {
     sourceCommit: sourceInfo.commit,
     skills: {}
   };
-}
-
-/** Reject skill names with path traversal characters */
-function isValidSkillName(name: string): boolean {
-  return !name.includes('/') && !name.includes('\\') && !name.includes('..');
 }
 
 function findWorkflowSkillPath(skillName: string): string | null {
@@ -148,7 +189,7 @@ function prepareInstallTarget(
     const alreadyInstalled = checkAlreadyInstalled(targetPath, skillSourcePath, skillName);
     if (alreadyInstalled) return { proceed: false, message: alreadyInstalled.message };
   }
-  if (exists) removeTarget(targetPath, isSymlink);
+  if (exists) removeTarget(targetPath, isSymlink, path.dirname(targetPath));
   return { proceed: true, isUpdate: isCopy && !force };
 }
 
@@ -208,17 +249,17 @@ export function installAllWorkflowSkills(
 }
 
 function determineSkillStatus(
-  info: { hash: string; installedCommit?: string },
+  installedInfo: { hash: string; installedCommit?: string },
   installedPath: string,
   sourceSkillPath: string,
   sourceCommit?: string
 ): WorkflowStatusInfo & { name: string } {
-  const base = { name: '', installedCommit: info.installedCommit };
+  const base = { name: '', installedCommit: installedInfo.installedCommit };
 
   if (!fs.existsSync(installedPath)) return { ...base, status: 'missing' };
 
   const currentHash = hashDirectoryContents(installedPath);
-  const modified = currentHash !== info.hash;
+  const modified = currentHash !== installedInfo.hash;
 
   if (!fs.existsSync(sourceSkillPath)) return { ...base, status: 'unknown', modified };
 
@@ -226,7 +267,7 @@ function determineSkillStatus(
   let status: WorkflowSkillStatus;
   if (modified) {
     status = 'modified';
-  } else if (info.installedCommit !== sourceCommit && currentHash !== sourceHash) {
+  } else if (installedInfo.installedCommit !== sourceCommit && currentHash !== sourceHash) {
     status = 'outdated';
   } else {
     status = 'current';
@@ -294,8 +335,8 @@ export function pushWorkflowSkills(
         results.current.push(projectPath);
       }
       registerInstallation(projectPath, entry.profileName);
-    } catch (error) {
-      const message = error instanceof Error ? error.message : String(error);
+    } catch (cause) {
+      const message = cause instanceof Error ? cause.message : String(cause);
       results.errors.push(`${projectPath}: ${message}`);
     }
   }

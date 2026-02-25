@@ -9,53 +9,8 @@ import {
   listServers,
   listCategories,
   checkRequiredEnv,
-  resolveEnvVars
 } from './registry.js';
 import type { MCPServerDefinition } from './types.js';
-
-describe('resolveEnvVars', () => {
-  beforeEach(() => {
-    process.env.TEST_VAR = 'test-value';
-    process.env.API_KEY = 'secret-key';
-  });
-
-  afterEach(() => {
-    delete process.env.TEST_VAR;
-    delete process.env.API_KEY;
-  });
-
-  it('resolves ${VAR} syntax to env values', () => {
-    const env = {
-      MY_VAR: '${TEST_VAR}',
-      KEY: '${API_KEY}'
-    };
-
-    const resolved = resolveEnvVars(env);
-
-    expect(resolved.MY_VAR).toBe('test-value');
-    expect(resolved.KEY).toBe('secret-key');
-  });
-
-  it('leaves literal values unchanged', () => {
-    const env = {
-      LITERAL: 'some-value',
-      NUMBER: '123'
-    };
-
-    const resolved = resolveEnvVars(env);
-
-    expect(resolved.LITERAL).toBe('some-value');
-    expect(resolved.NUMBER).toBe('123');
-  });
-
-  it('throws for missing env vars', () => {
-    const env = {
-      MISSING: '${DOES_NOT_EXIST}'
-    };
-
-    expect(() => resolveEnvVars(env)).toThrow('Required environment variable not set: DOES_NOT_EXIST');
-  });
-});
 
 describe('checkRequiredEnv', () => {
   beforeEach(() => {

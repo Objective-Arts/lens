@@ -134,13 +134,13 @@ describe('validateProfileSchema', () => {
   it('validates hooks event types', () => {
     const valid = validateProfileSchema({
       name: 'test',
-      hooks: { PreToolUse: [{ command: 'echo test' }] }
+      hooks: { PreToolUse: [{ hooks: [{ type: 'command', command: 'echo test' }] }] }
     }, 'test.yaml');
     expect(valid.valid).toBe(true);
 
     const invalid = validateProfileSchema({
       name: 'test',
-      hooks: { InvalidEvent: [{ command: 'echo test' }] }
+      hooks: { InvalidEvent: [{ hooks: [{ type: 'command', command: 'echo test' }] }] }
     }, 'test.yaml');
     expect(invalid.valid).toBe(false);
     expect(invalid.errors.some(e => e.includes('InvalidEvent'))).toBe(true);

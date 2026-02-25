@@ -83,13 +83,7 @@ export interface SkillLibraryPaths {
 /**
  * Extended MCP server configuration for profiles
  */
-export type MCPServerCategory =
-  | 'development'
-  | 'productivity'
-  | 'data'
-  | 'reasoning'
-  | 'automation'
-  | 'other';
+export type { MCPServerCategory } from './mcp/types.js';
 
 export interface ProfileMCPServerConfig {
   enable: string[];
@@ -139,7 +133,6 @@ export interface ComposableProfile {
     autoInvoke?: Array<{ context: string; action: string }>;
   };
   mcpServers?: ProfileMCPServerConfig;
-  settings?: Record<string, unknown>;
   hooks?: ProfileHooksConfig;
 }
 

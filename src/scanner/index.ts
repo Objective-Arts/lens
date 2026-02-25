@@ -11,8 +11,10 @@ import { parseClaudeMd } from '../parser/claude-md.js';
 import { parseSettings } from '../parser/settings.js';
 import { estimateTokens } from '../utils/tokens.js';
 import { buildDependencies, generateSummary, extractDescription } from './analysis.js';
+import { isEnoent } from '../utils/fs.js';
 
 const GLOBAL_CLAUDE_PATH = path.join(homedir(), '.claude');
+const MAX_CONFIG_FILE_SIZE = 512 * 1024; // 512 KB cap for config/skill files
 
 /**
  * Options for scanning Claude Code configuration
@@ -22,36 +24,46 @@ export interface ScanOptions {
   projectPath?: string;
   /** Whether to include plugin configuration (default: true) */
   includePlugins?: boolean;
+  /**
+   * Override the global Claude path (defaults to ~/.claude).
+   * Useful for testing — inject a temporary directory instead of touching the real global config.
+   */
+  globalClaudePath?: string;
 }
 
 /**
  * Scan and discover all Claude Code configuration across global and project scopes.
  */
 export async function scan(options: ScanOptions = {}): Promise<ScanResult> {
-  const { projectPath, includePlugins = true } = options;
+  const { projectPath, includePlugins = true, globalClaudePath = GLOBAL_CLAUDE_PATH } = options;
 
   const items: ConfigItem[] = [
-    ...scanGlobalItems(),
+    ...scanGlobalItems(globalClaudePath),
     ...scanProjectItems(projectPath),
-    ...(includePlugins ? await scanPlugins() : []),
+    ...(includePlugins ? await scanPlugins(globalClaudePath) : []),
   ];
 
   const claudeMds = await Promise.all(
     items
-      .filter(item => item.type === 'memory' && item.name.toLowerCase().includes('claude'))
+      .filter(item => item.type === 'memory' && /^CLAUDE(\.local)?\.md$/i.test(item.name))
       .map(item => parseClaudeMd(item.path, item.scope))
   );
 
   const settings = await Promise.all(
     items.filter(item => item.type === 'settings')
-      .map(item => parseSettings(item.path, item.scope))
+      .map(item => parseSettings(item.path, item.scope).catch(e => {
+        if (process.env['DEBUG']) {
+          console.debug(`[scanner] Failed to parse ${item.path}:`, e instanceof Error ? e.message : String(e));
+        }
+        return null;
+      }))
   );
 
   buildDependencies(items, claudeMds);
 
   return {
     timestamp: new Date(),
-    globalPath: GLOBAL_CLAUDE_PATH,
+    globalPath: globalClaudePath,
     projectPath,
     items,
     claudeMds: claudeMds.filter((c): c is ClaudeMdParsed => c !== null),
@@ -60,8 +72,8 @@ export async function scan(options: ScanOptions = {}): Promise<ScanResult> {
   };
 }
 
-function scanGlobalItems(): ConfigItem[] {
-  return scanScope(GLOBAL_CLAUDE_PATH, 'global');
+function scanGlobalItems(globalClaudePath: string): ConfigItem[] {
+  return scanScope(globalClaudePath, 'global');
 }
 
 function scanProjectItems(projectPath?: string): ConfigItem[] {
@@ -140,23 +152,37 @@ function resolveSymlink(dirPath: string): { isSymlink: boolean; realPath: string
     return { isSymlink: false, realPath: dirPath };
   }
   try {
+    const realPath = fs.realpathSync(dirPath);
     return {
       isSymlink: true,
-      realPath: fs.realpathSync(dirPath),
+      realPath,
       target: fs.readlinkSync(dirPath),
     };
-  } catch {
+  } catch (cause) {
+    if (process.env['DEBUG']) {
+      console.debug(`[scanner] Broken symlink at ${dirPath}:`, cause instanceof Error ? cause.message : String(cause));
+    }
     return null; // Broken symlink
   }
+}
+
+function readFileWithSizeCap(filePath: string): string {
+  const stat = fs.statSync(filePath);
+  if (stat.size > MAX_CONFIG_FILE_SIZE) {
+    return `[Content truncated: file exceeds ${MAX_CONFIG_FILE_SIZE / 1024} KB limit]`;
+  }
+  return fs.readFileSync(filePath, 'utf-8');
 }
 
 function findContentFile(realPath: string): { path?: string; content: string } {
   for (const file of ['SKILL.md', 'skill.md', 'index.md', 'README.md']) {
     const filePath = path.join(realPath, file);
     try {
-      return { path: filePath, content: fs.readFileSync(filePath, 'utf-8') };
-    } catch {
-      // File doesn't exist, try next
+      return { path: filePath, content: readFileWithSizeCap(filePath) };
+    } catch (e) {
+      if (!isEnoent(e) && process.env['DEBUG']) {
+        console.debug(`[scanner] Cannot read ${filePath}:`, e instanceof Error ? e.message : String(e));
+      }
     }
   }
 
@@ -165,10 +191,12 @@ function findContentFile(realPath: string): { path?: string; content: string } {
     const mdFiles = fs.readdirSync(realPath).filter(f => f.endsWith('.md'));
     if (mdFiles.length > 0) {
       const filePath = path.join(realPath, mdFiles[0]);
-      return { path: filePath, content: fs.readFileSync(filePath, 'utf-8') };
+      return { path: filePath, content: readFileWithSizeCap(filePath) };
     }
-  } catch {
-    // Directory not readable
+  } catch (e) {
+    if (process.env['DEBUG']) {
+      console.debug(`[scanner] Cannot read directory ${realPath}:`, e instanceof Error ? e.message : String(e));
+    }
   }
   return { content: '' };
 }
@@ -196,7 +224,7 @@ function scanSkillOrCommandDir(dirPath: string, scope: ConfigScope, type: Config
 
 function scanFile(filePath: string, scope: ConfigScope, type: ConfigItemType): ConfigItem | null {
   try {
-    const content = fs.readFileSync(filePath, 'utf-8');
+    const content = readFileWithSizeCap(filePath);
     return {
       type,
       name: path.basename(filePath),
@@ -211,13 +239,16 @@ function scanFile(filePath: string, scope: ConfigScope, type: ConfigItemType): C
         description: type === 'settings' ? 'Settings file' : extractDescription(content)
       }
     };
-  } catch {
+  } catch (e) {
+    if (process.env['DEBUG']) {
+      console.debug(`[scanner] Cannot read ${filePath}:`, e instanceof Error ? e.message : String(e));
+    }
     return null;
   }
 }
 
-async function scanPlugins(): Promise<ConfigItem[]> {
-  const pluginsPath = path.join(GLOBAL_CLAUDE_PATH, 'plugins');
+async function scanPlugins(globalClaudePath: string): Promise<ConfigItem[]> {
+  const pluginsPath = path.join(globalClaudePath, 'plugins');
   if (!fs.existsSync(pluginsPath)) return [];
 
   const items: ConfigItem[] = [];
@@ -228,20 +259,17 @@ async function scanPlugins(): Promise<ConfigItem[]> {
 
     let skillPaths: string[];
     try {
-      skillPaths = await glob('**/skills/*', { cwd: dirPath, absolute: true });
+      skillPaths = await glob('**/skills/*', { cwd: dirPath, absolute: true, maxDepth: 5 });
     } catch {
       continue;
     }
 
     for (const skillPath of skillPaths) {
       try {
-        if (fs.statSync(skillPath).isDirectory()) {
-          const item = scanSkillOrCommandDir(skillPath, 'plugin', 'skill');
-          if (item) items.push(item);
-        }
-      } catch {
-        // Path no longer valid, skip
-      }
+        if (!fs.statSync(skillPath).isDirectory()) continue;
+      } catch { continue; }
+      const item = scanSkillOrCommandDir(skillPath, 'plugin', 'skill');
+      if (item) items.push(item);
     }
   }
 

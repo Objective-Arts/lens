@@ -4,6 +4,7 @@
  * Scans codebase for duplicated code patterns and reports consolidation opportunities.
  */
 
+import * as fs from 'fs';
 import * as path from 'path';
 import { execFileSync } from 'child_process';
 
@@ -47,14 +48,27 @@ function isSourceLine(line: string): boolean {
   return !line.includes('node_modules') && !line.includes('.test.ts') && !line.includes('dist/');
 }
 
+/** Validate that searchPath is a real directory inside cwd. */
+function validateSearchPath(searchPath: string): void {
+  const resolved = path.resolve(searchPath);
+  const cwdPrefix = path.resolve(process.cwd()) + path.sep;
+  if (!resolved.startsWith(cwdPrefix) && resolved !== path.resolve(process.cwd())) {
+    throw new Error(`Search path escapes working directory: ${resolved}`);
+  }
+  if (!fs.existsSync(resolved) || !fs.statSync(resolved).isDirectory()) {
+    throw new Error(`Search path is not an existing directory: ${resolved}`);
+  }
+}
+
 /** Run grep safely using execFileSync (no shell interpolation). */
 function searchPattern(pattern: string, searchPath: string): Finding[] {
   const findings: Finding[] = [];
+  validateSearchPath(searchPath);
 
   try {
     const result = execFileSync('grep', [
-      '-rn', pattern, '--include=*.ts', searchPath,
-    ], { encoding: 'utf-8', maxBuffer: 10 * 1024 * 1024, stdio: ['pipe', 'pipe', 'pipe'] });
+      '-rn', '--include=*.ts', '--', pattern, searchPath,
+    ], { encoding: 'utf-8', maxBuffer: 10 * 1024 * 1024, stdio: ['pipe', 'pipe', 'pipe'], timeout: 30_000 });
 
     for (const line of result.trim().split('\n')) {
       if (!line || !isSourceLine(line)) continue;
@@ -70,6 +84,10 @@ function searchPattern(pattern: string, searchPath: string): Finding[] {
   } catch (error: unknown) {
     // grep returns exit code 1 when no matches found — that's expected
     const exitCode = (error as { status?: number }).status;
+    const code = (error as { code?: string }).code;
+    if (code === 'ENOENT') {
+      throw new Error('grep not found. Install grep or use a Unix-like environment (macOS, Linux, WSL).');
+    }
     if (exitCode !== 1) {
       throw error;
     }
@@ -131,7 +149,8 @@ function formatResultEntry(result: DuplicationResult, index: number): string[] {
   lines.push('FILES:');
 
   for (const file of uniqueFiles) {
-    const firstFinding = result.findings.find(f => f.file === file)!;
+    const firstFinding = result.findings.find(f => f.file === file);
+    if (!firstFinding) continue;
     lines.push(`- ${file}:${firstFinding.line} - ${firstFinding.content}`);
   }
 
@@ -185,8 +204,10 @@ function runDedupe(targetPath: string = '.'): string {
   try {
     const results = analyzeDuplications(absolutePath);
     return formatReport(results, targetPath);
-  } catch {
-    return `Error: Path not accessible: ${absolutePath}`;
+  } catch (cause) {
+    process.exitCode = 1;
+    const detail = cause instanceof Error ? `: ${cause.message}` : '';
+    return `Error: Path not accessible: ${absolutePath}${detail}\nCheck that the path exists and is a directory.`;
   }
 }
 
@@ -196,12 +217,16 @@ export function registerDedupeCommands(program: import('commander').Command): vo
     .description('Scan for duplicated code patterns')
     .option('-j, --json', 'Output as JSON')
     .action((targetPath: string = 'src', options: { json?: boolean }) => {
-      const report = runDedupe(targetPath);
       if (options.json) {
-        // For JSON output, re-run and format differently
-        const results = analyzeDuplications(path.resolve(targetPath));
-        console.log(JSON.stringify(results, null, 2));
+        try {
+          const results = analyzeDuplications(path.resolve(targetPath));
+          console.log(JSON.stringify(results, null, 2));
+        } catch {
+          process.exitCode = 1;
+          console.error(`Error: Path not accessible: ${path.resolve(targetPath)}\nCheck that the path exists and is a directory.`);
+        }
       } else {
+        const report = runDedupe(targetPath);
         console.log(report);
       }
     });

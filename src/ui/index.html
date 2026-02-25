@@ -627,7 +627,7 @@
     // ═══════════════════════════════════════════════════════════════════════
     // API (connects to lens server)
     // ═══════════════════════════════════════════════════════════════════════
-    const API_BASE = 'http://localhost:3847/api';
+    const API_BASE = (document.querySelector('meta[name="api-base"]')?.getAttribute('content')) || 'http://localhost:3847/api';
 
     async function fetchData(endpoint) {
       try {
