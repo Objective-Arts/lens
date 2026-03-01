@@ -21,7 +21,7 @@ Use this when:
 - Add a button/link
 - Update a constant
 
-**If the change touches 5+ files or has design decisions → use `/build` or `/improve` instead.**
+**If the change touches 5+ files or has design decisions → use `/fix` instead.**
 
 ## Canon Skills (Auto-Invoke)
 
@@ -235,11 +235,11 @@ Leave these for dedicated skills:
 
 | Issue | Use Instead |
 |-------|-------------|
-| Long functions (>30 lines) | `/improve` |
-| Deep nesting (>3 levels) | `/improve` |
-| Complex refactoring | `/improve` |
-| Security issues | `/security-review` |
-| Static analysis | `/qodana-review` |
+| Long functions (>30 lines) | `/fix` |
+| Deep nesting (>3 levels) | `/fix` |
+| Complex refactoring | `/fix` |
+| Security issues | `/fix` or `/code-scan` |
+| Static analysis | `/code-scan` |
 
 ## Common Mistakes to Avoid
 
@@ -253,7 +253,7 @@ Leave these for dedicated skills:
 
 ## When to Escalate
 
-Use `/build` or `/improve` instead if:
+Use `/fix` instead if:
 - You're touching 5+ files
 - There are design decisions to make
 - You're unsure about the right approach
@@ -263,6 +263,5 @@ Use `/build` or `/improve` instead if:
 
 | Workflow | When to Use | Overhead |
 |----------|-------------|----------|
-| `/build` | New feature from scratch | Full pipeline |
-| `/improve` | Refine existing code | Full pipeline |
 | `/change` | Add field, rename, small fix | Light (checklist + cleanup) |
+| `/fix` | Quality pass on existing code | Gate + canon review + fixes |
