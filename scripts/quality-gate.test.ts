@@ -21,11 +21,25 @@ import {
   checkFalsyNumericGuard,
   checkCommentSpam,
   checkFunctionLength,
-  startPipelineMetrics,
-  recordPhaseMetrics,
-  reportMetrics,
-  parseConstructionChecks,
-  validateConstruction,
+  checkCSharpAsyncVoid,
+  checkCSharpSyncOverAsync,
+  checkCSharpMissingCancellationToken,
+  checkCSharpSqlInjection,
+  checkCSharpInsecureDeserialization,
+  checkCSharpPathTraversal,
+  checkCSharpMissingDispose,
+  checkCSharpMultipleHttpClient,
+  checkCSharpMutablePublicFields,
+  checkCSharpLargeStructs,
+  checkCSharpUnsealedClasses,
+  checkCSharpLinqInLoops,
+  checkCSharpMissingConfigureAwait,
+  checkJavaRawTypes,
+  checkJavaStringConcatInLoops,
+  checkJavaMutablePublicFields,
+  checkPolyglotFunctionLength,
+  checkPolyglotParameterCount,
+  checkPolyglotCommentSpam,
   runGate,
 } from './quality-gate.js';
 
@@ -783,83 +797,455 @@ describe('checkFunctionLength', () => {
     const outer = makeBody(10);
     const inner = makeBody(10, '    ');
     const f = writeFile('src/util.ts', `function outer() {\n${outer}\n  function inner() {\n${inner}\n  }\n}`);
-    // Total ~23 significant lines (outer body + inner decl + inner body + inner close) — under 30
     expect(checkFunctionLength([f], tempDir)).toHaveLength(0);
   });
 });
 
-// ─── Pipeline Metrics ───────────────────────────────────────────────────────
+// ─── C# Checks ──────────────────────────────────────────────────────────────
 
-describe('pipeline metrics', () => {
-  it('creates, records, and reports metrics', () => {
-    const metricsDir = path.join(tempDir, '.claude', 'metrics');
-    startPipelineMetrics('build', 'src/', metricsDir);
+describe('checkCSharpAsyncVoid', () => {
+  it('catches async void method', () => {
+    const f = writeFile('src/Service.cs', 'public async void DoWork() { await Task.Delay(1); }');
+    const v = checkCSharpAsyncVoid([f], tempDir);
+    expect(v).toHaveLength(1);
+    expect(v[0].check).toBe('csharp-async-void');
+  });
 
-    const activePath = path.join(metricsDir, 'active-metrics.json');
-    expect(fs.existsSync(activePath)).toBe(true);
+  it('allows async void for event handlers', () => {
+    const f = writeFile('src/Form.cs', 'private async void OnClick(object sender, EventArgs e) {}');
+    expect(checkCSharpAsyncVoid([f], tempDir)).toHaveLength(0);
+  });
 
-    recordPhaseMetrics(metricsDir, 'plan', 0, 0, 1500);
-    recordPhaseMetrics(metricsDir, 'implementation', 3, 3, 5000);
-
-    const metrics = JSON.parse(fs.readFileSync(activePath, 'utf-8'));
-    expect(metrics.phases).toHaveLength(2);
-    expect(metrics.phases[1].issuesFound).toBe(3);
-
-    reportMetrics(metricsDir);
-    expect(fs.existsSync(activePath)).toBe(false);
-    const archives = fs.readdirSync(metricsDir).filter(f => f.startsWith('build-'));
-    expect(archives).toHaveLength(1);
+  it('passes async Task', () => {
+    const f = writeFile('src/Service.cs', 'public async Task DoWork() { await Task.Delay(1); }');
+    expect(checkCSharpAsyncVoid([f], tempDir)).toHaveLength(0);
   });
 });
 
-// ─── Construction Validation ────────────────────────────────────────────────
-
-describe('construction validation', () => {
-  it('parses construction checks from plan', () => {
-    const checks = parseConstructionChecks([
-      '## CONSTRUCTION_CHECKS:',
-      '- FILE: src/auth/index.ts',
-      '- EXPORT_FUNCTION: validateToken IN src/auth/validate.ts',
-      '- EXPORT_TYPE: AuthConfig IN src/auth/types.ts',
-      '## TESTS:',
-    ].join('\n'));
-    expect(checks).toHaveLength(3);
-    expect(checks[0]).toEqual({ type: 'file', name: 'src/auth/index.ts' });
-    expect(checks[1]).toEqual({ type: 'export_function', name: 'validateToken', file: 'src/auth/validate.ts' });
-    expect(checks[2]).toEqual({ type: 'export_type', name: 'AuthConfig', file: 'src/auth/types.ts' });
+describe('checkCSharpSyncOverAsync', () => {
+  it('catches .Result', () => {
+    const f = writeFile('src/Service.cs', 'var data = GetDataAsync().Result;');
+    const v = checkCSharpSyncOverAsync([f], tempDir);
+    expect(v).toHaveLength(1);
+    expect(v[0].check).toBe('csharp-sync-over-async');
   });
 
-  it('validates existing files and exports', () => {
-    writeFile('src/auth/validate.ts', 'export function validateToken(token: string) { return true; }');
-    writeFile('src/auth/types.ts', 'export interface AuthConfig { secret: string; }');
-    const plan = writeFile('plan.md', [
-      '## CONSTRUCTION_CHECKS:',
-      '- FILE: src/auth/validate.ts',
-      '- EXPORT_FUNCTION: validateToken IN src/auth/validate.ts',
-      '- EXPORT_TYPE: AuthConfig IN src/auth/types.ts',
-    ].join('\n'));
-    const result = validateConstruction(plan, tempDir);
-    expect(result.passed).toBe(true);
-    expect(result.results).toHaveLength(3);
-    expect(result.results.every(r => r.found)).toBe(true);
+  it('catches .Wait()', () => {
+    const f = writeFile('src/Service.cs', 'task.Wait();');
+    expect(checkCSharpSyncOverAsync([f], tempDir)).toHaveLength(1);
   });
 
-  it('fails when file is missing', () => {
-    const plan = writeFile('plan.md', [
-      '## CONSTRUCTION_CHECKS:',
-      '- FILE: src/missing/file.ts',
-    ].join('\n'));
-    const result = validateConstruction(plan, tempDir);
-    expect(result.passed).toBe(false);
+  it('catches .GetAwaiter().GetResult()', () => {
+    const f = writeFile('src/Service.cs', 'var x = task.GetAwaiter().GetResult();');
+    expect(checkCSharpSyncOverAsync([f], tempDir)).toHaveLength(1);
   });
 
-  it('fails when export is missing', () => {
-    writeFile('src/auth.ts', 'function privateFunc() {}');
-    const plan = writeFile('plan.md', [
-      '## CONSTRUCTION_CHECKS:',
-      '- EXPORT_FUNCTION: validateToken IN src/auth.ts',
+  it('skips comments', () => {
+    const f = writeFile('src/Service.cs', '// Avoid .Result on tasks');
+    expect(checkCSharpSyncOverAsync([f], tempDir)).toHaveLength(0);
+  });
+});
+
+describe('checkCSharpMissingCancellationToken', () => {
+  it('catches public async Task without CT', () => {
+    const f = writeFile('src/Api.cs', 'public async Task<int> GetCount(string name) { }');
+    const v = checkCSharpMissingCancellationToken([f], tempDir);
+    expect(v).toHaveLength(1);
+    expect(v[0].check).toBe('csharp-missing-cancellation-token');
+  });
+
+  it('passes when CT is present', () => {
+    const f = writeFile('src/Api.cs', 'public async Task<int> GetCount(string name, CancellationToken ct) { }');
+    expect(checkCSharpMissingCancellationToken([f], tempDir)).toHaveLength(0);
+  });
+});
+
+describe('checkCSharpSqlInjection', () => {
+  it('catches SqlCommand with interpolation', () => {
+    const f = writeFile('src/Repo.cs', 'var cmd = new SqlCommand($"SELECT * FROM Users WHERE Id = {id}");');
+    const v = checkCSharpSqlInjection([f], tempDir);
+    expect(v).toHaveLength(1);
+    expect(v[0].check).toBe('csharp-sql-injection');
+  });
+
+  it('catches SqlCommand with concatenation', () => {
+    const f = writeFile('src/Repo.cs', 'var cmd = new SqlCommand("SELECT * FROM Users WHERE Id = " + id);');
+    expect(checkCSharpSqlInjection([f], tempDir)).toHaveLength(1);
+  });
+
+  it('passes parameterized query', () => {
+    const f = writeFile('src/Repo.cs', 'var cmd = new SqlCommand("SELECT * FROM Users WHERE Id = @id");');
+    expect(checkCSharpSqlInjection([f], tempDir)).toHaveLength(0);
+  });
+});
+
+describe('checkCSharpInsecureDeserialization', () => {
+  it('catches BinaryFormatter', () => {
+    const f = writeFile('src/Serializer.cs', 'var formatter = new BinaryFormatter();');
+    const v = checkCSharpInsecureDeserialization([f], tempDir);
+    expect(v).toHaveLength(1);
+    expect(v[0].check).toBe('csharp-insecure-deserialization');
+  });
+
+  it('catches JavaScriptSerializer', () => {
+    const f = writeFile('src/Json.cs', 'var s = new JavaScriptSerializer();');
+    expect(checkCSharpInsecureDeserialization([f], tempDir)).toHaveLength(1);
+  });
+
+  it('passes System.Text.Json', () => {
+    const f = writeFile('src/Json.cs', 'var obj = JsonSerializer.Deserialize<Foo>(json);');
+    expect(checkCSharpInsecureDeserialization([f], tempDir)).toHaveLength(0);
+  });
+});
+
+describe('checkCSharpPathTraversal', () => {
+  it('catches Path.Combine with user input', () => {
+    const f = writeFile('src/Files.cs', 'var p = Path.Combine(baseDir, input);');
+    const v = checkCSharpPathTraversal([f], tempDir);
+    expect(v).toHaveLength(1);
+    expect(v[0].check).toBe('csharp-path-traversal');
+  });
+
+  it('passes when validation is present', () => {
+    const f = writeFile('src/Files.cs', [
+      'if (input.Contains("..")) throw;',
+      'var p = Path.Combine(baseDir, input);',
     ].join('\n'));
-    const result = validateConstruction(plan, tempDir);
-    expect(result.passed).toBe(false);
+    expect(checkCSharpPathTraversal([f], tempDir)).toHaveLength(0);
+  });
+});
+
+describe('checkCSharpMissingDispose', () => {
+  it('catches new HttpClient without using', () => {
+    const f = writeFile('src/Api.cs', 'var client = new HttpClient();');
+    const v = checkCSharpMissingDispose([f], tempDir);
+    expect(v).toHaveLength(1);
+    expect(v[0].check).toBe('csharp-missing-dispose');
+  });
+
+  it('catches new SqlConnection without using', () => {
+    const f = writeFile('src/Db.cs', 'var conn = new SqlConnection(cs);');
+    expect(checkCSharpMissingDispose([f], tempDir)).toHaveLength(1);
+  });
+
+  it('passes with using statement', () => {
+    const f = writeFile('src/Api.cs', 'using var client = new HttpClient();');
+    expect(checkCSharpMissingDispose([f], tempDir)).toHaveLength(0);
+  });
+});
+
+describe('checkCSharpMultipleHttpClient', () => {
+  it('catches multiple HttpClient instantiations', () => {
+    const f = writeFile('src/Service.cs', [
+      'var a = new HttpClient();',
+      'var b = new HttpClient();',
+    ].join('\n'));
+    const v = checkCSharpMultipleHttpClient([f], tempDir);
+    expect(v).toHaveLength(1);
+    expect(v[0].check).toBe('csharp-multiple-httpclient');
+  });
+
+  it('passes single HttpClient', () => {
+    const f = writeFile('src/Service.cs', 'var client = new HttpClient();');
+    expect(checkCSharpMultipleHttpClient([f], tempDir)).toHaveLength(0);
+  });
+});
+
+describe('checkCSharpMutablePublicFields', () => {
+  it('catches public mutable field', () => {
+    const f = writeFile('src/Model.cs', '  public string Name;');
+    const v = checkCSharpMutablePublicFields([f], tempDir);
+    expect(v).toHaveLength(1);
+    expect(v[0].check).toBe('csharp-mutable-public-field');
+  });
+
+  it('passes readonly field', () => {
+    const f = writeFile('src/Model.cs', '  public readonly string Name;');
+    expect(checkCSharpMutablePublicFields([f], tempDir)).toHaveLength(0);
+  });
+
+  it('passes const field', () => {
+    const f = writeFile('src/Model.cs', '  public const int Max = 100;');
+    expect(checkCSharpMutablePublicFields([f], tempDir)).toHaveLength(0);
+  });
+
+  it('skips records', () => {
+    const f = writeFile('src/Model.cs', 'public record Foo { public string Name; }');
+    expect(checkCSharpMutablePublicFields([f], tempDir)).toHaveLength(0);
+  });
+});
+
+describe('checkCSharpLargeStructs', () => {
+  it('catches struct with >4 fields', () => {
+    const f = writeFile('src/Types.cs', [
+      'public struct BigStruct {',
+      '  public int A;',
+      '  public int B;',
+      '  public int C;',
+      '  public int D;',
+      '  public int E;',
+      '}',
+    ].join('\n'));
+    const v = checkCSharpLargeStructs([f], tempDir);
+    expect(v).toHaveLength(1);
+    expect(v[0].check).toBe('csharp-large-struct');
+  });
+
+  it('passes struct with 4 fields', () => {
+    const f = writeFile('src/Types.cs', [
+      'public struct Small {',
+      '  public int A;',
+      '  public int B;',
+      '  public int C;',
+      '  public int D;',
+      '}',
+    ].join('\n'));
+    expect(checkCSharpLargeStructs([f], tempDir)).toHaveLength(0);
+  });
+});
+
+describe('checkCSharpUnsealedClasses', () => {
+  it('catches unsealed public class', () => {
+    const f = writeFile('src/Service.cs', '  public class UserService {');
+    const v = checkCSharpUnsealedClasses([f], tempDir);
+    expect(v).toHaveLength(1);
+    expect(v[0].check).toBe('csharp-unsealed-class');
+  });
+
+  it('passes sealed class', () => {
+    const f = writeFile('src/Service.cs', '  public sealed class UserService {');
+    expect(checkCSharpUnsealedClasses([f], tempDir)).toHaveLength(0);
+  });
+
+  it('passes abstract class', () => {
+    const f = writeFile('src/Base.cs', '  public abstract class BaseService {');
+    expect(checkCSharpUnsealedClasses([f], tempDir)).toHaveLength(0);
+  });
+
+  it('excludes controllers', () => {
+    const f = writeFile('src/UsersController.cs', '  public class UsersController {');
+    expect(checkCSharpUnsealedClasses([f], tempDir)).toHaveLength(0);
+  });
+});
+
+describe('checkCSharpLinqInLoops', () => {
+  it('catches LINQ in foreach', () => {
+    const f = writeFile('src/Process.cs', [
+      'foreach (var item in items) {',
+      '  var filtered = collection.Where(x => x.Active);',
+      '}',
+    ].join('\n'));
+    const v = checkCSharpLinqInLoops([f], tempDir);
+    expect(v).toHaveLength(1);
+    expect(v[0].check).toBe('csharp-linq-in-loop');
+  });
+
+  it('passes LINQ outside loops', () => {
+    const f = writeFile('src/Process.cs', 'var filtered = items.Where(x => x.Active);');
+    expect(checkCSharpLinqInLoops([f], tempDir)).toHaveLength(0);
+  });
+});
+
+describe('checkCSharpMissingConfigureAwait', () => {
+  it('catches await without ConfigureAwait in library code', () => {
+    const f = writeFile('src/lib/DataService.cs', 'var data = await GetDataAsync();');
+    const v = checkCSharpMissingConfigureAwait([f], tempDir);
+    expect(v).toHaveLength(1);
+    expect(v[0].check).toBe('csharp-missing-configure-await');
+  });
+
+  it('passes await with ConfigureAwait', () => {
+    const f = writeFile('src/lib/DataService.cs', 'var data = await GetDataAsync().ConfigureAwait(false);');
+    expect(checkCSharpMissingConfigureAwait([f], tempDir)).toHaveLength(0);
+  });
+
+  it('skips controller files', () => {
+    const f = writeFile('src/controller/UserController.cs', 'var data = await GetDataAsync();');
+    expect(checkCSharpMissingConfigureAwait([f], tempDir)).toHaveLength(0);
+  });
+});
+
+// ─── Java Checks ─────────────────────────────────────────────────────────────
+
+describe('checkJavaRawTypes', () => {
+  it('catches raw List', () => {
+    const f = writeFile('src/App.java', '  List items = new ArrayList();');
+    const v = checkJavaRawTypes([f], tempDir);
+    expect(v).toHaveLength(1);
+    expect(v[0].check).toBe('java-raw-type');
+  });
+
+  it('catches raw Map', () => {
+    const f = writeFile('src/App.java', '  Map data = new HashMap();');
+    expect(checkJavaRawTypes([f], tempDir)).toHaveLength(1);
+  });
+
+  it('passes generic List<String>', () => {
+    const f = writeFile('src/App.java', '  List<String> items = new ArrayList<>();');
+    expect(checkJavaRawTypes([f], tempDir)).toHaveLength(0);
+  });
+
+  it('skips comments', () => {
+    const f = writeFile('src/App.java', '// List items = bad;');
+    expect(checkJavaRawTypes([f], tempDir)).toHaveLength(0);
+  });
+});
+
+describe('checkJavaStringConcatInLoops', () => {
+  it('catches += in for loop', () => {
+    const f = writeFile('src/Builder.java', [
+      'for (String s : items) {',
+      '  result += "prefix";',
+      '}',
+    ].join('\n'));
+    const v = checkJavaStringConcatInLoops([f], tempDir);
+    expect(v).toHaveLength(1);
+    expect(v[0].check).toBe('java-string-concat-in-loop');
+  });
+
+  it('catches += in while loop', () => {
+    const f = writeFile('src/Builder.java', [
+      'while (iter.hasNext()) {',
+      '  result += "item";',
+      '}',
+    ].join('\n'));
+    expect(checkJavaStringConcatInLoops([f], tempDir)).toHaveLength(1);
+  });
+
+  it('passes StringBuilder', () => {
+    const f = writeFile('src/Builder.java', [
+      'for (String s : items) {',
+      '  sb.append(s);',
+      '}',
+    ].join('\n'));
+    expect(checkJavaStringConcatInLoops([f], tempDir)).toHaveLength(0);
+  });
+});
+
+describe('checkJavaMutablePublicFields', () => {
+  it('catches public non-final field', () => {
+    const f = writeFile('src/Model.java', '  public String name;');
+    const v = checkJavaMutablePublicFields([f], tempDir);
+    expect(v).toHaveLength(1);
+    expect(v[0].check).toBe('java-mutable-public-field');
+  });
+
+  it('passes public final field', () => {
+    const f = writeFile('src/Model.java', '  public final String name;');
+    expect(checkJavaMutablePublicFields([f], tempDir)).toHaveLength(0);
+  });
+
+  it('passes static final', () => {
+    const f = writeFile('src/Constants.java', '  public static final int MAX = 100;');
+    expect(checkJavaMutablePublicFields([f], tempDir)).toHaveLength(0);
+  });
+});
+
+// ─── Polyglot Proxy Checks ──────────────────────────────────────────────────
+
+describe('checkPolyglotFunctionLength', () => {
+  it('catches long C# method', () => {
+    const body = Array.from({ length: 31 }, (_, i) => `    var v${i} = ${i};`).join('\n');
+    const f = writeFile('src/Service.cs', `public void Process(string input) {\n${body}\n}`);
+    const v = checkPolyglotFunctionLength([f], tempDir);
+    expect(v).toHaveLength(1);
+    expect(v[0].check).toBe('function-length');
+  });
+
+  it('catches long Java method', () => {
+    const body = Array.from({ length: 31 }, (_, i) => `    int v${i} = ${i};`).join('\n');
+    const f = writeFile('src/Service.java', `public void process(String input) {\n${body}\n}`);
+    const v = checkPolyglotFunctionLength([f], tempDir);
+    expect(v).toHaveLength(1);
+  });
+
+  it('passes short method', () => {
+    const f = writeFile('src/Service.cs', 'public void DoWork() {\n  return;\n}');
+    expect(checkPolyglotFunctionLength([f], tempDir)).toHaveLength(0);
+  });
+});
+
+describe('checkPolyglotParameterCount', () => {
+  it('catches C# method with >4 params', () => {
+    const f = writeFile('src/Service.cs', '  public void Process(int a, int b, int c, int d, int e) {');
+    const v = checkPolyglotParameterCount([f], tempDir);
+    expect(v).toHaveLength(1);
+    expect(v[0].check).toBe('parameter-count');
+  });
+
+  it('catches Java method with >4 params', () => {
+    const f = writeFile('src/Service.java', '  public void process(int a, int b, int c, int d, int e) {');
+    expect(checkPolyglotParameterCount([f], tempDir)).toHaveLength(1);
+  });
+
+  it('passes method with 4 params', () => {
+    const f = writeFile('src/Service.cs', '  public void Process(int a, int b, int c, int d) {');
+    expect(checkPolyglotParameterCount([f], tempDir)).toHaveLength(0);
+  });
+});
+
+describe('checkPolyglotCommentSpam', () => {
+  it('catches C# XML doc restating method name', () => {
+    const f = writeFile('src/Parser.cs', [
+      '  /// <summary>Parse checklist rows</summary>',
+      '  public void ParseChecklistRows(string content) {',
+    ].join('\n'));
+    const v = checkPolyglotCommentSpam([f], tempDir);
+    expect(v).toHaveLength(1);
+    expect(v[0].check).toBe('comment-spam');
+  });
+
+  it('catches Java Javadoc restating method name', () => {
+    const f = writeFile('src/Parser.java', [
+      '  /** Parse checklist rows */',
+      '  public void parseChecklistRows(String content) {',
+    ].join('\n'));
+    const v = checkPolyglotCommentSpam([f], tempDir);
+    expect(v).toHaveLength(1);
+    expect(v[0].check).toBe('comment-spam');
+  });
+
+  it('passes substantive comment', () => {
+    const f = writeFile('src/Parser.cs', [
+      '  /// <summary>Extracts markdown table rows, skipping headers and returning parsed data.</summary>',
+      '  public void ParseChecklistRows(string content) {',
+    ].join('\n'));
+    expect(checkPolyglotCommentSpam([f], tempDir)).toHaveLength(0);
+  });
+});
+
+// ─── Gate Integration (C#, Java, Mixed) ─────────────────────────────────────
+
+describe('runGate integration', () => {
+  it('runs C# checks on C#-only project', () => {
+    writeFile('src/Service.cs', [
+      'public async void Fire() { }',
+      'var cmd = new SqlCommand($"SELECT {id}");',
+    ].join('\n'));
+    const result = runGate(tempDir, true);
+    expect(result.languages).toContain('csharp');
+    expect(result.violations.some(v => v.check === 'csharp-async-void')).toBe(true);
+    expect(result.violations.some(v => v.check === 'csharp-sql-injection')).toBe(true);
+  });
+
+  it('runs Java checks on Java-only project', () => {
+    writeFile('src/App.java', [
+      'List items = new ArrayList();',
+    ].join('\n'));
+    const result = runGate(tempDir, true);
+    expect(result.languages).toContain('java');
+    expect(result.violations.some(v => v.check === 'java-raw-type')).toBe(true);
+  });
+
+  it('dispatches correct checks for mixed TS+C#+Java project', () => {
+    writeFile('src/index.ts', 'export const x = 1;');
+    writeFile('src/Service.cs', 'public async void Fire() { }');
+    writeFile('src/App.java', 'List items = new ArrayList();');
+    const result = runGate(tempDir, true);
+    expect(result.languages).toContain('typescript');
+    expect(result.languages).toContain('csharp');
+    expect(result.languages).toContain('java');
+    expect(result.violations.some(v => v.check === 'csharp-async-void')).toBe(true);
+    expect(result.violations.some(v => v.check === 'java-raw-type')).toBe(true);
   });
 });

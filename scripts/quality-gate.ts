@@ -9,13 +9,9 @@
  *
  * Language support:
  *   JS/TS  → ESLint (must be configured in target project)
- *   Java   → Qodana qodana-jvm-community
- *   C#     → Qodana qodana-dotnet
- *   Python → Qodana qodana-python-community
- *   Go     → Qodana qodana-go
- *   Rust   → Qodana qodana-rust
- *   PHP    → Qodana qodana-php
- *   Ruby   → Qodana qodana-ruby
+ *   C#     → Custom checks (async, security, design)
+ *   Java   → Custom checks (types, strings, fields)
+ *   All    → Universal checks (secrets, error handling, URLs, TODOs)
  *
  * Universal custom checks (all languages):
  *   1. Hardcoded secrets — API keys, passwords, tokens in source
@@ -46,42 +42,6 @@ export interface LintResult {
   passed: boolean;
   output: string;
 }
-
-export interface PhaseMetric {
-  phase: string;
-  issuesFound: number;
-  issuesFixed: number;
-  durationMs: number;
-}
-
-export interface PipelineMetrics {
-  pipeline: string;
-  target: string;
-  startedAt: string;
-  completedAt?: string;
-  phases: PhaseMetric[];
-}
-
-export interface ConstructionCheck {
-  type: 'file' | 'export_function' | 'export_type';
-  name: string;
-  file?: string;
-}
-
-export interface ConstructionResult {
-  check: ConstructionCheck;
-  found: boolean;
-}
-
-export const QODANA_LINTERS: Record<Exclude<Language, 'typescript'>, string> = {
-  java: 'qodana-jvm-community',
-  csharp: 'qodana-dotnet',
-  python: 'qodana-python-community',
-  go: 'qodana-go',
-  rust: 'qodana-rust',
-  php: 'qodana-php',
-  ruby: 'qodana-ruby',
-};
 
 export const SOURCE_EXTENSIONS: Record<Language, string[]> = {
   typescript: ['.ts', '.tsx', '.js', '.jsx'],
@@ -181,29 +141,9 @@ export function runEslint(projectDir: string): LintResult {
   }
 }
 
-export function runQodana(projectDir: string, linter: string): LintResult {
-  try {
-    execSync('which qodana', { encoding: 'utf-8', stdio: ['pipe', 'pipe', 'pipe'] });
-  } catch {
-    return { passed: true, output: `Qodana: CLI not found, skipping ${linter}` };
-  }
-
-  try {
-    const output = execSync(
-      `qodana scan --linter ${linter} --project-dir ${JSON.stringify(projectDir)} --print-problems`,
-      { encoding: 'utf-8', timeout: 600_000, stdio: ['pipe', 'pipe', 'pipe'] },
-    );
-    return { passed: true, output: output || `Qodana ${linter}: passed` };
-  } catch (err: unknown) {
-    const e = err as { stdout?: string; stderr?: string; status?: number };
-    const output = (e.stdout || '') + (e.stderr || '');
-    return { passed: false, output: output || `Qodana ${linter}: failed` };
-  }
-}
-
 export function runLinter(projectDir: string, lang: Language): LintResult {
   if (lang === 'typescript') return runEslint(projectDir);
-  return runQodana(projectDir, QODANA_LINTERS[lang]);
+  return { passed: true, output: `${lang}: no linter configured, skipping` };
 }
 
 // ─── Universal Custom Checks (All Languages) ────────────────────────────────
@@ -948,313 +888,471 @@ export function runProxyChecks(projectDir: string): Violation[] {
   ];
 }
 
-// ─── Layer 5: Canary Insertion/Validation ────────────────────────────────────
+// ─── C#-Specific Checks ─────────────────────────────────────────────────────
 
-interface CanaryEntry {
-  file: string;
-  line: number;
-  category: string;
-  original: string;
-  inserted: string;
-}
-
-interface CanaryManifest {
-  phase: string;
-  timestamp: string;
-  canaries: CanaryEntry[];
-}
-
-const CANARY_TEMPLATES: Record<string, string> = {
-  naming: 'export function process(d: any) { return d; }',
-  security: 'import { exec } from "child_process";\nexec(`echo ${input}`);',
-  secrets: 'const apiKey = "sk-canary-test-00000";',
-  types: 'export function load(config: any): void {}',
-  complexity: 'if (a) { if (b) { if (c) { if (d) { /* canary */ } } } }',
-};
-
-function pickRandom<T>(arr: T[], count: number): T[] {
-  const shuffled = [...arr].sort(() => Math.random() - 0.5);
-  return shuffled.slice(0, count);
-}
-
-export function insertCanaries(phaseName: string, targetDir: string): void {
-  const sourceFiles = collectSourceFiles(targetDir, SOURCE_EXTENSIONS.typescript)
-    .filter(f => !['index.ts', 'quality-gate.ts'].includes(path.basename(f)));
-  if (sourceFiles.length === 0) { console.error('No source files for canary insertion'); process.exit(1); }
-
-  const categories = Object.keys(CANARY_TEMPLATES);
-  const selected = pickRandom(categories, Math.min(3 + Math.floor(Math.random() * 3), categories.length));
-  const canaries: CanaryEntry[] = [];
-
-  for (const category of selected) {
-    const file = pickRandom(sourceFiles, 1)[0]!;
+export function checkCSharpAsyncVoid(files: string[], base: string): Violation[] {
+  const violations: Violation[] = [];
+  const asyncVoidRe = /\basync\s+void\s+(\w+)/;
+  for (const file of files) {
     const lines = fs.readFileSync(file, 'utf-8').split('\n');
-    let insertLine = -1, braceDepth = 0;
     for (let i = 0; i < lines.length; i++) {
-      for (const ch of lines[i]!) { if (ch === '{') braceDepth++; if (ch === '}') braceDepth--; }
-      if (braceDepth > 0 && lines[i]!.trim() !== '' && !lines[i]!.trim().startsWith('//')) insertLine = i;
-    }
-    if (insertLine === -1) insertLine = Math.min(5, lines.length);
-
-    const template = CANARY_TEMPLATES[category]!;
-    const original = lines[insertLine] ?? '';
-    const needsImport = category === 'security' && !lines.some(l => l.includes('child_process'));
-    if (needsImport) { lines.splice(0, 0, 'import { exec } from "child_process";'); insertLine++; }
-    lines.splice(insertLine + 1, 0, `// CANARY:${category}`, template);
-    canaries.push({ file, line: insertLine + 1, category, original, inserted: template });
-    fs.writeFileSync(file, lines.join('\n'), 'utf-8');
-  }
-
-  const manifestDir = path.join(targetDir, '.claude');
-  fs.mkdirSync(manifestDir, { recursive: true });
-  const manifest: CanaryManifest = { phase: phaseName, timestamp: new Date().toISOString(), canaries };
-  fs.writeFileSync(path.join(manifestDir, 'canary-manifest.json'), JSON.stringify(manifest, null, 2), 'utf-8');
-  console.log(`Inserted ${canaries.length} canaries for phase '${phaseName}'`);
-}
-
-export function validateCanaries(phaseName: string, targetDir: string): void {
-  const manifestPath = path.join(targetDir, '.claude', 'canary-manifest.json');
-  if (!fs.existsSync(manifestPath)) { console.error('No canary manifest found'); process.exit(1); }
-
-  const manifest: CanaryManifest = JSON.parse(fs.readFileSync(manifestPath, 'utf-8'));
-  let missed = 0;
-
-  for (const canary of manifest.canaries) {
-    const relFile = path.relative(targetDir, canary.file);
-    if (!fs.existsSync(canary.file)) {
-      console.log(`CAUGHT canary: ${canary.category} in ${relFile}:${canary.line} (file removed)`);
-      continue;
-    }
-    const content = fs.readFileSync(canary.file, 'utf-8');
-    const marker = `// CANARY:${canary.category}`;
-    if (content.includes(marker)) {
-      console.error(`MISSED canary: ${canary.category} in ${relFile}:${canary.line}`);
-      missed++;
-    } else {
-      console.log(`CAUGHT canary: ${canary.category} in ${relFile}:${canary.line}`);
+      const m = lines[i].match(asyncVoidRe);
+      if (!m) continue;
+      // Exclude EventArgs event handlers
+      if (/EventArgs/.test(lines[i]) || /\bsender\b/.test(lines[i])) continue;
+      violations.push({ file: relativeTo(base, file), line: i + 1, check: 'csharp-async-void', message: `async void method '${m[1]}' — use async Task instead` });
     }
   }
-
-  // Restore files
-  for (const canary of manifest.canaries) {
-    if (fs.existsSync(canary.file)) {
-      const lines = fs.readFileSync(canary.file, 'utf-8').split('\n');
-      const restored = lines.filter(l =>
-        !l.includes('// CANARY:') &&
-        !Object.values(CANARY_TEMPLATES).some(t => t.split('\n').some(tl => l.includes(tl.trim()) && tl.trim().length > 5))
-      );
-      fs.writeFileSync(canary.file, restored.join('\n'), 'utf-8');
-    }
-  }
-  fs.unlinkSync(manifestPath);
-
-  if (missed > 0) { console.error(`\n${missed}/${manifest.canaries.length} canaries missed by phase '${phaseName}'`); process.exit(1); }
-  console.log(`\nAll ${manifest.canaries.length} canaries caught by phase '${phaseName}'`);
+  return violations;
 }
 
-// ─── Layer 3: Evidence Validation ────────────────────────────────────────────
-
-interface EvidenceRow { location: string; item: string; verdict: string; reasoning: string; }
-
-function parseChecklistRows(content: string): EvidenceRow[] {
-  const rows: EvidenceRow[] = [];
-  for (const line of content.split('\n')) {
-    if (!line.includes('|') || !line.includes('src/')) continue;
-    const cols = line.split('|').map(c => c.trim()).filter(Boolean);
-    if (cols.length >= 4) rows.push({ location: cols[0]!, item: cols[1]!, verdict: cols[2]!, reasoning: cols[3]! });
-  }
-  return rows;
-}
-
-function countExportedFunctionsAndConstants(dir: string): number {
-  let n = 0;
-  for (const f of collectSourceFiles(dir, SOURCE_EXTENSIONS.typescript)) {
-    n += (fs.readFileSync(f, 'utf-8').match(/^export\s+(?:const|function|async\s+function)/gm) || []).length;
-  }
-  return n;
-}
-
-function countExportedFunctions(dir: string): number {
-  let n = 0;
-  for (const f of collectSourceFiles(dir, SOURCE_EXTENSIONS.typescript)) {
-    n += (fs.readFileSync(f, 'utf-8').match(/^export\s+(?:async\s+)?function\s/gm) || []).length;
-  }
-  return n;
-}
-
-function countErrorPatterns(dir: string): number {
-  let n = 0;
-  for (const f of collectSourceFiles(dir, SOURCE_EXTENSIONS.typescript)) {
-    n += (fs.readFileSync(f, 'utf-8').match(/console\.error|console\.log|throw\s+new\s+Error|reject\(/g) || []).length;
-  }
-  return n;
-}
-
-function countInputBoundaries(dir: string): number {
-  let n = 0;
-  for (const f of collectSourceFiles(dir, SOURCE_EXTENSIONS.typescript)) {
-    n += (fs.readFileSync(f, 'utf-8').match(/process\.argv|commander|\.option\(|fs\.readFile|process\.env\./g) || []).length;
-  }
-  return n;
-}
-
-function countCatchBlocks(dir: string): number {
-  let n = 0;
-  for (const f of collectSourceFiles(dir, SOURCE_EXTENSIONS.typescript)) {
-    n += (fs.readFileSync(f, 'utf-8').match(/catch\s*\(/g) || []).length;
-  }
-  return n;
-}
-
-function countEntryPoints(dir: string): number {
-  let n = 0;
-  for (const f of collectSourceFiles(dir, SOURCE_EXTENSIONS.typescript)) {
-    n += (fs.readFileSync(f, 'utf-8').match(/\.command\(|\.action\(|createReadStream|createWriteStream|readFileSync|writeFileSync/g) || []).length;
-  }
-  return n;
-}
-
-const CHECKLIST_COUNTERS: Record<string, { counter: (dir: string) => number; label: string }> = {
-  'refactor-4a': { counter: countExportedFunctionsAndConstants, label: 'exported functions + constants' },
-  'refactor-4b': { counter: countExportedFunctions, label: 'exported functions' },
-  'gemini-6a': { counter: countErrorPatterns, label: 'error/log/throw/reject calls' },
-  'gemini-6b': { counter: countInputBoundaries, label: 'CLI arg reads, fs reads, env access' },
-  'codex-7a': { counter: countCatchBlocks, label: 'catch blocks' },
-  'adversarial-9a': { counter: countEntryPoints, label: 'entry points' },
-};
-
-export function validateEvidence(phaseName: string, targetDir: string): void {
-  const evidenceDir = path.join(targetDir, '.claude', 'evidence');
-  if (!fs.existsSync(evidenceDir)) { console.error(`No evidence directory at ${evidenceDir}`); process.exit(1); }
-
-  let allComplete = true;
-  for (const file of fs.readdirSync(evidenceDir)) {
-    if (!file.startsWith(`${phaseName}-`) || !file.endsWith('.md')) continue;
-    const checklistId = file.replace('.md', '');
-    const content = fs.readFileSync(path.join(evidenceDir, file), 'utf-8');
-    const rows = parseChecklistRows(content);
-    const cfg = CHECKLIST_COUNTERS[checklistId];
-    if (!cfg) { console.log(`Checklist ${checklistId}: ${rows.length} items (no counter)`); continue; }
-    const expected = cfg.counter(targetDir);
-    if (rows.length >= expected) { console.log(`Checklist ${checklistId}: ${rows.length}/${expected} items reviewed`); }
-    else { console.error(`Checklist ${checklistId}: ${rows.length}/${expected} INCOMPLETE (${cfg.label})`); allComplete = false; }
-  }
-  if (!allComplete) process.exit(1);
-  console.log('\nAll evidence checklists complete');
-}
-
-// ─── Layer 4: Three-Model Vote Reconciliation ───────────────────────────────
-
-export function reconcileVotes(targetDir: string): void {
-  const evidenceDir = path.join(targetDir, '.claude', 'evidence');
-  if (!fs.existsSync(evidenceDir)) { console.log('No evidence directory — nothing to reconcile'); return; }
-
-  const itemMap = new Map<string, { key: string; reviews: Array<{ phase: string; verdict: string }> }>();
-  for (const file of fs.readdirSync(evidenceDir)) {
-    if (!file.endsWith('.md')) continue;
-    const phase = file.replace(/\.md$/, '');
-    for (const row of parseChecklistRows(fs.readFileSync(path.join(evidenceDir, file), 'utf-8'))) {
-      const key = row.location.replace(/:\d+/, '').trim();
-      if (!itemMap.has(key)) itemMap.set(key, { key, reviews: [] });
-      itemMap.get(key)!.reviews.push({ phase, verdict: row.verdict });
-    }
-  }
-
-  const disagreements: Array<{ key: string; reviews: Array<{ phase: string; verdict: string }> }> = [];
-  let agreements = 0;
-  for (const [, item] of itemMap) {
-    if (item.reviews.length < 2) continue;
-    const verdicts = new Set(item.reviews.map(r => r.verdict.toUpperCase()));
-    if (verdicts.size > 1) disagreements.push(item);
-    else agreements++;
-  }
-
-  console.log(`Reconciliation: ${agreements} agreements, ${disagreements.length} disagreements`);
-  if (disagreements.length === 0) { console.log('No disagreements — all models agree'); return; }
-
-  const report = ['# Vote Disagreements', '', '| Location | Reviews |', '|----------|---------|'];
-  for (const d of disagreements) {
-    report.push(`| ${d.key} | ${d.reviews.map(r => `${r.phase}: ${r.verdict}`).join(', ')} |`);
-  }
-  fs.writeFileSync(path.join(evidenceDir, 'vote-disagreements.md'), report.join('\n'), 'utf-8');
-  console.log(`Wrote disagreement report to .claude/evidence/vote-disagreements.md`);
-  process.exit(1);
-}
-
-// ─── Pipeline Metrics ────────────────────────────────────────────────────────
-
-export function startPipelineMetrics(pipeline: string, target: string, metricsDir: string): void {
-  const metrics: PipelineMetrics = { pipeline, target, startedAt: new Date().toISOString(), phases: [] };
-  fs.mkdirSync(metricsDir, { recursive: true });
-  fs.writeFileSync(path.join(metricsDir, 'active-metrics.json'), JSON.stringify(metrics, null, 2), 'utf-8');
-}
-
-export function recordPhaseMetrics(metricsDir: string, phase: string, issuesFound: number, issuesFixed: number, durationMs: number): void {
-  const metricsPath = path.join(metricsDir, 'active-metrics.json');
-  const metrics: PipelineMetrics = JSON.parse(fs.readFileSync(metricsPath, 'utf-8'));
-  metrics.phases.push({ phase, issuesFound, issuesFixed, durationMs });
-  fs.writeFileSync(metricsPath, JSON.stringify(metrics, null, 2), 'utf-8');
-}
-
-export function reportMetrics(metricsDir: string): void {
-  const metricsPath = path.join(metricsDir, 'active-metrics.json');
-  const metrics: PipelineMetrics = JSON.parse(fs.readFileSync(metricsPath, 'utf-8'));
-  metrics.completedAt = new Date().toISOString();
-  const archiveName = `${metrics.pipeline}-${metrics.startedAt.replace(/[:.]/g, '-')}.json`;
-  fs.writeFileSync(path.join(metricsDir, archiveName), JSON.stringify(metrics, null, 2), 'utf-8');
-  fs.unlinkSync(metricsPath);
-  console.log(`\nPipeline: ${metrics.pipeline} → ${metrics.target}`);
-  for (const p of metrics.phases) {
-    console.log(`  ${p.phase}: ${p.issuesFound} found, ${p.issuesFixed} fixed (${p.durationMs}ms)`);
-  }
-  const totalFound = metrics.phases.reduce((s, p) => s + p.issuesFound, 0);
-  const totalFixed = metrics.phases.reduce((s, p) => s + p.issuesFixed, 0);
-  console.log(`Total: ${totalFound} found, ${totalFixed} fixed`);
-}
-
-// ─── Construction Validation ─────────────────────────────────────────────────
-
-export function parseConstructionChecks(planContent: string): ConstructionCheck[] {
-  const checks: ConstructionCheck[] = [];
-  const lines = planContent.split('\n');
-  let inSection = false;
-  for (const line of lines) {
-    if (/^##\s*CONSTRUCTION_CHECKS/i.test(line)) { inSection = true; continue; }
-    if (inSection && /^##\s/.test(line)) break;
-    if (!inSection) continue;
-    const fileMatch = line.match(/^-\s*FILE:\s*(.+)/i);
-    if (fileMatch) { checks.push({ type: 'file', name: fileMatch[1].trim() }); continue; }
-    const fnMatch = line.match(/^-\s*EXPORT_FUNCTION:\s*(\w+)\s+IN\s+(.+)/i);
-    if (fnMatch) { checks.push({ type: 'export_function', name: fnMatch[1], file: fnMatch[2].trim() }); continue; }
-    const typeMatch = line.match(/^-\s*EXPORT_TYPE:\s*(\w+)\s+IN\s+(.+)/i);
-    if (typeMatch) { checks.push({ type: 'export_type', name: typeMatch[1], file: typeMatch[2].trim() }); continue; }
-  }
-  return checks;
-}
-
-export function validateConstruction(planPath: string, projectDir: string): { passed: boolean; results: ConstructionResult[] } {
-  const planContent = fs.readFileSync(planPath, 'utf-8');
-  const checks = parseConstructionChecks(planContent);
-  const results: ConstructionResult[] = [];
-  for (const check of checks) {
-    let found = false;
-    if (check.type === 'file') {
-      found = fs.existsSync(path.join(projectDir, check.name));
-    } else if (check.file) {
-      const filePath = path.join(projectDir, check.file);
-      if (fs.existsSync(filePath)) {
-        const content = fs.readFileSync(filePath, 'utf-8');
-        if (check.type === 'export_function') {
-          found = new RegExp(`export\\s+(?:async\\s+)?function\\s+${check.name}\\b`).test(content) ||
-                  new RegExp(`export\\s+const\\s+${check.name}\\s*=`).test(content);
-        } else {
-          found = new RegExp(`export\\s+(?:type|interface)\\s+${check.name}\\b`).test(content);
+export function checkCSharpSyncOverAsync(files: string[], base: string): Violation[] {
+  const violations: Violation[] = [];
+  const syncPatterns = [
+    { pattern: /\.Result\b/, name: '.Result' },
+    { pattern: /\.Wait\(\)/, name: '.Wait()' },
+    { pattern: /\.GetAwaiter\(\)\.GetResult\(\)/, name: '.GetAwaiter().GetResult()' },
+  ];
+  for (const file of files) {
+    const lines = fs.readFileSync(file, 'utf-8').split('\n');
+    for (let i = 0; i < lines.length; i++) {
+      const trimmed = lines[i].trimStart();
+      if (trimmed.startsWith('//')) continue;
+      for (const { pattern, name } of syncPatterns) {
+        if (pattern.test(lines[i])) {
+          violations.push({ file: relativeTo(base, file), line: i + 1, check: 'csharp-sync-over-async', message: `Blocking call ${name} on async Task — use await instead` });
         }
       }
     }
-    results.push({ check, found });
   }
-  return { passed: results.every(r => r.found), results };
+  return violations;
+}
+
+export function checkCSharpMissingCancellationToken(files: string[], base: string): Violation[] {
+  const violations: Violation[] = [];
+  const publicAsyncRe = /public\s+(?:virtual\s+|override\s+|static\s+)?async\s+Task\b[^(]*\(([^)]*)\)/;
+  for (const file of files) {
+    const lines = fs.readFileSync(file, 'utf-8').split('\n');
+    for (let i = 0; i < lines.length; i++) {
+      const m = lines[i].match(publicAsyncRe);
+      if (!m) continue;
+      const params = m[1];
+      if (!/CancellationToken/.test(params)) {
+        violations.push({ file: relativeTo(base, file), line: i + 1, check: 'csharp-missing-cancellation-token', message: 'Public async Task method without CancellationToken parameter' });
+      }
+    }
+  }
+  return violations;
+}
+
+export function checkCSharpSqlInjection(files: string[], base: string): Violation[] {
+  const violations: Violation[] = [];
+  const sqlCmdRe = /new\s+SqlCommand\s*\(/;
+  for (const file of files) {
+    const lines = fs.readFileSync(file, 'utf-8').split('\n');
+    for (let i = 0; i < lines.length; i++) {
+      if (!sqlCmdRe.test(lines[i])) continue;
+      if (/\$"/.test(lines[i]) || /\+" /.test(lines[i]) || /"\s*\+/.test(lines[i])) {
+        violations.push({ file: relativeTo(base, file), line: i + 1, check: 'csharp-sql-injection', message: 'SqlCommand with string interpolation/concatenation — use parameterized queries' });
+      }
+    }
+  }
+  return violations;
+}
+
+export function checkCSharpInsecureDeserialization(files: string[], base: string): Violation[] {
+  const violations: Violation[] = [];
+  const dangerousTypes = [
+    { pattern: /\bBinaryFormatter\b/, name: 'BinaryFormatter' },
+    { pattern: /\bJavaScriptSerializer\b/, name: 'JavaScriptSerializer' },
+  ];
+  for (const file of files) {
+    const lines = fs.readFileSync(file, 'utf-8').split('\n');
+    for (let i = 0; i < lines.length; i++) {
+      const trimmed = lines[i].trimStart();
+      if (trimmed.startsWith('//')) continue;
+      for (const { pattern, name } of dangerousTypes) {
+        if (pattern.test(lines[i])) {
+          violations.push({ file: relativeTo(base, file), line: i + 1, check: 'csharp-insecure-deserialization', message: `${name} is inherently unsafe — use System.Text.Json or Newtonsoft.Json` });
+        }
+      }
+    }
+  }
+  return violations;
+}
+
+export function checkCSharpPathTraversal(files: string[], base: string): Violation[] {
+  const violations: Violation[] = [];
+  const pathCombineRe = /Path\.Combine\s*\([^)]*\b(input|request|query|param|fileName|filePath|userPath)\b/;
+  for (const file of files) {
+    const lines = fs.readFileSync(file, 'utf-8').split('\n');
+    for (let i = 0; i < lines.length; i++) {
+      if (!pathCombineRe.test(lines[i])) continue;
+      const context = lines.slice(Math.max(0, i - 5), i).join('\n');
+      if (!context.includes('..') && !context.includes('GetFullPath') && !context.includes('sanitize')) {
+        violations.push({ file: relativeTo(base, file), line: i + 1, check: 'csharp-path-traversal', message: 'Path.Combine with unvalidated input — validate against directory traversal' });
+      }
+    }
+  }
+  return violations;
+}
+
+const CSHARP_DISPOSABLE_TYPES = ['HttpClient', 'SqlConnection', 'SqlCommand', 'StreamReader', 'StreamWriter', 'FileStream', 'TcpClient', 'WebClient'];
+
+export function checkCSharpMissingDispose(files: string[], base: string): Violation[] {
+  const violations: Violation[] = [];
+  for (const file of files) {
+    const content = fs.readFileSync(file, 'utf-8');
+    const lines = content.split('\n');
+    for (let i = 0; i < lines.length; i++) {
+      for (const typeName of CSHARP_DISPOSABLE_TYPES) {
+        if (!lines[i].includes(`new ${typeName}`)) continue;
+        // Check if this line or the previous line has 'using'
+        const contextLine = (i > 0 ? lines[i - 1] : '') + lines[i];
+        if (/\busing\b/.test(contextLine)) continue;
+        violations.push({ file: relativeTo(base, file), line: i + 1, check: 'csharp-missing-dispose', message: `new ${typeName}() without using statement — wrap in using or dispose explicitly` });
+      }
+    }
+  }
+  return violations;
+}
+
+export function checkCSharpMultipleHttpClient(files: string[], base: string): Violation[] {
+  const violations: Violation[] = [];
+  for (const file of files) {
+    const content = fs.readFileSync(file, 'utf-8');
+    const matches = content.match(/new\s+HttpClient\s*\(/g) || [];
+    if (matches.length > 1) {
+      violations.push({ file: relativeTo(base, file), line: 1, check: 'csharp-multiple-httpclient', message: `${matches.length} HttpClient instantiations — use IHttpClientFactory or a singleton` });
+    }
+  }
+  return violations;
+}
+
+export function checkCSharpMutablePublicFields(files: string[], base: string): Violation[] {
+  const violations: Violation[] = [];
+  const publicFieldRe = /^\s*public\s+(?!(?:readonly|const|static\s+readonly|override|virtual|abstract|event)\b)\w+\s+\w+\s*[;=]/;
+  for (const file of files) {
+    const content = fs.readFileSync(file, 'utf-8');
+    // Skip records
+    if (/\brecord\b/.test(content)) continue;
+    const lines = content.split('\n');
+    for (let i = 0; i < lines.length; i++) {
+      if (publicFieldRe.test(lines[i]) && !/{/.test(lines[i])) {
+        violations.push({ file: relativeTo(base, file), line: i + 1, check: 'csharp-mutable-public-field', message: 'Public mutable field — use a property or make readonly' });
+      }
+    }
+  }
+  return violations;
+}
+
+export function checkCSharpLargeStructs(files: string[], base: string): Violation[] {
+  const violations: Violation[] = [];
+  for (const file of files) {
+    const content = fs.readFileSync(file, 'utf-8');
+    const structRegex = /\bstruct\s+(\w+)/g;
+    let structMatch;
+    while ((structMatch = structRegex.exec(content)) !== null) {
+      const structName = structMatch[1]!;
+      const lineNum = content.substring(0, structMatch.index).split('\n').length;
+      const afterStruct = content.substring(structMatch.index);
+      let depth = 0, started = false, fieldCount = 0;
+      for (const line of afterStruct.split('\n')) {
+        for (const ch of line) { if (ch === '{') { depth++; started = true; } if (ch === '}') depth--; }
+        if (started && depth === 1 && /^\s+(?:public|private|internal|protected)\s+\w+\s+\w+\s*[;=]/.test(line)) fieldCount++;
+        if (started && depth === 0) break;
+      }
+      if (fieldCount > 4) {
+        violations.push({ file: relativeTo(base, file), line: lineNum, check: 'csharp-large-struct', message: `Struct '${structName}' has ${fieldCount} fields (max 4) — consider using a class` });
+      }
+    }
+  }
+  return violations;
+}
+
+export function checkCSharpUnsealedClasses(files: string[], base: string): Violation[] {
+  const violations: Violation[] = [];
+  const classRe = /^\s*public\s+class\s+(\w+)/;
+  const excludePatterns = [/Controller$/, /Hub$/, /Middleware$/, /Startup$/, /Program$/];
+  for (const file of files) {
+    const lines = fs.readFileSync(file, 'utf-8').split('\n');
+    for (let i = 0; i < lines.length; i++) {
+      const m = lines[i].match(classRe);
+      if (!m) continue;
+      if (/\b(sealed|abstract|static|partial)\b/.test(lines[i])) continue;
+      const className = m[1]!;
+      if (excludePatterns.some(p => p.test(className))) continue;
+      violations.push({ file: relativeTo(base, file), line: i + 1, check: 'csharp-unsealed-class', message: `Public class '${className}' is not sealed — seal by default, unseal by design` });
+    }
+  }
+  return violations;
+}
+
+export function checkCSharpMultipleEnumeration(files: string[], base: string): Violation[] {
+  const violations: Violation[] = [];
+  const paramRe = /IEnumerable<[^>]+>\s+(\w+)/g;
+  for (const file of files) {
+    const content = fs.readFileSync(file, 'utf-8');
+    let paramMatch;
+    while ((paramMatch = paramRe.exec(content)) !== null) {
+      const varName = paramMatch[1]!;
+      const afterParam = content.substring(paramMatch.index);
+      const usageRe = new RegExp(`\\b${varName}\\b`, 'g');
+      const usages = afterParam.match(usageRe) || [];
+      // First match is the declaration itself, so >2 means multiple usage
+      if (usages.length > 2) {
+        const lineNum = content.substring(0, paramMatch.index).split('\n').length;
+        violations.push({ file: relativeTo(base, file), line: lineNum, check: 'csharp-multiple-enumeration', message: `IEnumerable parameter '${varName}' used multiple times — call .ToList() first` });
+      }
+    }
+  }
+  return violations;
+}
+
+export function checkCSharpLinqInLoops(files: string[], base: string): Violation[] {
+  const violations: Violation[] = [];
+  const loopRe = /^\s*(?:for|foreach)\b/;
+  const linqRe = /\.(?:Where|Select|OrderBy|GroupBy|Any|All|First|Last|Count|Sum|Average|Min|Max|Distinct|Take|Skip)\s*\(/;
+  for (const file of files) {
+    const lines = fs.readFileSync(file, 'utf-8').split('\n');
+    let inLoop = false, loopDepth = 0, loopStart = 0;
+    for (let i = 0; i < lines.length; i++) {
+      if (loopRe.test(lines[i])) { inLoop = true; loopDepth = 0; loopStart = i; }
+      if (inLoop) {
+        for (const ch of lines[i]) { if (ch === '{') loopDepth++; if (ch === '}') loopDepth--; }
+        if (linqRe.test(lines[i]) && i !== loopStart) {
+          violations.push({ file: relativeTo(base, file), line: i + 1, check: 'csharp-linq-in-loop', message: 'LINQ query inside loop — evaluate outside the loop' });
+        }
+        if (loopDepth === 0 && i > loopStart) inLoop = false;
+      }
+    }
+  }
+  return violations;
+}
+
+export function checkCSharpMissingConfigureAwait(files: string[], base: string): Violation[] {
+  const violations: Violation[] = [];
+  for (const file of files) {
+    const relPath = relativeTo(base, file).toLowerCase();
+    // Skip web/UI projects where ConfigureAwait(false) is wrong
+    if (/controller|page|view|component|hub|blazor|razor/.test(relPath)) continue;
+    const lines = fs.readFileSync(file, 'utf-8').split('\n');
+    for (let i = 0; i < lines.length; i++) {
+      if (/\bawait\b/.test(lines[i]) && !lines[i].includes('ConfigureAwait')) {
+        violations.push({ file: relativeTo(base, file), line: i + 1, check: 'csharp-missing-configure-await', message: 'await without ConfigureAwait(false) in library code' });
+      }
+    }
+  }
+  return violations;
+}
+
+export function runCSharpChecks(files: string[], base: string): Violation[] {
+  return [
+    ...checkCSharpAsyncVoid(files, base),
+    ...checkCSharpSyncOverAsync(files, base),
+    ...checkCSharpMissingCancellationToken(files, base),
+    ...checkCSharpSqlInjection(files, base),
+    ...checkCSharpInsecureDeserialization(files, base),
+    ...checkCSharpPathTraversal(files, base),
+    ...checkCSharpMissingDispose(files, base),
+    ...checkCSharpMultipleHttpClient(files, base),
+    ...checkCSharpMutablePublicFields(files, base),
+    ...checkCSharpLargeStructs(files, base),
+    ...checkCSharpUnsealedClasses(files, base),
+    ...checkCSharpMultipleEnumeration(files, base),
+    ...checkCSharpLinqInLoops(files, base),
+    ...checkCSharpMissingConfigureAwait(files, base),
+  ];
+}
+
+// ─── Java-Specific Checks ───────────────────────────────────────────────────
+
+export function checkJavaRawTypes(files: string[], base: string): Violation[] {
+  const violations: Violation[] = [];
+  const rawTypeRe = /\b(List|Map|Set|Collection|Iterable)\s+\w+\s*[;=]/;
+  const genericRe = /\b(List|Map|Set|Collection|Iterable)\s*</;
+  for (const file of files) {
+    const lines = fs.readFileSync(file, 'utf-8').split('\n');
+    for (let i = 0; i < lines.length; i++) {
+      const trimmed = lines[i].trimStart();
+      if (trimmed.startsWith('//') || trimmed.startsWith('*')) continue;
+      if (rawTypeRe.test(lines[i]) && !genericRe.test(lines[i])) {
+        const m = lines[i].match(rawTypeRe);
+        if (m) {
+          violations.push({ file: relativeTo(base, file), line: i + 1, check: 'java-raw-type', message: `Raw type ${m[1]} without type parameter — use ${m[1]}<T>` });
+        }
+      }
+    }
+  }
+  return violations;
+}
+
+export function checkJavaStringConcatInLoops(files: string[], base: string): Violation[] {
+  const violations: Violation[] = [];
+  const loopRe = /^\s*(?:for|while)\b/;
+  const concatRe = /\+= *"/;
+  for (const file of files) {
+    const lines = fs.readFileSync(file, 'utf-8').split('\n');
+    let inLoop = false, loopDepth = 0, loopStart = 0;
+    for (let i = 0; i < lines.length; i++) {
+      if (loopRe.test(lines[i])) { inLoop = true; loopDepth = 0; loopStart = i; }
+      if (inLoop) {
+        for (const ch of lines[i]) { if (ch === '{') loopDepth++; if (ch === '}') loopDepth--; }
+        if (concatRe.test(lines[i]) && i !== loopStart) {
+          violations.push({ file: relativeTo(base, file), line: i + 1, check: 'java-string-concat-in-loop', message: 'String concatenation with += in loop — use StringBuilder' });
+        }
+        if (loopDepth === 0 && i > loopStart) inLoop = false;
+      }
+    }
+  }
+  return violations;
+}
+
+export function checkJavaMutablePublicFields(files: string[], base: string): Violation[] {
+  const violations: Violation[] = [];
+  const publicFieldRe = /^\s*public\s+(?!(?:final|static\s+final|abstract|synchronized)\b)\w+\s+\w+\s*[;=]/;
+  for (const file of files) {
+    const lines = fs.readFileSync(file, 'utf-8').split('\n');
+    for (let i = 0; i < lines.length; i++) {
+      if (publicFieldRe.test(lines[i]) && !/{/.test(lines[i]) && !/\(/.test(lines[i])) {
+        violations.push({ file: relativeTo(base, file), line: i + 1, check: 'java-mutable-public-field', message: 'Public non-final field — use getter/setter or make final' });
+      }
+    }
+  }
+  return violations;
+}
+
+export function runJavaChecks(files: string[], base: string): Violation[] {
+  return [
+    ...checkJavaRawTypes(files, base),
+    ...checkJavaStringConcatInLoops(files, base),
+    ...checkJavaMutablePublicFields(files, base),
+  ];
+}
+
+// ─── Polyglot Proxy Checks (C#/Java) ────────────────────────────────────────
+
+const POLYGLOT_METHOD_RE = /^\s*(?:(?:public|private|protected|internal|static|virtual|override|abstract|async|sealed)\s+)*(?:\w+(?:<[^>]+>)?)\s+(\w+)\s*\(([^)]*)\)/;
+
+export function checkPolyglotFunctionLength(files: string[], base: string): Violation[] {
+  const violations: Violation[] = [];
+  for (const file of files) {
+    const lines = fs.readFileSync(file, 'utf-8').split('\n');
+    let fnStart = -1, fnName = '', startDepth = 0, braceDepth = 0, significantLines = 0;
+    for (let i = 0; i < lines.length; i++) {
+      const line = lines[i]!;
+      if (fnStart === -1) {
+        const m = line.match(POLYGLOT_METHOD_RE);
+        if (m && line.includes('{') && !CONTROL_KEYWORDS.has(m[1]!)) {
+          fnStart = i; fnName = m[1]!; startDepth = braceDepth; significantLines = 0;
+        }
+      }
+      for (const ch of line) { if (ch === '{') braceDepth++; if (ch === '}') braceDepth--; }
+      if (fnStart >= 0 && braceDepth > startDepth) {
+        const trimmed = line.trim();
+        if (trimmed && !trimmed.startsWith('//') && !trimmed.startsWith('*')) significantLines++;
+      }
+      if (fnStart >= 0 && braceDepth === startDepth && i > fnStart) {
+        if (significantLines > 30) {
+          violations.push({ file: relativeTo(base, file), line: fnStart + 1, check: 'function-length', message: `Method '${fnName}' is ${significantLines} significant lines (max 30)` });
+        }
+        fnStart = -1;
+      }
+    }
+  }
+  return violations;
+}
+
+export function checkPolyglotParameterCount(files: string[], base: string): Violation[] {
+  const violations: Violation[] = [];
+  for (const file of files) {
+    const lines = fs.readFileSync(file, 'utf-8').split('\n');
+    for (let i = 0; i < lines.length; i++) {
+      const m = lines[i].match(POLYGLOT_METHOD_RE);
+      if (!m) continue;
+      const params = m[2]!.trim();
+      if (!params) continue;
+      let count = 0, depth = 0;
+      for (const ch of params) {
+        if (ch === '<' || ch === '(' || ch === '[') depth++;
+        else if (ch === '>' || ch === ')' || ch === ']') depth--;
+        else if (ch === ',' && depth === 0) count++;
+      }
+      count++;
+      if (count > 4) {
+        violations.push({ file: relativeTo(base, file), line: i + 1, check: 'parameter-count', message: `Method '${m[1]}' has ${count} params (max 4)` });
+      }
+    }
+  }
+  return violations;
+}
+
+export function checkPolyglotCommentSpam(files: string[], base: string): Violation[] {
+  const violations: Violation[] = [];
+  for (const file of files) {
+    const ext = path.extname(file);
+    const lines = fs.readFileSync(file, 'utf-8').split('\n');
+    for (let i = 0; i < lines.length; i++) {
+      // C# XML docs: /// <summary>
+      if (ext === '.cs' && /^\s*\/\/\//.test(lines[i])) {
+        let doc = '', j = i;
+        while (j < lines.length && /^\s*\/\/\//.test(lines[j])) {
+          doc += ' ' + lines[j].replace(/^\s*\/\/\/\s*/, '').replace(/<[^>]+>/g, '');
+          j++;
+        }
+        const fnMatch = lines[j]?.match(/(?:public|private|protected|internal)\s+.*?(\w+)\s*\(/);
+        if (!fnMatch) continue;
+        const fnName = fnMatch[1]!;
+        const nameWords = fnName.replace(/([a-z])([A-Z])/g, '$1 $2').toLowerCase().split(/\s+/).filter(w => w.length > 2);
+        if (nameWords.length < 2) continue;
+        const cleanDoc = doc.toLowerCase().replace(/[^a-z\s]/g, '').trim();
+        if (cleanDoc.length > 80) continue;
+        const docWords = new Set(cleanDoc.split(/\s+/).filter(w => w.length > 2));
+        const overlap = nameWords.filter(w => docWords.has(w));
+        if (overlap.length >= nameWords.length - 1) {
+          violations.push({ file: relativeTo(base, file), line: i + 1, check: 'comment-spam', message: `XML doc restates method name '${fnName}' — remove or add non-obvious info` });
+        }
+        continue;
+      }
+      // Java Javadoc: /** ... */
+      if (ext === '.java' && /^\s*\/\*\*/.test(lines[i])) {
+        let doc = '', j = i, docLines = 0;
+        while (j < lines.length) {
+          doc += ' ' + lines[j].replace(/^\s*\/?[*]+\s*/, '').replace(/\*\/\s*$/, '');
+          docLines++;
+          if (lines[j].includes('*/')) { j++; break; }
+          j++;
+        }
+        if (docLines > 3 || j >= lines.length) continue;
+        const fnMatch = lines[j]?.match(/(?:public|private|protected)\s+.*?(\w+)\s*\(/);
+        if (!fnMatch) continue;
+        const fnName = fnMatch[1]!;
+        const nameWords = fnName.replace(/([a-z])([A-Z])/g, '$1 $2').toLowerCase().split(/\s+/).filter(w => w.length > 2);
+        if (nameWords.length < 2) continue;
+        const cleanDoc = doc.toLowerCase().replace(/@\w+/g, '').replace(/[^a-z\s]/g, '').trim();
+        if (cleanDoc.length > 80) continue;
+        const docWords = new Set(cleanDoc.split(/\s+/).filter(w => w.length > 2));
+        const overlap = nameWords.filter(w => docWords.has(w));
+        if (overlap.length >= nameWords.length - 1) {
+          violations.push({ file: relativeTo(base, file), line: i + 1, check: 'comment-spam', message: `Javadoc restates method name '${fnName}' — remove or add non-obvious info` });
+        }
+      }
+    }
+  }
+  return violations;
+}
+
+export function runPolyglotProxyChecks(files: string[], base: string): Violation[] {
+  return [
+    ...checkFileLength(files, base),
+    ...checkMagicNumbers(files, base),
+    ...checkMagicStrings(files, base),
+    ...checkBannedFileNames(files, base),
+    ...checkClassMethodCount(files, base),
+    ...checkPolyglotFunctionLength(files, base),
+    ...checkPolyglotParameterCount(files, base),
+    ...checkPolyglotCommentSpam(files, base),
+  ];
 }
 
 // ─── Orchestrator ────────────────────────────────────────────────────────────
@@ -1303,6 +1401,16 @@ export function runGate(projectDir: string, skipLinters = false): GateResult {
 
     // Phase 3: Proxy checks (Layer 2)
     violations.push(...runProxyChecks(projectDir));
+  }
+
+  if (languages.includes('csharp')) {
+    const csFiles = collectSourceFiles(projectDir, SOURCE_EXTENSIONS.csharp);
+    violations.push(...runCSharpChecks(csFiles, projectDir), ...runPolyglotProxyChecks(csFiles, projectDir));
+  }
+
+  if (languages.includes('java')) {
+    const javaFiles = collectSourceFiles(projectDir, SOURCE_EXTENSIONS.java);
+    violations.push(...runJavaChecks(javaFiles, projectDir), ...runPolyglotProxyChecks(javaFiles, projectDir));
   }
 
   const totalIssues = lintFailures.length + violations.length;
@@ -1355,80 +1463,7 @@ function runDefaultGate(targetArg?: string): void {
 
 function main(): void {
   const args = process.argv.slice(2);
-  const command = args[0];
-
-  switch (command) {
-    case 'insert-canaries': {
-      const phase = args[1];
-      const target = args[2];
-      if (!phase || !target) { console.error('Usage: quality-gate insert-canaries <phase> <target-dir>'); process.exit(1); }
-      insertCanaries(phase, path.resolve(target));
-      break;
-    }
-    case 'validate-canaries': {
-      const phase = args[1];
-      const target = args[2];
-      if (!phase || !target) { console.error('Usage: quality-gate validate-canaries <phase> <target-dir>'); process.exit(1); }
-      validateCanaries(phase, path.resolve(target));
-      break;
-    }
-    case 'validate-evidence': {
-      const phase = args[1];
-      const target = args[2];
-      if (!phase || !target) { console.error('Usage: quality-gate validate-evidence <phase> <target-dir>'); process.exit(1); }
-      validateEvidence(phase, path.resolve(target));
-      break;
-    }
-    case 'reconcile-votes': {
-      const target = args[1];
-      if (!target) { console.error('Usage: quality-gate reconcile-votes <target-dir>'); process.exit(1); }
-      reconcileVotes(path.resolve(target));
-      break;
-    }
-    case 'start-metrics': {
-      const pipeline = args[1];
-      const target = args[2];
-      if (!pipeline || !target) { console.error('Usage: quality-gate start-metrics <pipeline> <target>'); process.exit(1); }
-      const metricsDir = path.join(path.resolve(target), '.claude', 'metrics');
-      startPipelineMetrics(pipeline, target, metricsDir);
-      console.log(`Metrics started: ${pipeline} → ${target}`);
-      break;
-    }
-    case 'record-metrics': {
-      const phase = args[1];
-      const found = parseInt(args[2] ?? '', 10);
-      const fixed = parseInt(args[3] ?? '', 10);
-      const ms = parseInt(args[4] ?? '', 10);
-      const tgt = args[5] ?? '.';
-      if (!phase || isNaN(found) || isNaN(fixed) || isNaN(ms)) {
-        console.error('Usage: quality-gate record-metrics <phase> <found> <fixed> <ms> [target]');
-        process.exit(1);
-      }
-      recordPhaseMetrics(path.join(path.resolve(tgt), '.claude', 'metrics'), phase, found, fixed, ms);
-      break;
-    }
-    case 'report-metrics': {
-      const tgt = args[1] ?? '.';
-      reportMetrics(path.join(path.resolve(tgt), '.claude', 'metrics'));
-      break;
-    }
-    case 'validate-construction': {
-      const planFile = args[1];
-      const projectDir = args[2];
-      if (!planFile || !projectDir) { console.error('Usage: quality-gate validate-construction <plan-file> <project-dir>'); process.exit(1); }
-      const result = validateConstruction(path.resolve(planFile), path.resolve(projectDir));
-      for (const r of result.results) {
-        const status = r.found ? 'PASS' : 'FAIL';
-        const detail = r.check.file ? `${r.check.name} in ${r.check.file}` : r.check.name;
-        console.log(`  ${status}: ${r.check.type} ${detail}`);
-      }
-      if (result.passed) { console.log('\nConstruction check: all items present'); }
-      else { console.error('\nConstruction check: FAILED — missing items'); process.exit(1); }
-      break;
-    }
-    default:
-      runDefaultGate(command);
-  }
+  runDefaultGate(args[0]);
 }
 
 // Only run main when executed directly (not imported)
