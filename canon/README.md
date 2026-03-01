@@ -99,10 +99,6 @@ To add a master:
 
 No vibes. No interpretations. If you can't cite it, don't include it.
 
-## The Thesis
-
-See [documentation](../documentation/index.md) for how canon integrates with Claude-Optimal methodology.
-
 ---
 
 *"The question that unlocks everything: Who has solved this before, and better than I could?"*

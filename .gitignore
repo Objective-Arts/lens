@@ -25,6 +25,7 @@ node_modules/
 
 # Local config
 .mcp.json
+claude-progress.md
 
 # Generated/installed skills (source is in canon/ and workflow-skills/)
 .claude/skills/

@@ -52,8 +52,11 @@
     "workflow-skills/utils/generate-docs/",
     "workflow-skills/workflow/change/",
     "workflow-skills/workflow/fix/",
+    "scripts/pipeline.sh",
     "scripts/quality-gate.ts",
-    "scripts/quality-gate.test.ts"
+    "scripts/quality-gate.test.ts",
+    "config/",
+    "mcp-servers/"
   ],
   "dependencies": {
     "chalk": "^5.3.0",
