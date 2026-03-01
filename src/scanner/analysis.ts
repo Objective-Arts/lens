@@ -42,7 +42,7 @@ function countItems(items: ConfigItem[]): {
   tokensByScope: Record<ConfigScope, number>;
   totalTokens: number;
 } {
-  const byType: Record<ConfigItemType, number> = { skill: 0, command: 0, agent: 0, memory: 0, settings: 0, hook: 0, mcp: 0 };
+  const byType: Record<ConfigItemType, number> = { skill: 0, command: 0, agent: 0, memory: 0, settings: 0, mcp: 0 };
   const byScope: Record<ConfigScope, number> = { global: 0, project: 0, plugin: 0 };
   const tokensByScope: Record<ConfigScope, number> = { global: 0, project: 0, plugin: 0 };
   let totalTokens = 0;

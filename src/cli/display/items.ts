@@ -18,7 +18,6 @@ const typeIcons: Record<ConfigItemType, string> = {
   agent: '🤖',
   memory: '📄',
   settings: '⚙️',
-  hook: '🪝',
   mcp: '🔌'
 };
 

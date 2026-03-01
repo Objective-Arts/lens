@@ -7,18 +7,10 @@ vi.mock('../../profiles/index.js', () => ({
   saveProfile: vi.fn(),
   combineProfiles: vi.fn(),
   parseProfileString: vi.fn((s: string) => s.split('+')),
-  applyComposableProfile: vi.fn(),
   exampleComposableProfile: { name: 'example', skills: {} },
 }));
 
-vi.mock('../../canon/index.js', () => ({
-  deployAllSkills: vi.fn(() => ({ deployed: 0, skipped: 0, deployedNames: [], errors: [] })),
-}));
-
 vi.mock('../display/index.js', () => ({
-  printDryRun: vi.fn(),
-  printDeployedSkills: vi.fn(),
-  printApplyResults: vi.fn(),
   printProfileNotFound: vi.fn(),
 }));
 

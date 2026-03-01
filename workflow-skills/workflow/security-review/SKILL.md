@@ -170,40 +170,9 @@ REVIEW_ISSUES: N
 SECURITY_REVIEW_COMPLETE: yes
 ```
 
-## Final: Record Lessons Learned
+## Final: Pitfalls
 
-After fixing all issues, record NEW findings so earlier phases learn from them. Security findings are especially valuable for the feedback loop.
-
-**Write to TWO files:**
-
-### 1. Project-local: `.claude/lessons.md`
-
-Append the specific finding with file paths and context:
-
-```markdown
-## {date} - {target path}
-### Security Found (phase 8)
-- {CATEGORY}: {specific description with file:line} → {which earlier phase should catch this and how}
-```
-
-### 2. Universal: `.claude/universal-lessons.md`
-
-Read this file first. If the **general pattern** is already listed, skip. If it's a NEW general pattern not already covered, append it to the appropriate section (LOGIC Patterns or DESIGN Patterns). Write the general rule, not the project-specific instance:
-
-```markdown
-### {Pattern Name}
-- {General description of the vulnerability pattern, not tied to specific files} → {how to avoid it}
-```
-
-**Categories:** LOGIC (most security issues), DESIGN (architectural security gaps)
-
-Common security findings that indicate earlier-phase gaps:
-- Path traversal → implementation should validate names from user input before `path.join`
-- Shell injection → implementation should never use `execSync` with template literals
-- XSS in embedded data → implementation should escape `</` in JSON embedded in HTML
-- TOCTOU races → implementation should use try-catch, not existsSync+readFileSync
-
-If no new lessons were learned (already in both files), skip this step.
+> Known pitfalls are maintained in `canon/pitfalls/SKILL.md`. If you discover a new recurring pattern, note it in the report output — it can be added to the pitfalls canon in a future release.
 
 ## Evidence Checklist (MANDATORY)
 

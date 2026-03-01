@@ -64,19 +64,14 @@ Before starting, read these canon skills and apply their principles throughout:
 If a skill file doesn't exist (not installed in this project), skip it and continue.
 List loaded experts in EXPERTS_LOADED output.
 
-### Step 0b: Learn From Past Mistakes
+### Step 0b: Check Known Pitfalls
 
-Read both lessons files if they exist:
-1. `.claude/universal-lessons.md` — universal patterns (ships with skills, applies to all projects)
-2. `.claude/lessons.md` — project-specific patterns (accumulated from this project's runs)
+Read `canon/pitfalls/SKILL.md` if it exists. Apply its patterns as you work:
 
-Use relevant lessons to guide your deduplication:
+- **Code Quality Traps** → search for duplicate patterns (same-name constants in different files)
+- **Logic Traps** → when consolidating, ensure the shared version avoids known bug patterns (TOCTOU)
 
-- **DUPLICATION** entries → actively search for these specific duplicate patterns (e.g., same-name constants in different files)
-- **LOGIC** entries → when consolidating, ensure the shared version avoids known bug patterns (e.g., TOCTOU)
-- **AI_SMELL** entries → when consolidating, don't over-abstract: only extract if 2+ callers exist; don't create single-use wrappers
-
-If a file doesn't exist, skip it and continue.
+If the file doesn't exist, skip it and continue.
 
 ### Step 1: Find Duplicates
 

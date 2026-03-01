@@ -49,11 +49,6 @@ function isPermissionsShape(value: unknown): value is SettingsParsed['permission
   return true;
 }
 
-function isHooksShape(value: unknown): value is SettingsParsed['hooks'] {
-  if (!value || typeof value !== 'object' || Array.isArray(value)) return false;
-  return true;
-}
-
 function toStringArray(value: unknown): string[] {
   if (!Array.isArray(value)) return [];
   return value.filter((item): item is string => typeof item === 'string');
@@ -69,7 +64,6 @@ function buildSettingsResult(
 ): SettingsParsed {
   const model = typeof settings['model'] === 'string' ? settings['model'] : undefined;
   const permissions = isPermissionsShape(settings['permissions']) ? settings['permissions'] : undefined;
-  const hooks = isHooksShape(settings['hooks']) ? settings['hooks'] : undefined;
   const mcpServers = toStringArray(settings['enabledMcpjsonServers']);
   const env = isStringValueRecord(settings['env']) ? settings['env'] : undefined;
 
@@ -78,7 +72,6 @@ function buildSettingsResult(
     scope,
     model,
     permissions,
-    hooks,
     mcpServers,
     env,
   };

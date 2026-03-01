@@ -88,14 +88,6 @@ export function copyQualityGateScript(projectPath: string, sourcePath: string, m
   saveManifest(manifest);
 }
 
-export function seedUniversalLessons(projectPath: string, sourcePath: string): void {
-  const lessonsSource = path.join(sourcePath, 'lessons.md');
-  const lessonsTarget = path.join(projectPath, '.claude', 'universal-lessons.md');
-  if (fs.existsSync(lessonsSource) && !fs.existsSync(lessonsTarget)) {
-    fs.copyFileSync(lessonsSource, lessonsTarget);
-  }
-}
-
 export function upgradeQualityGateScript(
   projectPath: string,
   sourcePath: string,
@@ -120,15 +112,6 @@ export function upgradeRubricFiles(projectPath: string, sourcePath: string, upgr
   if (!fs.existsSync(rubricSource)) return;
   copyRubricFiles(projectPath, sourcePath);
   upgraded.push('rubric/ (criteria files)');
-}
-
-export function upgradeSeedLessons(projectPath: string, sourcePath: string, upgraded: string[]): void {
-  const lessonsSource = path.join(sourcePath, 'lessons.md');
-  const lessonsTarget = path.join(projectPath, '.claude', 'universal-lessons.md');
-  if (fs.existsSync(lessonsSource) && !fs.existsSync(lessonsTarget)) {
-    fs.copyFileSync(lessonsSource, lessonsTarget);
-    upgraded.push('universal-lessons.md (seeded)');
-  }
 }
 
 export function installOneSkill(

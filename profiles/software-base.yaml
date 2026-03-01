@@ -35,6 +35,8 @@ skills:
     - legacy         # Legacy code testing
     - test-doubles   # xUnit patterns, test doubles
     - test-strategy  # Test pyramid
+    # Pitfalls
+    - pitfalls       # Known bug patterns and code traps
 
 agents:
   - security-auditor

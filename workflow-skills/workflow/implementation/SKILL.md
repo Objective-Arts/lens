@@ -114,22 +114,18 @@ Before starting, read these canon skills and apply their principles throughout:
 If a skill file doesn't exist (not installed in this project), skip it and continue.
 List loaded experts in EXPERTS_LOADED. In EXPERT_DECISIONS, show each specific decision an expert drove with file:line.
 
-### Step 0b: Learn From Past Mistakes
+### Step 0b: Check Known Pitfalls
 
-Read both lessons files if they exist:
-1. `.claude/universal-lessons.md` — universal patterns (ships with skills, applies to all projects)
-2. `.claude/lessons.md` — project-specific patterns (accumulated from this project's runs)
+Read `canon/pitfalls/SKILL.md` if it exists. Apply its patterns as you work:
 
-Apply these lessons as you write code:
+- **Logic Traps** → avoid these exact bug patterns (TOCTOU, shell injection, path traversal, XSS in embedded JSON)
+- **Code Quality Traps** → avoid dead exports, unused imports, redundant verification reads
+- **Design Traps** → respect size limits, avoid unbounded lists from user-controlled input
+- **AI-Generated Antipatterns** → do NOT generate these: no single-use helpers, no JSDoc restating function names, no null checks on typed params, no speculative types/config, no empty catch blocks
 
-- **LOGIC** entries → avoid these exact bug patterns (e.g., never pair `existsSync`+`readFileSync` — use try-catch; never use `execSync` with template literals — use `execFileSync` with args array; validate names before `path.join`; escape `</` in embedded JSON)
-- **CODE_QUALITY** entries → avoid dead exports, unused imports, redundant verification reads
-- **DESIGN** entries → respect size limits, avoid unbounded lists from user-controlled input
-- **AI_SMELL** entries → do NOT generate these antipatterns: no single-use helpers, no JSDoc restating function names, no null checks on typed params, no speculative types/config, no empty catch blocks
+This is the most impactful phase for preventing recurring issues. Check each Logic Trap against your implementation.
 
-This is the most impactful phase for preventing recurring issues. Check each LOGIC entry against your implementation.
-
-If a file doesn't exist, skip it and continue.
+If the file doesn't exist, skip it and continue.
 
 ### Step 1: Load Plan
 

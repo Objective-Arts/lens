@@ -1,6 +1,5 @@
 /**
  * Profile commands - manage configuration profiles
- * Following clarity: single responsibility module
  */
 
 import { Command } from 'commander';
@@ -11,18 +10,11 @@ import {
   listProfiles,
   getProfile,
   saveProfile,
-  applyComposableProfile,
-  combineProfiles,
   parseProfileString,
+  combineProfiles,
   exampleComposableProfile
 } from '../../profiles/index.js';
-import { deployAllSkills } from '../../canon/index.js';
-import {
-  printDryRun,
-  printDeployedSkills,
-  printApplyResults,
-  printProfileNotFound
-} from '../display/index.js';
+import { printProfileNotFound } from '../display/index.js';
 import type { ComposableProfile } from '../../types.js';
 import { isValidName, validateProjectPath } from '../../utils/validation.js';
 
@@ -32,13 +24,6 @@ export function registerProfileCommands(program: Command): void {
   profileCmd.command('list').description('List available profiles').action(handleList);
   profileCmd.command('show <name>').description('Show profile details').action(handleShow);
   profileCmd.command('create <name>').description('Create a new profile').action(handleCreate);
-
-  profileCmd
-    .command('apply <profiles> [projectPath]')
-    .description('Apply profile(s) to a project')
-    .option('-p, --project <path>', 'Project path')
-    .option('--dry-run', 'Show what would be done')
-    .action(handleApply);
 
   profileCmd
     .command('clean [projectPath]')
@@ -66,8 +51,7 @@ function handleList(): void {
     console.log(chalk.gray(`    Skills: ${skillCount}`));
   }
 
-  console.log(chalk.gray('\nTip: Combine profiles with + syntax:'));
-  console.log(chalk.gray('  lens profile apply base-tech+javascript+react /path/to/project'));
+  console.log(chalk.gray('\nTip: Use lens init --profile <name> to set up a project'));
 }
 
 function handleShow(name: string): void {
@@ -97,74 +81,6 @@ function handleCreate(name: string): void {
   console.log(chalk.gray(`Edit at: ~/.claude/profiles/${name.toLowerCase().replace(/\s+/g, '-')}.yaml`));
 }
 
-function validateProfileNames(profileNames: string[]): boolean {
-  for (const profileName of profileNames) {
-    if (!isValidName(profileName)) {
-      console.error(chalk.red(`Invalid profile name component "${profileName}": must contain only letters, numbers, hyphens, and underscores`));
-      process.exitCode = 1;
-      return false;
-    }
-  }
-  return true;
-}
-
-async function runApplySteps(profile: ReturnType<typeof resolveProfile>, targetPath: string): Promise<void> {
-  if (!profile) return;
-
-  console.log(chalk.blue(`Applying profile "${profile.name}" to ${targetPath}...\n`));
-
-  console.log(chalk.cyan('[1/4] Setting up project structure...'));
-  const result = await applyComposableProfile(profile, targetPath);
-
-  console.log(chalk.cyan('[2/4] Processing results...'));
-  printApplyResults(result);
-
-  console.log(chalk.cyan('\n[3/4] Deploying canon skills...'));
-  const deployResult = deployAllSkills(targetPath, { force: true });
-  console.log(chalk.green(`  ✓ Deployed ${deployResult.deployed} canon skills`));
-  if (deployResult.deployedNames.length > 0) printDeployedSkills(deployResult.deployedNames);
-  deployResult.errors.forEach(deployError => console.log(chalk.red(`  Error: ${deployError}`)));
-
-  console.log(chalk.cyan('[4/4] Finalizing...'));
-  if (result.errors.length > 0 || deployResult.errors.length > 0) {
-    console.log(chalk.yellow('\n⚠ Profile applied with some errors.'));
-    process.exitCode = 1;
-  } else {
-    console.log(chalk.green('\n✓ Profile applied successfully!'));
-  }
-}
-
-async function handleApply(
-  profiles: string,
-  projectPath: string | undefined,
-  options: { project?: string; dryRun?: boolean }
-): Promise<void> {
-  const rawPath = projectPath || options.project || process.cwd();
-  const targetPath = validateProjectPath(rawPath);
-  if (!targetPath) {
-    console.error(chalk.red(`Invalid project path: ${rawPath}`));
-    process.exitCode = 1;
-    return;
-  }
-  const profileNames = parseProfileString(profiles);
-
-  if (!validateProfileNames(profileNames)) return;
-
-  const profile = resolveProfile(profileNames, profiles);
-  if (!profile) return;
-
-  if (profileNames.length > 1) {
-    console.log(chalk.blue(`Combining profiles: ${profileNames.join(' + ')}\n`));
-  }
-
-  if (options.dryRun) {
-    printDryRun(profile, targetPath);
-    return;
-  }
-
-  await runApplySteps(profile, targetPath);
-}
-
 type CleanTarget = { path: string; label: string; type: 'dir' | 'file' | 'symlink' };
 
 function findCleanTargets(targetPath: string): CleanTarget[] | null {
@@ -177,10 +93,9 @@ function findCleanTargets(targetPath: string): CleanTarget[] | null {
 
   const targets: CleanTarget[] = [
     { path: path.join(claudeDir, 'skills'), label: '.claude/skills/', type: 'dir' },
+    { path: path.join(claudeDir, 'rubric'), label: '.claude/rubric/', type: 'symlink' },
     { path: path.join(claudeDir, 'canon-manifest.json'), label: '.claude/canon-manifest.json', type: 'file' },
-    { path: path.join(claudeDir, 'config'), label: '.claude/config/', type: 'dir' },
-    { path: path.join(targetPath, 'canon'), label: 'canon (symlink)', type: 'symlink' },
-    { path: path.join(targetPath, 'workflow-skills'), label: 'workflow-skills (symlink)', type: 'symlink' },
+    { path: path.join(targetPath, '.mcp.json'), label: '.mcp.json', type: 'file' },
   ];
 
   const found = targets.filter(t => fs.existsSync(t.path));
@@ -213,7 +128,7 @@ function executeClean(found: CleanTarget[], targetPath: string): void {
     console.log(chalk.yellow(`\n⚠ Cleaned ${removed} items, ${failed} failed.`));
     process.exitCode = 1;
   } else if (removed > 0) {
-    console.log(chalk.green(`\n✓ Cleaned ${removed} items. Project is ready for a fresh apply.`));
+    console.log(chalk.green(`\n✓ Cleaned ${removed} items.`));
   } else {
     console.log(chalk.yellow('\nNothing was removed.'));
   }

@@ -22,7 +22,7 @@ Improve existing code using the full quality pipeline.
 5. **deduplication** — Remove duplicates
 6. **review** — Parallel scans, dedupe findings, fix
 7. **testing** — Write and run tests
-8. **evaluation** — Codex scores 7 dimensions, fix until all 9+, write lessons
+8. **evaluation** — Codex scores 7 dimensions, fix until all 9+
 
 ```
 [rollback] → Phase 1:plan → Phase 2:structure
@@ -32,7 +32,7 @@ Improve existing code using the full quality pipeline.
   → Phase 6:review (parallel scans → dedupe → fix)
   → Phase 7:testing → Phase 8:evaluation
   → [quality-gate]
-  → [lessons written]
+  → [eval report]
 ```
 
 ## When to Use
@@ -470,10 +470,10 @@ Do NOT return your full work log — the orchestrator reads the file when needed
 
 **v. Read** `FIX_APPLIED` lines from `.claude/build-log/phase-8-fixes.md`. Continue to next iteration.
 
-**8c. Lessons** — after the loop, spawn **LESSON agent** (`subagent_type: "general-purpose"`, model: `sonnet`):
+**8c. Report** — after the loop, spawn **REPORT agent** (`subagent_type: "general-purpose"`, model: `sonnet`):
 
 ```
-Classify fixes and write evaluation outputs. Do NOT modify source code.
+Write evaluation report. Do NOT modify source code.
 
 Read scores and fixes from:
 - .claude/build-log/phase-8-scores.md (final scores)
@@ -481,29 +481,19 @@ Read scores and fixes from:
 
 Initial scores: {INITIAL_SCORES}
 
-Classify each fix using this tree:
-- Code pattern to avoid? YES + general → LESSON in both .claude/lessons.md and .claude/universal-lessons.md
-- Code pattern to avoid? YES + project-specific → LESSON in .claude/lessons.md only
-- Suggests pipeline/tool change? → PROPOSAL in .claude/eval-proposals.md
-- Neither → eval-report.md only
-
-Category: LOGIC | DESIGN | CODE_QUALITY | DUPLICATION | AI_SMELL
-
-Read .claude/lessons.md and .claude/universal-lessons.md — skip duplicates.
 Write .claude/eval-report.md (replace file using template from
 workflow-skills/workflow/evaluation/SKILL.md Report Template section).
 Write detailed evaluation log to .claude/build-log/phase-8-evaluation.md
-Append to lessons + proposals.
 Verify writes by reading each file.
 
 OUTPUT RULES:
 Your final message back MUST contain ONLY:
-  1. LESSONS_COMPLETE on its own line
-  2. A single summary line (e.g. "3 lessons written, 1 proposal filed")
+  1. EVALUATION_REPORT_COMPLETE on its own line
+  2. A single summary line (e.g. "report written, 5 fixes documented")
 Do NOT return your full work log — the orchestrator reads the file when needed.
 ```
 
-The orchestrator checks for `SCORE_COMPLETE`, `FIX_COMPLETE`, and `LESSONS_COMPLETE` markers. After the lesson agent completes, update `build-state.json` and emit `EVALUATION_COMPLETE`.
+The orchestrator checks for `SCORE_COMPLETE`, `FIX_COMPLETE`, and `EVALUATION_REPORT_COMPLETE` markers. After the report agent completes, update `build-state.json` and emit `EVALUATION_COMPLETE`.
 
 ### Step 6: Quality Gate (final)
 
@@ -526,7 +516,7 @@ Improve: {TARGET}
   ✓ Refine    refactored + deduped
   ✓ Review    4 scans, {N} findings fixed
   ✓ Verify    {N} tests, 0 failures
-  ✓ Evaluate  {initial}/70 → {final}/70, lessons written
+  ✓ Evaluate  {initial}/70 → {final}/70
 
 Rollback: /improve --rollback
 ```

@@ -115,21 +115,15 @@ Before starting, read these canon skills and apply their principles throughout:
 If a skill file doesn't exist (not installed in this project), skip it and continue.
 List loaded experts in EXPERTS_LOADED. In EXPERT_DECISIONS, show each specific planning decision an expert drove.
 
-### Step 0b: Learn From Past Mistakes
+### Step 0b: Check Known Pitfalls
 
-Read both lessons files if they exist:
-1. `.claude/universal-lessons.md` — universal patterns (ships with skills, applies to all projects)
-2. `.claude/lessons.md` — project-specific patterns (accumulated from this project's runs)
+Read `canon/pitfalls/SKILL.md` if it exists. Apply its patterns as you work:
 
-These contain patterns that later quality phases (gemini-review, qodana-review, security-review) have repeatedly caught. Your plan should proactively address these known patterns so they don't recur:
+- **Logic Traps** → avoid these bug patterns in your plan (TOCTOU, shell injection, path traversal)
+- **Design Traps** → plan for these upfront (cleanup symmetry, function size limits, data versioning)
+- **AI-Generated Antipatterns** → do NOT plan these: no single-use helpers, no speculative features, no over-abstraction
 
-- **LOGIC** entries → plan to avoid these bug patterns (e.g., TOCTOU, path traversal, shell injection)
-- **DESIGN** entries → plan architecture that avoids these structural mistakes
-- **CODE_QUALITY** entries → plan naming/structure that won't trigger these findings
-- **DUPLICATION** entries → check for these duplicate patterns in your plan
-- **AI_SMELL** entries → plan at the right abstraction level: no single-use wrappers, no speculative config/types, no over-decomposition
-
-If a file doesn't exist, skip it and continue.
+If the file doesn't exist, skip it and continue.
 
 ### Step 0c: Surface Eval Proposals
 

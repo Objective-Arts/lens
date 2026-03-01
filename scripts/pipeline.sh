@@ -1015,11 +1015,11 @@ PROMPT
     run_claude "$fix_prompt" sonnet "$fix_out" || true
   done
 
-  # 8c. Lessons
-  color_info "Writing lessons"
-  local lesson_prompt
-  lesson_prompt=$(cat <<PROMPT
-Classify fixes and write evaluation outputs. Do NOT modify source code.
+  # 8c. Evaluation report
+  color_info "Writing evaluation report"
+  local report_prompt
+  report_prompt=$(cat <<PROMPT
+Write evaluation report. Do NOT modify source code.
 
 Read scores and fixes from:
 - .claude/build-log/phase-8-scores.md (final scores)
@@ -1027,29 +1027,19 @@ Read scores and fixes from:
 
 Initial scores: ${initial_scores}
 
-Classify each fix using this tree:
-- Code pattern to avoid? YES + general → LESSON in both .claude/lessons.md and .claude/universal-lessons.md
-- Code pattern to avoid? YES + project-specific → LESSON in .claude/lessons.md only
-- Suggests pipeline/tool change? → PROPOSAL in .claude/eval-proposals.md
-- Neither → eval-report.md only
-
-Category: LOGIC | DESIGN | CODE_QUALITY | DUPLICATION | AI_SMELL
-
-Read .claude/lessons.md and .claude/universal-lessons.md — skip duplicates.
 Write .claude/eval-report.md with a summary of the evaluation.
 Write detailed evaluation log to .claude/build-log/phase-8-evaluation.md
-Append to lessons + proposals.
 Verify writes by reading each file.
 
 OUTPUT RULES:
 Your final message MUST contain ONLY:
-  1. LESSONS_COMPLETE on its own line
-  2. A single summary line (e.g. "3 lessons written, 1 proposal filed")
+  1. EVALUATION_REPORT_COMPLETE on its own line
+  2. A single summary line (e.g. "report written, 5 fixes documented")
 Do NOT return your full work log.
 PROMPT
 )
-  local lesson_out="$BUILD_LOG/phase-8-lesson-output.txt"
-  run_claude "$lesson_prompt" sonnet "$lesson_out" "Read Write Edit Glob Grep" || true
+  local report_out="$BUILD_LOG/phase-8-report-output.txt"
+  run_claude "$report_prompt" sonnet "$report_out" "Read Write Edit Glob Grep" || true
 
   local duration
   duration=$(elapsed_since "$start_epoch")

@@ -132,39 +132,9 @@ ANALYSIS_ISSUES: N
 SECURITY_REVIEW_COMPLETE: yes
 ```
 
-## Final: Record Lessons Learned
+## Final: Pitfalls
 
-After fixing all issues, record NEW findings so earlier phases learn from them.
-
-**Write to TWO files:**
-
-### 1. Project-local: `.claude/lessons.md`
-
-Append the specific finding with file paths and context:
-
-```markdown
-## {date} - {target path}
-### Qodana Found (phase 7)
-- {CATEGORY}: {specific description with file:line} → {which earlier phase should catch this and how}
-```
-
-### 2. Universal: `.claude/universal-lessons.md`
-
-Read this file first. If the **general pattern** is already listed, skip. If it's a NEW general pattern not already covered, append it to the appropriate section (LOGIC Patterns, DESIGN Patterns, CODE_QUALITY Patterns, or DUPLICATION Patterns). Write the general rule, not the project-specific instance:
-
-```markdown
-### {Pattern Name}
-- {General description of the pattern, not tied to specific files} → {how to avoid it}
-```
-
-**Categories:** LOGIC, DESIGN, CODE_QUALITY, DUPLICATION
-
-Common Qodana findings that indicate earlier-phase gaps:
-- Unused imports → implementation should not import "just in case"
-- Dead functions → implementation should verify exports are used; refactoring should grep for callers
-- Dead constants → deduplication should catch same-name constants in different files
-
-If no new lessons were learned (already in both files), skip this step.
+> Known pitfalls are maintained in `canon/pitfalls/SKILL.md`. If you discover a new recurring pattern, note it in the report output — it can be added to the pitfalls canon in a future release.
 
 ## Validation (Phase will FAIL if violated)
 

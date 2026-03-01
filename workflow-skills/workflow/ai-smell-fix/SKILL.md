@@ -97,46 +97,9 @@ TESTS_PASS: yes
 AI_SMELL_REVIEW_COMPLETE
 ```
 
-## Final: Record Lessons Learned
+## Final: Pitfalls
 
-After fixing all smells, record NEW findings so earlier phases stop generating them.
-
-**Write to TWO files:**
-
-### 1. Project-local: `.claude/lessons.md`
-
-Append the specific finding with file paths and context:
-
-```markdown
-## {date} - {target path}
-### AI Smell Review Found (ai-smell-fix)
-- {CATEGORY}: {specific description with file:line} → {which earlier phase should catch this and how}
-```
-
-### 2. Universal: `.claude/universal-lessons.md`
-
-Read this file first. If the **general pattern** is already listed, skip. If it's a NEW general pattern not already covered, append it to the appropriate section (AI_SMELL Patterns, CODE_QUALITY Patterns, or DESIGN Patterns). Write the general rule, not the project-specific instance:
-
-```markdown
-### {Pattern Name}
-- {General description of the AI smell, not tied to specific files} → {how to avoid it}
-```
-
-**Categories and where they route:**
-- Over-abstraction → DESIGN (plan, structure should avoid single-use wrappers)
-- Defensive paranoia → CODE_QUALITY (implementation should trust typed inputs)
-- Comment spam → CODE_QUALITY (implementation should not add comments restating code)
-- Speculative features → DESIGN (plan should not design unused config/options)
-- Dead code → CODE_QUALITY (implementation should verify exports have callers)
-- Enterprise patterns → DESIGN (structure should pick simplest pattern that works)
-
-Common AI smell findings that indicate earlier-phase gaps:
-- Single-use helper functions → plan should not decompose below the natural abstraction level
-- JSDoc restating function names → implementation should only comment non-obvious behavior
-- Null checks on typed parameters → implementation should trust TypeScript's type system
-- Unused types/interfaces → structure should not create types speculatively
-
-If no new lessons were learned (already in both files), skip this step.
+> Known pitfalls are maintained in `canon/pitfalls/SKILL.md`. If you discover a new recurring pattern, note it in the report output — it can be added to the pitfalls canon in a future release.
 
 ## Validation (Phase FAILS if violated)
 

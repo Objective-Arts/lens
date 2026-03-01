@@ -202,40 +202,9 @@ CANNOT_FIX: N
 GEMINI_REVIEW_COMPLETE: yes
 ```
 
-## Final: Record Lessons Learned
+## Final: Pitfalls
 
-After fixing all issues, record NEW findings so earlier phases learn from them.
-
-**Write to TWO files:**
-
-### 1. Project-local: `.claude/lessons.md`
-
-Append the specific finding with file paths and context:
-
-```markdown
-## {date} - {target path}
-### Gemini Found (phase 6)
-- {CATEGORY}: {specific description with file:line} → {which earlier phase should catch this and how}
-```
-
-### 2. Universal: `.claude/universal-lessons.md`
-
-Read this file first. If the **general pattern** is already listed, skip. If it's a NEW general pattern not already covered, append it to the appropriate section (LOGIC Patterns, DESIGN Patterns, CODE_QUALITY Patterns, DUPLICATION Patterns, or Gemini False Positive Patterns). Write the general rule, not the project-specific instance:
-
-```markdown
-### {Pattern Name}
-- {General description of the pattern, not tied to specific files} → {how to avoid it}
-```
-
-**Categories:** LOGIC, DESIGN, CODE_QUALITY, DUPLICATION, AI_SMELL
-
-**Also record false positive patterns** that Gemini consistently flags incorrectly:
-
-```markdown
-- **"{pattern description}"** — {why it's not applicable in this context}
-```
-
-If no new lessons were learned (already in both files), skip this step.
+> Known pitfalls are maintained in `canon/pitfalls/SKILL.md`. If you discover a new recurring pattern, note it in the report output — it can be added to the pitfalls canon in a future release.
 
 ## Evidence Checklists (MANDATORY)
 

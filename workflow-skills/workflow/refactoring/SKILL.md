@@ -107,19 +107,14 @@ Before starting, read these canon skills and apply their principles throughout:
 If a skill file doesn't exist (not installed in this project), skip it and continue.
 List loaded experts in EXPERTS_LOADED. Tag each fix with `(via [expert-skill])` showing which expert drove it.
 
-### Step 0b: Learn From Past Mistakes
+### Step 0b: Check Known Pitfalls
 
-Read both lessons files if they exist:
-1. `.claude/universal-lessons.md` — universal patterns (ships with skills, applies to all projects)
-2. `.claude/lessons.md` — project-specific patterns (accumulated from this project's runs)
+Read `canon/pitfalls/SKILL.md` if it exists. Apply its patterns as you work:
 
-Add relevant lessons to your checklist of things to look for:
+- **Code Quality Traps** → actively hunt for these patterns (dead exports, unused imports, redundant verification reads)
+- **Logic Traps** → check for these bug patterns during refactoring (TOCTOU, missing validation)
 
-- **CODE_QUALITY** entries → actively hunt for these patterns (e.g., dead exports, unused imports, redundant verification reads)
-- **LOGIC** entries → check for these bug patterns during refactoring (e.g., TOCTOU, missing validation)
-- **AI_SMELL** entries → look for single-use helpers to inline, JSDoc restating function names, impossible null checks, empty catch blocks
-
-If a file doesn't exist, skip it and continue.
+If the file doesn't exist, skip it and continue.
 
 ### Step 1: Identify Issues
 

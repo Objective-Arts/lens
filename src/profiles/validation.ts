@@ -68,37 +68,6 @@ function validateClaudeMd(claudeMd: unknown, filename: string): string[] {
   return errors;
 }
 
-function validateHooks(hooks: unknown, filename: string): string[] {
-  if (hooks === undefined) return [];
-  if (!isRecord(hooks)) return [`${filename}: 'hooks' must be an object`];
-
-  const errors: string[] = [];
-  const validEventTypes = ['PreToolUse', 'PostToolUse', 'UserPromptSubmit', 'Notification'];
-  for (const eventType of Object.keys(hooks)) {
-    if (!validEventTypes.includes(eventType)) {
-      errors.push(`${filename}: 'hooks.${eventType}' is not a valid hook event type`);
-    }
-    if (!Array.isArray(hooks[eventType])) {
-      errors.push(`${filename}: 'hooks.${eventType}' must be an array`);
-    } else {
-      (hooks[eventType] as unknown[]).forEach((entry, i) => {
-        if (!isRecord(entry)) {
-          errors.push(`${filename}: 'hooks.${eventType}[${i}]' must be an object`);
-        } else if (!Array.isArray(entry.hooks)) {
-          errors.push(`${filename}: 'hooks.${eventType}[${i}].hooks' must be an array of hook definitions`);
-        } else {
-          (entry.hooks as unknown[]).forEach((hook, j) => {
-            if (!isRecord(hook) || (hook.type !== 'command' && hook.type !== 'prompt')) {
-              errors.push(`${filename}: 'hooks.${eventType}[${i}].hooks[${j}]' must have type 'command' or 'prompt'`);
-            }
-          });
-        }
-      });
-    }
-  }
-  return errors;
-}
-
 function validateOptionalFields(data: Record<string, unknown>, filename: string): string[] {
   const errors: string[] = [];
 
@@ -132,7 +101,6 @@ export function validateProfileSchema(data: unknown, filename: string): Validati
   errors.push(...validateOptionalFields(data, filename));
   errors.push(...validateSkills(data.skills, filename));
   errors.push(...validateClaudeMd(data.claudeMd, filename));
-  errors.push(...validateHooks(data.hooks, filename));
 
   return { valid: errors.length === 0, errors };
 }

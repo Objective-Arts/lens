@@ -8,7 +8,7 @@ import * as fs from 'fs';
 import * as fsPromises from 'fs/promises';
 import * as path from 'path';
 import { parse as parseYaml } from 'yaml';
-import type { ComposableProfile, ProfileHooksConfig } from '../types.js';
+import type { ComposableProfile } from '../types.js';
 import { validateProfileSchema } from './validation.js';
 import { USER_PROFILES_DIR, BUILTIN_PROFILES_DIR, DEBUG } from './paths.js';
 
@@ -20,37 +20,6 @@ const MAX_PROFILE_SIZE = 1024 * 1024;
 
 function mergeArrays<T>(target: T[], source: T[]): T[] {
   return [...new Set([...target, ...source])];
-}
-
-function mergeHookEventType(
-  parent: ProfileHooksConfig,
-  child: ProfileHooksConfig,
-  eventType: keyof ProfileHooksConfig,
-  merged: ProfileHooksConfig
-): void {
-  const parentHooks = parent[eventType] ?? [];
-  const childHooks = child[eventType] ?? [];
-  if (parentHooks.length > 0 || childHooks.length > 0) {
-    merged[eventType] = [...parentHooks, ...childHooks];
-  }
-}
-
-function mergeHooks(
-  parent: ProfileHooksConfig | undefined,
-  child: ProfileHooksConfig | undefined
-): ProfileHooksConfig | undefined {
-  if (!parent && !child) return undefined;
-  if (!parent) return child;
-  if (!child) return parent;
-
-  const eventTypes = ['PreToolUse', 'PostToolUse', 'UserPromptSubmit', 'Notification'] as const;
-  const merged: ProfileHooksConfig = {};
-
-  for (const eventType of eventTypes) {
-    mergeHookEventType(parent, child, eventType, merged);
-  }
-
-  return Object.keys(merged).length > 0 ? merged : undefined;
 }
 
 function orEmpty<T>(arr: T[] | undefined): T[] {
@@ -104,8 +73,7 @@ function mergeProfiles(parent: ComposableProfile, child: ComposableProfile): Com
     agents: mergeArrays(parent.agents ?? [], child.agents ?? []),
     commands: mergeArrays(parent.commands ?? [], child.commands ?? []),
     claudeMd: mergeClaudeMd(parent, child),
-    mcpServers: mergeMcpServers(parent, child),
-    hooks: mergeHooks(parent.hooks, child.hooks)
+    mcpServers: mergeMcpServers(parent, child)
   };
 }
 
@@ -259,4 +227,4 @@ export async function getProfileAsync(name: string): Promise<ComposableProfile |
 }
 
 // Re-export merge utilities for combiner
-export { mergeArrays, mergeHooks };
+export { mergeArrays };

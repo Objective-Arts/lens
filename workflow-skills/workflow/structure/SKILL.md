@@ -62,19 +62,14 @@ Before starting either mode, read these canon skills and apply their principles 
 If a skill file doesn't exist (not installed in this project), skip it and continue.
 List loaded experts in EXPERTS_LOADED. In EXPERT_DECISIONS, show each specific structural decision an expert drove.
 
-### Step 0b: Learn From Past Mistakes
+### Step 0b: Check Known Pitfalls
 
-Read both lessons files if they exist:
-1. `.claude/universal-lessons.md` — universal patterns (ships with skills, applies to all projects)
-2. `.claude/lessons.md` — project-specific patterns (accumulated from this project's runs)
+Read `canon/pitfalls/SKILL.md` if it exists. Apply its patterns as you work:
 
-Apply relevant lessons to your structural design:
+- **Design Traps** → avoid these architectural mistakes in your target state
+- **Logic Traps** → design types/interfaces that make these bug patterns impossible (e.g., validated newtypes instead of raw strings for paths/names)
 
-- **DESIGN** entries → avoid these architectural mistakes in your target state
-- **LOGIC** entries → design types/interfaces that make these bug patterns impossible (e.g., validated newtypes instead of raw strings for paths/names)
-- **AI_SMELL** entries → do not create speculative types/interfaces without consumers; avoid over-decomposition
-
-If a file doesn't exist, skip it and continue.
+If the file doesn't exist, skip it and continue.
 
 ### Step 0c: Load Quality Contracts
 

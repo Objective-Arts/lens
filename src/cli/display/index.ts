@@ -12,9 +12,6 @@ export { printTokenBreakdown } from './tokens.js';
 export { printDependencies } from './deps.js';
 export {
   printList,
-  printDryRun,
-  printDeployedSkills,
-  printApplyResults,
   printProfileNotFound
 } from './profile.js';
 export {

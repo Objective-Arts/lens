@@ -7,7 +7,7 @@ description: "Reference templates for Codex evaluation. Used by build/improve or
 
 Templates and formats for the Phase 8 evaluation loop. The orchestrator in `/build` and `/improve` reads these templates and injects them into single-purpose agents.
 
-**This file is NOT executed directly.** The orchestrator owns the score-fix-lesson loop.
+**This file is NOT executed directly.** The orchestrator owns the score-fix-report loop.
 
 ## Rubric Loading
 
@@ -91,25 +91,9 @@ EVAL_SCORES (iteration {N}):
   Below 9:        {list of dimensions below 9, or "none"}
 ```
 
-## Classification Tree
-
-For each fix applied, the LESSON agent classifies:
-
-```
-Code pattern that should be avoided in future code?
-  YES -> General rule?
-    YES -> LESSON -> both lessons files (deduped)
-    NO  -> LESSON -> .claude/lessons.md only
-  NO  -> Suggests pipeline/tool/config change?
-    YES -> PROPOSAL -> .claude/eval-proposals.md
-    NO  -> eval-report.md only
-```
-
-Each LESSON gets a category: `LOGIC`, `DESIGN`, `CODE_QUALITY`, `DUPLICATION`, or `AI_SMELL`.
-
 ## Report Template
 
-The LESSON agent replaces `.claude/eval-report.md` with:
+The report agent replaces `.claude/eval-report.md` with:
 
 ```markdown
 # Eval Report — {TARGET}
@@ -136,22 +120,6 @@ The LESSON agent replaces `.claude/eval-report.md` with:
 | # | Dimension | File | Fix |
 |---|-----------|------|-----|
 | 1 | {dim} | {file:line} | {what was fixed} |
-
-## Lessons ({count})
-
-| # | Category | Description |
-|---|----------|-------------|
-| 1 | {cat} | {desc} |
-
-## Proposals ({count})
-
-| # | Type | Description | Action |
-|---|------|-------------|--------|
-| 1 | {type} | {desc} | {action} |
 ```
 
-### Lesson Files
-
-- **`.claude/lessons.md`** — append new lessons under appropriate category sections
-- **`.claude/universal-lessons.md`** — append only general patterns (not project-specific), deduplicate against existing
-- **`.claude/eval-proposals.md`** — append new proposals with PENDING status
+> Known pitfalls are maintained in `canon/pitfalls/SKILL.md`. If you discover a new recurring pattern during evaluation, note it in the report — it can be added to the pitfalls canon in a future release.

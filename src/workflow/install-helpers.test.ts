@@ -1,8 +1,7 @@
 /**
  * Tests for workflow install-helpers:
  * lstatTarget, removeTarget, checkAlreadyInstalled,
- * copyRubricFiles, seedUniversalLessons,
- * installOneSkill, upgradeOneSkill, skipReason logic
+ * copyRubricFiles, installOneSkill, upgradeOneSkill, skipReason logic
  */
 
 import { describe, it, expect, beforeEach, afterEach } from 'vitest';
@@ -14,7 +13,6 @@ import {
   removeTarget,
   checkAlreadyInstalled,
   copyRubricFiles,
-  seedUniversalLessons,
   installOneSkill,
   upgradeOneSkill
 } from './install-helpers.js';
@@ -211,64 +209,6 @@ describe('copyRubricFiles', () => {
     expect(fs.existsSync(path.join(rubricTarget, 'new.md'))).toBe(true);
     // Old file should be gone (directory was replaced)
     expect(fs.existsSync(path.join(rubricTarget, 'old.md'))).toBe(false);
-  });
-});
-
-// ---------------------------------------------------------------------------
-// seedUniversalLessons
-// ---------------------------------------------------------------------------
-
-describe('seedUniversalLessons', () => {
-  let tmpDir: string;
-
-  beforeEach(() => {
-    tmpDir = fs.mkdtempSync(path.join(tmpdir(), 'lens-lessons-'));
-  });
-
-  afterEach(() => {
-    fs.rmSync(tmpDir, { recursive: true, force: true });
-  });
-
-  it('copies lessons.md when source exists and target does not', () => {
-    const projectDir = path.join(tmpDir, 'project');
-    const sourceDir = path.join(tmpDir, 'source');
-    fs.mkdirSync(path.join(projectDir, '.claude'), { recursive: true });
-    fs.mkdirSync(sourceDir);
-    fs.writeFileSync(path.join(sourceDir, 'lessons.md'), '# Universal Lessons', 'utf-8');
-
-    seedUniversalLessons(projectDir, sourceDir);
-
-    const target = path.join(projectDir, '.claude', 'universal-lessons.md');
-    expect(fs.existsSync(target)).toBe(true);
-    expect(fs.readFileSync(target, 'utf-8')).toContain('Universal Lessons');
-  });
-
-  it('does not overwrite existing universal-lessons.md', () => {
-    const projectDir = path.join(tmpDir, 'project');
-    const sourceDir = path.join(tmpDir, 'source');
-    const claudeDir = path.join(projectDir, '.claude');
-    fs.mkdirSync(claudeDir, { recursive: true });
-    fs.mkdirSync(sourceDir);
-
-    const existingContent = '# My Custom Lessons\n- never overwrite me\n';
-    fs.writeFileSync(path.join(claudeDir, 'universal-lessons.md'), existingContent, 'utf-8');
-    fs.writeFileSync(path.join(sourceDir, 'lessons.md'), '# New Source', 'utf-8');
-
-    seedUniversalLessons(projectDir, sourceDir);
-
-    const content = fs.readFileSync(path.join(claudeDir, 'universal-lessons.md'), 'utf-8');
-    expect(content).toBe(existingContent);
-  });
-
-  it('does nothing when source lessons.md does not exist', () => {
-    const projectDir = path.join(tmpDir, 'project');
-    const sourceDir = path.join(tmpDir, 'source');
-    fs.mkdirSync(path.join(projectDir, '.claude'), { recursive: true });
-    fs.mkdirSync(sourceDir);
-    // No lessons.md in sourceDir
-
-    expect(() => seedUniversalLessons(projectDir, sourceDir)).not.toThrow();
-    expect(fs.existsSync(path.join(projectDir, '.claude', 'universal-lessons.md'))).toBe(false);
   });
 });
 

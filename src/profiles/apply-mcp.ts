@@ -162,7 +162,7 @@ async function writeMcpJsonConfig(
 }
 
 /** Create or update project-level .mcp.json with required MCP servers */
-async function createProjectMcpJson(projectPath: string): Promise<{ status: 'created' | 'skipped' | 'error'; warning?: string; error?: string; added?: string[] }> {
+export async function createProjectMcpJson(projectPath: string): Promise<{ status: 'created' | 'skipped' | 'error'; warning?: string; error?: string; added?: string[] }> {
   const targetPath = path.join(projectPath, '.mcp.json');
 
   const { config: mcpConfig, error: readError } = await readMcpJsonConfig(targetPath);

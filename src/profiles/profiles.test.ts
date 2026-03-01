@@ -2,19 +2,16 @@
  * Tests for profile management
  */
 
-import { describe, it, expect, beforeEach, afterEach } from 'vitest';
+import { describe, it, expect } from 'vitest';
 import * as fs from 'fs';
 import * as path from 'path';
-import { tmpdir } from 'os';
 import {
   parseProfileString,
   combineProfiles,
   getSkillLibraryPaths,
-  listProfiles,
-  applyComposableProfile
+  listProfiles
 } from './index.js';
 import { findSkillSourcePath, getCanonSourcePath } from '../canon/index.js';
-import type { ComposableProfile } from '../types.js';
 
 describe('parseProfileString', () => {
   it('parses single profile', () => {
@@ -331,164 +328,6 @@ describe('all profiles have valid skill references', () => {
         }
       }
     });
-  });
-});
-
-describe('canon skill symlinks into .claude/skills/', () => {
-  let tempDir: string;
-
-  beforeEach(() => {
-    tempDir = fs.mkdtempSync(path.join(tmpdir(), 'canon-symlink-test-'));
-  });
-
-  afterEach(() => {
-    if (tempDir && fs.existsSync(tempDir)) {
-      fs.rmSync(tempDir, { recursive: true, force: true });
-    }
-  });
-
-  it('creates relative symlinks from .claude/skills/ to ../canon/ for profile canon skills', async () => {
-    const profile: ComposableProfile = {
-      name: 'test-symlink',
-      composable: true,
-      skills: { canon: ['clarity', 'simplicity'] }
-    };
-
-    await applyComposableProfile(profile, tempDir);
-
-    const skillsDir = path.join(tempDir, '.claude', 'skills');
-
-    for (const skillName of ['clarity', 'simplicity']) {
-      const linkPath = path.join(skillsDir, skillName);
-      // Canon dir should have the actual copy
-      const canonPath = path.join(tempDir, '.claude', 'canon', skillName);
-      if (!fs.existsSync(canonPath)) continue; // Skill not found in library
-
-      const stat = fs.lstatSync(linkPath);
-      expect(stat.isSymbolicLink()).toBe(true);
-
-      const target = fs.readlinkSync(linkPath);
-      expect(target).toBe(path.join('..', 'canon', skillName));
-
-      // Symlink should resolve to a readable directory
-      expect(fs.statSync(linkPath).isDirectory()).toBe(true);
-    }
-  });
-
-  it('does not overwrite non-symlink entries in .claude/skills/', async () => {
-    const skillsDir = path.join(tempDir, '.claude', 'skills', 'clarity');
-    fs.mkdirSync(skillsDir, { recursive: true });
-    fs.writeFileSync(path.join(skillsDir, 'SKILL.md'), 'workflow version');
-
-    const profile: ComposableProfile = {
-      name: 'test-no-overwrite',
-      composable: true,
-      skills: { canon: ['clarity'] }
-    };
-
-    await applyComposableProfile(profile, tempDir);
-
-    // Should still be a real directory, not a symlink
-    const stat = fs.lstatSync(path.join(tempDir, '.claude', 'skills', 'clarity'));
-    expect(stat.isSymbolicLink()).toBe(false);
-
-    // Content should be preserved
-    const content = fs.readFileSync(path.join(tempDir, '.claude', 'skills', 'clarity', 'SKILL.md'), 'utf-8');
-    expect(content).toBe('workflow version');
-  });
-
-  it('replaces stale symlinks in .claude/skills/', async () => {
-    const skillsDir = path.join(tempDir, '.claude', 'skills');
-    fs.mkdirSync(skillsDir, { recursive: true });
-    // Create a stale symlink
-    fs.symlinkSync('../old-path/clarity', path.join(skillsDir, 'clarity'));
-
-    const profile: ComposableProfile = {
-      name: 'test-replace-stale',
-      composable: true,
-      skills: { canon: ['clarity'] }
-    };
-
-    await applyComposableProfile(profile, tempDir);
-
-    const linkPath = path.join(skillsDir, 'clarity');
-    const canonPath = path.join(tempDir, '.claude', 'canon', 'clarity');
-    if (fs.existsSync(canonPath)) {
-      const target = fs.readlinkSync(linkPath);
-      expect(target).toBe(path.join('..', 'canon', 'clarity'));
-    }
-  });
-
-  it('reports symlink results in linked array', async () => {
-    const profile: ComposableProfile = {
-      name: 'test-report',
-      composable: true,
-      skills: { canon: ['clarity'] }
-    };
-
-    const result = await applyComposableProfile(profile, tempDir);
-
-    const canonPath = path.join(tempDir, '.claude', 'canon', 'clarity');
-    if (fs.existsSync(canonPath)) {
-      expect(result.linked.some(l => l.includes('skills/clarity') && l.includes('canon/clarity'))).toBe(true);
-    }
-  });
-});
-
-describe('path traversal protection', () => {
-  const testDir = path.join(tmpdir(), 'cc-traversal-test');
-
-  beforeEach(() => {
-    fs.mkdirSync(path.join(testDir, '.claude'), { recursive: true });
-  });
-
-  afterEach(() => {
-    fs.rmSync(testDir, { recursive: true, force: true });
-  });
-
-  it('rejects skill names with forward slash traversal', async () => {
-    const maliciousProfile: ComposableProfile = {
-      name: 'test-traversal',
-      composable: true,
-      skills: { canon: ['../../etc/passwd'] }
-    };
-
-    const result = await applyComposableProfile(maliciousProfile, testDir);
-    expect(result.errors.some(e => e.includes('path traversal'))).toBe(true);
-  });
-
-  it('rejects skill names with dot-dot traversal', async () => {
-    const maliciousProfile: ComposableProfile = {
-      name: 'test-dotdot',
-      composable: true,
-      skills: { canon: ['..'] }
-    };
-
-    const result = await applyComposableProfile(maliciousProfile, testDir);
-    expect(result.errors.some(e => e.includes('path traversal'))).toBe(true);
-  });
-
-  it('rejects skill names with backslash traversal', async () => {
-    const maliciousProfile: ComposableProfile = {
-      name: 'test-backslash',
-      composable: true,
-      skills: { canon: ['..\\..\\etc\\passwd'] }
-    };
-
-    const result = await applyComposableProfile(maliciousProfile, testDir);
-    expect(result.errors.some(e => e.includes('path traversal'))).toBe(true);
-  });
-
-  it('allows valid skill names with hyphens and underscores', async () => {
-    const goodProfile: ComposableProfile = {
-      name: 'test-valid',
-      composable: true,
-      skills: { canon: ['my-skill', 'my_skill_2'] }
-    };
-
-    const result = await applyComposableProfile(goodProfile, testDir);
-    // Should not have path traversal errors (may have "not found" errors, which is fine)
-    expect(result.errors.some(e => e.includes('path traversal'))).toBe(false);
   });
 });
 

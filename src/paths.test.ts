@@ -59,11 +59,6 @@ describe('PATHS singleton', () => {
     expect(PATHS.phases.length).toBeGreaterThan(0);
   });
 
-  it('config path is a string', () => {
-    expect(typeof PATHS.config).toBe('string');
-    expect(PATHS.config.length).toBeGreaterThan(0);
-  });
-
   it('mcp path is a string', () => {
     expect(typeof PATHS.mcp).toBe('string');
     expect(PATHS.mcp.length).toBeGreaterThan(0);
@@ -72,11 +67,6 @@ describe('PATHS singleton', () => {
   it('plans path is a string', () => {
     expect(typeof PATHS.plans).toBe('string');
     expect(PATHS.plans.length).toBeGreaterThan(0);
-  });
-
-  it('claudeConfig path is a string', () => {
-    expect(typeof PATHS.claudeConfig).toBe('string');
-    expect(PATHS.claudeConfig.length).toBeGreaterThan(0);
   });
 
   it('skills path is a string', () => {
@@ -121,7 +111,7 @@ describe('PATHS — resolution in dev mode', () => {
   it('all path properties are absolute', () => {
     const absoluteProps: Array<keyof LensPaths> = [
       'root', 'canons', 'profiles', 'workflowSkills',
-      'pipeline', 'phases', 'config', 'mcp', 'plans', 'claudeConfig'
+      'pipeline', 'phases', 'mcp', 'plans'
     ];
 
     for (const prop of absoluteProps) {

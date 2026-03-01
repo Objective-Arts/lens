@@ -131,21 +131,6 @@ describe('validateProfileSchema', () => {
     expect(invalid.valid).toBe(false);
   });
 
-  it('validates hooks event types', () => {
-    const valid = validateProfileSchema({
-      name: 'test',
-      hooks: { PreToolUse: [{ hooks: [{ type: 'command', command: 'echo test' }] }] }
-    }, 'test.yaml');
-    expect(valid.valid).toBe(true);
-
-    const invalid = validateProfileSchema({
-      name: 'test',
-      hooks: { InvalidEvent: [{ hooks: [{ type: 'command', command: 'echo test' }] }] }
-    }, 'test.yaml');
-    expect(invalid.valid).toBe(false);
-    expect(invalid.errors.some(e => e.includes('InvalidEvent'))).toBe(true);
-  });
-
   it('includes filename in error messages', () => {
     const result = validateProfileSchema({}, 'my-profile.yaml');
     expect(result.errors.every(e => e.includes('my-profile.yaml'))).toBe(true);

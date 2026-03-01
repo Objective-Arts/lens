@@ -6,7 +6,7 @@
 
 import type { ComposableProfile, SkillCategory } from '../types.js';
 import { getProfile } from './loader.js';
-import { mergeArrays, mergeHooks } from './loader.js';
+import { mergeArrays } from './loader.js';
 import { SKILL_CATEGORIES } from './validation.js';
 
 export function parseProfileString(profileString: string): string[] {
@@ -83,7 +83,6 @@ export function combineProfiles(profileNames: string[]): ComposableProfile | nul
     if (profile.commands) combined.commands = mergeArrays(combined.commands ?? [], profile.commands);
     mergeClaudeMdInto(combined, profile.claudeMd);
     mergeMcpServersInto(combined, profile.mcpServers);
-    if (profile.hooks) combined.hooks = mergeHooks(combined.hooks, profile.hooks);
   }
 
   return combined;

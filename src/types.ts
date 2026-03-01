@@ -2,7 +2,7 @@
  * Core types for Claude Code configuration management
  */
 
-export type ConfigItemType = 'skill' | 'command' | 'agent' | 'memory' | 'settings' | 'hook' | 'mcp';
+export type ConfigItemType = 'skill' | 'command' | 'agent' | 'memory' | 'settings' | 'mcp';
 export type ConfigScope = 'global' | 'project' | 'plugin';
 
 export interface ConfigItem {
@@ -52,7 +52,6 @@ export interface SettingsParsed {
     deny: string[];
     defaultMode?: string;
   };
-  hooks?: Record<string, unknown[]>;
   mcpServers?: string[];
   env?: Record<string, string>;
 }
@@ -83,7 +82,8 @@ export interface SkillLibraryPaths {
 /**
  * Extended MCP server configuration for profiles
  */
-export type { MCPServerCategory } from './mcp/types.js';
+import type { MCPServerCategory } from './mcp/types.js';
+export type { MCPServerCategory };
 
 export interface ProfileMCPServerConfig {
   enable: string[];
@@ -91,26 +91,6 @@ export interface ProfileMCPServerConfig {
   config?: Record<string, Record<string, unknown>>;  // Override registry settings
   categories?: MCPServerCategory[];  // Enable all servers in category
   requireAll?: boolean;  // Fail if any unavailable (default: false)
-}
-
-/**
- * Hook configuration for profiles
- * Maps hook event types to hook definitions
- */
-export interface ProfileHookItem {
-  matcher?: string;  // Regex pattern for tool/event matching
-  hooks: Array<{
-    type: 'command' | 'prompt';
-    command?: string;  // For type: command
-    prompt?: string;   // For type: prompt
-  }>;
-}
-
-export interface ProfileHooksConfig {
-  PreToolUse?: ProfileHookItem[];
-  PostToolUse?: ProfileHookItem[];
-  UserPromptSubmit?: ProfileHookItem[];
-  Notification?: ProfileHookItem[];
 }
 
 export interface ComposableProfile {
@@ -133,7 +113,6 @@ export interface ComposableProfile {
     autoInvoke?: Array<{ context: string; action: string }>;
   };
   mcpServers?: ProfileMCPServerConfig;
-  hooks?: ProfileHooksConfig;
 }
 
 /** Skill reference (used by canon inspect) */

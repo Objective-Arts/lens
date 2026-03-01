@@ -1,6 +1,6 @@
 # Workflow Skills
 
-Universal workflow skills for Claude Code. Installed to projects via `lens profile apply`.
+Universal workflow skills for Claude Code. Installed to projects via `lens init`.
 
 ## Structure
 
@@ -69,7 +69,7 @@ One change, cleaned up, reported.
 | `qodana-review` | 6 | Static analysis, fix every issue |
 | `ai-smell-fix` | 6 | Remove 9 AI antipattern categories |
 | `testing` | 7 | Write tests, run suite, mock audit |
-| `evaluation` | 8 | Score 7 dimensions, fix-loop, write lessons |
+| `evaluation` | 8 | Score 7 dimensions, fix-loop, report |
 
 ### Other Workflow Skills (workflow/)
 
@@ -120,7 +120,7 @@ One change, cleaned up, reported.
 ### Via lens (recommended)
 
 ```bash
-lens profile apply javascript .
+lens init --profile javascript
 ```
 
 ### Multi-project updates
@@ -135,11 +135,6 @@ lens workflow push    # Push updates to all registered projects
 cp -r workflow-skills/* your-project/.claude/skills/
 ```
 
-## Self-Learning
+## Pitfalls Canon
 
-Review phases (6-8) write findings to two files:
-
-- `.claude/lessons.md` — project-specific patterns with file:line references
-- `.claude/universal-lessons.md` — general patterns (carried across projects)
-
-Planning phases (1-5) read both files before starting work. This creates a feedback loop where the pipeline gets smarter over time.
+Known bug patterns and anti-patterns are maintained in `canon/pitfalls/SKILL.md`. Planning and implementation phases (1-5) read this canon before starting work, proactively avoiding known issues.

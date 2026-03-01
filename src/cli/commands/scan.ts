@@ -60,7 +60,7 @@ function registerListCommand(program: Command): void {
     .option('-s, --scope <scope>', 'Filter by scope (global, project, plugin)')
     .option('--tokens', 'Sort by token count')
     .action(async (type, options) => withValidProject(options, async (projectPath) => {
-      const validTypes = ['skill', 'command', 'agent', 'memory', 'settings', 'hook', 'mcp'];
+      const validTypes = ['skill', 'command', 'agent', 'memory', 'settings', 'mcp'];
       const validScopes = ['global', 'project', 'plugin'];
 
       if (type && !validTypes.includes(type)) {

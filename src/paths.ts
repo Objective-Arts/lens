@@ -3,7 +3,7 @@
  *
  * Resolves all asset paths relative to the package installation location,
  * NOT the current working directory. Every module that reads canons, profiles,
- * skills, pipeline scripts, rubrics, phases, or config must use this module.
+ * skills, pipeline scripts, or rubrics must use this module.
  *
  * Dual resolution for backwards compatibility:
  *   1. Primary: the package installation directory (for global installs)
@@ -111,14 +111,10 @@ export interface LensPaths {
   readonly rubrics: string;
   /** Phase definitions: .claude/phases/ */
   readonly phases: string;
-  /** Config directory: config/ */
-  readonly config: string;
   /** MCP servers: mcp-servers/ */
   readonly mcp: string;
   /** Plans directory: .claude/plans/ */
   readonly plans: string;
-  /** Claude config: .claude/config/ */
-  readonly claudeConfig: string;
   /** Resolution mode: 'installed' or 'dev' */
   readonly mode: ResolveMode;
 }
@@ -154,10 +150,8 @@ function createPaths(): LensPaths {
     get pipeline() { return cached('pipeline', () => resolveAssetPath('scripts/pipeline.sh')); },
     get rubrics() { return cached('rubrics', resolveRubricsPath); },
     get phases() { return cached('phases', () => resolveAssetPath('.claude/phases')); },
-    get config() { return cached('config', () => resolveAssetPath('config')); },
     get mcp() { return cached('mcp', () => resolveAssetPath('mcp-servers')); },
     get plans() { return cached('plans', () => resolveAssetPath('.claude/plans')); },
-    get claudeConfig() { return cached('claudeConfig', () => resolveAssetPath('.claude/config')); },
     get mode() { return detectMode(); }
   };
 }

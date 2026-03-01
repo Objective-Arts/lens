@@ -35,8 +35,7 @@ export {
   listProfilesAsync,
   getProfile,
   getProfileAsync,
-  mergeArrays,
-  mergeHooks
+  mergeArrays
 } from './loader.js';
 
 // Re-export combiner
@@ -44,10 +43,6 @@ export { parseProfileString, combineProfiles } from './combiner.js';
 
 // Re-export persistence
 export { saveProfile, saveProfileAsync } from './persistence.js';
-
-// Re-export apply
-export { applyComposableProfile } from './apply.js';
-export type { ApplyResult } from './apply.js';
 
 // Example profile for documentation/tests
 import type { ComposableProfile } from '../types.js';
