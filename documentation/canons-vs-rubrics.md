@@ -4,7 +4,7 @@ Lens has two types of knowledge files that serve different purposes at different
 
 ## Canons: Domain Expertise
 
-**What they are:** ~75 markdown files organized by domain (JavaScript, SQL, security, React, etc.) that teach Claude *how to think* about a specific topic.
+**What they are:** ~88 markdown files organized by domain (JavaScript, SQL, security, React, C#, etc.) that teach Claude *how to think* about a specific topic.
 
 **Where they live:** `canon/` directory, organized into subdirectories by domain.
 
@@ -91,7 +91,7 @@ You need both. A canon without a rubric means Claude writes good code but review
 
 | Type | Count | Location |
 |------|-------|----------|
-| Canon skills | ~75 | `canon/` (18 subdirectories) |
+| Canon skills | ~88 | `canon/` (30 subdirectories) |
 | Rubrics | 14 | `workflow-skills/rubric/` |
 
 ## Rubric Files

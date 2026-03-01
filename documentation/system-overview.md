@@ -83,7 +83,7 @@ After init, open Claude Code and use `/build`, `/fix`, `/improve`, etc.
 │                     INSTALLED PACKAGE                                    │
 │                     (source of truth — copied into projects by init)    │
 │                                                                         │
-│  canon/              75 domain expertise skills (knowledge)             │
+│  canon/              88 domain expertise skills (knowledge)             │
 │  workflow-skills/    38 workflow + utility skills (actions)             │
 │  profiles/           15 YAML profiles (which canons + standards)       │
 │  workflow-skills/rubric/  14 scoring rubrics (review criteria)         │
@@ -108,7 +108,7 @@ Run from your terminal. Setup and inspection.
 | `lens list [type]` | What skills/hooks/settings are installed? |
 | `lens audit` | Any configuration problems? |
 | `lens profile list` | What profiles are available? |
-| `lens canon list` | Browse the knowledge library (~75 canons) |
+| `lens canon list` | Browse the knowledge library (~88 canons) |
 | `lens workflow status` | Check if installed skills are up to date |
 
 ### Layer 2: Skills (inside Claude Code)
@@ -193,7 +193,7 @@ Skills and canons are copied (not symlinked) for portability. Only `.claude/skil
 
 ## Two Types of Knowledge
 
-### Canon Skills (~75): Domain Expertise
+### Canon Skills (~88): Domain Expertise
 
 Teach Claude *how to think* about a topic. Loaded during writing phases (1-5).
 

@@ -196,7 +196,7 @@ After installation, your system will have:
 /path/to/lens/                      # Source repository
 ├── src/                            # TypeScript source code
 ├── dist/                           # Compiled output
-├── canon/                          # 77 canon skill definitions
+├── canon/                          # 88 canon skill definitions
 ├── profiles/                       # 15 profile definitions
 ├── workflow-skills/                # 33 workflow + utility skills
 ├── mcp-servers/                    # MCP server implementations

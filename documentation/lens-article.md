@@ -10,7 +10,7 @@ Lens is a system that embeds domain expertise into Claude Code — Anthropic's c
 
 Lens is built on a single observation. Claude has access to more programming knowledge than any human developer. It knows about single responsibility, separation of concerns, defensive coding, and framework idioms. The problem is not knowledge. The problem is perspective. A developer who has spent years working with a book like Effective Java doesn't just know the rules — they see code differently. They notice when a constructor should be a static factory method, when a mutable return value will cause a thread-safety bug, when an interface has too many methods. This isn't recall. It's a lens that filters every decision.
 
-Lens makes this concrete. Each "canon skill" is a markdown file that captures one expert's approach to one domain: how they think, what they check for, what patterns they follow, when they break the rules. There are 77 of these skills across 29 categories. Some examples:
+Lens makes this concrete. Each "canon skill" is a markdown file that captures one expert's approach to one domain: how they think, what they check for, what patterns they follow, when they break the rules. There are 88 of these skills across 30 categories. Some examples:
 
 - **clarity** distills Brian Kernighan's principles: clear code above clever code, meaningful names, functions that do one thing.
 - **security-mindset** teaches Claude to think like an attacker: what input can be abused, what state can be corrupted, where does trust cross a boundary.
@@ -99,7 +99,7 @@ The result is measurable. The first run catches problems in late phases. The sec
 
 ## Current state and what it means
 
-Lens ships as `@objective-arts/lens`, a Node.js command-line tool installable via npm. It has 77 canon skills across 29 categories, 15 composable profiles, 33 workflow skills, and an eight-phase pipeline (plan → structure → implementation → refactoring → deduplication → review → testing → evaluation) with five mechanisms. The pipeline runs either in-session via `/build` and `/improve` commands, or through a bash orchestrator that spawns isolated sessions per phase — each approach suited to different project sizes and preferences.
+Lens ships as `@objective-arts/lens`, a Node.js command-line tool installable via npm. It has 88 canon skills across 30 categories, 15 composable profiles, 33 workflow skills, and an eight-phase pipeline (plan → structure → implementation → refactoring → deduplication → review → testing → evaluation) with five mechanisms. The pipeline runs either in-session via `/build` and `/improve` commands, or through a bash orchestrator that spawns isolated sessions per phase — each approach suited to different project sizes and preferences.
 
 The system was used to build itself. Every module in Lens — the CLI, the canon loader, the profile system, the scanner, the workflow manager — went through the pipeline. The self-learning feedback loop accumulated lessons from each module's run, and later modules benefited from earlier modules' mistakes. By the final modules, the late phases were finding fewer issues because the early phases had absorbed the project's recurring patterns. This is the strongest evidence that the architecture works: it improved the quality of its own codebase over the course of its own development.
 

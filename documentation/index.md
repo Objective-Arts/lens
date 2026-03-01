@@ -116,7 +116,7 @@ See [Installation Reference](reference/installation.md) for complete setup guide
 | [How the Pipeline Works](explanation/how-the-pipeline-works.md) | The 8-phase pipeline, skills, contracts, lessons, and review model |
 | [Skill Enforcement Model](explanation/skill-enforcement-model.md) | How skills become hard gates, not suggestions |
 | [Two-Tier Review Architecture](explanation/two-tier-review.md) | Self-review vs external validation |
-| [Why Five Layers Wins](why-five-layers-wins.md) | Competitive analysis of five-layer enforcement |
+| [Why Three Layers Wins](why-five-layers-wins.md) | Canon + gate + rubric enforcement model |
 | [Quality Gate Spec](quality-gate-spec.md) | Machine gate specification |
 
 ---
