@@ -7,3 +7,18 @@ extends: javascript
 skills:
   canon:
     - react-state    # Mental models, hooks, composition
+    - react-hooks    # Advanced hooks mastery — useRef, useTransition, custom hooks
+    - react-server   # Server Components, Server Actions, streaming, "use client"/"use server"
+    - react-perf     # React performance — memoization, virtualization, bundle splitting
+    - react-types    # TypeScript + React patterns — generic components, discriminated unions
+
+claudeMd:
+  autoInvoke:
+    - context: React hooks, useRef, useTransition, useDeferredValue, custom hooks
+      action: INVOKE `/react-hooks`
+    - context: Server Components, Server Actions, "use client", "use server", RSC
+      action: INVOKE `/react-server`
+    - context: React performance, memoization, re-renders, virtualization, bundle size
+      action: INVOKE `/react-perf`
+    - context: TypeScript with React, generic components, discriminated union props
+      action: INVOKE `/react-types`

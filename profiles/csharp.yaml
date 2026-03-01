@@ -10,6 +10,12 @@ skills:
     - async          # Concurrency in C# - async/await, Task, threading
     - type-systems   # Language design philosophy, type system decisions
     - java           # API design principles (transfers well)
+    - dotnet-core    # ASP.NET Core — middleware, DI, minimal APIs, auth
+    - dotnet-data    # Entity Framework Core — DbContext, migrations, N+1, Dapper
+    - dotnet-di      # Dependency injection — lifetimes, composition root, options pattern
+    - dotnet-testing # xUnit, NSubstitute, FluentAssertions, WebApplicationFactory
+    - linq-advanced  # Advanced LINQ — IQueryable, deferred execution, GroupBy, performance
+    - dotnet-perf    # .NET performance — Span<T>, ArrayPool, ObjectPool, BenchmarkDotNet
 
 claudeMd:
   standards:
@@ -65,3 +71,15 @@ claudeMd:
       action: INVOKE `/type-systems`
     - context: API design, immutability, builders, factory methods
       action: INVOKE `/java`
+    - context: ASP.NET Core, middleware, minimal APIs, controllers, authentication
+      action: INVOKE `/dotnet-core`
+    - context: Entity Framework, DbContext, migrations, database queries, Dapper
+      action: INVOKE `/dotnet-data`
+    - context: Dependency injection, service lifetimes, IOptions, composition root
+      action: INVOKE `/dotnet-di`
+    - context: xUnit, unit testing, integration testing, NSubstitute, FluentAssertions
+      action: INVOKE `/dotnet-testing`
+    - context: Advanced LINQ, IQueryable, GroupBy, SelectMany, deferred execution
+      action: INVOKE `/linq-advanced`
+    - context: .NET performance, Span, ArrayPool, allocation, BenchmarkDotNet
+      action: INVOKE `/dotnet-perf`
