@@ -1,11 +1,11 @@
 {
-  "name": "lens-scan-lite",
+  "name": "@objective-arts/lens",
   "version": "0.4.0",
   "description": "Lens - AI Assisted Development That Builds In Quality",
   "type": "module",
   "main": "dist/index.js",
   "bin": {
-    "lens-scan": "./dist/cli/index.js"
+    "lens": "./dist/cli/index.js"
   },
   "scripts": {
     "build": "tsc && npm run copy-assets && npm run chmod-bins",

@@ -18,13 +18,13 @@ import {
 const program = new Command();
 
 const DESCRIPTION = `
-${chalk.bold.white('Lens Scan')} ${chalk.dim('— Lightweight Code Scanner with Canon-Backed Quality')}
+${chalk.bold.white('Lens')} ${chalk.dim('— AI Assisted Development That Builds In Quality')}
 
 ${chalk.bold.yellow('QUICK START')}
 
-  ${chalk.green('$')} npm install -g lens-scan-lite
+  ${chalk.green('$')} npx @objective-arts/lens init
   ${chalk.green('$')} cd your-project
-  ${chalk.green('$')} lens-scan init             ${chalk.dim('Auto-detect stack, create skills + config')}
+  ${chalk.green('$')} lens init                  ${chalk.dim('Auto-detect stack, create skills + config')}
   ${chalk.green('$')} claude                     ${chalk.dim('Start Claude Code')}
 
 ${chalk.bold.yellow('INSIDE CLAUDE CODE')} ${chalk.dim('(slash commands after setup)')}
@@ -45,11 +45,11 @@ ${chalk.bold.yellow('INSIDE CLAUDE CODE')} ${chalk.dim('(slash commands after se
 
 ${chalk.bold.yellow('OTHER CLI COMMANDS')}
 
-  ${chalk.cyan('lens-scan canon list')}             Browse 75+ expert skills
-  ${chalk.cyan('lens-scan canon inspect')} ${chalk.dim('<skill>')} Show what a skill contains
-  ${chalk.cyan('lens-scan scan')}                   Show current project config
+  ${chalk.cyan('lens canon list')}             Browse 75+ expert skills
+  ${chalk.cyan('lens canon inspect')} ${chalk.dim('<skill>')} Show what a skill contains
+  ${chalk.cyan('lens scan')}                   Show current project config
 
-Run ${chalk.yellow('lens-scan <command> --help')} for details.
+Run ${chalk.yellow('lens <command> --help')} for details.
 
 ${chalk.bold.yellow('ENVIRONMENT VARIABLES')}
 
@@ -59,8 +59,8 @@ ${chalk.bold.yellow('ENVIRONMENT VARIABLES')}
 `;
 
 program
-  .name('lens-scan')
-  .description('Lens Scan — Lightweight Code Scanner with Canon-Backed Quality')
+  .name('lens')
+  .description('Lens — AI Assisted Development That Builds In Quality')
   .version('0.4.0')
   .action(() => {
     console.log(DESCRIPTION);
