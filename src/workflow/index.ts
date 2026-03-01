@@ -15,17 +15,16 @@ import { registerInstallation, listInstallations, pruneRegistry } from './regist
 import { PATHS } from '../paths.js';
 import {
   lstatTarget, removeTarget, checkAlreadyInstalled,
-  copyQualityGateScript, copyRubricFiles, seedUniversalLessons,
-  upgradeQualityGateScript, upgradeRubricFiles, upgradeSeedLessons,
+  copyQualityGateScript, copyRubricFiles,
+  upgradeQualityGateScript, upgradeRubricFiles,
   installOneSkill, upgradeOneSkill
 } from './install-helpers.js';
 
 /** Skills visible as slash commands in Claude Code */
-const USER_FACING_SKILLS = new Set([
-  'build', 'improve', 'change',
-  'ai-smell-scan', 'ai-smell-fix', 'generate-docs', 'lens',
-  'canon-audit', 'code-scan', 'codex-scan', 'dedupe-scan', 'gemini-scan',
-  'naming-scan', 'qodana-scan', 'refactor-scan'
+export const USER_FACING_SKILLS = new Set([
+  'change', 'fix',
+  'code-scan', 'ai-smell-scan', 'deadcode-scan', 'naming-scan',
+  'refactor-scan', 'dedupe-scan', 'canon-audit', 'generate-docs',
 ]);
 
 /**
@@ -242,7 +241,6 @@ export function installAllWorkflowSkills(
   const manifest = getWorkflowManifest(projectPath);
   if (manifest) copyQualityGateScript(projectPath, sourcePath, manifest, (m) => saveWorkflowManifest(projectPath, m));
   copyRubricFiles(projectPath, sourcePath);
-  seedUniversalLessons(projectPath, sourcePath);
   registerInstallation(projectPath);
 
   return results;
@@ -314,7 +312,6 @@ export function upgradeWorkflowSkills(
   const sourcePath = getWorkflowSourcePath();
   upgradeQualityGateScript(projectPath, sourcePath, manifest, (m) => saveWorkflowManifest(projectPath, m), results.upgraded);
   upgradeRubricFiles(projectPath, sourcePath, results.upgraded);
-  upgradeSeedLessons(projectPath, sourcePath, results.upgraded);
 
   return results;
 }

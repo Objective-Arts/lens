@@ -11,27 +11,58 @@ import {
   LENS_MARKER_START, LENS_MARKER_END,
   type DetectedStack, type InitResult
 } from './init-display.js';
+import { setupProjectStructure } from './init-setup.js';
 import { detectStack } from '../stack-detector.js';
 import { validateProjectPath } from '../../utils/validation.js';
 import { isEnoent } from '../../utils/fs.js';
+import { listWorkflowSkills, USER_FACING_SKILLS } from '../../workflow/index.js';
+import { findSkillSourcePath } from '../../canon/source.js';
+import { getProfile } from '../../profiles/loader.js';
+import { parseProfileString, combineProfiles } from '../../profiles/combiner.js';
+import type { ComposableProfile } from '../../types.js';
 
-interface SkillLinkContext {
-  packageDir: string;
-  projectDir: string;
-  force: boolean;
+interface SkillSource {
+  name: string;
+  absolutePath: string;
+  origin: 'workflow' | 'canon';
 }
 
 const FALLBACK_STACK: DetectedStack = { language: 'unknown', framework: null, profile: 'software-base' };
 
-async function getPackageSkills(): Promise<string[]> {
-  try {
-    const entries = await fsPromises.readdir(PATHS.skills, { withFileTypes: true });
-    return entries
-      .filter(e => (e.isDirectory() || e.isSymbolicLink()) && !e.name.startsWith('.'))
-      .map(e => e.name).sort();
-  } catch {
-    return [];
+function discoverWorkflowSkills(): SkillSource[] {
+  const skills = listWorkflowSkills();
+  const sources: SkillSource[] = [];
+  for (const skill of skills) {
+    if (!USER_FACING_SKILLS.has(skill.name)) continue;
+    try {
+      const absolutePath = fs.realpathSync(skill.path);
+      sources.push({ name: skill.name, absolutePath, origin: 'workflow' });
+    } catch { /* skip broken paths */ }
   }
+  return sources;
+}
+
+function discoverCanonSkills(profile: ComposableProfile | null): SkillSource[] {
+  if (!profile?.skills?.canon) return [];
+  const sources: SkillSource[] = [];
+  for (const skillName of profile.skills.canon) {
+    const sourcePath = findSkillSourcePath(skillName);
+    if (!sourcePath) continue;
+    try {
+      const absolutePath = fs.realpathSync(sourcePath);
+      sources.push({ name: skillName, absolutePath, origin: 'canon' });
+    } catch { /* skip broken paths */ }
+  }
+  return sources;
+}
+
+function discoverAllSkills(profile: ComposableProfile | null): SkillSource[] {
+  const workflow = discoverWorkflowSkills();
+  const canon = discoverCanonSkills(profile);
+  const byName = new Map<string, SkillSource>();
+  for (const s of canon) byName.set(s.name, s);
+  for (const s of workflow) byName.set(s.name, s);
+  return Array.from(byName.values()).sort((a, b) => a.name.localeCompare(b.name));
 }
 
 async function updateExistingSymlink(
@@ -48,7 +79,6 @@ async function updateExistingSymlink(
       return;
     }
   } catch {
-    // Broken symlink — proceed to replace
     isBroken = true;
   }
   await fsPromises.unlink(targetLink);
@@ -57,61 +87,50 @@ async function updateExistingSymlink(
   initResult.replaced.push(`${skillName} (symlink updated: ${reason})`);
 }
 
-function resolvePackageSkillPath(packageDir: string, skillName: string): string | null {
-  try {
-    return fs.realpathSync(path.join(packageDir, skillName));
-  } catch {
-    return null;
-  }
-}
-
 async function linkOneSkill(
-  ctx: SkillLinkContext, skillName: string, initResult: InitResult
+  projectDir: string,
+  skill: SkillSource,
+  initResult: InitResult,
+  force: boolean
 ): Promise<void> {
-  const targetLink = path.join(ctx.projectDir, skillName);
-  const resolvedPath = resolvePackageSkillPath(ctx.packageDir, skillName);
-  if (!resolvedPath) {
-    initResult.warnings.push(`Skipped ${skillName}: broken symlink in package`);
-    return;
-  }
+  const targetLink = path.join(projectDir, skill.name);
 
   let lstat;
   try { lstat = await fsPromises.lstat(targetLink); } catch { lstat = null; }
 
   if (!lstat) {
-    await fsPromises.symlink(resolvedPath, targetLink);
-    initResult.created.push(`.claude/skills/${skillName}`);
+    await fsPromises.symlink(skill.absolutePath, targetLink);
+    initResult.created.push(`.claude/skills/${skill.name}`);
     return;
   }
 
   if (lstat.isSymbolicLink()) {
-    await updateExistingSymlink(targetLink, resolvedPath, skillName, initResult);
-  } else if (ctx.force) {
+    await updateExistingSymlink(targetLink, skill.absolutePath, skill.name, initResult);
+  } else if (force) {
     await fsPromises.rm(targetLink, { recursive: true });
-    await fsPromises.symlink(resolvedPath, targetLink);
-    initResult.replaced.push(`${skillName} (replaced copy with symlink)`);
+    await fsPromises.symlink(skill.absolutePath, targetLink);
+    initResult.replaced.push(`${skill.name} (replaced copy with symlink)`);
   } else {
-    initResult.skipped.push(`${skillName} (real directory; use --force to replace)`);
+    initResult.skipped.push(`${skill.name} (real directory; use --force to replace)`);
   }
 }
 
 async function setupSkillSymlinks(
   projectPath: string,
+  skills: SkillSource[],
   initResult: InitResult,
   force: boolean
 ): Promise<void> {
   const projectDir = path.join(projectPath, '.claude', 'skills');
   await fsPromises.mkdir(projectDir, { recursive: true });
 
-  const skills = await getPackageSkills();
   if (skills.length === 0) {
     initResult.warnings.push('No skills found in installed package');
     return;
   }
 
-  const ctx: SkillLinkContext = { packageDir: PATHS.skills, projectDir, force };
-  for (const skillName of skills) {
-    await linkOneSkill(ctx, skillName, initResult);
+  for (const skill of skills) {
+    await linkOneSkill(projectDir, skill, initResult, force);
   }
 }
 
@@ -127,10 +146,11 @@ function mergeLensSection(existing: string, section: string): string {
 async function setupClaudeMd(
   projectPath: string,
   stack: DetectedStack,
+  profile: ComposableProfile | null,
   initResult: InitResult
 ): Promise<void> {
   const claudeMdPath = path.join(projectPath, 'CLAUDE.md');
-  const newSection = buildLensSection(stack);
+  const newSection = buildLensSection(stack, profile);
   let content: string | null = null;
 
   try { content = await fsPromises.readFile(claudeMdPath, 'utf-8'); }
@@ -138,7 +158,6 @@ async function setupClaudeMd(
     if (!isEnoent(cause)) {
       throw new Error(`Failed to read CLAUDE.md`, { cause });
     }
-    /* file not found — content stays null, will create new */
   }
 
   if (content !== null) {
@@ -173,27 +192,6 @@ function detectCopiedDirectories(projectPath: string, initResult: InitResult): v
   }
 }
 
-async function setupClaudeDirectories(projectPath: string, initResult: InitResult): Promise<void> {
-  const dirsToCreate = ['.claude/rubric', '.claude/phases', '.claude/plans', '.claude/config'];
-  for (const dir of dirsToCreate) {
-    const targetDir = path.join(projectPath, dir);
-    const sourceDir = path.join(PATHS.root, dir);
-    if (!fs.existsSync(sourceDir)) continue;
-    await fsPromises.mkdir(targetDir, { recursive: true });
-    try {
-      const entries = await fsPromises.readdir(sourceDir, { withFileTypes: true });
-      for (const entry of entries) {
-        if (entry.name.startsWith('.') || !entry.isFile()) continue;
-        await fsPromises.copyFile(path.join(sourceDir, entry.name), path.join(targetDir, entry.name));
-      }
-      initResult.created.push(`${dir}/`);
-    } catch (cause) {
-      const message = cause instanceof Error ? cause.message : String(cause);
-      initResult.warnings.push(`Could not copy ${dir}: ${message}`);
-    }
-  }
-}
-
 function safeAction(initResult: InitResult, label: string, fn: () => Promise<void>): Promise<void> {
   return fn().catch((cause: unknown) => {
     const detail = cause instanceof Error ? cause.message : String(cause);
@@ -204,10 +202,11 @@ function safeAction(initResult: InitResult, label: string, fn: () => Promise<voi
   });
 }
 
-function printDetectionHeader(stack: DetectedStack): void {
+function printDetectionHeader(stack: DetectedStack, skillCount: number): void {
   console.log(chalk.bold('\nlens init\n'));
   console.log(chalk.gray(`  Detected: ${stack.language}${stack.framework ? ` / ${stack.framework}` : ''}`));
   console.log(chalk.gray(`  Profile:  ${stack.profile}`));
+  console.log(chalk.gray(`  Skills:   ${skillCount} available`));
   console.log(chalk.gray(`  Package:  ${PATHS.root}`));
   console.log(chalk.gray(`  Mode:     ${PATHS.mode}\n`));
 }
@@ -226,16 +225,19 @@ function detectProjectStack(projectPath: string): DetectedStack {
 async function runInitSteps(
   projectPath: string,
   stack: DetectedStack,
+  profile: ComposableProfile | null,
+  skills: SkillSource[],
   options: { force?: boolean },
   initResult: InitResult
 ): Promise<void> {
-  await safeAction(initResult, 'Skill symlinks', () => setupSkillSymlinks(projectPath, initResult, options.force ?? false));
-  await safeAction(initResult, 'Directories', () => setupClaudeDirectories(projectPath, initResult));
-  await safeAction(initResult, 'CLAUDE.md', () => setupClaudeMd(projectPath, stack, initResult));
+  const force = options.force ?? false;
+  await safeAction(initResult, 'Skill symlinks', () => setupSkillSymlinks(projectPath, skills, initResult, force));
+  await safeAction(initResult, 'Project structure', () => setupProjectStructure(projectPath, initResult, force));
+  await safeAction(initResult, 'CLAUDE.md', () => setupClaudeMd(projectPath, stack, profile, initResult));
   detectCopiedDirectories(projectPath, initResult);
 }
 
-async function handleInit(options: { force?: boolean; project?: string }): Promise<void> {
+async function handleInit(options: { force?: boolean; project?: string; profile?: string }): Promise<void> {
   const rawProjectPath = options.project ?? process.cwd();
   const projectPath = validateProjectPath(rawProjectPath);
   if (!projectPath) {
@@ -249,10 +251,19 @@ async function handleInit(options: { force?: boolean; project?: string }): Promi
     warnings: [], errors: [], cleanupHints: []
   };
 
-  const stack = detectProjectStack(projectPath);
-  printDetectionHeader(stack);
+  const stack = options.profile
+    ? { language: 'unknown', framework: null, profile: options.profile }
+    : detectProjectStack(projectPath);
 
-  await runInitSteps(projectPath, stack, options, initResult);
+  const profileNames = parseProfileString(stack.profile);
+  const profile = profileNames.length > 1
+    ? combineProfiles(profileNames)
+    : getProfile(profileNames[0]);
+  const skills = discoverAllSkills(profile);
+
+  printDetectionHeader(stack, skills.length);
+
+  await runInitSteps(projectPath, stack, profile, skills, options, initResult);
   printResults(initResult);
 
   if (initResult.errors.length > 0) { process.exitCode = 1; return; }
@@ -264,5 +275,6 @@ export function registerInitCommand(program: Command): void {
     .description('Initialize Lens in the current project')
     .option('-f, --force', 'Overwrite existing symlinks and files')
     .option('-p, --project <path>', 'Project directory (defaults to cwd)')
+    .option('--profile <name>', 'Use specific profile instead of auto-detecting')
     .action(handleInit);
 }

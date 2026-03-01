@@ -1,6 +1,7 @@
 // Display helpers for the init command.
 
 import chalk from 'chalk';
+import type { ComposableProfile } from '../../types.js';
 
 interface DetectedStack {
   language: string;
@@ -25,21 +26,48 @@ export { LENS_MARKER_START, LENS_MARKER_END };
 export type { DetectedStack, InitResult };
 
 const COMMAND_TABLE = [
+  '**Actions:**', '',
   '| Command | Description |',
   '|---------|-------------|',
-  '| `/build [path]` | Build new feature with quality pipeline |',
-  '| `/improve [path]` | Improve existing code with quality pipeline |',
-  '| `/change [desc]` | Simple change + cleanup |',
-  '| `/fix [path]` | Fast quality loop |',
-  '| `/ai-smell-scan [path]` | AI code patterns (report only) |',
-  '| `/ai-smell-fix [path]` | Deep AI smell removal |',
-  '| `/gemini-scan [path]` | Gemini review (report only) |',
-  '| `/canon-audit <canon> [path]` | Audit against canon rules |',
+  '| `/change [description]` | Simple changes done right — make it, clean it, report it |',
+  '| `/fix [path] [--dry-run]` | Review against canons + gate, fix findings, verify |', '',
+  '**Scans (read-only):**', '',
+  '| Command | Description |',
+  '|---------|-------------|',
+  '| `/code-scan [path]` | 13-dimension quality analysis |',
+  '| `/ai-smell-scan [path]` | AI code patterns |',
+  '| `/deadcode-scan [path]` | Unused code detection |',
+  '| `/naming-scan [path]` | Naming consistency |',
+  '| `/refactor-scan [path]` | Refactoring opportunities |',
+  '| `/dedupe-scan [path]` | Duplication detection |',
+  "| `/canon-audit <canon> [path]` | Audit against a canon's rules |",
   '| `/generate-docs [path]` | Generate documentation |',
-  '| `/lens` | Home base - status and help |',
 ];
 
-export function buildLensSection(stack: DetectedStack): string {
+function buildProfileLines(profile: ComposableProfile | null | undefined): string[] {
+  if (!profile?.claudeMd) return [];
+  const lines: string[] = [];
+
+  const standards = profile.claudeMd.standards ?? [];
+  if (standards.length > 0) {
+    lines.push('## Standards', '', ...standards.map(s => `- ${s}`), '');
+  }
+
+  const antiPatterns = profile.claudeMd.antiPatterns ?? [];
+  if (antiPatterns.length > 0) {
+    lines.push('## Anti-Patterns (Avoid)', '', ...antiPatterns.map(p => `- ${p}`), '');
+  }
+
+  const autoInvoke = profile.claudeMd.autoInvoke ?? [];
+  if (autoInvoke.length > 0) {
+    lines.push('## Auto-Invoke Skills', '', '| Context | Action |', '|---------|--------|');
+    lines.push(...autoInvoke.map(ai => `| ${ai.context} | ${ai.action} |`), '');
+  }
+
+  return lines;
+}
+
+export function buildLensSection(stack: DetectedStack, profile?: ComposableProfile | null): string {
   const lang = stack.language + (stack.framework ? ` / ${stack.framework}` : '');
   return [
     LENS_MARKER_START,
@@ -48,10 +76,15 @@ export function buildLensSection(stack: DetectedStack): string {
     `**Language:** ${lang}`, '',
     '## Available Commands', '',
     ...COMMAND_TABLE, '',
-    '**Flags for /build and /improve:**',
-    '- `--rollback` -- Restore from last stash',
-    '- `--dry-run` -- Show what would change without modifying',
-    '- `--from N|name` -- Resume from a specific phase', '',
+    '## Quality Gate', '',
+    'Run the quality gate against your project:', '',
+    '    tsx node_modules/lens-scan-lite/scripts/quality-gate.ts .', '',
+    'Checks by language:',
+    '- **All languages:** secrets, empty catch, TODO accumulation, hardcoded URLs',
+    '- **JS/TS:** shell injection, path traversal, circular imports, raw error output, proxy checks',
+    '- **C#:** async void, sync-over-async, SQL injection, missing dispose, mutable fields, large structs + polyglot proxy checks',
+    '- **Java:** raw types, string concat in loops, mutable fields + polyglot proxy checks', '',
+    ...buildProfileLines(profile),
     LENS_MARKER_END,
   ].join('\n');
 }

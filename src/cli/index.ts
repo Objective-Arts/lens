@@ -9,10 +9,8 @@ import chalk from 'chalk';
 import {
   registerScanCommands,
   registerProfileCommands,
-  registerMcpCommands,
   registerCanonCommands,
   registerWorkflowCommands,
-  registerTraceCommand,
   registerDedupeCommands,
   registerInitCommand
 } from './commands/index.js';
@@ -20,54 +18,49 @@ import {
 const program = new Command();
 
 const DESCRIPTION = `
-${chalk.bold.white('Lens')} ${chalk.dim('— AI Assisted Development That Builds In Quality')}
+${chalk.bold.white('Lens Scan')} ${chalk.dim('— Lightweight Code Scanner with Canon-Backed Quality')}
 
 ${chalk.bold.yellow('QUICK START')}
 
-  ${chalk.green('$')} npm install -g @objective-arts/lens
+  ${chalk.green('$')} npm install -g lens-scan-lite
   ${chalk.green('$')} cd your-project
-  ${chalk.green('$')} lens init                ${chalk.dim('Auto-detect stack, create skills + config')}
-  ${chalk.green('$')} claude                   ${chalk.dim('Start Claude Code')}
-
-${chalk.bold.yellow('CONFIGURE A PROJECT')} ${chalk.dim('(manual)')}
-
-  ${chalk.white('1.')} ${chalk.green('$')} lens profile list              ${chalk.dim('See available profiles')}
-  ${chalk.white('2.')} ${chalk.green('$')} lens profile apply ${chalk.white('javascript+react .')}  ${chalk.dim('Install skills + config')}
-  ${chalk.white('3.')} ${chalk.green('$')} claude                                  ${chalk.dim('Start Claude Code')}
-
-  ${chalk.dim('Combine profiles with +: javascript+react, python+security, java+sql')}
-  ${chalk.dim('Copies canon skills to .claude/skills/,')}
-  ${chalk.dim('sets up CLAUDE.md with auto-invoke rules, and configures MCP servers.')}
+  ${chalk.green('$')} lens-scan init             ${chalk.dim('Auto-detect stack, create skills + config')}
+  ${chalk.green('$')} claude                     ${chalk.dim('Start Claude Code')}
 
 ${chalk.bold.yellow('INSIDE CLAUDE CODE')} ${chalk.dim('(slash commands after setup)')}
 
-  ${chalk.cyan('/build')} ${chalk.dim('target')}              Build new feature (10 phases)
-  ${chalk.cyan('/improve')} ${chalk.dim('path')}             Improve existing code (10 phases)
+  ${chalk.bold('Actions:')}
   ${chalk.cyan('/change')} ${chalk.dim('desc')}              Simple change + cleanup
-  ${chalk.cyan('/ai-smell-scan')} ${chalk.dim('path')}       Check for AI-generated patterns
-  ${chalk.cyan('/ai-smell-fix')} ${chalk.dim('path')}        Fix AI-generated patterns
+  ${chalk.cyan('/fix')} ${chalk.dim('path [--dry-run]')}     Review against canons + gate, fix findings, verify
+
+  ${chalk.bold('Scans (read-only):')}
+  ${chalk.cyan('/code-scan')} ${chalk.dim('path')}           13-dimension quality analysis
+  ${chalk.cyan('/ai-smell-scan')} ${chalk.dim('path')}       AI code patterns
+  ${chalk.cyan('/deadcode-scan')} ${chalk.dim('path')}       Unused code detection
+  ${chalk.cyan('/naming-scan')} ${chalk.dim('path')}         Naming consistency
+  ${chalk.cyan('/refactor-scan')} ${chalk.dim('path')}       Refactoring opportunities
+  ${chalk.cyan('/dedupe-scan')} ${chalk.dim('path')}         Duplication detection
+  ${chalk.cyan('/canon-audit')} ${chalk.dim('<canon> path')}  Audit against a canon's rules
   ${chalk.cyan('/generate-docs')} ${chalk.dim('path')}       Generate documentation
-  ${chalk.cyan('/lens')}                        Status, help, choices
 
 ${chalk.bold.yellow('OTHER CLI COMMANDS')}
 
-  ${chalk.cyan('lens canon list')}                 Browse 75+ expert skills
-  ${chalk.cyan('lens canon inspect')} ${chalk.dim('<skill>')}   Show what a skill contains
-  ${chalk.cyan('lens scan')}                       Show current project config
+  ${chalk.cyan('lens-scan canon list')}             Browse 75+ expert skills
+  ${chalk.cyan('lens-scan canon inspect')} ${chalk.dim('<skill>')} Show what a skill contains
+  ${chalk.cyan('lens-scan scan')}                   Show current project config
 
-Run ${chalk.yellow('lens <command> --help')} for details.
+Run ${chalk.yellow('lens-scan <command> --help')} for details.
 
 ${chalk.bold.yellow('ENVIRONMENT VARIABLES')}
 
   ${chalk.white('CANON_SKILLS_PATH')}            Override canon skills source directory
   ${chalk.white('CC_WORKFLOW_SKILLS_PATH')}       Override workflow skills source directory
-  ${chalk.white('MCP_REGISTRY_DIR')}              Override MCP server registry directory
   ${chalk.white('DEBUG')}                         Show stack traces on errors
 `;
 
 program
-  .name('lens')
-  .description('Lens - AI Assisted Development That Builds In Quality')
+  .name('lens-scan')
+  .description('Lens Scan — Lightweight Code Scanner with Canon-Backed Quality')
   .version('0.4.0')
   .action(() => {
     console.log(DESCRIPTION);
@@ -77,10 +70,8 @@ program
 registerInitCommand(program);
 registerScanCommands(program);
 registerProfileCommands(program);
-registerMcpCommands(program);
 registerCanonCommands(program);
 registerWorkflowCommands(program);
-registerTraceCommand(program);
 registerDedupeCommands(program);
 
 program.parseAsync().catch((err: unknown) => {

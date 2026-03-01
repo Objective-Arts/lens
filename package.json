@@ -1,12 +1,11 @@
 {
-  "name": "@objective-arts/lens",
+  "name": "lens-scan-lite",
   "version": "0.4.0",
   "description": "Lens - AI Assisted Development That Builds In Quality",
   "type": "module",
   "main": "dist/index.js",
   "bin": {
-    "lens": "./dist/cli/index.js",
-    "lens-reset": "./scripts/reset.sh"
+    "lens-scan": "./dist/cli/index.js"
   },
   "scripts": {
     "build": "tsc && npm run copy-assets && npm run chmod-bins",
@@ -24,9 +23,9 @@
   },
   "keywords": [
     "claude-code",
-    "configuration",
+    "code-scanner",
     "skills",
-    "mcp"
+    "quality-gate"
   ],
   "author": "Objective Arts LLC",
   "license": "UNLICENSED",
@@ -42,16 +41,19 @@
     "dist/",
     "canon/",
     "profiles/",
-    "workflow-skills/",
-    "config/",
-    "scripts/pipeline.sh",
-    "scripts/reset.sh",
-    ".claude/skills/",
-    ".claude/phases/",
-    ".claude/rubric/",
-    ".claude/plans/",
-    ".claude/config/",
-    "mcp-servers/"
+    "workflow-skills/rubric/",
+    "workflow-skills/utils/code-scan/",
+    "workflow-skills/utils/ai-smell-scan/",
+    "workflow-skills/utils/deadcode-scan/",
+    "workflow-skills/utils/naming-scan/",
+    "workflow-skills/utils/refactor-scan/",
+    "workflow-skills/utils/dedupe-scan/",
+    "workflow-skills/utils/canon-audit/",
+    "workflow-skills/utils/generate-docs/",
+    "workflow-skills/workflow/change/",
+    "workflow-skills/workflow/fix/",
+    "scripts/quality-gate.ts",
+    "scripts/quality-gate.test.ts"
   ],
   "dependencies": {
     "chalk": "^5.3.0",
