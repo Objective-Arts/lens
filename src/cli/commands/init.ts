@@ -14,9 +14,12 @@ import {
 import { setupProjectStructure } from './init-setup.js';
 import { detectStack } from '../stack-detector.js';
 import { validateProjectPath } from '../../utils/validation.js';
-import { isEnoent } from '../../utils/fs.js';
-import { listWorkflowSkills, USER_FACING_SKILLS } from '../../workflow/index.js';
-import { findSkillSourcePath } from '../../canon/source.js';
+import { isEnoent, copyDirectorySync } from '../../utils/fs.js';
+import { hashDirectoryContents } from '../../utils/hash.js';
+import { listWorkflowSkills, USER_FACING_SKILLS, getWorkflowSourceInfo } from '../../workflow/index.js';
+import { findSkillSourcePath, getCanonSourceInfo } from '../../canon/source.js';
+import { createManifest, writeManifest, updateSkillInManifest } from '../../canon/manifest.js';
+import { hashSkillDirectory } from '../../canon/hash.js';
 import { getProfile } from '../../profiles/loader.js';
 import { parseProfileString, combineProfiles } from '../../profiles/combiner.js';
 import type { ComposableProfile } from '../../types.js';
@@ -65,57 +68,38 @@ function discoverAllSkills(profile: ComposableProfile | null): SkillSource[] {
   return Array.from(byName.values()).sort((a, b) => a.name.localeCompare(b.name));
 }
 
-async function updateExistingSymlink(
-  targetLink: string,
-  resolvedPath: string,
-  skillName: string,
-  initResult: InitResult
-): Promise<void> {
-  const existingTarget = await fsPromises.readlink(targetLink);
-  let isBroken = false;
-  try {
-    if (fs.realpathSync(targetLink) === resolvedPath) {
-      initResult.skipped.push(`${skillName} (symlink already correct)`);
-      return;
-    }
-  } catch {
-    isBroken = true;
-  }
-  await fsPromises.unlink(targetLink);
-  await fsPromises.symlink(resolvedPath, targetLink);
-  const reason = isBroken ? 'symlink was broken' : `was ${existingTarget}`;
-  initResult.replaced.push(`${skillName} (symlink updated: ${reason})`);
-}
-
-async function linkOneSkill(
+async function copyOneSkill(
   projectDir: string,
   skill: SkillSource,
   initResult: InitResult,
   force: boolean
 ): Promise<void> {
-  const targetLink = path.join(projectDir, skill.name);
+  const targetPath = path.join(projectDir, skill.name);
 
   let lstat;
-  try { lstat = await fsPromises.lstat(targetLink); } catch { lstat = null; }
+  try { lstat = await fsPromises.lstat(targetPath); } catch { lstat = null; }
 
   if (!lstat) {
-    await fsPromises.symlink(skill.absolutePath, targetLink);
+    copyDirectorySync(skill.absolutePath, targetPath);
     initResult.created.push(`.claude/skills/${skill.name}`);
     return;
   }
 
+  // Old symlinks from previous version — always replace (migration)
   if (lstat.isSymbolicLink()) {
-    await updateExistingSymlink(targetLink, skill.absolutePath, skill.name, initResult);
+    await fsPromises.unlink(targetPath);
+    copyDirectorySync(skill.absolutePath, targetPath);
+    initResult.replaced.push(`${skill.name} (migrated symlink to copy)`);
   } else if (force) {
-    await fsPromises.rm(targetLink, { recursive: true });
-    await fsPromises.symlink(skill.absolutePath, targetLink);
-    initResult.replaced.push(`${skill.name} (replaced copy with symlink)`);
+    await fsPromises.rm(targetPath, { recursive: true });
+    copyDirectorySync(skill.absolutePath, targetPath);
+    initResult.replaced.push(`${skill.name} (replaced with fresh copy)`);
   } else {
-    initResult.skipped.push(`${skill.name} (real directory; use --force to replace)`);
+    initResult.skipped.push(`${skill.name} (exists; use --force to replace)`);
   }
 }
 
-async function setupSkillSymlinks(
+async function setupSkillCopies(
   projectPath: string,
   skills: SkillSource[],
   initResult: InitResult,
@@ -130,7 +114,7 @@ async function setupSkillSymlinks(
   }
 
   for (const skill of skills) {
-    await linkOneSkill(projectDir, skill, initResult, force);
+    await copyOneSkill(projectDir, skill, initResult, force);
   }
 }
 
@@ -175,21 +159,84 @@ async function setupClaudeMd(
   await fsPromises.rename(tmpPath, claudeMdPath);
 }
 
-const LENS_DIR_SIGNATURES: Record<string, (entries: string[]) => boolean> = {
-  'canon': (entries) => entries.some(f => ['javascript', 'python', 'react', 'testing'].includes(f)),
-  'workflow-skills': (entries) => entries.some(f => ['workflow', 'utils'].includes(f)),
-  'profiles': (entries) => entries.some(f => f.endsWith('.yaml')),
-};
+async function copyCanonDirectories(
+  projectPath: string,
+  skills: SkillSource[],
+  initResult: InitResult
+): Promise<void> {
+  const canonSkills = skills.filter(s => s.origin === 'canon');
+  if (canonSkills.length === 0) return;
 
-function detectCopiedDirectories(projectPath: string, initResult: InitResult): void {
-  for (const [dir, isLensDir] of Object.entries(LENS_DIR_SIGNATURES)) {
-    const fullPath = path.join(projectPath, dir);
-    if (!fs.existsSync(fullPath)) continue;
-    try { if (fs.lstatSync(fullPath).isSymbolicLink()) continue; } catch { continue; }
-    let entries: string[];
-    try { entries = fs.readdirSync(fullPath); } catch { continue; }
-    if (isLensDir(entries)) initResult.cleanupHints.push(`${dir}/`);
+  const canonDir = path.join(projectPath, '.claude', 'canon');
+  await fsPromises.mkdir(canonDir, { recursive: true });
+
+  for (const skill of canonSkills) {
+    const targetPath = path.join(canonDir, skill.name);
+    let lstat;
+    try { lstat = await fsPromises.lstat(targetPath); } catch { lstat = null; }
+
+    if (lstat?.isSymbolicLink()) {
+      await fsPromises.unlink(targetPath);
+    } else if (lstat) {
+      continue; // Skip existing canon dirs (not force-replaced — canons are reference material)
+    }
+
+    copyDirectorySync(skill.absolutePath, targetPath);
+    initResult.created.push(`.claude/canon/${skill.name}`);
   }
+}
+
+function writeWorkflowManifest(projectPath: string, skills: SkillSource[]): void {
+  const sourceInfo = getWorkflowSourceInfo();
+  const manifest = {
+    source: { type: sourceInfo.type, path: sourceInfo.path, gitRemote: sourceInfo.gitRemote },
+    installedAt: new Date().toISOString(),
+    sourceCommit: sourceInfo.commit,
+    skills: {} as Record<string, { installedAt: string; sourceFile: string; hash: string; modified: boolean; installedCommit?: string }>
+  };
+
+  const workflowSkills = skills.filter(s => s.origin === 'workflow');
+  for (const skill of workflowSkills) {
+    const targetPath = path.join(projectPath, '.claude', 'skills', skill.name);
+    if (!fs.existsSync(targetPath)) continue;
+    manifest.skills[skill.name] = {
+      installedAt: new Date().toISOString(),
+      sourceFile: path.join(skill.name, 'SKILL.md'),
+      hash: hashDirectoryContents(targetPath),
+      modified: false,
+      installedCommit: sourceInfo.commit
+    };
+  }
+
+  const claudeDir = path.join(projectPath, '.claude');
+  if (!fs.existsSync(claudeDir)) fs.mkdirSync(claudeDir, { recursive: true });
+  const filePath = path.join(claudeDir, 'workflow-manifest.json');
+  const tmpPath = `${filePath}.tmp.${process.pid}`;
+  fs.writeFileSync(tmpPath, JSON.stringify(manifest, null, 2) + '\n');
+  fs.renameSync(tmpPath, filePath);
+}
+
+function writeCanonManifest(projectPath: string, skills: SkillSource[]): void {
+  const canonSkills = skills.filter(s => s.origin === 'canon');
+  if (canonSkills.length === 0) return;
+
+  const sourceInfo = getCanonSourceInfo();
+  const manifest = createManifest({ type: 'local', path: sourceInfo.path, gitRemote: sourceInfo.remote });
+  if (sourceInfo.commit) manifest.sourceCommit = sourceInfo.commit;
+
+  for (const skill of canonSkills) {
+    const targetPath = path.join(projectPath, '.claude', 'canon', skill.name);
+    if (!fs.existsSync(targetPath)) continue;
+    updateSkillInManifest(manifest, skill.name, {
+      installedAt: new Date().toISOString(),
+      sourceFile: path.join(skill.name, 'SKILL.md'),
+      hash: hashSkillDirectory(targetPath),
+      modified: false,
+      installedCommit: sourceInfo.commit
+    });
+  }
+
+  writeManifest(projectPath, manifest);
 }
 
 function safeAction(initResult: InitResult, label: string, fn: () => Promise<void>): Promise<void> {
@@ -231,10 +278,15 @@ async function runInitSteps(
   initResult: InitResult
 ): Promise<void> {
   const force = options.force ?? false;
-  await safeAction(initResult, 'Skill symlinks', () => setupSkillSymlinks(projectPath, skills, initResult, force));
+  await safeAction(initResult, 'Skill copies', () => setupSkillCopies(projectPath, skills, initResult, force));
+  await safeAction(initResult, 'Canon directories', () => copyCanonDirectories(projectPath, skills, initResult));
   await safeAction(initResult, 'Project structure', () => setupProjectStructure(projectPath, initResult, force));
+  await safeAction(initResult, 'Manifests', async () => {
+    writeWorkflowManifest(projectPath, skills);
+    writeCanonManifest(projectPath, skills);
+    initResult.created.push('.claude/workflow-manifest.json', '.claude/canon-manifest.json');
+  });
   await safeAction(initResult, 'CLAUDE.md', () => setupClaudeMd(projectPath, stack, profile, initResult));
-  detectCopiedDirectories(projectPath, initResult);
 }
 
 async function handleInit(options: { force?: boolean; project?: string; profile?: string }): Promise<void> {

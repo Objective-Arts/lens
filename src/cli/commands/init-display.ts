@@ -78,7 +78,7 @@ export function buildLensSection(stack: DetectedStack, profile?: ComposableProfi
     ...COMMAND_TABLE, '',
     '## Quality Gate', '',
     'Run the quality gate against your project:', '',
-    '    tsx node_modules/lens-scan-lite/scripts/quality-gate.ts .', '',
+    '    tsx .claude/scripts/quality-gate.ts .', '',
     'Checks by language:',
     '- **All languages:** secrets, empty catch, TODO accumulation, hardcoded URLs',
     '- **JS/TS:** shell injection, path traversal, circular imports, raw error output, proxy checks',

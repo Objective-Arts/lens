@@ -2,8 +2,7 @@
  * Integration tests for lens CLI
  *
  * Tests that run actual CLI commands and verify real functionality.
- * Uses `canon deploy` (not install) and `profile apply` as the primary
- * entry points since individual skill install isn't exposed via CLI.
+ * Uses `canon deploy` and `lens init` as the primary entry points.
  */
 
 import { describe, it, expect, beforeEach, afterEach } from 'vitest';
@@ -151,37 +150,66 @@ describe('lens CLI integration', () => {
     });
   });
 
-  describe('profile apply', () => {
+  describe('init', () => {
     it('creates .claude directory structure', () => {
-      runCli(`profile apply javascript ${testDir}`);
+      runCli(`init --profile javascript -p ${testDir}`);
 
       expect(fs.existsSync(path.join(testDir, '.claude'))).toBe(true);
       expect(fs.existsSync(path.join(testDir, '.claude', 'skills'))).toBe(true);
     });
 
-    it('makes canon skills discoverable via .claude/skills/ symlinks', () => {
-      runCli(`profile apply javascript ${testDir}`);
+    it('copies skills to .claude/skills/', () => {
+      runCli(`init --profile javascript -p ${testDir}`);
 
       const skillsDir = path.join(testDir, '.claude', 'skills');
       const entries = fs.readdirSync(skillsDir);
 
-      // Should have at least one skill
+      // Should have skills (workflow + canon)
       expect(entries.length).toBeGreaterThan(0);
 
-      // Canon skills are relative symlinks into ../canon/, workflow skills are real dirs.
-      // All entries should resolve to readable directories.
+      // All entries should be real directories (copies, not symlinks)
       for (const entry of entries) {
         const skillPath = path.join(skillsDir, entry);
-        if (isSymlink(skillPath)) {
-          const target = fs.readlinkSync(skillPath);
-          expect(target).toMatch(/^\.\.\/canon\//);
-        }
+        expect(isSymlink(skillPath)).toBe(false);
         expect(fs.statSync(skillPath).isDirectory()).toBe(true);
+        expect(fs.existsSync(path.join(skillPath, 'SKILL.md'))).toBe(true);
       }
     });
 
+    it('copies canon directories to .claude/canon/', () => {
+      runCli(`init --profile javascript -p ${testDir}`);
+
+      const canonDir = path.join(testDir, '.claude', 'canon');
+      expect(fs.existsSync(canonDir)).toBe(true);
+
+      // javascript profile should include clarity canon
+      const clarityDir = path.join(canonDir, 'clarity');
+      if (fs.existsSync(clarityDir)) {
+        expect(isSymlink(clarityDir)).toBe(false);
+        expect(fs.existsSync(path.join(clarityDir, 'SKILL.md'))).toBe(true);
+      }
+    });
+
+    it('copies quality gate to .claude/scripts/', () => {
+      runCli(`init --profile javascript -p ${testDir}`);
+
+      const gatePath = path.join(testDir, '.claude', 'scripts', 'quality-gate.ts');
+      expect(fs.existsSync(gatePath)).toBe(true);
+      expect(isSymlink(gatePath)).toBe(false);
+    });
+
+    it('CLAUDE.md references local quality gate path', () => {
+      runCli(`init --profile javascript -p ${testDir}`);
+
+      const claudeMdPath = path.join(testDir, 'CLAUDE.md');
+      expect(fs.existsSync(claudeMdPath)).toBe(true);
+
+      const content = fs.readFileSync(claudeMdPath, 'utf-8');
+      expect(content).toContain('tsx .claude/scripts/quality-gate.ts');
+    });
+
     it('creates CLAUDE.md with auto-invoke rules', () => {
-      runCli(`profile apply javascript ${testDir}`);
+      runCli(`init --profile javascript -p ${testDir}`);
 
       const claudeMdPath = path.join(testDir, 'CLAUDE.md');
       expect(fs.existsSync(claudeMdPath)).toBe(true);
@@ -189,6 +217,26 @@ describe('lens CLI integration', () => {
       const content = fs.readFileSync(claudeMdPath, 'utf-8');
       expect(content).toContain('Auto-Invoke');
       expect(content).toContain('INVOKE');
+    });
+
+    it('writes workflow and canon manifests', () => {
+      runCli(`init --profile javascript -p ${testDir}`);
+
+      const workflowManifest = path.join(testDir, '.claude', 'workflow-manifest.json');
+      const canonManifest = path.join(testDir, '.claude', 'canon-manifest.json');
+
+      expect(fs.existsSync(workflowManifest)).toBe(true);
+      expect(fs.existsSync(canonManifest)).toBe(true);
+
+      const wf = JSON.parse(fs.readFileSync(workflowManifest, 'utf-8'));
+      expect(wf.source).toBeDefined();
+      expect(wf.skills).toBeDefined();
+      expect(wf.installedAt).toBeDefined();
+
+      const cm = JSON.parse(fs.readFileSync(canonManifest, 'utf-8'));
+      expect(cm.source).toBeDefined();
+      expect(cm.skills).toBeDefined();
+      expect(cm.installedAt).toBeDefined();
     });
 
     it('profile show - shows profile details', () => {
@@ -282,7 +330,7 @@ describe('workflow commands', () => {
   });
 });
 
-describe('profile apply with workflow skills', () => {
+describe('init with workflow skills', () => {
   let testDir: string;
 
   beforeEach(() => {
@@ -297,30 +345,14 @@ describe('profile apply with workflow skills', () => {
     }
   });
 
-  it('deploys canon skills via profile apply', () => {
-    runCli(`profile apply javascript ${testDir}`);
+  it('installs canon and workflow skills via init', () => {
+    runCli(`init --profile javascript -p ${testDir}`);
 
     const skillsDir = path.join(testDir, '.claude', 'skills');
     const entries = fs.readdirSync(skillsDir);
 
-    // Should have canon skills deployed
+    // Should have canon + workflow skills
     expect(entries.length).toBeGreaterThan(5);
-  });
-});
-
-describe('mcp commands', () => {
-  it('mcp list - shows servers in registry', () => {
-    const result = runCli('mcp list');
-
-    expect(result.exitCode).toBe(0);
-    expect(result.stdout).toContain('MCP Server Registry');
-  });
-
-  it('mcp check - checks env vars for servers', () => {
-    const result = runCli('mcp check');
-
-    // Should not crash even if no servers installed
-    expect(result.exitCode === 0 || result.stderr.length > 0 || result.stdout.length > 0).toBe(true);
   });
 });
 
@@ -338,7 +370,6 @@ describe('CLI version and help', () => {
     expect(result.stdout).toContain('scan');
     expect(result.stdout).toContain('profile');
     expect(result.stdout).toContain('canon');
-    expect(result.stdout).toContain('mcp');
     expect(result.stdout).toContain('workflow');
   });
 });
@@ -362,16 +393,12 @@ describe('error handling', () => {
     }
   });
 
-  it('fails gracefully with non-existent profile', () => {
-    const result = runCli(`profile apply nonexistent-profile-xyz-123 ${testDir}`);
+  it('handles non-existent profile gracefully', () => {
+    const result = runCli(`init --profile nonexistent-profile-xyz-123 -p ${testDir}`);
 
-    // Should not crash - either error message or non-zero exit
-    expect(
-      result.exitCode !== 0 ||
-      result.stderr.includes('not found') ||
-      result.stdout.includes('not found') ||
-      result.stdout.includes('Unknown profile')
-    ).toBe(true);
+    // Should not crash — still installs workflow skills, just no canon skills
+    expect(result.exitCode).toBe(0);
+    expect(result.stdout).toContain('Init complete');
   });
 
   it('handles invalid project path gracefully', () => {

@@ -39,7 +39,7 @@ Determine what expertise applies to the target code. Check files in scope:
 | `*.test.*`, `*.spec.*` | testing patterns |
 | `.md`, `README` | writing, docs |
 
-Load the matching canon SKILL.md files from `canon/`. Extract the **anti-patterns** and **core principles** sections from each. These become the review criteria.
+Load the matching canon SKILL.md files from `.claude/canon/`. Extract the **anti-patterns** and **core principles** sections from each. These become the review criteria.
 
 If `.claude/rubric/AUTO-DETECT.md` exists, also load matching rubrics for additional criteria.
 
@@ -50,12 +50,12 @@ Combine all extracted principles into `{CANON_CRITERIA}` — a numbered list of 
 Run the quality gate against the target:
 
 ```bash
-tsx node_modules/lens-scan-lite/scripts/quality-gate.ts {TARGET} 2>&1
+tsx .claude/scripts/quality-gate.ts {TARGET} 2>&1
 ```
 
 If the gate script is not at that path, search for it:
 ```bash
-find . -path "*/scripts/quality-gate.ts" -not -path "*/node_modules/*" 2>/dev/null | head -1
+find . -path "*/.claude/scripts/quality-gate.ts" 2>/dev/null | head -1
 ```
 
 Parse the output for violations. Each violation becomes a finding with:
@@ -153,7 +153,7 @@ FORBIDDEN:
 Run the quality gate again:
 
 ```bash
-tsx node_modules/lens-scan-lite/scripts/quality-gate.ts {TARGET} 2>&1
+tsx .claude/scripts/quality-gate.ts {TARGET} 2>&1
 ```
 
 Gate violations must be zero — deterministic issues must be resolved.

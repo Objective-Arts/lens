@@ -62,16 +62,16 @@ describe('buildLensSection', () => {
     expect(section).toContain('typescript / react');
   });
 
-  it('includes /build and /improve command entries', () => {
+  it('includes /change and /fix command entries', () => {
     const stack: DetectedStack = { language: 'typescript', framework: null, profile: 'javascript' };
     const section = buildLensSection(stack);
-    expect(section).toContain('/build');
-    expect(section).toContain('/improve');
+    expect(section).toContain('/change');
+    expect(section).toContain('/fix');
   });
 
-  it('includes --rollback flag documentation', () => {
+  it('includes quality gate path referencing .claude/scripts/', () => {
     const stack: DetectedStack = { language: 'typescript', framework: null, profile: 'javascript' };
     const section = buildLensSection(stack);
-    expect(section).toContain('--rollback');
+    expect(section).toContain('tsx .claude/scripts/quality-gate.ts');
   });
 });

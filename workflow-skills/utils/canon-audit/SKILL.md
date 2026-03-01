@@ -22,11 +22,10 @@ description: Audit a project against a canon's rules and checklist. Read-only â€
 
 ### Step 1: Resolve Canon
 
-Find the canon in this order:
-1. `.claude/canon/<canon-name>/` (deployed in target project)
-2. `~/local-tech-projects/lens/canon/` (search all subdirectories for matching name)
+Find the canon at:
+1. `.claude/canon/<canon-name>/` (deployed by `lens init`)
 
-If not found, output `CANON_NOT_FOUND: <canon-name>` and stop.
+If not found, output `CANON_NOT_FOUND: <canon-name>` and stop. The user needs to re-run `lens init` with a profile that includes the canon.
 
 Read **every file** in the canon directory:
 - `SKILL.md` â€” main skill definition
