@@ -139,10 +139,12 @@ You should see:
 
 ```
 .claude/
-├── CLAUDE.md      # Standards and auto-invoke rules
-├── settings.json  # Profile configuration
-├── canon/         # Deployed canon skills
-└── skills/        # Symlinked workflow skills
+├── skills/        # ~10 workflow commands (slash commands)
+├── canon/         # Domain expertise canons (per profile)
+├── rubric/        # Scoring rubrics
+├── scripts/       # Quality gate
+├── workflow-manifest.json
+└── canon-manifest.json
 ```
 
 Open `.claude/CLAUDE.md` to see the standards that were added:

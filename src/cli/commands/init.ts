@@ -108,12 +108,13 @@ async function setupSkillCopies(
   const projectDir = path.join(projectPath, '.claude', 'skills');
   await fsPromises.mkdir(projectDir, { recursive: true });
 
-  if (skills.length === 0) {
-    initResult.warnings.push('No skills found in installed package');
+  const workflowSkills = skills.filter(s => s.origin === 'workflow');
+  if (workflowSkills.length === 0) {
+    initResult.warnings.push('No workflow skills found in installed package');
     return;
   }
 
-  for (const skill of skills) {
+  for (const skill of workflowSkills) {
     await copyOneSkill(projectDir, skill, initResult, force);
   }
 }

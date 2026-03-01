@@ -2,6 +2,7 @@
 
 import chalk from 'chalk';
 import type { ComposableProfile } from '../../types.js';
+import { USER_FACING_SKILLS } from '../../workflow/index.js';
 
 interface DetectedStack {
   language: string;
@@ -44,6 +45,21 @@ const COMMAND_TABLE = [
   '| `/generate-docs [path]` | Generate documentation |',
 ];
 
+export function transformAutoInvokeAction(action: string): string {
+  // INVOKE `/name` → Read `.claude/canon/name/SKILL.md`  (for canons)
+  // INVOKE `/fix`  → unchanged                            (for workflow skills)
+  let result = action.replace(/INVOKE `\/([^`]+)`/g, (match, name: string) => {
+    const skillName = name.split(/[\s/]/)[0];
+    return USER_FACING_SKILLS.has(skillName) ? match : `Read \`.claude/canon/${skillName}/SKILL.md\``;
+  });
+  // Bare `/name` refs after "then"/"and": then `/clarity` → then read canon
+  result = result.replace(/(?:then|and)\s+`\/([^`]+)`/g, (match, name: string) => {
+    const skillName = name.split(/[\s/]/)[0];
+    return USER_FACING_SKILLS.has(skillName) ? match : `then read \`.claude/canon/${skillName}/SKILL.md\``;
+  });
+  return result;
+}
+
 function buildProfileLines(profile: ComposableProfile | null | undefined): string[] {
   if (!profile?.claudeMd) return [];
   const lines: string[] = [];
@@ -61,7 +77,7 @@ function buildProfileLines(profile: ComposableProfile | null | undefined): strin
   const autoInvoke = profile.claudeMd.autoInvoke ?? [];
   if (autoInvoke.length > 0) {
     lines.push('## Auto-Invoke Skills', '', '| Context | Action |', '|---------|--------|');
-    lines.push(...autoInvoke.map(ai => `| ${ai.context} | ${ai.action} |`), '');
+    lines.push(...autoInvoke.map(ai => `| ${ai.context} | ${transformAutoInvokeAction(ai.action)} |`), '');
   }
 
   return lines;

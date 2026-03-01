@@ -158,14 +158,22 @@ describe('lens CLI integration', () => {
       expect(fs.existsSync(path.join(testDir, '.claude', 'skills'))).toBe(true);
     });
 
-    it('copies skills to .claude/skills/', () => {
+    it('copies workflow skills only to .claude/skills/', () => {
       runCli(`init --profile javascript -p ${testDir}`);
 
       const skillsDir = path.join(testDir, '.claude', 'skills');
       const entries = fs.readdirSync(skillsDir);
 
-      // Should have skills (workflow + canon)
+      // Should have workflow skills only (~10), not canons
       expect(entries.length).toBeGreaterThan(0);
+      expect(entries.length).toBeLessThanOrEqual(15);
+
+      // Known workflow skills should be present
+      expect(entries).toContain('fix');
+      expect(entries).toContain('code-scan');
+
+      // Canon-only skills should NOT be in .claude/skills/
+      expect(entries).not.toContain('clarity');
 
       // All entries should be real directories (copies, not symlinks)
       for (const entry of entries) {
@@ -208,7 +216,7 @@ describe('lens CLI integration', () => {
       expect(content).toContain('tsx .claude/scripts/quality-gate.ts');
     });
 
-    it('creates CLAUDE.md with auto-invoke rules', () => {
+    it('creates CLAUDE.md with transformed auto-invoke rules', () => {
       runCli(`init --profile javascript -p ${testDir}`);
 
       const claudeMdPath = path.join(testDir, 'CLAUDE.md');
@@ -216,7 +224,11 @@ describe('lens CLI integration', () => {
 
       const content = fs.readFileSync(claudeMdPath, 'utf-8');
       expect(content).toContain('Auto-Invoke');
-      expect(content).toContain('INVOKE');
+      // Canon references should be transformed to Read paths
+      expect(content).toContain('Read `.claude/canon/');
+      // Should NOT contain INVOKE for canon-only skills
+      expect(content).not.toContain('INVOKE `/clarity`');
+      expect(content).not.toContain('INVOKE `/js-internals`');
     });
 
     it('writes workflow and canon manifests', () => {
@@ -345,14 +357,21 @@ describe('init with workflow skills', () => {
     }
   });
 
-  it('installs canon and workflow skills via init', () => {
+  it('installs workflow skills to skills/ and canons to canon/', () => {
     runCli(`init --profile javascript -p ${testDir}`);
 
     const skillsDir = path.join(testDir, '.claude', 'skills');
     const entries = fs.readdirSync(skillsDir);
 
-    // Should have canon + workflow skills
+    // Should have workflow skills only (~10)
     expect(entries.length).toBeGreaterThan(5);
+    expect(entries.length).toBeLessThanOrEqual(15);
+
+    // Canons should be in .claude/canon/ not .claude/skills/
+    const canonDir = path.join(testDir, '.claude', 'canon');
+    expect(fs.existsSync(canonDir)).toBe(true);
+    const canonEntries = fs.readdirSync(canonDir);
+    expect(canonEntries.length).toBeGreaterThan(0);
   });
 });
 

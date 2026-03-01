@@ -203,10 +203,14 @@ After installation, your system will have:
 └── scripts/                        # Pipeline orchestrator, quality gate
 
 /path/to/your-project/              # Your project
+├── CLAUDE.md                       # Standards, auto-invoke rules
 └── .claude/
-    ├── CLAUDE.md                   # Project standards
-    ├── settings.json               # Project settings
-    └── skills/                     # Symlinked skills
+    ├── skills/                     # ~10 workflow commands (slash commands)
+    ├── canon/                      # Domain expertise canons (per profile)
+    ├── rubric/                     # Scoring rubrics
+    ├── scripts/                    # Quality gate
+    ├── workflow-manifest.json
+    └── canon-manifest.json
 ```
 
 ---
