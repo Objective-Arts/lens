@@ -14,9 +14,9 @@ Plan and improve existing code with quality gates, canon review, and verificatio
 - Refactoring a module or component
 - Quality pass on existing code
 - Technical debt cleanup
-- Intentional enhancements beyond what `/fix` catches
+- Intentional enhancements beyond what `/cleanup` catches
 
-**Don't use for:** New features → `/build` | Simple changes → `/change` | Review + fix against canons → `/fix`
+**Don't use for:** New features → `/build` | Simple changes → `/change` | Review + fix against canons → `/cleanup`
 
 ## Flags
 
@@ -237,6 +237,6 @@ IMPROVE_COMPLETE
 | Workflow | When to Use |
 |----------|-------------|
 | `/improve` | Planned enhancements to existing code — identifies what *should* change |
-| `/fix` | Review + fix what exists against canons — reacts to what's wrong |
+| `/cleanup` | Review + fix what exists against canons — reacts to what's wrong |
 | `/build` | New feature from description/PRD — creates new files |
 | `/change` | One small change, done right |

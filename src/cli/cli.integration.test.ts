@@ -169,7 +169,7 @@ describe('lens CLI integration', () => {
       expect(entries.length).toBeLessThanOrEqual(15);
 
       // Known workflow skills should be present
-      expect(entries).toContain('fix');
+      expect(entries).toContain('cleanup');
       expect(entries).toContain('code-scan');
 
       // Canon-only skills should NOT be in .claude/skills/

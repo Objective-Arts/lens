@@ -53,7 +53,7 @@
     "workflow-skills/workflow/build/",
     "workflow-skills/workflow/improve/",
     "workflow-skills/workflow/change/",
-    "workflow-skills/workflow/fix/",
+    "workflow-skills/workflow/cleanup/",
     "scripts/quality-gate.ts",
     "scripts/quality-gate.test.ts",
     "config/",

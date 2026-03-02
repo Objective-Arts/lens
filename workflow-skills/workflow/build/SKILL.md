@@ -15,7 +15,7 @@ Plan and build a new feature with quality gates, canon review, and verification.
 - New component or module from scratch
 - Greenfield implementation with quality gates
 
-**Don't use for:** Improving existing code → `/improve` | Simple changes → `/change` | Review + fix existing code → `/fix`
+**Don't use for:** Improving existing code → `/improve` | Simple changes → `/change` | Review + fix existing code → `/cleanup`
 
 ## Flags
 
@@ -233,5 +233,5 @@ BUILD_COMPLETE
 |----------|-------------|
 | `/build` | New feature from description/PRD — creates new files |
 | `/improve` | Enhance existing code — plans intentional changes |
-| `/fix` | Review + fix existing code against canons |
+| `/cleanup` | Review + fix existing code against canons |
 | `/change` | One small change, done right |

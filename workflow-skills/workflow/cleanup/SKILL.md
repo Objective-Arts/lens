@@ -1,9 +1,9 @@
 ---
-name: fix
+name: cleanup
 description: "Review against canons + quality gate, fix findings, verify. Claude-native — no external models."
 ---
 
-# /fix [path] [--dry-run]
+# /cleanup [path] [--dry-run]
 
 Review existing code against canons and the quality gate, fix findings, verify.
 
@@ -11,7 +11,7 @@ Review existing code against canons and the quality gate, fix findings, verify.
 
 ## Why This Exists
 
-`/fix` is the focused quality pass. The quality gate catches deterministic violations (secrets, injection, async void, naming). Claude catches subjective issues (canon anti-patterns, rubric criteria, design smells). Together they cover both static analysis and expert review — no external models, no MCP servers.
+`/cleanup` is the focused quality pass. The quality gate catches deterministic violations (secrets, injection, async void, naming). Claude catches subjective issues (canon anti-patterns, rubric criteria, design smells). Together they cover both static analysis and expert review — no external models, no MCP servers.
 
 **Cost:** Gate run + Claude reading/fixing. Minutes.
 
@@ -170,7 +170,7 @@ Apply fixes for any remaining CRITICAL or HIGH items. Skip remaining MEDIUM/LOW 
 Fix the regression. This takes priority over everything.
 
 ### If NEW_ISSUE found:
-Fix if CRITICAL or HIGH. Log MEDIUM/LOW in the report but don't chase them — that's a second `/fix` run if the developer wants it.
+Fix if CRITICAL or HIGH. Log MEDIUM/LOW in the report but don't chase them — that's a second `/cleanup` run if the developer wants it.
 
 ## Step 6: Lint and Test
 
@@ -184,7 +184,7 @@ If tests fail due to fixes, fix the code to pass the existing tests. Do not modi
 ## Step 7: Report
 
 ```
-## /fix Report: {target}
+## /cleanup Report: {target}
 
 ### Gate Violations
 | Severity | Count |
@@ -222,7 +222,7 @@ If tests fail due to fixes, fix the code to pass the existing tests. Do not modi
 - Lint: {pass | N warnings | N errors}
 - Tests: {pass | N failures}
 
-FIX_COMPLETE: {N} fixes applied, verified by gate + review
+CLEANUP_COMPLETE: {N} fixes applied, verified by gate + review
 ```
 
 ---
@@ -231,6 +231,6 @@ FIX_COMPLETE: {N} fixes applied, verified by gate + review
 
 | Situation | Command |
 |-----------|---------|
-| Existing code needs cleanup | `/fix src/path` |
+| Existing code needs cleanup | `/cleanup src/path` |
 | One small targeted change | `/change` |
-| Just want to see issues, no fixing | `/fix --dry-run` or `/code-scan` |
+| Just want to see issues, no fixing | `/cleanup --dry-run` or `/code-scan` |

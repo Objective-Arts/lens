@@ -191,9 +191,9 @@
       "hash": "5fb85a2060c40dc1",
       "modified": false
     },
-    "fix": {
+    "cleanup": {
       "installedAt": "2026-02-24T00:00:00.000Z",
-      "sourceFile": "fix/SKILL.md",
+      "sourceFile": "cleanup/SKILL.md",
       "hash": "e6df14b10654711d",
       "modified": false
     }

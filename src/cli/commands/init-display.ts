@@ -31,7 +31,7 @@ const COMMAND_TABLE = [
   '| Command | Description |',
   '|---------|-------------|',
   '| `/change [description]` | Simple changes done right — make it, clean it, report it |',
-  '| `/fix [path] [--dry-run]` | Review against canons + gate, fix findings, verify |', '',
+  '| `/cleanup [path] [--dry-run]` | Review against canons + gate, fix findings, verify |', '',
   '**Scans (read-only):**', '',
   '| Command | Description |',
   '|---------|-------------|',
@@ -47,7 +47,7 @@ const COMMAND_TABLE = [
 
 export function transformAutoInvokeAction(action: string): string {
   // INVOKE `/name` → Read `.claude/canon/name/SKILL.md`  (for canons)
-  // INVOKE `/fix`  → unchanged                            (for workflow skills)
+  // INVOKE `/cleanup`  → unchanged                       (for workflow skills)
   let result = action.replace(/INVOKE `\/([^`]+)`/g, (match, name: string) => {
     const skillName = name.split(/[\s/]/)[0];
     return USER_FACING_SKILLS.has(skillName) ? match : `Read \`.claude/canon/${skillName}/SKILL.md\``;

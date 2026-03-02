@@ -214,7 +214,7 @@ CANON_AUDIT_DONE
 
 ## When NOT to Use
 
-- To fix code — use `/fix` or `/improve` with the report
+- To fix code — use `/cleanup` or `/improve` with the report
 - For general code quality — use `/code-scan`
 - For AI smell detection — use `/ai-smell-scan`
 - For external model review — use `/gemini-scan`

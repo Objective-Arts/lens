@@ -6,7 +6,7 @@
 
 | Command | Description |
 |---------|-------------|
-| `/fix [path] [--dry-run]` | Canon review + quality gate + fix + verify |
+| `/cleanup [path] [--dry-run]` | Canon review + quality gate + fix + verify |
 | `/build [description] [--dry-run] [--rollback]` | Plan + build new feature with quality gates |
 | `/improve [path] [--dry-run] [--rollback]` | Plan + improve existing code with quality gates |
 | `/change [description]` | Simple changes done right — make it, clean it, report it |

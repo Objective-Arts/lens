@@ -21,7 +21,7 @@ Use this when:
 - Add a button/link
 - Update a constant
 
-**If the change touches 5+ files or has design decisions → use `/fix` instead.**
+**If the change touches 5+ files or has design decisions → use `/cleanup` instead.**
 
 ## Canon Skills (Auto-Invoke)
 
@@ -235,10 +235,10 @@ Leave these for dedicated skills:
 
 | Issue | Use Instead |
 |-------|-------------|
-| Long functions (>30 lines) | `/fix` |
-| Deep nesting (>3 levels) | `/fix` |
-| Complex refactoring | `/fix` |
-| Security issues | `/fix` or `/code-scan` |
+| Long functions (>30 lines) | `/cleanup` |
+| Deep nesting (>3 levels) | `/cleanup` |
+| Complex refactoring | `/cleanup` |
+| Security issues | `/cleanup` or `/code-scan` |
 | Static analysis | `/code-scan` |
 
 ## Common Mistakes to Avoid
@@ -253,7 +253,7 @@ Leave these for dedicated skills:
 
 ## When to Escalate
 
-Use `/fix` instead if:
+Use `/cleanup` instead if:
 - You're touching 5+ files
 - There are design decisions to make
 - You're unsure about the right approach
@@ -264,4 +264,4 @@ Use `/fix` instead if:
 | Workflow | When to Use | Overhead |
 |----------|-------------|----------|
 | `/change` | Add field, rename, small fix | Light (checklist + cleanup) |
-| `/fix` | Quality pass on existing code | Gate + canon review + fixes |
+| `/cleanup` | Quality pass on existing code | Gate + canon review + fixes |

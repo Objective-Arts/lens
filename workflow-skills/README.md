@@ -30,12 +30,12 @@ Plan → Implement → Quality Gate → Canon Review + Fix → Verify. Single-se
 /improve src/module
 ```
 
-### Fast Fix Loop (`/fix`)
+### Cleanup (`/cleanup`)
 
 Canon review + quality gate, fix findings, verify. Single-session, no external tools.
 
 ```bash
-/fix src/auth
+/cleanup src/auth
 ```
 
 ### Simple Change (`/change`)
@@ -69,7 +69,7 @@ One change, cleaned up, reported.
 |-------|-------------|
 | `build` | Plan + build + quality gates |
 | `improve` | Plan + improve + quality gates |
-| `fix` | Canon review + quality gate + fix + verify |
+| `cleanup` | Canon review + quality gate + fix + verify |
 | `change` | Simple change + cleanup |
 | `security-review` | Security-focused review + fix |
 

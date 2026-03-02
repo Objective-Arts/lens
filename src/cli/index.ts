@@ -31,7 +31,7 @@ ${chalk.bold.yellow('INSIDE CLAUDE CODE')} ${chalk.dim('(slash commands after se
 
   ${chalk.bold('Actions:')}
   ${chalk.cyan('/change')} ${chalk.dim('desc')}              Simple change + cleanup
-  ${chalk.cyan('/fix')} ${chalk.dim('path [--dry-run]')}     Review against canons + gate, fix findings, verify
+  ${chalk.cyan('/cleanup')} ${chalk.dim('path [--dry-run]')}  Review against canons + gate, fix findings, verify
 
   ${chalk.bold('Scans (read-only):')}
   ${chalk.cyan('/code-scan')} ${chalk.dim('path')}           13-dimension quality analysis

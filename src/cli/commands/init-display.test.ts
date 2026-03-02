@@ -63,11 +63,11 @@ describe('buildLensSection', () => {
     expect(section).toContain('typescript / react');
   });
 
-  it('includes /change and /fix command entries', () => {
+  it('includes /change and /cleanup command entries', () => {
     const stack: DetectedStack = { language: 'typescript', framework: null, profile: 'javascript' };
     const section = buildLensSection(stack);
     expect(section).toContain('/change');
-    expect(section).toContain('/fix');
+    expect(section).toContain('/cleanup');
   });
 
   it('includes quality gate path referencing .claude/scripts/', () => {
@@ -88,8 +88,8 @@ describe('transformAutoInvokeAction', () => {
   });
 
   it('leaves workflow skill name unchanged', () => {
-    const result = transformAutoInvokeAction('INVOKE `/fix`');
-    expect(result).toBe('INVOKE `/fix`');
+    const result = transformAutoInvokeAction('INVOKE `/cleanup`');
+    expect(result).toBe('INVOKE `/cleanup`');
   });
 
   it('leaves other workflow skills unchanged', () => {
@@ -106,7 +106,7 @@ describe('transformAutoInvokeAction', () => {
   });
 
   it('preserves workflow skill in mixed chain', () => {
-    const result = transformAutoInvokeAction('INVOKE `/fix` then `/clarity`');
-    expect(result).toBe('INVOKE `/fix` then read `.claude/canon/clarity/SKILL.md`');
+    const result = transformAutoInvokeAction('INVOKE `/cleanup` then `/clarity`');
+    expect(result).toBe('INVOKE `/cleanup` then read `.claude/canon/clarity/SKILL.md`');
   });
 });

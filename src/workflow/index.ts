@@ -22,7 +22,7 @@ import {
 
 /** Skills visible as slash commands in Claude Code */
 export const USER_FACING_SKILLS = new Set([
-  'change', 'fix',
+  'change', 'cleanup',
   'code-scan', 'ai-smell-scan', 'deadcode-scan', 'naming-scan',
   'refactor-scan', 'dedupe-scan', 'canon-audit', 'generate-docs',
 ]);

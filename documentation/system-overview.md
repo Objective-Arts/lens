@@ -4,7 +4,7 @@ Lens is a CLI tool that makes Claude Code better at reviewing and writing code b
 
 ## The Core Idea
 
-Claude Code is a general-purpose AI. Lens makes it a specialist. When you point `/canon-audit sql` at a database layer, Claude reviews with the same depth as a senior DBA. When you run `/fix` on a React codebase, Claude catches patterns a React expert would flag. When you `/code-scan` inherited code, you get a 13-dimension quality assessment.
+Claude Code is a general-purpose AI. Lens makes it a specialist. When you point `/canon-audit sql` at a database layer, Claude reviews with the same depth as a senior DBA. When you run `/cleanup` on a React codebase, Claude catches patterns a React expert would flag. When you `/code-scan` inherited code, you get a 13-dimension quality assessment.
 
 This works equally well on code you wrote and code you didn't. Reviewing inherited codebases, auditing vendor code, onboarding to unfamiliar projects — these are first-class use cases, not afterthoughts.
 
@@ -21,7 +21,7 @@ After init, open Claude Code. Review existing code or write new:
 ```
 /code-scan src/                        # 13-dimension quality review
 /canon-audit sql src/db/               # audit against SQL canon
-/fix src/                              # review + fix + verify
+/cleanup src/                          # review + fix + verify
 /change add input validation           # write a small change
 ```
 
@@ -54,7 +54,7 @@ After init, open Claude Code. Review existing code or write new:
 │  │                   Slash Commands (14 shipped)                  │      │
 │  │                                                               │      │
 │  │  REVIEW EXISTING CODE          WRITE + FIX                    │      │
-│  │  /code-scan     /ai-smell-scan /build      /fix               │      │
+│  │  /code-scan     /ai-smell-scan /build      /cleanup            │      │
 │  │  /canon-audit   /deadcode-scan /improve    /change            │      │
 │  │                                /ai-smell-fix                  │      │
 │  │                                /generate-docs                 │      │
@@ -90,7 +90,7 @@ Point any scan or audit at code you want to understand or improve. The code does
 |---------|-------------|
 | `/code-scan [path]` | 13-dimension quality scoring |
 | `/canon-audit <canon> [path]` | Audit against a canon's expert rules |
-| `/fix [path]` | Review against canons, fix findings, verify |
+| `/cleanup [path]` | Review against canons, fix findings, verify |
 | `/improve [path]` | Plan + improve + quality gate + canon fix + verify |
 | `/ai-smell-scan [path]` | Detect AI-generated code patterns |
 | `/deadcode-scan [path]` | Find unused code |
@@ -101,7 +101,7 @@ Example workflow for inherited code:
 /code-scan src/                     # get the big picture
 /canon-audit sql src/db/            # deep-dive the database layer
 /canon-audit security src/auth/     # audit auth against security canon
-/fix src/db/                        # fix what was found
+/cleanup src/db/                    # fix what was found
 ```
 
 ### Writing New Code
@@ -112,7 +112,7 @@ When you build or change code, the same canons inform what Claude writes.
 |---------|-------------|
 | `/build [desc]` | Plan + build new feature with quality gates |
 | `/change [desc]` | One small change, done right |
-| `/fix [desc]` | Build from description, review, fix |
+| `/cleanup [desc]` | Build from description, review, fix |
 | `/ai-smell-fix [path]` | Remove AI code smells |
 | `/generate-docs [path]` | Generate documentation |
 
@@ -126,7 +126,7 @@ Examples: "Think in sets, not loops" (SQL). "Handle failure explicitly" (error h
 
 Organized by domain: `javascript/`, `python/`, `security/`, `react/`, `database/sql/`, `testing/`, `ui-ux/`, `csharp/`, etc.
 
-When you run `/canon-audit sql src/`, Claude loads the SQL canons and reviews your code against those specific expert rules. When you run `/fix src/`, Claude loads whichever canons match the detected file types.
+When you run `/canon-audit sql src/`, Claude loads the SQL canons and reviews your code against those specific expert rules. When you run `/cleanup src/`, Claude loads whichever canons match the detected file types.
 
 ### Rubrics (16 files)
 

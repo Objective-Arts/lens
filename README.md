@@ -27,7 +27,7 @@ lens profile apply javascript+security
 lens scan
 
 # Use in Claude Code
-/fix src/auth                 # Canon review + quality gate + fix + verify
+/cleanup src/auth              # Canon review + quality gate + fix + verify
 /change add email field       # Simple change + cleanup
 /code-scan src/               # 13-dimension code scan (read-only)
 /canon-audit typescript src/  # Audit against a canon's rules
@@ -43,7 +43,7 @@ After applying a profile, these slash commands are available in Claude Code:
 |---------|-------------|
 | `/build <description>` | Plan + build + quality gate + canon fix + verify |
 | `/improve <path>` | Plan + improve + quality gate + canon fix + verify |
-| `/fix <path>` | Canon review + quality gate, fix findings, verify — Claude-native, no external models |
+| `/cleanup <path>` | Canon review + quality gate, fix findings, verify — Claude-native, no external models |
 | `/change <description>` | Simple change + cleanup + report |
 
 ### Read-Only Scans
