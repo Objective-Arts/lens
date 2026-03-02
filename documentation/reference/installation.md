@@ -70,8 +70,6 @@ your-project/
     ├── skills/                    # 14 slash commands
     │   ├── fix/                   #   /fix — canon review + fix + verify
     │   ├── change/                #   /change — small changes done right
-    │   ├── build/                 #   /build — full pipeline for new features
-    │   ├── improve/               #   /improve — full pipeline for existing code
     │   ├── code-scan/             #   /code-scan — 13-dimension quality scoring
     │   ├── canon-audit/           #   /canon-audit — audit against a canon's rules
     │   ├── ai-smell-scan/         #   /ai-smell-scan — detect AI code patterns

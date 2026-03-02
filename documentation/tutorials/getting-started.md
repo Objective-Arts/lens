@@ -8,7 +8,7 @@ Lens injects domain expertise into Claude Code. It works in two directions:
 
 1. **Review existing code** — Point `/fix`, `/code-scan`, or `/canon-audit` at any codebase. Lens loads the right canons (SQL, React, security, etc.) and reviews the code against expert-level standards. You don't need to have written the code.
 
-2. **Write new code** — When you build with `/change`, `/build`, or `/improve`, Claude writes code informed by the same canon knowledge, then reviews its own output against rubrics.
+2. **Write new code** — When you build with `/change` or `/fix`, Claude writes code informed by the same canon knowledge, then reviews its own output against rubrics.
 
 Most teams start with review. You inherit a codebase, join a project, or need to audit third-party code. Lens gives Claude the domain knowledge to catch what generic review misses.
 
@@ -104,13 +104,6 @@ When you're ready to build or change code, the same canons inform what Claude wr
 ```
 /change add input validation to the login form
 /fix "add a rate limiter to the API endpoints"
-```
-
-For larger features, the full pipeline plans, builds, reviews, and tests:
-
-```
-/build add JWT authentication
-/improve src/api/
 ```
 
 ## Step 5: Verify the Setup

@@ -55,7 +55,7 @@ After init, open Claude Code. Review existing code or write new:
 │  │                                                               │      │
 │  │  REVIEW EXISTING CODE          WRITE + FIX                    │      │
 │  │  /code-scan     /ai-smell-scan /fix        /change            │      │
-│  │  /canon-audit   /deadcode-scan /build      /improve           │      │
+│  │  /canon-audit   /deadcode-scan /ai-smell-fix                  │      │
 │  │  /ai-smell-scan /deadcode-scan /ai-smell-fix                  │      │
 │  │                                /generate-docs                 │      │
 │  │                                                               │      │
@@ -111,8 +111,6 @@ When you build or change code, the same canons inform what Claude writes.
 |---------|-------------|
 | `/change [desc]` | One small change, done right |
 | `/fix [desc]` | Build from description, review, fix |
-| `/build [path]` | Full pipeline: plan, build, review, test |
-| `/improve [path]` | Full pipeline on existing code |
 | `/ai-smell-fix [path]` | Remove AI code smells |
 | `/generate-docs [path]` | Generate documentation |
 
@@ -130,7 +128,7 @@ When you run `/canon-audit sql src/`, Claude loads the SQL canons and reviews yo
 
 ### Rubrics (16 files)
 
-Scoring criteria that tell reviewers *what to check* and *how to score*. Used during review commands and the pipeline's review phases.
+Scoring criteria that tell reviewers *what to check* and *how to score*. Used during review commands.
 
 Examples: "Score 1-10: Are all error paths explicit? No swallowed exceptions? Cause chains preserved?" Domain-specific rubrics (C#, React, TypeScript, security) add criteria like "Are DI lifetimes correct?" or "Are Server vs Client Components used appropriately?"
 
@@ -169,16 +167,6 @@ Profiles bundle which canons to install and what standards to enforce. Lens ship
 | `business-base` | Business/strategy |
 
 `lens init` auto-detects the right profile. Combine profiles for focused review: `lens init --profile sql+security` loads both SQL and security canons.
-
-## Self-Learning Loop
-
-The pipeline (`/build`, `/improve`) gets smarter over time:
-
-1. Review phases find issues and write them to `.claude/lessons.md` (project-specific) and `.claude/universal-lessons.md` (general patterns)
-2. On the next run, earlier phases read those lesson files
-3. Claude avoids making the same mistakes
-
-This feedback loop bridges review findings and writing quality — what gets caught in review informs future code generation.
 
 ## Updating
 
