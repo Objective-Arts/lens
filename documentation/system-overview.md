@@ -43,7 +43,6 @@ After init, open Claude Code. Review existing code or write new:
 │  │  .claude/skills/  ──copies──▶  14 slash commands              │      │
 │  │  .claude/canon/   ──copies──▶  domain expertise (per profile) │      │
 │  │  .claude/rubric/  ──copies──▶  scoring rubrics                │      │
-│  │  .mcp.json        ──points to──▶ gemini-reviewer, qodana     │      │
 │  │  CLAUDE.md        (standards, anti-patterns, auto-invoke)     │      │
 │  └───────────────────────────────────────────────────────────────┘      │
 └─────────────────────────────────────────────────────────────────────────┘
@@ -55,8 +54,8 @@ After init, open Claude Code. Review existing code or write new:
 │  │                   Slash Commands (14 shipped)                  │      │
 │  │                                                               │      │
 │  │  REVIEW EXISTING CODE          WRITE + FIX                    │      │
-│  │  /code-scan     /gemini-scan   /fix        /change            │      │
-│  │  /canon-audit   /codex-scan    /build      /improve           │      │
+│  │  /code-scan     /ai-smell-scan /fix        /change            │      │
+│  │  /canon-audit   /deadcode-scan /build      /improve           │      │
 │  │  /ai-smell-scan /deadcode-scan /ai-smell-fix                  │      │
 │  │                                /generate-docs                 │      │
 │  │                                                               │      │
@@ -67,12 +66,6 @@ After init, open Claude Code. Review existing code or write new:
 │  Canon skills loaded by profile ──▶ inform both review and writing      │
 │  Rubrics loaded by domain ────────▶ score review findings               │
 │                                                                         │
-│  Optional external tools:                                               │
-│  ┌──────────────┐  ┌──────────┐                                        │
-│  │ Gemini (MCP) │  │Qodana MCP│                                        │
-│  │ /gemini-scan │  │static    │                                        │
-│  │              │  │analysis  │                                        │
-│  └──────────────┘  └──────────┘                                        │
 └─────────────────────────────────────────────────────────────────────────┘
 
 ┌─────────────────────────────────────────────────────────────────────────┐
@@ -82,7 +75,6 @@ After init, open Claude Code. Review existing code or write new:
 │  profiles/           15 YAML profiles (which canons + standards)        │
 │  workflow-skills/    33 skills (14 shipped as slash commands)            │
 │  workflow-skills/rubric/  16 scoring rubrics                            │
-│  mcp-servers/        gemini-reviewer, qodana                            │
 │  config/             hooks and settings templates                       │
 │  dist/               compiled CLI                                       │
 └─────────────────────────────────────────────────────────────────────────┘
@@ -94,15 +86,13 @@ After init, open Claude Code. Review existing code or write new:
 
 Point any scan or audit at code you want to understand or improve. The code doesn't need to be yours.
 
-| Command | What it does | Needs external tools |
-|---------|-------------|----------------------|
-| `/code-scan [path]` | 13-dimension quality scoring | No |
-| `/canon-audit <canon> [path]` | Audit against a canon's expert rules | No |
-| `/fix [path]` | Review against canons, fix findings, verify | No |
-| `/ai-smell-scan [path]` | Detect AI-generated code patterns | No |
-| `/deadcode-scan [path]` | Find unused code | No |
-| `/gemini-scan [path]` | Independent Gemini review | Gemini API key |
-| `/codex-scan [path]` | Independent Codex review | Codex CLI |
+| Command | What it does |
+|---------|-------------|
+| `/code-scan [path]` | 13-dimension quality scoring |
+| `/canon-audit <canon> [path]` | Audit against a canon's expert rules |
+| `/fix [path]` | Review against canons, fix findings, verify |
+| `/ai-smell-scan [path]` | Detect AI-generated code patterns |
+| `/deadcode-scan [path]` | Find unused code |
 
 Example workflow for inherited code:
 
@@ -117,14 +107,14 @@ Example workflow for inherited code:
 
 When you build or change code, the same canons inform what Claude writes.
 
-| Command | What it does | Needs external tools |
-|---------|-------------|----------------------|
-| `/change [desc]` | One small change, done right | No |
-| `/fix [desc]` | Build from description, review, fix | No |
-| `/build [path]` | Full pipeline: plan, build, review, test | No (optional: Gemini, Qodana) |
-| `/improve [path]` | Full pipeline on existing code | No (optional: Gemini, Qodana) |
-| `/ai-smell-fix [path]` | Remove AI code smells | No |
-| `/generate-docs [path]` | Generate documentation | No |
+| Command | What it does |
+|---------|-------------|
+| `/change [desc]` | One small change, done right |
+| `/fix [desc]` | Build from description, review, fix |
+| `/build [path]` | Full pipeline: plan, build, review, test |
+| `/improve [path]` | Full pipeline on existing code |
+| `/ai-smell-fix [path]` | Remove AI code smells |
+| `/generate-docs [path]` | Generate documentation |
 
 ## Two Types of Knowledge
 
@@ -179,17 +169,6 @@ Profiles bundle which canons to install and what standards to enforce. Lens ship
 | `business-base` | Business/strategy |
 
 `lens init` auto-detects the right profile. Combine profiles for focused review: `lens init --profile sql+security` loads both SQL and security canons.
-
-## MCP Server Dependencies
-
-Two MCP servers ship with the package and get configured in `.mcp.json` by `lens init`:
-
-| Server | Used by | Requires |
-|--------|---------|----------|
-| gemini-reviewer | `/gemini-scan` | `GEMINI_API_KEY` env var |
-| qodana | Static analysis | Docker (optional) |
-
-Most commands work without any external tools. `/fix`, `/change`, `/code-scan`, `/canon-audit`, `/ai-smell-scan`, `/deadcode-scan` are all Claude-native — zero setup beyond `lens init`.
 
 ## Self-Learning Loop
 

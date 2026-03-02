@@ -6,7 +6,7 @@
 
 Lens injects domain expertise into Claude Code. It works in two directions:
 
-1. **Review existing code** — Point `/fix`, `/code-scan`, `/canon-audit`, or `/gemini-scan` at any codebase. Lens loads the right canons (SQL, React, security, etc.) and reviews the code against expert-level standards. You don't need to have written the code.
+1. **Review existing code** — Point `/fix`, `/code-scan`, or `/canon-audit` at any codebase. Lens loads the right canons (SQL, React, security, etc.) and reviews the code against expert-level standards. You don't need to have written the code.
 
 2. **Write new code** — When you build with `/change`, `/build`, or `/improve`, Claude writes code informed by the same canon knowledge, then reviews its own output against rubrics.
 
@@ -18,7 +18,6 @@ Most teams start with review. You inherit a codebase, join a project, or need to
 |-------------|---------|
 | Node.js 18+ | Run lens CLI |
 | Claude Code CLI | AI coding assistant |
-| Gemini API Key | External code review via `/gemini-scan` (optional) |
 
 ## Step 1: Install
 
@@ -61,7 +60,7 @@ Created:
   + .claude/skills/ (14 workflow commands)
   + .claude/canon/ (domain expertise per profile)
   + .claude/rubric/ (review scoring rubrics)
-  + .mcp.json (gemini-reviewer, qodana)
+
 
 Profile applied successfully!
 ```
@@ -94,11 +93,6 @@ claude
 **AI smell check** — detect over-abstraction, comment spam, defensive paranoia:
 ```
 /ai-smell-scan src/
-```
-
-**External review** — independent model perspective (requires `GEMINI_API_KEY`):
-```
-/gemini-scan src/
 ```
 
 These all work on code you didn't write. That's the primary use case — you point Lens at foreign code and get expert-level review informed by 88 domain canons.
@@ -141,18 +135,6 @@ your-project/
     ├── scripts/                 # Quality gate
     ├── workflow-manifest.json
     └── canon-manifest.json
-```
-
-## Optional: Gemini API Key
-
-Most commands work without any API keys. For external code review via `/gemini-scan`:
-
-1. Go to [Google AI Studio](https://aistudio.google.com/apikey)
-2. Create a free API key
-3. Add to `~/.zshrc` or `~/.bashrc`:
-
-```bash
-export GEMINI_API_KEY="your-key-here"
 ```
 
 ## Next Steps

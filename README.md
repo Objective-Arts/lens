@@ -81,10 +81,6 @@ lens scan                          # Discover all Claude Code config
 lens scan audit                    # Configuration audit
 lens scan tokens                   # Token usage breakdown
 
-# MCP servers
-lens mcp list                      # Available MCP servers
-lens mcp check                     # Verify env vars
-
 # Code analysis
 lens dedupe src/                   # Scan for duplication patterns
 lens trace clarity                 # Show skill configuration stack
@@ -119,7 +115,7 @@ lens/
 ├── canon/              # 88 canon skills in 30 categories
 ├── profiles/           # 15 composable project profiles
 ├── src/                # TypeScript source
-│   ├── cli/            # CLI commands (profile, canon, workflow, scan, mcp, dedupe, trace)
+│   ├── cli/            # CLI commands (profile, canon, workflow, scan, dedupe, trace)
 │   ├── canon/          # Skill loading, hashing, deployment
 │   ├── profiles/       # Profile composition and application
 │   ├── workflow/       # Workflow skill management
@@ -131,18 +127,8 @@ lens/
 │   ├── utils/          # Read-only scans + utilities
 │   └── rubric/         # Quality rubrics (base, TypeScript, React, C#, security, etc.)
 ├── config/             # Keyword detection and workflow phase config
-├── scripts/            # Pipeline orchestrator, quality gate
-└── mcp-servers/        # Gemini reviewer, Qodana
+└── scripts/            # Pipeline orchestrator, quality gate
 ```
-
-## MCP Servers
-
-Bundled and configured automatically when profiles are applied:
-
-| Server | Purpose |
-|--------|---------|
-| `gemini-reviewer` | Gemini-powered code review (requires `GEMINI_API_KEY`) |
-| `qodana` | JetBrains static analysis |
 
 ## License
 
