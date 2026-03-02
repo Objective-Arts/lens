@@ -16,7 +16,7 @@ import {
 } from '../../canon/index.js';
 import { loadSkills } from '../../canon/skill-loader.js';
 import { printList, printCanonSkillsByCategory, printSkillStatuses, printVerifyResults, printSkillInspection } from '../display/index.js';
-import { validatePath } from './index.js';
+import { validateAndResolvePath } from '../../utils/validation.js';
 
 export function registerCanonCommands(program: Command): void {
   const canonCmd = program.command('canon').description('Manage canon skills');
@@ -73,7 +73,7 @@ function handleList(options: { category?: string }): void {
 }
 
 function handleStatus(options: { project: string }): void {
-  const projectPath = validatePath(options.project);
+  const projectPath = validateAndResolvePath(options.project);
   if (!projectPath) { process.exitCode = 1; return; }
 
   const statuses = checkSkillStatus(projectPath);
@@ -87,7 +87,7 @@ function handleStatus(options: { project: string }): void {
 }
 
 function handleUpgrade(options: { project: string; force?: boolean; skills?: string }): void {
-  const projectPath = validatePath(options.project);
+  const projectPath = validateAndResolvePath(options.project);
   if (!projectPath) { process.exitCode = 1; return; }
 
   const skillList = options.skills?.split(',').map(s => s.trim());
@@ -103,7 +103,7 @@ function handleUpgrade(options: { project: string; force?: boolean; skills?: str
 }
 
 function handleDiff(skill: string, options: { project: string }): void {
-  const projectPath = validatePath(options.project);
+  const projectPath = validateAndResolvePath(options.project);
   if (!projectPath) { process.exitCode = 1; return; }
 
   const diff = diffSkill(skill, projectPath);
@@ -128,7 +128,7 @@ function handleSource(): void {
 }
 
 function handleDeploy(options: { project: string; force?: boolean }): void {
-  const projectPath = validatePath(options.project);
+  const projectPath = validateAndResolvePath(options.project);
   if (!projectPath) { process.exitCode = 1; return; }
 
   console.log(chalk.bold('\nDeploying Canon Skills'));
@@ -152,7 +152,7 @@ function handleDeploy(options: { project: string; force?: boolean }): void {
 }
 
 function handleVerify(options: { project: string; verbose?: boolean }): void {
-  const projectPath = validatePath(options.project);
+  const projectPath = validateAndResolvePath(options.project);
   if (!projectPath) { process.exitCode = 1; return; }
 
   const sourceInfo = getCanonSourceInfo();
@@ -168,7 +168,7 @@ function handleVerify(options: { project: string; verbose?: boolean }): void {
 }
 
 function handleInspect(skillNames: string[], options: { project: string }): void {
-  const projectPath = validatePath(options.project);
+  const projectPath = validateAndResolvePath(options.project);
   if (!projectPath) { process.exitCode = 1; return; }
 
   const skills = loadSkills(projectPath, skillNames);

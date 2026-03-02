@@ -127,22 +127,22 @@ function printClaudeMdAnalysis(result: ScanResult): void {
   }
 }
 
-export function printAuditReport(result: ScanResult): void {
+export function printAuditReport(scanReport: ScanResult): void {
   console.log(chalk.bold('\nConfiguration Audit Report'));
   console.log(chalk.gray('═'.repeat(50)));
 
-  const projectSkills = result.items
+  const projectSkills = scanReport.items
     .filter(i => i.type === 'skill' && i.scope === 'project')
     .map(i => i.name);
 
-  const claudeMdContent = result.items.find(i =>
+  const claudeMdContent = scanReport.items.find(i =>
     i.type === 'memory' && i.scope === 'project' && i.name === 'CLAUDE.md'
   )?.content || '';
 
-  printPatternChecks(result, projectSkills);
+  printPatternChecks(scanReport, projectSkills);
   printQualityFlags(claudeMdContent);
-  printConflicts(result);
-  printMissingRefs(result);
+  printConflicts(scanReport);
+  printMissingRefs(scanReport);
   printSkillsSummary(projectSkills);
-  printClaudeMdAnalysis(result);
+  printClaudeMdAnalysis(scanReport);
 }

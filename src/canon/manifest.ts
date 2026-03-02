@@ -59,9 +59,9 @@ export function createManifest(source: CanonSource): CanonManifest {
 export function updateSkillInManifest(
   manifest: CanonManifest,
   skillName: string,
-  info: InstalledSkillInfo
+  skillInfo: InstalledSkillInfo
 ): void {
-  manifest.skills[skillName] = info;
+  manifest.skills[skillName] = skillInfo;
 }
 
 

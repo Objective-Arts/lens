@@ -105,7 +105,7 @@ function printVerifySection(label: string, items: string[], color: (s: string) =
 }
 
 export function printVerifyResults(
-  result: {
+  verifyReport: {
     matches: string[];
     differs: Array<{ name: string; reason: string }>;
     missingInProject: string[];
@@ -114,13 +114,13 @@ export function printVerifyResults(
   },
   verbose: boolean
 ): void {
-  printVerifySection('Differs', result.differs.map(d => `${d.name}: ${d.reason}`), chalk.red, '✗');
-  printVerifySection('Missing in project', result.missingInProject, chalk.yellow, '?');
+  printVerifySection('Differs', verifyReport.differs.map(d => `${d.name}: ${d.reason}`), chalk.red, '✗');
+  printVerifySection('Missing in project', verifyReport.missingInProject, chalk.yellow, '?');
   if (verbose) {
-    printVerifySection(`Extra in project (${result.extraInProject.length} non-canon skills)`, result.extraInProject, chalk.gray, '+');
-    printVerifySection('Matches', result.matches, chalk.green, '✓');
+    printVerifySection(`Extra in project (${verifyReport.extraInProject.length} non-canon skills)`, verifyReport.extraInProject, chalk.gray, '+');
+    printVerifySection('Matches', verifyReport.matches, chalk.green, '✓');
   }
-  printVerifySummary(result);
+  printVerifySummary(verifyReport);
 }
 
 function printVerifySummary(result: {

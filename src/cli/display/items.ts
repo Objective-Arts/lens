@@ -46,31 +46,31 @@ export function printItemList(items: ConfigItem[], totalTokens: number): void {
   }
 }
 
-export function printItemDetails(item: ConfigItem, result: ScanResult): void {
-  console.log(chalk.bold(`\n${item.name}`));
+export function printItemDetails(configEntry: ConfigItem, scanReport: ScanResult): void {
+  console.log(chalk.bold(`\n${configEntry.name}`));
   console.log(chalk.gray('─'.repeat(50)));
 
-  console.log(`Type:     ${chalk.cyan(item.type)}`);
-  console.log(`Scope:    ${chalk.blue(item.scope)}`);
-  console.log(`Path:     ${chalk.gray(item.path)}`);
+  console.log(`Type:     ${chalk.cyan(configEntry.type)}`);
+  console.log(`Scope:    ${chalk.blue(configEntry.scope)}`);
+  console.log(`Path:     ${chalk.gray(configEntry.path)}`);
 
-  if (item.isSymlink) {
-    console.log(`Symlink:  ${chalk.yellow('→')} ${item.symlinkTarget}`);
+  if (configEntry.isSymlink) {
+    console.log(`Symlink:  ${chalk.yellow('→')} ${configEntry.symlinkTarget}`);
   }
 
-  console.log(`Tokens:   ${chalk.magenta(formatTokens(item.tokens))} (${tokenPercentage(item.tokens, result.summary.totalTokens)} of total)`);
+  console.log(`Tokens:   ${chalk.magenta(formatTokens(configEntry.tokens))} (${tokenPercentage(configEntry.tokens, scanReport.summary.totalTokens)} of total)`);
 
-  if (item.metadata.description) {
-    console.log(`\nDescription: ${item.metadata.description}`);
+  if (configEntry.metadata.description) {
+    console.log(`\nDescription: ${configEntry.metadata.description}`);
   }
 
-  if (item.dependencies.length > 0) {
+  if (configEntry.dependencies.length > 0) {
     console.log(`\n${chalk.cyan('Dependencies:')}`);
-    item.dependencies.forEach(dep => console.log(`  → ${dep}`));
+    configEntry.dependencies.forEach(dep => console.log(`  → ${dep}`));
   }
 
-  if (item.referencedBy.length > 0) {
+  if (configEntry.referencedBy.length > 0) {
     console.log(`\n${chalk.cyan('Referenced by:')}`);
-    item.referencedBy.forEach(ref => console.log(`  ← ${ref}`));
+    configEntry.referencedBy.forEach(ref => console.log(`  ← ${ref}`));
   }
 }

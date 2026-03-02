@@ -94,3 +94,16 @@ export function isRecord(value: unknown): value is Record<string, unknown> {
 export function isValidSkillName(name: string): boolean {
   return isValidName(name);
 }
+
+/**
+ * Validate and resolve a project path, printing a styled error if invalid.
+ * CLI-facing wrapper around validateProjectPath.
+ */
+export function validateAndResolvePath(rawPath: string): string | null {
+  const validated = validateProjectPath(rawPath);
+  if (!validated) {
+    console.error(`Invalid path: ${getPathValidationError(rawPath)}`);
+    return null;
+  }
+  return validated;
+}

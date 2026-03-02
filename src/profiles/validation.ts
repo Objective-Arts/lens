@@ -87,20 +87,20 @@ function validateOptionalFields(data: Record<string, unknown>, filename: string)
   return errors;
 }
 
-export function validateProfileSchema(data: unknown, filename: string): ValidationResult {
-  if (!isRecord(data)) {
+export function validateProfileSchema(rawProfile: unknown, filename: string): ValidationResult {
+  if (!isRecord(rawProfile)) {
     return { valid: false, errors: [`${filename}: Profile must be an object`] };
   }
 
   const errors: string[] = [];
 
-  if (typeof data.name !== 'string' || data.name.trim() === '') {
+  if (typeof rawProfile.name !== 'string' || rawProfile.name.trim() === '') {
     errors.push(`${filename}: 'name' is required and must be a non-empty string`);
   }
 
-  errors.push(...validateOptionalFields(data, filename));
-  errors.push(...validateSkills(data.skills, filename));
-  errors.push(...validateClaudeMd(data.claudeMd, filename));
+  errors.push(...validateOptionalFields(rawProfile, filename));
+  errors.push(...validateSkills(rawProfile.skills, filename));
+  errors.push(...validateClaudeMd(rawProfile.claudeMd, filename));
 
   return { valid: errors.length === 0, errors };
 }

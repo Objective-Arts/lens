@@ -46,9 +46,9 @@ function printItemDeps(items: ScanResult['items']): void {
   }
 }
 
-export function printDependencies(result: ScanResult): void {
+export function printDependencies(scanReport: ScanResult): void {
   console.log(chalk.bold('\nDependency Graph'));
   console.log(chalk.gray('═'.repeat(50)));
-  printClaudeMdDeps(result.claudeMds, result.items);
-  printItemDeps(result.items);
+  printClaudeMdDeps(scanReport.claudeMds, scanReport.items);
+  printItemDeps(scanReport.items);
 }

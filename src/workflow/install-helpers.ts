@@ -69,9 +69,9 @@ export function copyRubricFiles(projectPath: string, sourcePath: string): void {
   copyDirectorySync(rubricSource, rubricTarget);
 }
 
-function lstatSafe(p: string): boolean {
+function lstatSafe(targetPath: string): boolean {
   try {
-    fs.lstatSync(p);
+    fs.lstatSync(targetPath);
     return true;
   } catch {
     return false;

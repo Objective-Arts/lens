@@ -175,26 +175,26 @@ export async function createProjectMcpJson(projectPath: string): Promise<{ statu
   return writeMcpJsonConfig(targetPath, mcpConfig, added);
 }
 
-export async function applyMcpToProject(profile: ComposableProfile, projectPath: string, result: McpApplyResult): Promise<void> {
+export async function applyMcpToProject(profile: ComposableProfile, projectPath: string, mcpReport: McpApplyResult): Promise<void> {
   if (profile.mcpServers) {
     const mcpResult = await applyMcpServers(profile.mcpServers, projectPath);
-    result.created.push(...mcpResult.created);
-    result.skipped.push(...mcpResult.skipped);
-    result.errors.push(...mcpResult.errors);
+    mcpReport.created.push(...mcpResult.created);
+    mcpReport.skipped.push(...mcpResult.skipped);
+    mcpReport.errors.push(...mcpResult.errors);
 
     const mcpJsonResult = await createProjectMcpJson(projectPath);
     switch (mcpJsonResult.status) {
       case 'created': {
         const addedServers = mcpJsonResult.added?.join(', ') || 'validation servers';
-        result.created.push(`.mcp.json (added: ${addedServers})`);
-        if (mcpJsonResult.warning) result.warnings.push(mcpJsonResult.warning);
+        mcpReport.created.push(`.mcp.json (added: ${addedServers})`);
+        if (mcpJsonResult.warning) mcpReport.warnings.push(mcpJsonResult.warning);
         break;
       }
       case 'skipped':
-        result.skipped.push('.mcp.json (all required servers present)');
+        mcpReport.skipped.push('.mcp.json (all required servers present)');
         break;
       case 'error':
-        result.errors.push(`.mcp.json: ${mcpJsonResult.error}`);
+        mcpReport.errors.push(`.mcp.json: ${mcpJsonResult.error}`);
         break;
     }
   }

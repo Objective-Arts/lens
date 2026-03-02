@@ -14,7 +14,7 @@ import {
   listInstallations
 } from '../../workflow/index.js';
 import { printList } from '../display/index.js';
-import { validatePath } from './index.js';
+import { validateAndResolvePath } from '../../utils/validation.js';
 
 export function registerWorkflowCommands(program: Command): void {
   const workflowCmd = program.command('workflow').description('Manage workflow skills');
@@ -64,7 +64,7 @@ function handleList(): void {
 }
 
 function handleStatus(options: { project: string }): void {
-  const projectPath = validatePath(options.project);
+  const projectPath = validateAndResolvePath(options.project);
   if (!projectPath) { process.exitCode = 1; return; }
 
   const statuses = checkWorkflowStatus(projectPath);
@@ -99,7 +99,7 @@ function handleStatus(options: { project: string }): void {
 }
 
 function handleUpgrade(options: { project: string; force?: boolean; skills?: string }): void {
-  const projectPath = validatePath(options.project);
+  const projectPath = validateAndResolvePath(options.project);
   if (!projectPath) { process.exitCode = 1; return; }
 
   const skillList = options.skills?.split(',').map(s => s.trim());

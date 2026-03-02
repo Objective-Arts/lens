@@ -47,10 +47,10 @@ function printScanWarnings(summary: ScanResult['summary']): void {
   }
 }
 
-export function printScanSummary(result: ScanResult): void {
+export function printScanSummary(scanReport: ScanResult): void {
   console.log(chalk.bold('Configuration Summary'));
   console.log(chalk.gray('─'.repeat(50)));
-  printScanLocations(result);
-  printScanCounts(result.summary);
-  printScanWarnings(result.summary);
+  printScanLocations(scanReport);
+  printScanCounts(scanReport.summary);
+  printScanWarnings(scanReport.summary);
 }

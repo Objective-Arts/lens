@@ -119,7 +119,6 @@ export interface LensPaths {
   readonly mode: ResolveMode;
 }
 
-/** Resolve rubrics path: prefer .claude/rubric, fall back to workflow-skills/rubric */
 function resolveRubricsPath(): string {
   const claudeRubric = resolveAssetPath('.claude/rubric');
   if (fs.existsSync(claudeRubric)) return claudeRubric;

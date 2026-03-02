@@ -12,8 +12,8 @@ function createBar(value: number, max: number, width: number): string {
   return chalk.magenta('█'.repeat(filled)) + chalk.gray('░'.repeat(empty));
 }
 
-export function printTokenBreakdown(result: ScanResult): void {
-  const { summary, items } = result;
+export function printTokenBreakdown(scanReport: ScanResult): void {
+  const { summary, items } = scanReport;
 
   console.log(chalk.bold('\nToken Usage Breakdown'));
   console.log(chalk.gray('═'.repeat(50)));

@@ -15,7 +15,7 @@ import {
 } from '../../mcp/index.js';
 import { printInstalledServers, printRegistryServers, printEnvCheckResults } from '../display/index.js';
 import type { MCPServerCategory } from '../../mcp/types.js';
-import { validatePath } from './index.js';
+import { validateAndResolvePath } from '../../utils/validation.js';
 
 export function registerMcpCommands(program: Command): void {
   const mcpCmd = program.command('mcp').description('View MCP server status');
@@ -35,7 +35,7 @@ export function registerMcpCommands(program: Command): void {
 function handleList(options: { project?: string; installed?: boolean; category?: string; enabled?: boolean }): void {
   let projectPath: string | undefined;
   if (options.project) {
-    const validated = validatePath(options.project);
+    const validated = validateAndResolvePath(options.project);
     if (!validated) { process.exitCode = 1; return; }
     projectPath = validated;
   }
@@ -65,7 +65,7 @@ function handleList(options: { project?: string; installed?: boolean; category?:
 }
 
 function handleCheck(options: { project: string }): void {
-  const projectPath = validatePath(options.project);
+  const projectPath = validateAndResolvePath(options.project);
   if (!projectPath) { process.exitCode = 1; return; }
 
   const results = checkAllServers(projectPath);
