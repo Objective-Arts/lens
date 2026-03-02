@@ -1,6 +1,6 @@
 {
   "name": "@objective-arts/lens",
-  "version": "0.4.0",
+  "version": "0.5.0",
   "description": "Lens - AI Assisted Development That Builds In Quality",
   "type": "module",
   "main": "dist/index.js",
