@@ -19,27 +19,20 @@ workflow-skills/
 | `utils/` | Read-only tools and reports | No |
 | `rubric/` | Quality criteria for pipeline phases | — |
 
-## Pipelines
+## Workflows
 
-### Full Pipeline (`/build`, `/improve`)
+### Build + Improve (`/build`, `/improve`)
 
-8 phases (build includes phase 0 for PRD). Each phase reads a skill file, executes it against the target, and writes results to `.claude/build-log/`.
-
-```bash
-/build src/feature             # New feature from PRD
-/improve src/module            # Quality pass on existing code
-```
-
-Can also run via the bash orchestrator (isolated sessions per phase):
+Plan → Implement → Quality Gate → Canon Review + Fix → Verify. Single-session, no external tools.
 
 ```bash
-pipeline build src/auth --prd docs/requirements.md
-pipeline improve --fast "Wire ScoreEntryForm per docs/plan.md"
+/build add user authentication with JWT tokens
+/improve src/module
 ```
 
 ### Fast Fix Loop (`/fix`)
 
-Codex reviews, Claude fixes, Codex verifies. Skips the full pipeline for targeted fixes.
+Canon review + quality gate, fix findings, verify. Single-session, no external tools.
 
 ```bash
 /fix src/auth
@@ -65,7 +58,6 @@ One change, cleaned up, reported.
 | `refactoring` | 4 | Fix 10 mandatory structural issues |
 | `deduplication` | 5 | Consolidate true duplicates |
 | `gemini-review` | 6 | Gemini scan every file, fix critical/high |
-| `codex-review` | 6 | Codex pattern scan + fix by priority |
 | `qodana-review` | 6 | Static analysis, fix every issue |
 | `ai-smell-fix` | 6 | Remove 9 AI antipattern categories |
 | `testing` | 7 | Write tests, run suite, mock audit |
@@ -75,9 +67,9 @@ One change, cleaned up, reported.
 
 | Skill | What it does |
 |-------|-------------|
-| `build` | Orchestrates 8-phase build pipeline |
-| `improve` | Orchestrates 8-phase improve pipeline |
-| `fix` | Fast Codex → fix → verify loop |
+| `build` | Plan + build + quality gates |
+| `improve` | Plan + improve + quality gates |
+| `fix` | Canon review + quality gate + fix + verify |
 | `change` | Simple change + cleanup |
 | `security-review` | Security-focused review + fix |
 
@@ -86,7 +78,6 @@ One change, cleaned up, reported.
 | Skill | What it reports |
 |-------|----------------|
 | `gemini-scan` | Code quality and security findings |
-| `codex-scan` | Codex pattern findings |
 | `qodana-scan` | Static analysis findings |
 | `ai-smell-scan` | AI-generated antipatterns |
 | `code-scan` | 13-dimension comprehensive scan |

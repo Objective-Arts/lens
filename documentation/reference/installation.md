@@ -68,6 +68,8 @@ your-project/
 ├── CLAUDE.md                      # Standards, anti-patterns, auto-invoke rules
 └── .claude/
     ├── skills/                    # 14 slash commands
+    │   ├── build/                  #   /build — plan + build + quality gates
+    │   ├── improve/               #   /improve — plan + improve + quality gates
     │   ├── fix/                   #   /fix — canon review + fix + verify
     │   ├── change/                #   /change — small changes done right
     │   ├── code-scan/             #   /code-scan — 13-dimension quality scoring

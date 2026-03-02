@@ -54,9 +54,9 @@ After init, open Claude Code. Review existing code or write new:
 │  │                   Slash Commands (14 shipped)                  │      │
 │  │                                                               │      │
 │  │  REVIEW EXISTING CODE          WRITE + FIX                    │      │
-│  │  /code-scan     /ai-smell-scan /fix        /change            │      │
-│  │  /canon-audit   /deadcode-scan /ai-smell-fix                  │      │
-│  │  /ai-smell-scan /deadcode-scan /ai-smell-fix                  │      │
+│  │  /code-scan     /ai-smell-scan /build      /fix               │      │
+│  │  /canon-audit   /deadcode-scan /improve    /change            │      │
+│  │                                /ai-smell-fix                  │      │
 │  │                                /generate-docs                 │      │
 │  │                                                               │      │
 │  │  UTILITY                                                      │      │
@@ -91,6 +91,7 @@ Point any scan or audit at code you want to understand or improve. The code does
 | `/code-scan [path]` | 13-dimension quality scoring |
 | `/canon-audit <canon> [path]` | Audit against a canon's expert rules |
 | `/fix [path]` | Review against canons, fix findings, verify |
+| `/improve [path]` | Plan + improve + quality gate + canon fix + verify |
 | `/ai-smell-scan [path]` | Detect AI-generated code patterns |
 | `/deadcode-scan [path]` | Find unused code |
 
@@ -109,6 +110,7 @@ When you build or change code, the same canons inform what Claude writes.
 
 | Command | What it does |
 |---------|-------------|
+| `/build [desc]` | Plan + build new feature with quality gates |
 | `/change [desc]` | One small change, done right |
 | `/fix [desc]` | Build from description, review, fix |
 | `/ai-smell-fix [path]` | Remove AI code smells |

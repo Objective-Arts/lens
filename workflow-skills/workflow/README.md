@@ -40,9 +40,7 @@ Multi-step processes that modify code. Each follows a scan → fix → verify pa
 
 | Skill | Purpose |
 |-------|---------|
-| `/codex-review` | Codex review + fix all issues |
 | `/security-review` | Security audit + fix issues |
-| `/evaluation` | Score-driven evaluation via Codex. Fixes until all dimensions 9+. |
 
 ## Usage
 

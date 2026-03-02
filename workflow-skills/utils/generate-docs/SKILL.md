@@ -1,11 +1,11 @@
 ---
 name: generate-docs
-description: Generate documentation. Public APIs must have JSDoc. No vague docs.
+description: Generate documentation with Diátaxis framework. Public APIs must have JSDoc. Every doc lives in one quadrant.
 ---
 
 # /generate-docs [path]
 
-Generate documentation. Public APIs MUST be documented.
+Generate documentation with Diátaxis quadrant enforcement. Public APIs MUST be documented. Every document MUST live in exactly one quadrant.
 
 > **No arguments?** Describe this skill and stop. Do not execute.
 
@@ -42,6 +42,68 @@ Documentation must look like it was written by a skilled human technical writer,
 
 ---
 
+## Diátaxis Framework
+
+Every document you write or update MUST belong to exactly one quadrant:
+
+```
+                PRACTICAL              THEORETICAL
+          ┌──────────────────────┬──────────────────────┐
+LEARNING  │     TUTORIALS        │    EXPLANATION        │
+          │  "Follow me as I     │  "Here's why this     │
+          │   show you how"      │   works this way"     │
+          ├──────────────────────┼──────────────────────┤
+WORKING   │     HOW-TO           │    REFERENCE          │
+          │  "Here's how to      │  "Here's the          │
+          │   accomplish X"      │   specification"      │
+          └──────────────────────┴──────────────────────┘
+```
+
+### Decision Tree
+
+- Learning something new? → **Tutorial** (hold their hand, no choices)
+- Trying to accomplish a task? → **How-To** (assumes competence, no teaching)
+- Looking up specific info? → **Reference** (complete, consistent, austere)
+- Trying to understand why? → **Explanation** (discuss alternatives, take positions)
+
+### Quadrant-to-Output Mapping
+
+| Output Type | Quadrant | Rules |
+|-------------|----------|-------|
+| JSDoc/TSDoc | **Reference** | Complete, consistent, example for every public item |
+| README usage sections | **How-To** | Task-oriented, assumes competence, starts with the goal |
+| `docs/tutorials/` | **Tutorial** | Step-by-step, no choices, no theory digressions |
+| Architecture/design docs | **Explanation** | Discusses why, alternatives, trade-offs |
+
+### Quadrant-Specific Rules
+
+**Reference** (JSDoc, API docs):
+- Structured by the code, not by tasks
+- Consistent format throughout — every function documented the same way
+- Include examples for every public item
+- No "First, install..." walkthroughs (that's How-To)
+- No "why" explanations (that's Explanation)
+
+**How-To** (README usage, guides):
+- Start with the goal ("How to deploy"), not the tool ("Using the deploy command")
+- Assumes competence — no teaching
+- Numbered steps, troubleshooting section
+- No theory digressions
+
+**Tutorial** (getting-started, walkthroughs):
+- Every step explicit, no choices offered
+- Reader succeeds at each checkpoint
+- Minimal explanation — just enough to proceed
+- No "dependency injection is a pattern where..." tangents
+
+**Explanation** (architecture, design docs):
+- Discusses alternatives and trade-offs
+- Takes positions — not wishy-washy
+- Connects to bigger picture
+- Links to relevant How-To and Reference docs
+
+---
+
 ## ⚠️ STRICT REQUIREMENTS - NO JUDGMENT CALLS
 
 You MUST do these documentation tasks. Not "consider" - DO:
@@ -58,13 +120,21 @@ You MUST do these documentation tasks. Not "consider" - DO:
 - Saying "documentation would help" without writing it
 - Skipping JSDoc on public APIs
 - Writing vague descriptions ("handles the thing")
+- Mixing Diátaxis quadrants in a single document
 
 ## Process
 
-1. **Analyze** - Identify what needs documentation
-2. **Document** - Add JSDoc to public APIs, inline comments where needed
-3. **Update README** - If feature affects usage
-4. **Report** - List what was documented
+1. **Analyze** — Identify what needs documentation
+2. **Load Diátaxis** — Read `.claude/canon/docs/SKILL.md` to internalize the full canon (quadrants, anti-patterns, quality checklist)
+3. **Classify** — For each doc being written/updated, determine its Diátaxis quadrant (Tutorial, How-To, Reference, or Explanation). Enforce single-quadrant purity. If a file mixes quadrants, split it or flag it.
+4. **Document** — Write the docs. JSDoc = Reference (complete, consistent, examples). README usage = How-To (task-oriented, assumes competence). Architecture docs = Explanation. Follow quadrant-specific rules above.
+5. **Audit** — Check all documentation against Diátaxis concrete checks:
+   - [ ] Single quadrant? Each document lives in exactly one quadrant. If it spans two, split it.
+   - [ ] No teaching in tutorials? Tutorials stick to "do this, then this" without explaining why.
+   - [ ] No tutorials in reference? Reference avoids "First, install..." walkthroughs.
+   - [ ] Completeness for reference? Covers every public function/option/parameter — no cherry-picking.
+   - [ ] Task-oriented how-to? Starts with the goal, not the tool.
+6. **Report** — Output results with Diátaxis audit
 
 ## REQUIRED Output Format
 
@@ -72,13 +142,15 @@ You MUST do these documentation tasks. Not "consider" - DO:
 ## Documentation: [target]
 
 DOCUMENTED:
-- src/service.ts: 5 functions with JSDoc
-- src/types.ts: 3 types with field comments
-- README.md: Added "Usage" section for new feature
+- src/service.ts: 5 functions with JSDoc (Reference)
+- src/types.ts: 3 types with field comments (Reference)
+- README.md: Added "Usage" section (How-To)
 
 PUBLIC_APIS_DOCUMENTED: N
 README_UPDATED: yes/no
 COMMENTS_ADDED: N
+DIATAXIS_QUADRANTS_CLEAN: yes/no
+MIXED_QUADRANT_VIOLATIONS: N
 
 APPLIED:
 - [expert]: [decision]
@@ -90,6 +162,7 @@ DOC_COMPLETE
 
 - No DOCUMENTED section
 - PUBLIC_APIS_DOCUMENTED: 0 when public functions exist
+- DIATAXIS_QUADRANTS_CLEAN missing from output
 
 ## 🛑 MANDATORY STOP
 

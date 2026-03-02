@@ -6,9 +6,9 @@
 
 | Command | Description |
 |---------|-------------|
-| `/fix [path] [--dry-run]` | Fast quality loop — Codex reviews, Claude fixes, Codex verifies |
-| `/build [path] [--rollback] [--dry-run]` | Build new feature with quality pipeline |
-| `/improve [path] [--rollback] [--dry-run]` | Improve existing code with quality pipeline |
+| `/fix [path] [--dry-run]` | Canon review + quality gate + fix + verify |
+| `/build [description] [--dry-run] [--rollback]` | Plan + build new feature with quality gates |
+| `/improve [path] [--dry-run] [--rollback]` | Plan + improve existing code with quality gates |
 | `/change [description]` | Simple changes done right — make it, clean it, report it |
 | `/ai-smell-fix [path]` | Deep AI smell removal |
 | `/generate-docs [path]` | Generate documentation |
@@ -20,7 +20,6 @@
 | `/gemini-scan [path]` | Gemini review (report only) |
 | `/ai-smell-scan [path]` | AI code patterns (report only) |
 | `/canon-audit <canon> [path]` | Audit project against a canon's rules (report only) |
-| `/codex-scan [path]` | Codex pattern scan (report only) |
 
 **Utilities:**
 
@@ -29,19 +28,8 @@
 | `/lens` | Home base - status and help |
 
 **Flags for /build and /improve:**
+- `--dry-run` — Show the plan without making changes
 - `--rollback` — Restore from last stash
-- `--dry-run` — Show what would change without modifying
-- `--from N|name` — Resume from a specific phase
-
-**Bash pipeline orchestrator** (runs from any project):
-```
-pipeline build <target|"description"> [--prd FILE] [--desc "..."] [--fast] [--from N|name] [--rollback] [--dry-run]
-pipeline improve <target|"description"> [--desc "..."] [--fast] [--from N|name] [--rollback] [--dry-run]
-```
-- `--fast` — Sonnet for phase 3, parallel phases 4+5
-- `--prd FILE` — PRD document for phase 0 (build only)
-- `--desc "..."` — Task description injected into all phases
-- Pass a description string instead of a path to use current directory as target
 
 ## Standards
 

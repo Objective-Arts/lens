@@ -120,7 +120,7 @@ Show workflow skills grouped by purpose:
 
  LIGHT WORKFLOWS
    /change [desc]           Simple change + cleanup
-   /fix [path]              Fast Codex → fix → verify loop
+   /fix [path]              Canon review + fix + verify
 
 ═══════════════════════════════════════════
 
@@ -137,7 +137,7 @@ Quick Start Options:
 1. **New feature** — /build [target] (full pipeline)
 2. **Improve existing code** — /improve [path] (full pipeline)
 3. **Simple change** — /change [description]
-4. **Fast fix** — /fix [path] (Codex → fix → verify)
+4. **Fast fix** — /fix [path] (canon review → fix → verify)
 5. **Review code** — /gemini-scan [path]
 
 Which workflow?

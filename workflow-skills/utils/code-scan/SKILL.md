@@ -274,6 +274,6 @@ CODE_SCAN_DONE
 - **COMPLETE** — Read all target files fully, do not skim
 - **SPECIFIC** — Cite file:line for every finding
 - **ACTIONABLE** — Every critical/warning has a fix suggestion
-- **NO EXTERNAL TOOLS** — Claude analysis only. No Gemini, Codex, Qodana, or MCP tool calls
+- **NO EXTERNAL TOOLS** — Claude analysis only. No Gemini, Qodana, or MCP tool calls
 - **DETERMINISTIC SCORING** — Same code, same scores. No rounding, no partial points
 - **PIPELINE MARKERS** — Always emit `CODE_SCAN_INDEX: N/130 (Rating)` and `CODE_SCAN_DONE` at report end

@@ -102,6 +102,8 @@ These all work on code you didn't write. That's the primary use case — you poi
 When you're ready to build or change code, the same canons inform what Claude writes:
 
 ```
+/build add user authentication with JWT tokens
+/improve src/api/
 /change add input validation to the login form
 /fix "add a rate limiter to the API endpoints"
 ```

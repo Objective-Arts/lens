@@ -10,7 +10,7 @@ Lens distills expertise from renowned engineers into composable "skills" that Cl
 
 - **88 canon skills** across 30 categories — from clarity (Kernighan) to security-mindset to React state (Abramov) to visualization (Tufte)
 - **15 composable profiles** — bundle skills for project types (`javascript+react+security`)
-- **10 shipped workflow skills** — 2 workflow commands + 8 read-only scans/utilities
+- **12 shipped workflow skills** — 4 workflow commands + 8 read-only scans/utilities
 - **Quality rubrics** — domain-specific review criteria (TypeScript, React, C#, security, and more)
 
 ## Quick Start
@@ -41,6 +41,8 @@ After applying a profile, these slash commands are available in Claude Code:
 
 | Command | What it does |
 |---------|-------------|
+| `/build <description>` | Plan + build + quality gate + canon fix + verify |
+| `/improve <path>` | Plan + improve + quality gate + canon fix + verify |
 | `/fix <path>` | Canon review + quality gate, fix findings, verify — Claude-native, no external models |
 | `/change <description>` | Simple change + cleanup + report |
 

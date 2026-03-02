@@ -202,7 +202,7 @@ CANON_AUDIT_DONE
 - **SPECIFIC** — Cite file:line for every finding
 - **BOTH LOCATIONS** — Output report to conversation AND write to `.claude/canon-audit-report.md`
 - **PASSING RULES TOO** — Report what's working, not just what's broken
-- **NO EXTERNAL TOOLS** — Claude analysis only. No Gemini, Codex, or MCP tool calls
+- **NO EXTERNAL TOOLS** — Claude analysis only. No Gemini or MCP tool calls
 - **ACTIONABLE** — Every critical/high finding has a specific fix suggestion
 
 ## When to Use
@@ -217,4 +217,4 @@ CANON_AUDIT_DONE
 - To fix code — use `/fix` or `/improve` with the report
 - For general code quality — use `/code-scan`
 - For AI smell detection — use `/ai-smell-scan`
-- For external model review — use `/gemini-scan` or `/codex-scan`
+- For external model review — use `/gemini-scan`
